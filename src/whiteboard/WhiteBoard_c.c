@@ -364,20 +364,23 @@ static int wb_value(
 }
 
 //! Default user error handler, do nothing
-static void null_error_handler()
+static void null_error_handler(const int32_t* severity, const int32_t* code)
 {
+    (void)severity;
+    (void)code;
     return;
 }
 
+typedef void (*error_handler_fn)(const int32_t* severity, const int32_t* code);
 //! Pointer to the user's FORTRAN handler routine, defaults to internal null_error_handler
 //! The error handler receives two pointers to int32_t variables
-static void (*errorHandler)() = &null_error_handler;
+static error_handler_fn errorHandler = null_error_handler;
 
 
 //! Set the error handler
 void f77_name(f_wb_error_handler)(
     //! [in] Pointer to the error handler function
-    void (*userErrorHandler)()
+    error_handler_fn userErrorHandler
 ) {
     errorHandler = userErrorHandler;
 }
@@ -443,7 +446,7 @@ static int wb_error(
         message++;
     }
     // Call user's FORTRAN error handler
-    (*errorHandler)(&Severity ,&Code);
+    errorHandler(&Severity ,&Code);
     return code;
 }
 

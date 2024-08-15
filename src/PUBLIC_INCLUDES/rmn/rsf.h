@@ -54,17 +54,9 @@ DT_08 ... DT_64  : length of data elements in record (for endianness management)
 #include <sys/resource.h>
 
 
-//! \{
-//! \name Opening modes
-#define RSF_RO       2
-#define RSF_RW       4
-#define RSF_AP       8
-#define RSF_FUSE  1024
-//! \}
-
-/* meta[0] used for Record Type (RT) and Record Class */
-/* meta[1] possibly used for data map length */
-/* #define RSF_META_RESERVED 1 */
+// meta[0] used for Record Type (RT) and Record Class
+// meta[1] possibly used for data map length
+// #define RSF_META_RESERVED 1
 // #define RSF_META_RESERVED 2
 
 //! Number of 32-bit elements at the beginning of the search metadata of
@@ -72,25 +64,34 @@ DT_08 ... DT_64  : length of data elements in record (for endianness management)
 //! The first one is used to hold RSF version, record type and record class
 #define RSF_META_RESERVED 1
 
-//! \{
-//! \name Record types
-static const uint8_t RT_NULL   = 0;     //!< No type (can match any record)
-static const uint8_t RT_DATA   = 1;     //!< Data record
-static const uint8_t RT_XDAT   = 2;     //!< Extension record
-static const uint8_t RT_SOS    = 3;     //!< Start-of-segment record
-static const uint8_t RT_EOS    = 4;     //!< End-of-segment record
-static const uint8_t RT_VDIR   = 6;     //!< Directory record
-static const uint8_t RT_FILE   = 7;     //!< Record is a file
-static const uint8_t RT_CUSTOM = 8;
-static const uint8_t RT_DEL    = 0x80;  //!< Deleted record
-//! \}
+//! Opening modes
+typedef enum {
+    RSF_RO   =    2,
+    RSF_RW   =    4,
+    RSF_AP   =    8,
+    RSF_FUSE = 1024
+} rsf_open_mode;
 
-//! \{
-//! \name Record classes
-static const uint8_t RC_NULL = 0;
-static const uint8_t RC_DATA = 1;    //!< Indicate a record that contains data
-static const uint8_t RC_FILE = 0x80; //!< Indicate a record that contains a file
-//! \}
+//! Record types
+typedef enum {
+    RT_INVALID = -1,     //!< Invalid (used to signal errors)
+    RT_NULL    =  0,     //!< No type (can match any record)
+    RT_DATA    =  1,     //!< Data record
+    RT_XDAT    =  2,     //!< Extension record
+    RT_SOS     =  3,     //!< Start-of-segment record
+    RT_EOS     =  4,     //!< End-of-segment record
+    RT_VDIR    =  6,     //!< Directory record
+    RT_FILE    =  7,     //!< Record is a file
+    RT_CUSTOM  =  8,
+    RT_DEL     = 0x80    //!< Deleted record
+} rsf_rec_type;
+
+//! Record classes
+typedef enum {
+    RC_NULL = 0,
+    RC_DATA = 1,    //!< Indicate a record that contains data
+    RC_FILE = 0x80  //!< Indicate a record that contains a file
+} rsf_rec_class;
 
 #define DT_ANY 0
 #define DT_08  1
@@ -112,51 +113,58 @@ static const uint8_t RC_FILE = 0x80; //!< Indicate a record that contains a file
 #define BAD_KEY32 -1
 
 typedef struct{   // this struct only contains a pointer to the actual full control structure
-  void *p ;
+    void *p ;
 } RSF_handle ;
 
 //! Description of a RSF record + its content
 typedef struct{
-  void     *sor ;      //!< start of record address ( pointer to RSF_record.d )
-  uint32_t *meta ;     //!< pointer to metadata array ( sor + sizeof(sor) )
-  void     *data ;     //!< pointer to start of data payload array (data map or data)
-  void     *eor ;      //!< end of record address ( (void *) RSF_record.d + max_data )
-  uint64_t data_size ; //!< actual data size in bytes (may remain 0 in unmanaged records)
-  uint64_t max_data ;  //!< maximum data payload size in bytes
-  int64_t rsz ;        //!< allocated size of RSF_record in bytes (including SOR, metadata, data and EOR)
-  uint16_t dir_meta ;  //!< directory metadata size in uint32_t units
-  uint16_t rec_meta ;  //!< record metadata size in uint32_t units
-  uint16_t elem_size ; //!< length of data elements in d[] (1/2/4/8 bytes) (endianness management)
-  uint8_t  rec_type ;  //!< Type of record (data, directory, etc)
-  uint8_t  rec_class ; //!< Class of record (data vs file?) TODO clarify
-  uint8_t  d[] ;       //!< dynamic data array (bytes)
+    void     *sor ;      //!< start of record address ( pointer to RSF_record.d )
+    uint32_t *meta ;     //!< pointer to metadata array ( sor + sizeof(sor) )
+    void     *data ;     //!< pointer to start of data payload array (data map or data)
+    void     *eor ;      //!< end of record address ( (void *) RSF_record.d + max_data )
+    uint64_t data_size ; //!< actual data size in bytes (may remain 0 in unmanaged records)
+    uint64_t max_data ;  //!< maximum data payload size in bytes
+    int64_t rsz ;        //!< allocated size of RSF_record in bytes (including SOR, metadata, data and EOR)
+    uint16_t dir_meta ;  //!< directory metadata size in uint32_t units
+    uint16_t rec_meta ;  //!< record metadata size in uint32_t units
+    uint16_t elem_size ; //!< length of data elements in d[] (1/2/4/8 bytes) (endianness management)
+    uint8_t  rec_type ;  //!< Type of record (data, directory, etc)
+    uint8_t  rec_class ; //!< Class of record (data vs file?) TODO clarify
+    uint8_t  d[] ;       //!< dynamic data array (bytes)
 } RSF_record ;
 
 //! Record information. This struct MUST BE TREATED AS READ-ONLY.
 typedef struct{
-  uint64_t wa ;        //!< address of record in file
-  uint64_t rl ;        //!< record length in bytes (including SOR, metadata, data and EOR)
-  uint64_t wa_data ;   //!< address of data in file
-  uint64_t data_size ; //!< actual data size in bytes (may remain 0 in unmanaged records)
-  uint64_t wa_meta ;   //!< address of metadata in file
-  const uint32_t *meta ;  //!< pointer to directory metadata (DO NOT STORE INTO)
-  const char     *fname ; //!< pointer to filename if file container (DO NOT STORE INTO)
-  uint64_t file_size ; //!< true file size (from metadata) if file container
-  uint16_t dir_meta ;  //!< directory metadata size in uint32_t units
-  uint16_t dir_meta0 ; //!< size excluding file name and file length in file containers
-  uint16_t rec_meta ;  //!< record metadata size in uint32_t units
-  uint16_t elem_size ; //!< length of data elements (1/2/4/8 bytes) (endianness management)
-  uint8_t rec_type ; //!< Type of the record
-// NOTE: add something for data map length ?
+    uint64_t wa ;        //!< address of record in file
+    uint64_t rl ;        //!< record length in bytes (including SOR, metadata, data and EOR)
+    uint64_t wa_data ;   //!< address of data in file
+    uint64_t data_size ; //!< actual data size in bytes (may remain 0 in unmanaged records)
+    uint64_t wa_meta ;   //!< address of metadata in file
+    const uint32_t *meta ;  //!< pointer to directory metadata (DO NOT STORE INTO)
+    const char     *fname ; //!< pointer to filename if file container (DO NOT STORE INTO)
+    uint64_t file_size ; //!< true file size (from metadata) if file container
+    uint16_t dir_meta ;  //!< directory metadata size in uint32_t units
+    uint16_t dir_meta0 ; //!< size excluding file name and file length in file containers
+    uint16_t rec_meta ;  //!< record metadata size in uint32_t units
+    uint16_t elem_size ; //!< length of data elements (1/2/4/8 bytes) (endianness management)
+    uint8_t rec_type ; //!< Type of the record
+    // NOTE: add something for data map length ?
 } RSF_record_info ;
 
 // metadata matching function (normally supplied by application)
-typedef int32_t RSF_Match_fn(uint32_t *criteria, uint32_t *meta, uint32_t *mask, int ncrit, int nmeta, int reject_a_priori) ;
+typedef int32_t RSF_Match_fn(uint32_t *criteria, const uint32_t *meta, const uint32_t *mask, int ncrit, int nmeta, int reject_a_priori) ;
 
 int32_t RSF_set_diag_level(int32_t level) ;
 char *RSF_diag_level_text(int32_t level) ;
 
-int32_t RSF_Default_match(uint32_t *criteria, uint32_t *meta, uint32_t *mask, int ncrit, int nmeta, int reject_a_priori) ;
+int32_t RSF_Default_match(
+    uint32_t * criteria,
+    const uint32_t * meta,
+    const uint32_t * mask,
+    int ncrit,
+    int nmeta,
+    int reject_a_priori
+);
 int32_t RSF_Base_match(uint32_t *criteria, uint32_t *meta, uint32_t *mask, int ncrit, int nmeta, int reject_a_priori) ;  // ignores mask
 
 
@@ -186,25 +194,23 @@ void *RSF_Get_record_meta(RSF_handle h, int64_t key, int32_t *metasize, uint64_t
 
 int32_t RSF_Close_file(RSF_handle h) ;
 
-
 void RSF_Dump(char *name, int verbose) ;
-
 
 void RSF_Dump_dir(RSF_handle h) ;
 
 void RSF_Dump_vdir(RSF_handle h) ;
 
-int32_t RSF_Valid_handle(RSF_handle h) ;
+int32_t RSF_Is_handle_valid(RSF_handle h) ;
 
 //! create pointer to a new allocated record (C)
 RSF_record *RSF_New_record(RSF_handle h, int32_t rec_meta, int32_t dir_meta, const uint8_t rec_type,
                            const size_t max_data, void * const t, int64_t szt) ;
-int32_t RSF_Record_add_meta(RSF_record *r, uint32_t *meta, int32_t rec_meta, int32_t dir_meta, uint32_t data_elem) ;  // add metadata
-int64_t RSF_Record_add_bytes(RSF_record *r, void *data, size_t data_size) ;  // add data bytes
-int64_t RSF_Record_add_elements(RSF_record *r, void *data, size_t num_data_elements, int data_element_size) ; //!< \copydoc RSF_Record_add_elements
+int32_t RSF_Record_add_meta(RSF_record * const rec, const uint32_t * const meta, int32_t rec_meta, int32_t dir_meta, uint32_t data_elem) ;  // add metadata
+int64_t RSF_Record_add_bytes(RSF_record * const rec, const void * const data, size_t data_size);  // add data bytes
+int64_t RSF_Record_add_elements(RSF_record * const rec, const void * const data, size_t num_data_elements, int data_element_size); //!< \copydoc RSF_Record_add_elements
 int64_t RSF_Record_set_num_elements(RSF_record *r, size_t num_elements, int element_size) ; //!< \copydoc RSF_Record_set_num_elements
-void RSF_Free_record(RSF_record * r) ;                       // free the space allocated to that record
-int32_t RSF_Valid_record(RSF_record *r) ;                    // does this look like a valid record ?
+void RSF_Free_record(RSF_record * const rec) ;                       // free the space allocated to that record
+int32_t RSF_Valid_record(const RSF_record * const rec) ;                    // does this look like a valid record ?
 int64_t RSF_Record_free_space(RSF_record *r) ;               // space available for more data in record allocated by RSF_New_record
 int64_t RSF_Record_allocated(RSF_record *r) ;                // allocated size of record allocated by RSF_New_record
 int64_t RSF_Record_max_space(RSF_record *r) ;                // maximum data payload size in record allocated by RSF_New_record
@@ -220,7 +226,7 @@ int32_t RSF_Key32(int64_t key64) ;
 int64_t RSF_Key64(int32_t key32) ;
 uint32_t RSF_Key64_to_file_slot(int64_t key64) ;
 int32_t RSF_Key32_type(int32_t key32) ;
-int32_t RSF_File_slot(RSF_handle h) ;
+int32_t RSF_Get_file_slot(RSF_handle h) ;
 int64_t RSF_Make_key(const int32_t slot, const int32_t record_id) ;
 RSF_handle RSF_Key32_to_handle(int32_t key32) ;
 RSF_handle RSF_Key64_to_handle(int64_t key64) ;

@@ -132,6 +132,5 @@
          return
       endif
 
- 600  format('0',' erreur, mauvaise grille (gdwfllw) - grtyp = ', A1)
       return
       end

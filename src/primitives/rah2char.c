@@ -34,7 +34,7 @@ void f77name(rah2char)(char *chaine, int32_t *f_entier, const int32_t * const f_
     }
     for (int i = 0; i < nc; i++) {
         entier <<= ((8 * sizeof(entier)) - (nc * 8));
-        *chaine = (entier >> 8 * sizeof(entier) - 8) & 0xFF;
+        *chaine = (entier >> (8 * sizeof(entier) - 8)) & 0xFF;
         entier <<= 8;
         chaine++;
     }

@@ -16,9 +16,6 @@ foreach(f IN LISTS python_files)
 endforeach()
 install(FILES ${python_files} DESTINATION lib/python/rmn)
 
-if(NOT BUILD_SHARED_LIBS)
-    message(FATAL_ERROR "Python extension module needs rmn-shared:  Re-run CMake with '-DBUILD_SHARED_LIBS=ON'")
-endif()
 target_link_libraries(_rmn PRIVATE rmn::rmn-shared ${PYTHON_LIBRARIES})
 target_include_directories(_rmn PRIVATE ${PYTHON_INCLUDE_DIRS})
 

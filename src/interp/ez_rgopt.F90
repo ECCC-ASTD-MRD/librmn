@@ -17,168 +17,165 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-      subroutine ez_rgoptc(op, val, flag)
-      use rmn_ez_qqqxtrp0
-      implicit none
-      character(len = 8) :: op, val
-      logical flag
 
-      integer ier,ezsetopt, ezgetopt
 
-!flag = .true.  mode set
-!flag = .false. mode get
+subroutine ez_rgoptc(op, val, flag)
+    use rmn_ez_qqqxtrp0
+    implicit none
 
-      character(len = 3) :: localop,localval
+    character(len = 8) :: op, val
+    logical flag
 
-      localop =op(1:3)
-      localval=val(1:3)
+    integer ier, ezsetopt, ezgetopt
 
-      call up2low(localop,localop)
-      call up2low(localval,localval)
+    character(len = 3) :: localop, localval
 
-      if (flag) then
-         if (localop.eq.  'ext') then
-            if (localval .eq.  'oui') then
-               codxtrap = oui
-               ier = ezsetopt('extrap_degree', 'do_nothing')
-            else if (localval.eq.  'abo') then
-               codxtrap = abort
-               ier = ezsetopt('extrap_degree', 'abort')
-            else if (localval .eq.  'max') then
-               codxtrap = maximum
-               ier = ezsetopt('extrap_degree', 'maximum')
-            else if (localval .eq.  'min') then
-               codxtrap = minimum
-               ier = ezsetopt('extrap_degree', 'minimum')
-            else if (localval .eq.  'voi') then
-               codxtrap = voisin
-               ier = ezsetopt('extrap_degree', 'nearest')
-            else if (localval .eq.  'val') then
-               codxtrap = valeur
-               ier = ezsetopt('extrap_degree', 'value')
-            else 
-               print *, ' <rgoptc>: mauvaise valeur pour val'
-               print *, '           val = ', val
-               print *, '           val initialisee a ''abort'''
-               codxtrap = abort
-               ier = ezsetopt('extrap_degree', 'abort')
+    localop = op(1:3)
+    localval = val(1:3)
+
+    call up2low(localop, localop)
+    call up2low(localval, localval)
+
+    if (flag) then
+        if (localop .eq. 'ext') then
+            if (localval .eq. 'oui') then
+                codxtrap = oui
+                ier = ezsetopt('extrap_degree', 'do_nothing')
+            else if (localval .eq. 'abo') then
+                codxtrap = abort
+                ier = ezsetopt('extrap_degree', 'abort')
+            else if (localval .eq. 'max') then
+                codxtrap = maximum
+                ier = ezsetopt('extrap_degree', 'maximum')
+            else if (localval .eq. 'min') then
+                codxtrap = minimum
+                ier = ezsetopt('extrap_degree', 'minimum')
+            else if (localval .eq. 'voi') then
+                codxtrap = voisin
+                ier = ezsetopt('extrap_degree', 'nearest')
+            else if (localval .eq. 'val') then
+                codxtrap = valeur
+                ier = ezsetopt('extrap_degree', 'value')
+            else
+                print *, ' <rgoptc>: mauvaise valeur pour val'
+                print *, '           val = ', val
+                print *, '           val initialisee a ''abort'''
+                codxtrap = abort
+                ier = ezsetopt('extrap_degree', 'abort')
             endif
-         else if (localop.eq.'int') then
-            if (localval .eq.  'voi') then
-               ordint = voisin
-               ier = ezsetopt('interp_degree', 'nearest')
-            else if (localval.eq.  'lin') then
-               ordint = lineair
-               ier = ezsetopt('interp_degree', 'linear')
-            else if (localval.eq.  'cub') then
-               ordint = cubique
-               ier = ezsetopt('interp_degree', 'cubic')
-            else 
-               print *, ' <rgoptc>: mauvaise valeur pour val'
-               print *, '           val = ', val
-               print *, '           val initialisee a ''cubique'''
-               ordint = cubique
-               ier = ezsetopt('interp_degree', 'cubic')
+        else if (localop .eq. 'int') then
+            if (localval .eq. 'voi') then
+                ordint = voisin
+                ier = ezsetopt('interp_degree', 'nearest')
+            else if (localval .eq. 'lin') then
+                ordint = lineair
+                ier = ezsetopt('interp_degree', 'linear')
+            else if (localval .eq. 'cub') then
+                ordint = cubique
+                ier = ezsetopt('interp_degree', 'cubic')
+            else
+                print *, ' <rgoptc>: mauvaise valeur pour val'
+                print *, '           val = ', val
+                print *, '           val initialisee a ''cubique'''
+                ordint = cubique
+                ier = ezsetopt('interp_degree', 'cubic')
             endif
-         else
+        else
             print *, ' <rgoptc>: mauvaise valeur pour op'
-            print *,             '     op devrait etre egal a ''extrap'' ou ''interp'''
-         endif
-      else 
-         if (localop .eq.  'ext') then
+            print *, '     op devrait etre egal a ''extrap'' ou ''interp'''
+        endif
+    else
+        if (localop .eq. 'ext') then
             ier = ezgetopt('extrap_degree', val)
-         endif
-         if (localop .eq.  'int') then
+        endif
+        if (localop .eq. 'int') then
             ier = ezgetopt('interp_degree', val)
-         endif
-      endif
-      return
-      end
+        endif
+    endif
+end
 
-      subroutine ez_rgopti(op, val, flag)
-      use rmn_ez_qqqxtrp0
-      implicit none
-      character(len = 8) :: op
-      integer val
-      logical flag
-      integer ier,ezsetval,ezgetval,ezsetopt,ezgetopt
-      
-!     flag = .true.  mode set
-!     flag = .false. mode get
-      
-      real rval
-      
-      character(len = 3)  :: localop
-      character(len = 16) :: local_val
-      
-      localop=op(1:3)
-      call up2low(localop,localop)
-      
-      if (flag) then
-         if (localop .eq.  'ext') then
-            if (val .eq.  voisin .or.  val .eq.  lineair             .or.  val .eq. cubique) then
-               if (val.eq.100.or.val.eq.0) then
-                  ier = ezsetopt('interp_degree','nearest')
-               elseif (val.eq.1) then
-                  ier = ezsetopt('interp_degree','linear')
-               elseif (val.eq.3) then
-                  ier = ezsetopt('interp_degree','cubic')
-               endif
+
+subroutine ez_rgopti(op, val, flag)
+    use rmn_ez_qqqxtrp0
+    implicit none
+
+    character(len = 8) :: op
+    integer val
+    logical flag
+
+    integer ier, ezsetval, ezgetval, ezsetopt, ezgetopt
+
+    real rval
+
+    character(len = 3)  :: localop
+    character(len = 16) :: local_val
+
+    localop=op(1:3)
+    call up2low(localop, localop)
+
+    if (flag) then
+        if (localop .eq. 'ext') then
+            if (val .eq. voisin .or. val .eq. lineair .or. val .eq. cubique) then
+                if (val .eq. 100 .or. val .eq. 0) then
+                    ier = ezsetopt('interp_degree', 'nearest')
+                elseif (val .eq. 1) then
+                    ier = ezsetopt('interp_degree', 'linear')
+                elseif (val .eq. 3) then
+                    ier = ezsetopt('interp_degree', 'cubic')
+                endif
             else
-               valxtrap = real(val)
+                valxtrap = real(val)
             endif
-            ier = ezsetval('extrap_value',valxtrap)
-         else 
-            if (localop .eq.  'int') then
-               if (val.eq.100.or.val.eq.0) then
-                  ier = ezsetopt('interp_degree','nearest')
-               elseif (val.eq.1) then
-                  ier = ezsetopt('interp_degree','linear')
-               elseif (val.eq.3) then
-                  ier = ezsetopt('interp_degree','cubic')
-               else
-                  print *, '<ez_rgopti> Erreur!'
-               endif
+            ier = ezsetval('extrap_value', valxtrap)
+        else
+            if (localop .eq. 'int') then
+                if (val .eq. 100 .or. val .eq. 0) then
+                    ier = ezsetopt('interp_degree', 'nearest')
+                elseif (val .eq. 1) then
+                    ier = ezsetopt('interp_degree', 'linear')
+                elseif (val .eq. 3) then
+                    ier = ezsetopt('interp_degree', 'cubic')
+                else
+                    print *, '<ez_rgopti> Erreur!'
+                endif
             endif
-         endif
-      else
-         if (localop.eq.'ext') then
-            ier = ezgetval('extrap_value',rval)
+        endif
+    else
+        if (localop .eq. 'ext') then
+            ier = ezgetval('extrap_value', rval)
             val = nint(rval)
-         else if (localop .eq.  'int') then
+        else if (localop .eq. 'int') then
             ier = ezgetopt('interp_degree', local_val)
-            if (local_val.eq.'nearest') then
-               val = 0
-            elseif (local_val.eq.'linear') then
-               val = 1
+            if (local_val .eq. 'nearest') then
+                val = 0
+            elseif (local_val .eq. 'linear') then
+                val = 1
             else
-               val = 3
+                val = 3
             endif
-         endif
-      endif
-      return
-      end
-      
-      subroutine ez_rgoptr(op, val, flag)
-      use rmn_ez_qqqxtrp0
-      implicit none
-      character(len = 8) :: op
-      real val
-      logical flag
-      integer ier, ezsetval,ezgetval
-!     flag = .true.  mode set
-!     flag = .false. mode get
-      
-      character(len = 3) :: localop
-      
-      localop=op(1:3)
-      call up2low(localop,localop)
-      
-      if (flag) then
-         ier = ezsetval('extrap_value',val)
-      else 
-         ier = ezgetval('extrap_value',val)
-      endif
-      
-      return
-      end
+        endif
+    endif
+end
+
+
+subroutine ez_rgoptr(op, val, flag)
+    use rmn_ez_qqqxtrp0
+    implicit none
+
+    character(len = 8) :: op
+    real val
+    logical flag
+
+    integer ier, ezsetval, ezgetval
+
+    character(len = 3) :: localop
+
+    localop = op(1:3)
+    call up2low(localop, localop)
+
+    if (flag) then
+        ier = ezsetval('extrap_value', val)
+    else
+        ier = ezgetval('extrap_value', val)
+    endif
+end

@@ -187,7 +187,10 @@ static unsigned short ushort_missing_val = 0xFFFF;
 //! Largest  8 bit unsigned integer
 static unsigned char ubyte_missing_val = 0xFF;
 
-static void (*set_plugin_missing_value_flags)() = NULL;
+static void (*set_plugin_missing_value_flags)(
+    const float * const, const int * const, const unsigned int * const, const double * const,
+    const short * const, const unsigned short * const, const signed char * const, const unsigned char * const
+) = NULL;
 
 /* Fortran and C callable versions get get "magic values" used flag */
 #pragma weak missing_value_used_ = missing_value_used
@@ -456,7 +459,7 @@ FLD_TYPE_ANAL(fld_ubyte_anal,  unsigned char,  ubyte_missing_val)
  */
 
 #define FLD_TYPE_DECODE(name, kind, kind_anal, flag)            \
-static void name(kind *z, int n) {                              \
+static void name(kind * const z, const int n) {                 \
   kind zma, zmi;                                                \
   int notused;                                                  \
   if (missing_value_used() == 0) return;                        \
@@ -1106,8 +1109,8 @@ static int fst_byte_encode_missing(
 static int fst_uint_encode_missing(
     unsigned int * const dst,
     const unsigned int * const src,
-    const unsigned int nElems,
-    const unsigned int npak
+    const int nElems,
+    const int npak
 ) {
     if (missing_value_used() == 0) return 0;
 
@@ -1252,23 +1255,23 @@ static void fst_null_decode_missing(void *field, int nElems) {
     return;
 }
 
-static int (*__fst_float_encode_missing)() = fst_float_encode_missing;
-static int (*__fst_double_encode_missing)() = fst_double_encode_missing;
-static int (*__fst_int_encode_missing)() = fst_int_encode_missing;
-static int (*__fst_short_encode_missing)() = fst_short_encode_missing;
-static int (*__fst_byte_encode_missing)() = fst_byte_encode_missing;
-static int (*__fst_uint_encode_missing)() = fst_uint_encode_missing;
-static int (*__fst_ushort_encode_missing)() = fst_ushort_encode_missing;
-static int (*__fst_ubyte_encode_missing)() = fst_ubyte_encode_missing;
+static int (*__fst_float_encode_missing)(float* const, const float* const, const int, const int) = fst_float_encode_missing;
+static int (*__fst_double_encode_missing)(double* const, const double* const, const int, const int) = fst_double_encode_missing;
+static int (*__fst_int_encode_missing)(int* const, const int* const, const int, const int) = fst_int_encode_missing;
+static int (*__fst_short_encode_missing)(short* const, const short* const, const int, const int) = fst_short_encode_missing;
+static int (*__fst_byte_encode_missing)(char* const, const char* const, const int, const int) = fst_byte_encode_missing;
+static int (*__fst_uint_encode_missing)(unsigned int* const, const unsigned int* const, const int, const int) = fst_uint_encode_missing;
+static int (*__fst_ushort_encode_missing)(unsigned short* const, const unsigned short* const, const int, const int) = fst_ushort_encode_missing;
+static int (*__fst_ubyte_encode_missing)(unsigned char* const, const unsigned char* const, const int, const int) = fst_ubyte_encode_missing;
 
-static void (*__fst_float_decode_missing)() = fst_float_decode_missing;
-static void (*__fst_double_decode_missing)() = fst_double_decode_missing;
-static void (*__fst_int_decode_missing)() = fst_int_decode_missing;
-static void (*__fst_short_decode_missing)() = fst_short_decode_missing;
-static void (*__fst_byte_decode_missing)() = fst_byte_decode_missing;
-static void (*__fst_uint_decode_missing)() = fst_uint_decode_missing;
-static void (*__fst_ushort_decode_missing)() = fst_ushort_decode_missing;
-static void (*__fst_ubyte_decode_missing)() = fst_ubyte_decode_missing;
+static void (*__fst_float_decode_missing)(float* const, const int) = fst_float_decode_missing;
+static void (*__fst_double_decode_missing)(double* const, const int) = fst_double_decode_missing;
+static void (*__fst_int_decode_missing)(int* const, const int) = fst_int_decode_missing;
+static void (*__fst_short_decode_missing)(short* const, const int) = fst_short_decode_missing;
+static void (*__fst_byte_decode_missing)(char* const, const int) = fst_byte_decode_missing;
+static void (*__fst_uint_decode_missing)(unsigned int* const, const int) = fst_uint_decode_missing;
+static void (*__fst_ushort_decode_missing)(unsigned short* const, const int) = fst_ushort_decode_missing;
+static void (*__fst_ubyte_decode_missing)(unsigned char* const, const int) = fst_ubyte_decode_missing;
 
 
 //! Restore default mapping functions
@@ -1345,29 +1348,29 @@ void SetMissingValueMapping(
         if (datatype == 1 || datatype == 5 || datatype == 6) {
             // float or IEEE
             if (datasize==64) {
-                __fst_double_decode_missing = (mode > 0) ? (void(*)()) processor : (void(*)()) fst_double_decode_missing;
+                __fst_double_decode_missing = (mode > 0) ? (void(*)(double* const, const int)) processor : fst_double_decode_missing;
             } else {
-                __fst_float_decode_missing = (mode > 0) ? (void(*)()) processor : (void(*)()) fst_float_decode_missing;
+                __fst_float_decode_missing = (mode > 0) ? (void(*)(float* const, const int)) processor : fst_float_decode_missing;
             }
         }
       if (datatype == 4) {
           // Signed
             if (datasize==16) {
-                __fst_short_decode_missing = (mode > 0) ? (void(*)()) processor : (void(*)()) fst_short_decode_missing;
+                __fst_short_decode_missing = (mode > 0) ? (void(*)()) processor : fst_short_decode_missing;
             } else if (datasize==8) {
-                __fst_byte_decode_missing = (mode > 0) ? (void(*)()) processor : (void(*)()) fst_byte_decode_missing;
+                __fst_byte_decode_missing = (mode > 0) ? (void(*)()) processor : fst_byte_decode_missing;
         } else {
-            __fst_int_decode_missing = (mode > 0) ? (void(*)()) processor : (void(*)()) fst_int_decode_missing;
+            __fst_int_decode_missing = (mode > 0) ? (void(*)()) processor : fst_int_decode_missing;
         }
       }
       if (datatype == 2) {
           // Unsigned
             if (datasize==16) {
-                __fst_ushort_decode_missing = (mode > 0) ? (void(*)()) processor : (void(*)()) fst_ushort_decode_missing;
+                __fst_ushort_decode_missing = (mode > 0) ? (void(*)()) processor : fst_ushort_decode_missing;
             } else if (datasize==8) {
-                __fst_ubyte_decode_missing = (mode > 0) ? (void(*)()) processor : (void(*)()) fst_ubyte_decode_missing;
+                __fst_ubyte_decode_missing = (mode > 0) ? (void(*)()) processor : fst_ubyte_decode_missing;
             } else {
-                __fst_uint_decode_missing = (mode > 0) ? (void(*)()) processor : (void(*)()) fst_uint_decode_missing;
+                __fst_uint_decode_missing = (mode > 0) ? (void(*)()) processor : fst_uint_decode_missing;
             }
         }
     }
@@ -1376,29 +1379,29 @@ void SetMissingValueMapping(
         if (datatype == 1 || datatype == 5 || datatype == 6) {
             // float or IEEE
             if (datasize==64) {
-                __fst_double_encode_missing = (mode > 0) ? (int(*)()) processor : (int(*)()) fst_double_encode_missing;
+                __fst_double_encode_missing = (mode > 0) ? (int(*)()) processor : fst_double_encode_missing;
             } else {
-                __fst_float_encode_missing = (mode > 0) ? (int(*)()) processor : (int(*)()) fst_float_encode_missing;
+                __fst_float_encode_missing = (mode > 0) ? (int(*)()) processor : fst_float_encode_missing;
             }
         }
         if (datatype == 4) {
             // Signed
             if (datasize==16) {
-                __fst_short_encode_missing = (mode > 0) ? (int(*)()) processor : (int(*)()) fst_short_encode_missing;
+                __fst_short_encode_missing = (mode > 0) ? (int(*)()) processor : fst_short_encode_missing;
             } else if (datasize==8) {
-                __fst_byte_encode_missing = (mode > 0) ? (int(*)()) processor : (int(*)()) fst_byte_encode_missing;
+                __fst_byte_encode_missing = (mode > 0) ? (int(*)()) processor : fst_byte_encode_missing;
             } else {
-                __fst_int_encode_missing = (mode > 0) ? (int(*)()) processor : (int(*)()) fst_int_encode_missing;
+                __fst_int_encode_missing = (mode > 0) ? (int(*)()) processor : fst_int_encode_missing;
             }
         }
         if (datatype == 2) {
             // Unsigned
             if (datasize==16) {
-                __fst_ushort_encode_missing = (mode > 0) ? (int(*)()) processor : (int(*)()) fst_ushort_encode_missing;
+                __fst_ushort_encode_missing = (mode > 0) ? (int(*)()) processor : fst_ushort_encode_missing;
             } else if (datasize==8) {
-                __fst_ubyte_encode_missing = (mode > 0) ? (int(*)()) processor : (int(*)()) fst_ubyte_encode_missing;
+                __fst_ubyte_encode_missing = (mode > 0) ? (int(*)()) processor : fst_ubyte_encode_missing;
             } else {
-                __fst_uint_encode_missing = (mode > 0) ? (int(*)()) processor : (int(*)()) fst_uint_encode_missing;
+                __fst_uint_encode_missing = (mode > 0) ? (int(*)()) processor : fst_uint_encode_missing;
             }
         }
     }

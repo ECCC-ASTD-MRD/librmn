@@ -17,9 +17,28 @@
 
 static pthread_mutex_t fst24_xdf_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+static const char * fst_file_type_name[] = {
+    [FST_NONE] = "FST_NONE",
+    [FST_XDF]  = "FST_XDF",
+    [FST_RSF]  = "FST_RSF"
+};
+
+static fst_file default_fst_file = (fst_file) {
+    .iun                =  0,
+    .file_index         = -1,
+    .file_index_backend = -1,
+    .rsf_handle.p       = NULL,
+    .type               = FST_NONE,
+    .next               = NULL,
+    .path               = NULL,
+    .tag                = NULL
+};
+
 static int64_t fst24_get_num_records_single(const fst_file* file);
 
-//! Verify that the file pointer is valid and the file is open
+//! Verify that the file pointer is valid and the file is open. This is meant to verify that
+//! the file struct has been initialized by a call to fst24_open; it should *not* be called
+//! on a file that has been closed, since it will result in undefined behavior.
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst24_is_open(const fst_file* const file) {
     return file != NULL &&
@@ -36,19 +55,21 @@ const char* fst24_file_name(const fst_file* const file) {
     return NULL;
 }
 
-//! Get unit number for fortran
+//! Get unit number for API calls that require it. This exists mostly for compatibility with
+//! other libraries and tools that only work with unit numbers rather than a fst_file struct.
 //! \return Unit number. 0 if file is not open or struct is not valid.
 int32_t fst24_get_unit(const fst_file* const file) {
     if (fst24_is_open(file)) return file->iun;
     return 0;
 }
 
-//! Get unit number for fortran
-//! \return Unit number. 0 if file is not open or struct is not valid.
-char* fst24_get_tag(const fst_file* const file) {
+//! \return File tag
+const char* fst24_get_tag(const fst_file* const file) {
     return file->tag;
 }
-char* fst24_set_tag(fst_file* file,const char* const tag) {
+
+//! \return The new file tag
+const char* fst24_set_tag(fst_file* file,const char* const tag) {
     if (file->tag) free(file->tag);
     return file->tag=strdup(tag);
 }
@@ -71,7 +92,17 @@ int32_t fst24_is_valid(
 
 //! Open a standard file (FST)
 //!
-//! File will be created if it does not already exist
+//! File will be created if it does not already exist and is opened in R/W mode.
+//! The same file can be opened several times simultaneously as long as some rules are followed:
+//! for XDF files, they have to be in R/O (read-only) mode; for RSF files, R/O mode is always OK,
+//! and R/W (read-write) mode is allowed if the PARALLEL option is used. Additionally, for RSF
+//! only, if a file is already open in R/O mode, it *must* be closed before any other thread or process can
+//! open it in write mode.
+//!
+//! Refer to the README for information on how to write in parallel in an RSF file.
+//!
+//! Thread safety: Always safe to open files concurrently (from a threading perspective).
+//!
 //! \return A handle to the opened file. NULL if there was an error
 fst_file* fst24_open(
     const char* const filePath,  //!< Path of the file to open
@@ -89,12 +120,10 @@ fst_file* fst24_open(
              options ? options : "");
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: filePath = %s, options = %s\n", __func__, filePath, local_options);
 
-    // Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: Calling fnom\n", __func__);
     if (c_fnom(&(the_file->iun), filePath, local_options, 0) != 0) {
         free(the_file);
         return NULL;
     }
-    // Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: Calling fstouv\n", __func__);
     if (c_fstouv(the_file->iun, local_options) < 0) {
         free(the_file);
         return NULL;
@@ -108,11 +137,10 @@ fst_file* fst24_open(
     if (rsf_status == 1) {
         the_file->type = FST_RSF;
         the_file->rsf_handle = FGFDT[the_file->file_index].rsf_fh;
-        the_file->file_index_backend = RSF_File_slot(the_file->rsf_handle);
+        the_file->file_index_backend = RSF_Get_file_slot(the_file->rsf_handle);
     }
     else {
         the_file->type = FST_XDF;
-        // Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: Calling file_index_xdf\n", __func__);
         the_file->file_index_backend = file_index_xdf(the_file->iun);
     }
 
@@ -120,6 +148,12 @@ fst_file* fst24_open(
 }
 
 //! Close the given standard file and free the memory associated with the struct
+//!
+//! Thread safety: Closing several different files concurrently is always safe. Closing the same file
+//! several times is an error. Closing a file while another fst24 API call is running on that same
+//! file is also an error. The user is responsible to make sure that other calls on a certain
+//! file are finished before closing that file.
+//!
 //! \todo What happens if closing a linked file?
 //! \return TRUE (1) if no error, FALSE (0) or a negative number otherwise
 int32_t fst24_close(fst_file* const file) {
@@ -140,6 +174,11 @@ int32_t fst24_close(fst_file* const file) {
 }
 
 //! Commit data and metadata to disk if the file has changed in memory
+//!
+//! Thread safety: Always safe to call concurrently on different open files.
+//! *For RSF only*, it is safe to call this function from one thread while another is writing to the same file;
+//! it is also safe to call it concurrently on the same file (although that would be useless).
+//!
 //! \return A negative number if there was an error, 0 or positive otherwise
 int32_t fst24_flush(
     const fst_file* const file //!< Handle to the open file we want to checkpoint
@@ -159,6 +198,9 @@ int32_t fst24_flush(
 }
 
 //! Get the number of records in a file including linked files
+//!
+//! Thread safety: Always safe to call it concurrently with other API calls on any open file.
+//!
 //! \return Number of records in the file and in any linked files
 int64_t fst24_get_num_records(
     const fst_file* const file    //!< [in] Handle to an open file
@@ -205,6 +247,10 @@ static int64_t fst24_get_num_records_single(const fst_file* file) {
 }
 
 //! Print a summary of the records found in the given file (including any linked files)
+//!
+//! Thread safety: Safe to call concurrently (but the output could be interleaved).
+//! *For RSF only*, safe to call from one thread while another is writing to the same file.
+//!
 //! \return a negative number if there was an error, TRUE (1) if all was OK
 int32_t fst24_print_summary(
     fst_file* const file, //!< [in] Handle to an open file
@@ -939,6 +985,7 @@ int32_t fst24_write_rsf(
     // write new_record to file and add entry to directory
     const int64_t record_handle = RSF_Put_record(rsf_file, new_record, num_data_bytes);
     record->do_not_touch.handle = record_handle;
+    record->file_index = RSF_Key64_to_index(record_handle);
 
     if (Lib_LogLevel(APP_LIBFST,NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;
@@ -954,10 +1001,14 @@ int32_t fst24_write_rsf(
 }
 
 //! Write the given record into the given standard file
+//!
+//! Thread safety: Several threads may write concurrently in the same open file (the same fst_file struct), as
+//! well as in different files. The fst_record to write must be different though.
+//!
 //! \return TRUE (1) if everything was a success, a negative error code otherwise
 int32_t fst24_write(
-    fst_file* file,     //!< The file where we want to write
-    fst_record* record, //!< The record we want to write
+    fst_file* file,     //!< [in,out] The file where we want to write
+    fst_record* record, //!< [in,out] The record we want to write
     const int rewrite   //!< Whether we want to overwrite FST_YES, skip FST_SKIP or write again FST_NO an existing record
 ) {
     fst_record crit = default_fst_record;
@@ -970,13 +1021,18 @@ int32_t fst24_write(
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: file %s, type %s, rewrite %d\n",
             __func__, file->path, fst_file_type_name[file->type], rewrite);
 
+    // Use the skip_filter option, to *not* miss the record because of the global filter
+    fst_query_options rewrite_options = default_query_options;
+    rewrite_options.skip_filter = 1;
+
     if (rewrite) { 
         fst24_record_copy_metadata(&crit,record,FST_META_GRID|FST_META_INFO|FST_META_TIME|FST_META_SIZE);
         crit.datev = get_valid_date32(crit.dateo,crit.deet,crit.npas);
         crit.dateo=-1;
     }
-    if (rewrite==FST_SKIP) {
-        fst_query* q = fst24_new_query(file, &crit, NULL);
+
+    if (rewrite == FST_SKIP) {
+        fst_query* q = fst24_new_query(file, &crit, &rewrite_options);
         if (fst24_find_next(q,NULL)) {
             Lib_Log(APP_LIBFST, APP_INFO, "%s: Skipping already existing record\n", __func__);
             return(TRUE);
@@ -984,10 +1040,10 @@ int32_t fst24_write(
         fst24_query_free(q);
     } 
 
-    if  (file->type == FST_RSF) {
-        if (rewrite==FST_YES) {
+    if (file->type == FST_RSF) {
+        if (rewrite == FST_YES) {
             int nb;
-            if ((nb=fst24_search_and_delete(file, &crit, NULL))) {
+            if ((nb=fst24_search_and_delete(file, &crit, &rewrite_options))) {
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: Deleted %i matching records\n", __func__,nb);
             }
         }
@@ -1030,7 +1086,7 @@ int32_t fst24_write(
         const int ier = c_fstecr_xdf(
             record->data, NULL, -record->pack_bits, file->iun, record->dateo, record->deet, record->npas,
             record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
-            typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->data_type, rewrite==FST_YES);
+            typvar, nomvar, etiket, grtyp, record->ig1, record->ig2, record->ig3, record->ig4, record->data_type, rewrite);
 
         pthread_mutex_unlock(&fst24_xdf_mutex);
         // --- END critical region ---
@@ -1038,6 +1094,7 @@ int32_t fst24_write(
         record->do_not_touch.num_search_keys = sizeof(stdf_dir_keys) / sizeof(int32_t) - 2;
         record->do_not_touch.extended_meta_size = 0;
         record->do_not_touch.stored_data_size = 0; // We don't have a good way of knowing that number, so it stays at 0 for now. Maybe xdfprm?
+        record->file_index = -1;
 
         if (ier < 0) return ier;
         return TRUE;
@@ -1070,7 +1127,19 @@ int32_t get_record_from_key_rsf(
     return TRUE;
 }
 
+static inline int32_t fst24_make_index_from_xdf_handle(const int handle) {
+    return RECORD_FROM_HANDLE((handle & 0xffffffff)) + (PAGENO_FROM_HANDLE((handle & 0xffffffff)) * ENTRIES_PER_PAGE);
+}
+
+static inline int32_t fst24_make_xdf_handle_from_index(const int index, const int file_id) {
+    return MAKE_RND_HANDLE(index / ENTRIES_PER_PAGE, index % ENTRIES_PER_PAGE, file_id);
+}
+
 //! Get basic information about the record with the given key (search or "directory" metadata)
+//!
+//! Thread safety: This function may be called concurrently by several threads for the same file.
+//! The output must be to a different fst_record object.
+//!
 //! \return TRUE (1) if we were able to get the info, FALSE (0) or a negative number otherwise
 int32_t fst24_get_record_from_key(
     const fst_file* const file, //!< [in] File to which the record belongs. Must be open
@@ -1110,7 +1179,7 @@ int32_t fst24_get_record_from_key(
         fill_with_search_meta(record, &record_meta, file->type);
         record->do_not_touch.num_search_keys = 16;
         record->do_not_touch.stored_data_size = W64TOWD(lng);
-        record->file_index = RECORD_FROM_HANDLE((key & 0xffffffff));
+        record->file_index = fst24_make_index_from_xdf_handle(key & 0xffffffff);
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
@@ -1121,7 +1190,11 @@ int32_t fst24_get_record_from_key(
     return TRUE;
 }
 
-//! Retrieve record information at a given index
+//! Retrieve record information at a given index.
+//!
+//! Thread safety: This function may be called concurrently by several threads for the same file.
+//! The output must be to a different fst_record object.
+//!
 //! \return TRUE (1) if everything was successful, FALSE (0) or negative if there was an error.
 int32_t fst24_get_record_by_index(
     const fst_file* const file, //!< [in] File handle
@@ -1153,9 +1226,7 @@ int32_t fst24_get_record_by_index(
         return TRUE;
     }
     else if (file->type == FST_XDF) {
-        const int page_id = index / ENTRIES_PER_PAGE;
-        const int record_id = index - (page_id * ENTRIES_PER_PAGE);
-        const int32_t key = MAKE_RND_HANDLE(page_id, record_id, file->file_index_backend);
+        const int32_t key = fst24_make_xdf_handle_from_index(index, file->file_index_backend);
 
         int addr, lng, idtyp;
         search_metadata record_meta;
@@ -1175,6 +1246,9 @@ int32_t fst24_get_record_by_index(
 }
 
 //! Create a search query that will apply the given criteria during a search in a file.
+//!
+//! This function is thread safe.
+//!
 //! \return A pointer to a search query if the inputs are valid (open file, OK criteria struct), NULL otherwise
 fst_query* fst24_new_query(
     const fst_file* const file, //!< File that will be searched with the query
@@ -1228,7 +1302,10 @@ fst_query* fst24_new_query(
     return query;
 }
 
-//! Reset start index of search without changing the criteria
+//! Reset start index of search without changing the criteria.
+//!
+//! Thread safety: Can be called concurrently only if the queries are different objects.
+//!
 //! \return TRUE (1) if file is valid and open, FALSE (0) otherwise
 int32_t fst24_rewind_search(fst_query* const query) {
     if (!fst24_query_is_valid(query)) {
@@ -1246,10 +1323,12 @@ int32_t fst24_rewind_search(fst_query* const query) {
     return TRUE;
 }
 
-
-//! Find the next record in a given file, according to the given parameters
+//! Find the next record in a given RSF file, according to the given parameters
 //! \return Key of the record found (negative if error or nothing found)
-int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query) {
+int64_t find_next_rsf(
+    const RSF_handle file_handle, //!> Handle to an open RSF file
+    fst_query* const query        //!> 
+) {
 
     search_metadata actual_mask;
     uint32_t* actual_mask_u32     = (uint32_t *)&actual_mask;
@@ -1274,6 +1353,8 @@ int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query) {
     return key;
 }
 
+//! Find the next record in a given XDF file, according to the given parameters
+//! \return Key of the record found (negative if error or nothing found)
 int64_t find_next_xdf(const int32_t iun, fst_query* const query) {
     uint32_t* pkeys = (uint32_t *) &query->criteria.fst98_meta;
     uint32_t* pmask = (uint32_t *) &query->mask.fst98_meta;
@@ -1283,7 +1364,21 @@ int64_t find_next_xdf(const int32_t iun, fst_query* const query) {
 
     const int32_t start_key = query->search_index & 0xffffffff;
 
+    // --- START critical section (maybe) ---
+    void* old_filter = NULL;
+    if (query->options.skip_filter) {
+        pthread_mutex_lock(&fst24_xdf_mutex);
+        old_filter = xdf_set_file_filter(iun, NULL);
+    }
+
     const int64_t key = (int64_t) c_xdfloc2(iun, start_key, pkeys, 16, pmask);
+
+    if (query->options.skip_filter) {
+        xdf_set_file_filter(iun, old_filter);
+        pthread_mutex_unlock(&fst24_xdf_mutex);
+    }
+    // --- END critical section (if necessary) ---
+
     if (key > 0) {
         // Found it. Next search will start here
         query->search_index = key;
@@ -1320,6 +1415,7 @@ int32_t is_actual_match(fst_record* const record, const fst_query* const query) 
 
     // Check on excdes desire/exclure clauses
     if (query->file->type == FST_RSF &&
+        !query->options.skip_filter &&
         !C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
         record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
         return FALSE;
@@ -1351,16 +1447,18 @@ int32_t is_actual_match(fst_record* const record, const fst_query* const query) 
     return TRUE;
 }
 
-//! Find the next record in the given file that matches the given query criteria.
+//! Find the next record in the given file that matches the given query criteria. Search through linked files, if any.
 //!
-//! Searches through linked files, if any.
+//! Thread safety: This function may be called concurrently by several threads on *different queries* that belong to
+//! the same file. However, it cannot be called concurrently on the same fst_query object.
+//!
 //! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
 int32_t fst24_find_next(
     fst_query* const query, //!< [in] Query used for the search. Must be for an open file.
     //!> [in,out] Will contain record information if found and, optionally, metadata (if included in search).
     //!> If NULL, we will only check for the existence of a match to the query, without extracting any data from that
     //!> match. If not NULL, must be a valid, initialized record.
-    fst_record* record
+    fst_record * const record
 ) {
     if (!fst24_query_is_valid(query)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Query at %p is not valid\n", __func__, query);
@@ -1424,12 +1522,18 @@ int32_t fst24_find_next(
     return FALSE;
 }
 
-//! Find all record that match the given query.
+//! Find all record that match the given query, up to a certain maximum.
 //! Search through linked files, if any.
+//!
+//! Thread safety: This function may be called concurrently by several threads on *different queries* that belong to
+//! the same file. However, it cannot be called concurrently on the same fst_query object.
+//!
 //! \return Number of records found, 0 if none or if error.
 int32_t fst24_find_all(
-    fst_query* query,             //!< Query used for the search
-    fst_record* results,          //!< [in,out] List of records found. Must be already allocated
+    //!> [in,out] Query used for the search. Will be rewinded before doing the search, but when the function returns,
+    //!> it will be pointing to the end of its search.
+    fst_query* query,
+    fst_record* results,          //!< [in,out] List of records found. The list must be already allocated
     const int32_t max_num_results //!< [in] Size of the given list of records. We will stop looking if we find that many
 ) {
     int32_t max;
@@ -1450,9 +1554,15 @@ int32_t fst24_find_all(
 }
 
 //! Get the number of records matching to query
+//!
+//! Thread safety: This function may be called concurrently by several threads on *different queries* that belong to
+//! the same file. However, it cannot be called concurrently on the same fst_query object.
+//!
 //! \return Number of records found by the query
 int32_t fst24_find_count(
-    fst_query * const query //!< [in] Query used for the search (the state of the query object is modified)
+    //!> [in,out] Query used for the search. It will be rewinded before doing the search, but when the function
+    //!> returns, it will point to the end of its search.
+    fst_query * const query
 ) {
     fst_record record = default_fst_record;
 
@@ -1799,6 +1909,10 @@ int32_t fst24_read_record_xdf(
 }
 
 //! Read only metadata for the given record
+//!
+//! Thread safety: This function may be called concurrently by several threads on *different records* that belong to
+//! the same file. However, it cannot be called concurrently on the same fst_record object.
+//!
 //! \return A pointer to the metadata, NULL if error (or no metadata)
 void* fst24_read_metadata(
     fst_record* record //!< [in,out] Record for which we want to read metadata. Must have a valid handle!
@@ -1829,10 +1943,21 @@ void* fst24_read_metadata(
     return NULL;
 }
 
-//! Read the data and metadata of a given record from its corresponding file
+//! Read the data and metadata of a given record from its corresponding file.
+//!
+//! Thread safety: This function may be called concurrently by several threads on *different records* that belong to
+//! the same file. However, it cannot be called concurrently on the same fst_record object.
+//!
 //! \return TRUE (1) if reading was successful FALSE (0) or a negative number otherwise
 int32_t fst24_read_record(
-    fst_record* const record //!< [in,out] Record for which we want to read data. Must have a valid handle!
+    //!> [in,out] Record for which we want to read data. Must have a valid handle!
+    //!> If the `data` attribute of this record is NULL, space will be automatically allocated
+    //!> and the data will be considered "managed" by the API.
+    //!> If the `data` attribute is non-NULL and the memory is managed by the API, the size of
+    //!> the allocation may be adjusted to fit this new record size (if needed).
+    //!> If the `data` attribute is non-NULL and the memory is *not* managed by the API, the space
+    //!> it points to must be large enough to contain all the data.
+    fst_record* const record
 ) {
     if (record != NULL && !fst24_is_open(record->file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n",__func__, record->file ? record->file->path : "(nil)");
@@ -1889,8 +2014,13 @@ int32_t fst24_read_record(
     return TRUE;
 }
 
-//! Read the next record (data and all) that corresponds to the given query criteria
-//! Search through linked files, if any
+//! Read the next record (data and all) that corresponds to the given query criteria.
+//! Search through linked files, if any.
+//!
+//! Thread safety: This function may be called concurrently by several threads on *different queries* that belong to
+//! the same file (the records must be different). However, it cannot be called concurrently on the same
+//! fst_query object.
+//!
 //! \return TRUE (1) if able to read a record, FALSE (0) or a negative number otherwise (not found or error)
 int32_t fst24_read_next(
     fst_query* const query,   //!< Query used for the search
@@ -1905,6 +2035,10 @@ int32_t fst24_read_next(
 
 //! Search a file with given criteria and read the first record that matches these criteria.
 //! Search through linked files, if any.
+//!
+//! Thread safety: This function may be called concurrently by several threads on the same file
+//! (the records must be different).
+//!
 //! \return TRUE (1) if able to find and read a record, FALSE (0) or a negative number otherwise (not found or error)
 int32_t fst24_read(
     const fst_file* const file,         //!< File we want to search
@@ -1921,6 +2055,17 @@ int32_t fst24_read(
 //! Link the given list of files together, so that they are treated as one for the purpose
 //! of searching and reading. Once linked, the user can use the first file in the list
 //! as a replacement for all the given files.
+//!
+//! Thread safety: This function may be called concurrently on two sets of fst_file objects *if and only if* the
+//! two sets do not overlap. It is OK if two different fst_file objects refer to the same file on disk (i.e. the file
+//! has been opened more than once).
+//!
+//! *Note*: Some librmn functions and some tools may still make use of the `iun` from the fst98 interface. In order to
+//! be backward-compatible with these functions and tools, we also perform a link of the files with that interface.
+//! That old fstlnk itself is *not* thread-safe and may not work if there are several sets of linked files. This
+//! means that if you concurrently create several lists of linked files, they might not work as intended if these
+//! lists are accessed through the first file's iun.
+//!
 //! \return TRUE (1) if files were linked, FALSE (0) or a negative number otherwise
 int32_t fst24_link(
     fst_file** files,           //!< List of handles to open files
@@ -1964,7 +2109,11 @@ int32_t fst24_link(
 }
 
 //! Unlink the given file(s). The files are assumed to have been linked by
-//! a previous call to fst24_link, so only the first one should be given as input
+//! a previous call to fst24_link, so only the first one should be given as input.
+//!
+//! Thread safety: Assuming the rules for calling fst24_link have been followed, it is always safe
+//! to call fst24_unlink concurrently on two separate lists of files.
+//!
 //! \return TRUE (1) if unlinking was successful, FALSE (0) or a negative number otherwise
 int32_t fst24_unlink(fst_file* const file) {
     if (!fst24_is_open(file)) {
@@ -1987,6 +2136,9 @@ int32_t fst24_unlink(fst_file* const file) {
 }
 
 //! Move to the end of the given sequential file
+//!
+//! Thread safety: This function may always be called concurrently.
+//!
 //! \return The result of \ref c_fsteof if the file was open, FALSE (0) otherwise
 int32_t fst24_eof(const fst_file* const file) {
     if (!fst24_is_open(file)) {
@@ -1994,21 +2146,27 @@ int32_t fst24_eof(const fst_file* const file) {
        return FALSE;
     }
 
-    return (c_fsteof(fst24_get_unit(file)));
+    return c_fsteof(fst24_get_unit(file));
 }
 
 //! \return Whether the given query pointer is a valid query. A query's file must be
 //! open for the query to be valid.
+//! Calling this function on a query whose file has been closed results in undefined behavior.
 int32_t fst24_query_is_valid(const fst_query* const q) {
     return (q != NULL && fst24_is_open(q->file) && q->num_criteria > 0);
 }
 
-//! Free memory used by the given query
+//! Free memory used by the given query. Must be called on every query created by fst24_new_query.
+//! This also releases queries that were created automatically to search through linked files.
 void fst24_query_free(fst_query* const query) {
     if (query != NULL) {
         fst24_query_free(query->next);
-        query->file = NULL; // Make the query invalid, in case someone tries to use the pointer after this
-        free(query);
+        query->next = NULL;
+
+        if (query->file != NULL) {
+            query->file = NULL; // Make the query invalid, in case someone tries to use the pointer after this
+            free(query);
+        }
     }
 }
 
@@ -2044,7 +2202,12 @@ int32_t fst24_validate_default_query_options(
     return 0;
 }
 
-//! Delete a record from its file on disk
+//! Delete a record from its file on disk. This does not reduce file size, it only makes the record
+//! unreadable and removes it from the directory.
+//!
+//! Thread safety: Multiple records can be deleted concurrently from the same file. A single record cannot be deleted
+//! more than once.
+//!
 //! \return TRUE if we were able to delete the record, FALSE otherwise
 int32_t fst24_delete(
     fst_record* const record //!< The record we want to delete
@@ -2078,10 +2241,11 @@ int32_t fst24_delete(
     return TRUE;
 }
 
+//! Search a file and delete all its records that match the given criteria.
 int32_t fst24_search_and_delete(
-    fst_file* const file,
-    const fst_record* criteria,
-    const fst_query_options* options
+    fst_file* const file,            //!< The file we want to clean
+    const fst_record* criteria,      //!< Delete records that match these criteria
+    const fst_query_options* options //!< Additional options for selecting the records to delete
 ) {
     fst_query* q = fst24_new_query(file, criteria, options);
     fst_record r = default_fst_record;
@@ -2096,6 +2260,7 @@ int32_t fst24_search_and_delete(
     return nb;
 }
 
+//! Print human-readable version of the given options, if they differ from their default value.
 void print_non_default_options(const fst_query_options* const options) {
     char buffer[1024];
     char* ptr = buffer;

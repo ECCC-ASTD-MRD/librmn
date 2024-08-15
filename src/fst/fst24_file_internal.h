@@ -10,12 +10,6 @@ typedef enum {
     FST_RSF  = 2
 } fst_file_type;
 
-static const char* fst_file_type_name[] = {
-    [FST_NONE] = "FST_NONE",
-    [FST_XDF]  = "FST_XDF",
-    [FST_RSF]  = "FST_RSF"
-};
-
 //! Base type to reference a FST file
 typedef struct fst24_file_ {
     int32_t       iun;                  //!< File unit, used by fnom
@@ -27,17 +21,6 @@ typedef struct fst24_file_ {
     const char* path;                   //!< Given when opening this file
     char*       tag;                    //!< Optional object tag (used in interpreted wrappers)
 } fst_file;
-
-static fst_file default_fst_file = (fst_file) {
-    .iun                =  0,
-    .file_index         = -1,
-    .file_index_backend = -1,
-    .rsf_handle.p       = NULL,
-    .type               = FST_NONE,
-    .next               = NULL,
-    .path               = NULL,
-    .tag                = NULL
-};
 
 int32_t fst24_write_rsf(RSF_handle rsf_file, fst_record* record, const int32_t stride);
 int32_t fst24_get_record_from_key(const fst_file* const file, const int64_t key, fst_record* const record);

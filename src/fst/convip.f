@@ -435,7 +435,7 @@ c     %         goto 101
      %       ,e12.5,' returned ip is -999999')
  6006 format(' Error in convip: p is out of bounds =',e12.5,' min=',
      %       e12.5,' max=',e12.5,' returned ip is -999999')
- 6007 format(' Warning in convip: undetermined kind used =',I10)
+!  6007 format(' Warning in convip: undetermined kind used =',I10)
 
       end
 

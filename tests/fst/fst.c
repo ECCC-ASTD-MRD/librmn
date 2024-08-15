@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    printf("Size of data elements = %d bits\n\n", sizeof(DATATYPE) * 8);
+    printf("Size of data elements = %ld bits\n\n", sizeof(DATATYPE) * 8);
 
     printf("min(domain) = %e (%d, %d)\n", min, mini, minj);
     printf("max(domain) = %e (%d, %d)\n\n", max, maxi, maxj);

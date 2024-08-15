@@ -31,6 +31,9 @@
 
 static int verbose = 0;
 
+static void testit(int ier);
+void rempli(int* tableau, int ni, int nj, int nk);
+
 int main (int argc, char* argv[])
 {
     int bufa[8000], bufb[5000], bufc[6000], bufd[8000], bufe[20000];
@@ -51,7 +54,6 @@ int main (int argc, char* argv[])
     int *pttblburp;
     float *ptrval;
     char *ptstnid;
-    int testit(), rempli(), intcar();
     float t1, t2, chrono;
     int tblusr[5][3], lsteusr[5];
     int bknat, bktyp, bkstp;
@@ -1137,8 +1139,7 @@ int main (int argc, char* argv[])
     return 0;
 }
 
-int rempli(tableau,ni,nj,nk)
-int *tableau,ni,nj,nk;
+void rempli(int* tableau, int ni, int nj, int nk)
 {
     int ijk;
 
@@ -1152,8 +1153,7 @@ int *tableau,ni,nj,nk;
     seed++;
 }
 
-int testit(ier)
-int ier;
+static void testit(int ier)
 {
     if(ier < 0)
     {
@@ -1165,14 +1165,4 @@ int ier;
         if (verbose > 0)
             printf(" --- reussi --- \n");
     }
-}
-
-int intcar(string)
-char *string;
-{
-    register int shc, inv;
-    shc = 4; inv = 0;
-    while(shc-- && *string)
-        inv = (inv << 8) | *string++;
-    return(inv);
 }

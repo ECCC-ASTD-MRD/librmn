@@ -34,6 +34,15 @@ if (WITH_OMPI)
 endif()
 
 find_package(Python 3 REQUIRED Development NumPy Interpreter)
+option(RMN_LLVM_ADDRESS_SANITIZER "Compile with LLVM address sanitizer (Intel 2024+ only)" OFF)
+if (NOT ("${CMAKE_C_COMPILER_ID}" STREQUAL "IntelLLVM"))
+    set(RMN_LLVM_ADDRESS_SANITIZER OFF)
+endif()
+
+set(RMN_BUILD_SHARED ON)
+if (${RMN_LLVM_ADDRESS_SANITIZER})
+    set(RMN_BUILD_SHARED OFF)
+endif()
 
 #set(FIND_LIBRARY_USE_LIB64_PATHS TRUE)
 #find_package(json-c CONFIG REQUIRED)
@@ -121,7 +130,7 @@ add_custom_command(
 add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
 
 set(TARGETS rmn-static)
-if (BUILD_SHARED_LIBS)
+if (${RMN_BUILD_SHARED})
     set(TARGETS ${TARGETS} rmn-shared)
 endif()
 
@@ -131,8 +140,8 @@ target_link_libraries(rmn-static PUBLIC App-static json-c-static libudunits2-sta
 target_include_directories(rmn-static INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}> ${CMAKE_CURRENT_SOURCE_DIR}/src/Struct)
 add_dependencies(rmn-static rmn_build_info json-c libudunits2-static)
 
-if (BUILD_SHARED_LIBS)
-    # Build shared library from object of rmn
+# Build shared library from object of rmn
+if (${RMN_BUILD_SHARED})
     add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
     target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2-shared LibXml2::LibXml2)
 endif()
@@ -154,16 +163,14 @@ set(static_targets rmn-static)
 
 #----- Needed when used as sbumodule/subtree
 add_library(rmn::rmn-static ALIAS rmn-static)
-if(BUILD_SHARED_LIBS)
+add_library(rmn::rmn ALIAS rmn-static) # Default to static
+if (${RMN_BUILD_SHARED})
     add_library(rmn::rmn-shared ALIAS rmn-shared)
-    add_library(rmn::rmn ALIAS rmn-shared)
-else()
-    add_library(rmn::rmn ALIAS rmn-static)
 endif()
 
 if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND) 
     set (OMPI_TARGETS rmn-ompi-static)
-    if (BUILD_SHARED_LIBS)
+    if (${RMN_BUILD_SHARED})
         set (OMPI_TARGETS ${OMPI_TARGETS} rmn-ompi-shared)
     endif()
     set(TARGETS ${TARGETS} ${OMPI_TARGETS})
@@ -178,8 +185,8 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
    target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
    add_dependencies(rmn-ompi-static rmn_build_info json-c libudunits2-static)
 
-    if (BUILD_SHARED_LIBS)
-        # Build shared library from objects of rmn-ompi
+    # Build shared library from objects of rmn-ompi
+    if (${RMN_BUILD_SHARED})
         add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi-static>)
         target_link_libraries(rmn-ompi-shared PUBLIC App-ompi-shared json-c libudunits2-shared LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
         target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
@@ -206,11 +213,9 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
 
     #----- Needed when used as sbumodule/subtree
     add_library(rmn::rmn-ompi-static ALIAS rmn-ompi-static)
-    if(BUILD_SHARED_LIBS)
+    add_library(rmn::rmn-ompi ALIAS rmn-ompi-static)    # Default to static
+    if (${RMN_BUILD_SHARED})
         add_library(rmn::rmn-ompi-shared ALIAS rmn-ompi-shared)
-        add_library(rmn::rmn-ompi ALIAS rmn-ompi-shared)
-    else()
-        add_library(rmn::rmn-ompi ALIAS rmn-ompi-static)
     endif()
 endif()
 
@@ -222,8 +227,6 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<$<COMPILE_LANG_AND_ID:Fortran,Intel>: -convert big_endian -align array32byte -assume byterecl>
         $<$<COMPILE_LANG_AND_ID:Fortran,Flang>: -Mbyteswapio>
         $<$<COMPILE_LANG_AND_ID:Fortran,PGI>: -byteswapio>
-        # $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-error=167,266,303>
-        # $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:-diag-error=5112>
         $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-byteswapio>
     )
     target_link_options(${TARGET} PUBLIC
@@ -231,13 +234,15 @@ foreach(TARGET IN ITEMS ${TARGETS})
                $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ldl -pthread>
     )
 
-    # target_compile_options(${TARGET} PUBLIC
-    #            $<$<COMPILE_LANG_AND_ID:C,IntelLLVM>:-fsanitize=address>
-    # )
-    # target_link_options(${TARGET} PUBLIC
-    #            $<$<COMPILE_LANG_AND_ID:C,IntelLLVM>:-fsanitize=address>
-    #            $<$<COMPILE_LANG_AND_ID:Fortran,IntelLLVM>:-fsanitize=address>
-    # )
+    if (${RMN_LLVM_ADDRESS_SANITIZER})
+        target_compile_options(${TARGET} PUBLIC
+                $<$<COMPILE_LANG_AND_ID:C,IntelLLVM>:-fsanitize=address>
+        )
+        target_link_options(${TARGET} PUBLIC
+                $<$<COMPILE_LANG_AND_ID:C,IntelLLVM>:-fsanitize=address>
+                $<$<COMPILE_LANG_AND_ID:Fortran,IntelLLVM>:-fsanitize=address>
+        )
+    endif()
 
     # nvhpc doesn't recognize shiftl	  
     target_compile_definitions(${TARGET}
@@ -281,11 +286,11 @@ set_source_files_properties(src/primitives/wkoffit.c   PROPERTIES COMPILE_FLAGS 
 set_source_files_properties(src/primitives/constnt.F90 PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028,7416>")
 set_source_files_properties(src/base/fft_m4.f          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7342>")
 set_source_files_properties(src/base/fft_m8.f          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=7342>")
-set_source_files_properties(src/readlx/readlx.F90      PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028>")
+set_source_files_properties(src/readlx/readlx.F90      PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028,7416>")
 
 add_subdirectory(python/rmn)
 
-if (BUILD_SHARED_LIBS)
+if (${RMN_BUILD_SHARED})
     install(TARGETS ${shared_targets}
         EXPORT rmn-shared-targets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -342,7 +347,7 @@ add_custom_target(
 # Generate the config file for the project to be usable via cmake's find_package command
 set(CONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${PROJECT_VERSION}")
 
-if (BUILD_SHARED_LIBS)
+if (${RMN_BUILD_SHARED})
     install(EXPORT rmn-shared-targets
         NAMESPACE rmn::
         DESTINATION ${CONFIG_INSTALL_DIR})

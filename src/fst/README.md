@@ -4,6 +4,7 @@
     1. [New Interface: `fst24`](#new-interface-fst24)
     1. [Parallel Write](#parallel-write)
     1. [Thread Safety](#thread-safety)
+    1. [Memory Management](#memory-management)
     1. [Data Types](#data-types)
     1. [Old Interface: `fst98`](#old-interface-fst98)
 2. [Examples](#examples)
@@ -113,11 +114,11 @@ Several processes can open the same RSF file and write to it simultaneously. Thi
 * Each process that opens a file for parallel write reserves a _segment_ of a given size, *which will take that much space on disk regardless of how much data that process writes to the file*. The size of the segments should be chosen so as to minimize the amount of unused space.
     * Desired segment size is controlled by `SEGMENT_SIZE_MB` within `FST_OPTIONS`. It takes an integer, and the units are megabytes (MB). For example:
         ```bash
-        export FST_OPTIONS="BACKEND=RSF;SEGMENT_SIZE_MB=4"
+        export FST_OPTIONS="BACKEND=RSF;SEGMENT_SIZE_MB=1000"
         ```
     * When a process writes a record, it goes into the segment
     * If a segment is full or too small to hold a record, the segment is closed and committed to disk, and a new one is opened
-    * New segments have the largest of either `SEGMENT_SIZE_MB` or the size of the record being written
+    * When a new segment is created by writing a record, its size is the largest of either `SEGMENT_SIZE_MB` or the size of the record being written
     * When a segment is committed to the file, any unfilled space in it will also be written to disk. This means the file will take more space on disk than just its data content.
 
 ## Thread Safety
@@ -137,6 +138,58 @@ The `fst24` interface is entirely threadsafe when accessing RSF files, but has s
 - When opening the same file concurrently, *it has to be in read-only mode*.
 - Searching a single file cannot be done by multiple threads simultaneously
 
+## Memory Management
+
+There are 3 new types introduced with the `fst24` interface, each of which has their own memory considerations
+
+#### `fst_file`
+
+Memory for a file object is allocated when the file to which it refers is opened. When the file is closed, the memory gets
+released automatically.
+
+
+* **Note**:
+In C, accessing the pointer to a `fst_file` after it has been closed is undefined behavior and should always be avoided. This means that calling
+almost any `fst24` C API function on an `fst_file` that has been closed will result in undefined behavior.
+This does not need to be considered when using the Fortran API, since we can verify whether the file has been closed.
+
+#### `fst_query`
+
+Memory for a query object is allocated when creating the query, with `fst24_new_query` (in C) or `fst_file % new_query` (in Fortran).
+When the query is no longer needed, *its memory must be explicitly released* by calling `fst24_query_free` (in C) or `fst_query % free()` (in Fortran). In C, accessing a pointer to a query that has been freed is undefined behavior and should always be avoided. In Fortran, accessing a query that has been freed will fail with an error message.
+
+In addition, if the file to which a query belongs is closed, that query is no longer valid and needs to be freed.
+
+#### `fst_record`
+
+There are three ways to allocate space for the *data* read by an `fst_record` object
+1. Explicitly (dynamic), before reading the data, with `malloc` (C) or `allocate` (Fortran). With that method, a pointer to the data
+must be specified when reading data from a file into an `fst_record`, either by setting its `data` attribute prior to the reading call, or by
+passing the pointer to the appropriate parameter in the function call itself. Once you are done using the data, you must deallocate it explicitly
+with `free` (C) or `deallocate` (Fortran).
+2. Statically, in a global or automatic array. With that method, a pointer to the data
+must be specified when reading data from a file into an `fst_record`, either by setting its `data` attribute prior to the reading call, or by
+passing the pointer to the appropriate parameter in the function call itself. Nothing in particular needs to be done to release the memory afterwards.
+3. Implicitly (dynamic), by letting the API do its own allocation. When calling a read function without specifying a data pointer, the library will
+dynamically allocate enough space for the data. When reading repeatedly with the same `fst_record` object (for different data records in a file),
+the size of that allocation may increase automatically if some record contains a larger amount of data than the previous ones. Once work with a certain
+`fst_record` object is done, you must signal it to the API by calling `fst24_record_free` (in C) or `fst_record % free` (in Fortran).
+
+##### Metadata (RSF only)
+
+When a record is searched with metadata criteria, or when it is read, space is allocated for the metadata. It is necessary to `free` the record to
+release that metadata, if there is any. 
+
+##### Notes on `fst24_record_free`/`fst_record % free`
+
+- When calling `free` on an `fst_record` object, that object no longer refers to *any* record. This means that its parameters other than the
+  data can no longer be accessed (they are reset to their default value).
+
+- Only implicitly allocated memory is released. This means that calling `free` on an `fst_record` for which data was provided explicitly will
+  *not* free that data, it will still be accessible through the initial array. If you explicitly allocated memory into which record data was read,
+  you need to call `free`/`deallocate` on that memory, even if you called `free` on the `fst_record` object.
+
+- If unsure about the status of metadata or data content of an `fst_record`, it's always safe to call `free` on it.
 
 ## Data Types
 
@@ -221,7 +274,7 @@ static const int32_t FST_TYPE_TURBOPACK = 128;
 
 * The old `fst98` API is still supported and can manage the new RSF backend. In Fortran, a new module has been created and we recommend its use:
 ```Fortran
-use rmn_fst98
+use rmn_fst98    ! Import all FST function interfaces
 ```
 * To create a file in the RSF format, you can specify it during the opening call: 
 ```Fortran
@@ -339,7 +392,7 @@ if (my_query % find_next(my_record)) then
 
     ! Do something with the data
     if (my_record % ip1 > 10) then
-        print *, record % data
+        print *, my_record % data
     end if
 
 end if
@@ -911,20 +964,34 @@ typedef struct {
 ### File Functions
 
 ```c
-//! Verify that the file pointer is valid and the file is open
+//! Verify that the file pointer is valid and the file is open. This is meant to verify that
+//! the file struct has been initialized by a call to fst24_open; it should *not* be called
+//! on a file that has been closed, since it will result in undefined behavior.
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst24_is_open(const fst_file* const file);
 
-//! \return Pointer to the name of the file, if open. NULL otherwise
+//! \return The name of the file, if open. NULL otherwise
 const char* fst24_file_name(const fst_file* const file);
 
 //! Test if the given path is a readable FST file
 //! \return TRUE (1) if the file makes sense, FALSE (0) if an error is detected
-int32_t fst24_is_valid(const char* const filePath);
+int32_t fst24_is_valid(
+    const char* const filePath
+);
 
 //! Open a standard file (FST)
 //!
-//! File will be created if it does not already exist
+//! File will be created if it does not already exist and is opened in R/W mode.
+//! The same file can be opened several times simultaneously as long as some rules are followed:
+//! for XDF files, they have to be in R/O (read-only) mode; for RSF files, R/O mode is always OK,
+//! and R/W (read-write) mode is allowed if the PARALLEL option is used. Additionally, for RSF
+//! only, if a file is already open in R/O mode, it *must* be closed before any other thread or process can
+//! open it in write mode.
+//!
+//! Refer to the README for information on how to write in parallel in an RSF file.
+//!
+//! Thread safety: Always safe to open files concurrently (from a threading perspective).
+//!
 //! \return A handle to the opened file. NULL if there was an error
 fst_file* fst24_open(
     const char* const filePath,  //!< Path of the file to open
@@ -932,23 +999,41 @@ fst_file* fst24_open(
 );
 
 //! Close the given standard file and free the memory associated with the struct
+//!
+//! Thread safety: Closing several different files concurrently is always safe. Closing the same file
+//! several times is an error. Closing a file while another fst24 API call is running on that same
+//! file is also an error. The user is responsible to make sure that other calls on a certain
+//! file are finished before closing that file.
+//!
 //! \todo What happens if closing a linked file?
 //! \return TRUE (1) if no error, FALSE (0) or a negative number otherwise
 int32_t fst24_close(fst_file* const file);
 
 //! Commit data and metadata to disk if the file has changed in memory
+//!
+//! Thread safety: Always safe to call concurrently on different open files.
+//! *For RSF only*, it is safe to call this function from one thread while another is writing to the same file;
+//! it is also safe to call it concurrently on the same file (although that would be useless).
+//!
 //! \return A negative number if there was an error, 0 or positive otherwise
 int32_t fst24_flush(
     const fst_file* const file //!< Handle to the open file we want to checkpoint
 );
 
 //! Get the number of records in a file including linked files
+//!
+//! Thread safety: Always safe to call it concurrently with other API calls on any open file.
+//!
 //! \return Number of records in the file and in any linked files
 int64_t fst24_get_num_records(
     const fst_file* const file    //!< [in] Handle to an open file
 );
 
-//! Retrieve record information at a given index
+//! Retrieve record information at a given index.
+//!
+//! Thread safety: This function may be called concurrently by several threads for the same file.
+//! The output must be to a different fst_record object.
+//!
 //! \return TRUE (1) if everything was successful, FALSE (0) or negative if there was an error.
 int32_t fst24_get_record_by_index(
     const fst_file* const file, //!< [in] File handle
@@ -957,6 +1042,10 @@ int32_t fst24_get_record_by_index(
 );
 
 //! Print a summary of the records found in the given file (including any linked files)
+//!
+//! Thread safety: Safe to call concurrently (but the output could be interleaved).
+//! *For RSF only*, safe to call from one thread while another is writing to the same file.
+//!
 //! \return a negative number if there was an error, TRUE (1) if all was OK
 int32_t fst24_print_summary(
     fst_file* const file, //!< [in] Handle to an open file
@@ -964,15 +1053,23 @@ int32_t fst24_print_summary(
 );
 
 //! Write the given record into the given standard file
+//!
+//! Thread safety: Several threads may write concurrently in the same open file (the same fst_file struct), as
+//! well as in different files. The fst_record to write must be different though.
+//!
 //! \return TRUE (1) if everything was a success, a negative error code otherwise
 int32_t fst24_write(
-    fst_file* file,     //!< The file where we want to write
-    fst_record* record, //!< The record we want to write
+    fst_file* file,     //!< [in,out] The file where we want to write
+    fst_record* record, //!< [in,out] The record we want to write
     const int rewrite   //!< Whether we want to overwrite FST_YES, skip FST_SKIP or write again FST_NO an existing record
 );
 
 //! Search a file with given criteria and read the first record that matches these criteria.
 //! Search through linked files, if any.
+//!
+//! Thread safety: This function may be called concurrently by several threads on the same file
+//! (the records must be different).
+//!
 //! \return TRUE (1) if able to find and read a record, FALSE (0) or a negative number otherwise (not found or error)
 int32_t fst24_read(
     const fst_file* const file,         //!< File we want to search
@@ -982,6 +1079,9 @@ int32_t fst24_read(
 );
 
 //! Create a search query that will apply the given criteria during a search in a file.
+//!
+//! This function is thread safe.
+//!
 //! \return A pointer to a search query if the inputs are valid (open file, OK criteria struct), NULL otherwise
 fst_query* fst24_new_query(
     const fst_file* const file, //!< File that will be searched with the query
@@ -992,6 +1092,17 @@ fst_query* fst24_new_query(
 //! Link the given list of files together, so that they are treated as one for the purpose
 //! of searching and reading. Once linked, the user can use the first file in the list
 //! as a replacement for all the given files.
+//!
+//! Thread safety: This function may be called concurrently on two sets of fst_file objects *if and only if* the
+//! two sets do not overlap. It is OK if two different fst_file objects refer to the same file on disk (i.e. the file
+//! has been opened more than once).
+//!
+//! *Note*: Some librmn functions and some tools may still make use of the `iun` from the fst98 interface. In order to
+//! be backward-compatible with these functions and tools, we also perform a link of the files with that interface.
+//! That old fstlnk itself is *not* thread-safe and may not work if there are several sets of linked files. This
+//! means that if you concurrently create several lists of linked files, they might not work as intended if these
+//! lists are accessed through the first file's iun.
+//!
 //! \return TRUE (1) if files were linked, FALSE (0) or a negative number otherwise
 int32_t fst24_link(
     fst_file** files,           //!< List of handles to open files
@@ -999,11 +1110,18 @@ int32_t fst24_link(
 );
 
 //! Unlink the given file(s). The files are assumed to have been linked by
-//! a previous call to fst24_link, so only the first one should be given as input
+//! a previous call to fst24_link, so only the first one should be given as input.
+//!
+//! Thread safety: Assuming the rules for calling fst24_link have been followed, it is always safe
+//! to call fst24_unlink concurrently on two separate lists of files.
+//!
 //! \return TRUE (1) if unlinking was successful, FALSE (0) or a negative number otherwise
 int32_t fst24_unlink(fst_file* const file);
 
 //! Move to the end of the given sequential file
+//!
+//! Thread safety: This function may always be called concurrently.
+//!
 //! \return The result of \ref c_fsteof if the file was open, FALSE (0) otherwise
 int32_t fst24_eof(const fst_file* const file);
 ```
@@ -1011,46 +1129,65 @@ int32_t fst24_eof(const fst_file* const file);
 ### Query Functions
 
 ```c
-
-//! Find the next record in the given file that matches the given query criteria.
+//! Find the next record in the given file that matches the given query criteria. Search through linked files, if any.
 //!
-//! Searches through linked files, if any.
+//! Thread safety: This function may be called concurrently by several threads on *different queries* that belong to
+//! the same file. However, it cannot be called concurrently on the same fst_query object.
+//!
 //! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
 int32_t fst24_find_next(
     fst_query* const query, //!< [in] Query used for the search. Must be for an open file.
-    //!> [in,out] Will contain record information if found and, optionally, metadata (if included in search).
-    //!> If NULL, we will only check for the existence of a match to the query, without extracting any data from that
-    //!> match. If not NULL, must be a valid, initialized record.
+    //!> [in,out] Will contain record information if found and, optionally, metadata (if included in the search query).
+    //!> If NULL, we will only check for the existence of a match to the query, without extracting any information from
+    //!> that match. If not NULL, must be a valid, initialized record.
     fst_record* record
 );
 
-//! Read the next record (data and all) that corresponds to the search criteria
-//! Search through linked files, if any
+//! Read the next record (data and all) that corresponds to the given query criteria.
+//! Search through linked files, if any.
+//!
+//! Thread safety: This function may be called concurrently by several threads on *different queries* that belong to
+//! the same file (the records must be different). However, it cannot be called concurrently on the same
+//! fst_query object.
+//!
 //! \return TRUE (1) if able to read a record, FALSE (0) or a negative number otherwise (not found or error)
 int32_t fst24_read_next(
     fst_query* const query,   //!< Query used for the search
     fst_record* const record  //!< [out] Record content and info, if found
 );
 
-//! Find all record that match the given query.
+//! Find all record that match the given query, up to a certain maximum.
 //! Search through linked files, if any.
+//!
+//! Thread safety: This function may be called concurrently by several threads on *different queries* that belong to
+//! the same file. However, it cannot be called concurrently on the same fst_query object.
+//!
 //! \return Number of records found, 0 if none or if error.
 int32_t fst24_find_all(
-    fst_query* query,             //!< Query used for the search
-    fst_record* results,          //!< [in,out] List of records found. Must be already allocated
+    //!> [in,out] Query used for the search. Will be rewinded before doing the search, but when the function returns,
+    //!> it will be pointing to the end of its search.
+    fst_query* query,
+    fst_record* results,          //!< [in,out] List of records found. The list must be already allocated
     const int32_t max_num_results //!< [in] Size of the given list of records. We will stop looking if we find that many
 );
 
-//! Reset start index of search without changing the criteria
+//! Reset start index of search without changing the criteria.
+//!
+//! Thread safety: Can be called concurrently only if the queries are different objects.
+//!
 //! \return TRUE (1) if file is valid and open, FALSE (0) otherwise
 int32_t fst24_rewind_search(fst_query* const query);
 
 //! \return Whether the given query pointer is a valid query. A query's file must be
 //! open for the query to be valid.
+//! Calling this function on a query whose file has been closed results in undefined behavior.
 int32_t fst24_query_is_valid(const fst_query* const q);
 
-//! Free memory used by the given query
+//! Free memory used by the given query. Must be called on every query created by fst24_new_query.
+//! This also releases queries that were created automatically to search through linked files.
 void fst24_query_free(fst_query* const query);
+
+
 ```
 
 ### Record Functions
@@ -1245,7 +1382,19 @@ function fst24_file_get_name(this) result(name)
     character(len=:), pointer :: name
 end function get_name
 
-!> Open a standard file (FST). Will create it if it does not already exist
+!> Open a standard file (FST)
+!>
+!> File will be created if it does not already exist and is opened in R/W mode.
+!> The same file can be opened several times simultaneously as long as some rules are followed:
+!> for XDF files, they have to be in R/O (read-only) mode; for RSF files, R/O mode is always OK,
+!> and R/W (read-write) mode is allowed if the PARALLEL option is used. Additionally, for RSF
+!> only, if a file is already open in R/O mode, it *must* be closed before any other thread or process can
+!> open it in write mode.
+!>
+!> Refer to the README for information on how to write in parallel in an RSF file.
+!>
+!> Thread safety: Always safe to open files concurrently (from a threading perspective).
+!>
 function open(this, filename, options) result(could_open)
     class(fst_file),intent(inout)        :: this     !< fst_file instance. Must not be an already-open file
     character(len=*), intent(in)           :: filename !< Name of the file we want to open
@@ -1254,21 +1403,35 @@ function open(this, filename, options) result(could_open)
     logical :: could_open  !< Whether we were able to open the file
 end function open
 
-!> Close the given standard file
+!> Close the given standard file and free the memory associated with the struct
+!>
+!> Thread safety: Closing several different files concurrently is always safe. Closing the same file
+!> several times is an error. Closing a file while another fst24 API call is running on that same
+!> file is also an error. The user is responsible to make sure that other calls on a certain
+!> file are finished before closing that file.
+!> Return whether we were able to close the file
 function close(this) result(could_close)
     implicit none
     class(fst_file), intent(inout) :: this  !< fst_file instance we want to close
     logical :: could_close                  !< Whether we were actually able to close it
 end function close
 
-!> Get number of record in file (including linked files). 0 if file is invalid or not open.
+!> Get the number of records in a file including linked files
+!>
+!> Thread safety: Always safe to call it concurrently with other API calls on any open file.
+!>
+!> Return number of record in file (including linked files). 0 if file is invalid or not open.
 function get_num_records(this) result(num_records)
     implicit none
     class(fst_file), intent(in) :: this
     integer(C_INT64_T) :: num_records
 end function get_num_records
 
-!> Retrieve record information at a given index
+!> Retrieve record information at a given index.
+!>
+!> Thread safety: This function may be called concurrently by several threads for the same file.
+!> The output must be to a different fst_record object.
+!>
 !> Return .true. if we got the record, .false. if error
 function get_record_by_index(this, index, record) result(success)
     implicit none
@@ -1278,7 +1441,9 @@ function get_record_by_index(this, index, record) result(success)
     logical :: success
 end function get_record_by_index
 
-!> Get unit of the file if open, 0 otherwise
+!> Get unit number for API calls that require it. This exists mostly for compatibility with
+!> other libraries and tools that only work with unit numbers rather than a fst_file struct.
+!> Return unit of the file if open, 0 otherwise
 function get_unit(this) result(status)
     implicit none
     class(fst_file), intent(inout) :: this
@@ -1286,6 +1451,9 @@ function get_unit(this) result(status)
 end function get_unit
 
 !> Create a search query that will apply the given criteria during a search in a file.
+!>
+!> This function is thread safe.
+!>
 !> Return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
 function new_query(this,                                                                             & 
         dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
@@ -1308,6 +1476,10 @@ end function new_query
 
 !> Search a file with given criteria and read the first record that matches these criteria.
 !> Search through linked files, if any.
+!>
+!> Thread safety: This function may be called concurrently by several threads on the same file
+!> (the records must be different).
+!>
 !> Return .true. if we found a record, .false. if not or if error
 function read(this, record, data,                                                                               &
         dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
@@ -1334,7 +1506,11 @@ function read(this, record, data,                                               
     logical :: found
 end function read
 
-!> Write the given record into the given standard file
+!> Write the given record into this standard file
+!>
+!> Thread safety: Several threads may write concurrently in the same open file (the same fst_file struct), as
+!> well as in different files. The fst_record to write must be different though.
+!>
 !> Return Whether the write was successful
 function write(this, record, rewrite) result(success)
     implicit none
@@ -1345,7 +1521,12 @@ function write(this, record, rewrite) result(success)
 end function write
 
 !> Perform a checkpoint on the given file:
-!> commit (meta)data to disk if the file has changed in memory
+!> Commit data and metadata to disk if the file has changed in memory
+!>
+!> Thread safety: Always safe to call concurrently on different open files.
+!> *For RSF only*, it is safe to call this function from one thread while another is writing to the same file;
+!> it is also safe to call it concurrently on the same file (although that would be useless).
+!>
 !> Return Whether the underlying call was successful
 function flush(this) result(success)
     implicit none
@@ -1354,6 +1535,10 @@ function flush(this) result(success)
 end function flush
 
 !> Print a summary of the records found in the given file (including any linked files)
+!>
+!> Thread safety: Safe to call concurrently (but the output could be interleaved).
+!> *For RSF only*, safe to call from one thread while another is writing to the same file.
+!>
 !> All optional parameters are booleans determining whether we print the corresponding field.
 subroutine print_summary(this,                                                                       &
         dateo, datev, datestamps, level, data_type, ni, nj, nk,                                      &
@@ -1365,7 +1550,20 @@ subroutine print_summary(this,                                                  
     logical, intent(in), optional :: typvar, nomvar, etiket
 end subroutine print_summary
 
-!> Link the given files so that they can be searched and read as one.
+!> Link the given list of files together, so that they are treated as one for the purpose
+!> of searching and reading. Once linked, the user can use the first file in the list
+!> as a replacement for all the given files.
+!>
+!> Thread safety: This function may be called concurrently on two sets of fst_file objects *if and only if* the
+!> two sets do not overlap. It is OK if two different fst_file objects refer to the same file on disk (i.e. the file
+!> has been opened more than once).
+!>
+!> *Note*: Some librmn functions and some tools may still make use of the `iun` from the fst98 interface. In order to
+!> be backward-compatible with these functions and tools, we also perform a link of the files with that interface.
+!> That old fstlnk itself is *not* thread-safe and may not work if there are several sets of linked files. This
+!> means that if you concurrently create several lists of linked files, they might not work as intended if these
+!> lists are accessed through the first file's iun.
+!>
 !> Return Whether the linking was successful
 function fst24_link(files) result(success)
     implicit none
@@ -1373,7 +1571,12 @@ function fst24_link(files) result(success)
     logical :: success
 end function fst24_link
 
-!> Unlink files that are linked into the given file
+!> Unlink the given file(s). The files are assumed to have been linked by
+!> a previous call to fst24_link, so only the first one should be given as input.
+!>
+!> Thread safety: Assuming the rules for calling fst24_link have been followed, it is always safe
+!> to call fst24_unlink concurrently on two separate lists of files.
+!>
 !> Return Whether the unlinking was successful
 function unlink(this) result(success)
     implicit none
@@ -1382,6 +1585,9 @@ function unlink(this) result(success)
 end function unlink
 
 !> Get the level of end of file for the sequential file
+!>
+!> Thread safety: This function may always be called concurrently.
+!>
 !> Only works with sequential files
 function eof(this) result(status)
     implicit none
@@ -1411,8 +1617,11 @@ end function rwd
 
 ```fortran
 
-!> Find the next record in the given file that matches the given query criteria.
-!> Search through linked files, if any.
+!> Find the next record in the given file that matches the given query criteria. Search through linked files, if any.
+!>
+!> Thread safety: This function may be called concurrently by several threads on *different queries* that belong to
+!> the same file. However, it cannot be called concurrently on the same fst_query object.
+!>
 !> Return .true. if we found a record, .false. if not or if error
 function find_next(this, record) result(found)
     implicit none
@@ -1422,8 +1631,12 @@ function find_next(this, record) result(found)
     logical :: found
 end function find_next
 
-!> Find all record that match the given query.
+!> Find all record that match the given query, up to a certain maximum.
 !> Search through linked files, if any.
+!>
+!> Thread safety: This function may be called concurrently by several threads on *different queries* that belong to
+!> the same file. However, it cannot be called concurrently on the same fst_query object.
+!>
 !> Return Number of records found, up to size(records)
 function find_all(this, records) result(num_found)
     implicit none
@@ -1434,8 +1647,13 @@ function find_all(this, records) result(num_found)
     integer(C_INT32_T) :: num_found
 end function find_all
 
-!> Read the next record (data and all) that corresponds to the given query criteria
-!> Search through linked files, if any
+!> Read the next record (data and all) that corresponds to the given query criteria.
+!> Search through linked files, if any.
+!>
+!> Thread safety: This function may be called concurrently by several threads on *different queries* that belong to
+!> the same file (the records must be different). However, it cannot be called concurrently on the same
+!> fst_query object.
+!>
 !> Return .true. if we read a record, .false. if none found or if error
 function read_next(this, record) result(found)
     implicit none
@@ -1459,6 +1677,8 @@ pure function is_valid(this) result(is_valid)
 end function is_valid
 
 !> Reset start index of search without changing the criteria
+!>
+!> Thread safety: Can be called concurrently only if the queries are different objects.
 subroutine rewind(this)
     implicit none
     class(fst_query), intent(inout) :: this
@@ -1466,7 +1686,8 @@ subroutine rewind(this)
     if (this % is_valid()) c_status = fst24_rewind_search(this % query_ptr)
 end subroutine rewind
 
-!> Free memory used by the given query
+!> Free memory used by the given query. Must be called on every query created by new_query.
+!> This also releases queries that were created automatically to search through linked files.
 subroutine free(this)
     implicit none
     class(fst_query), intent(inout) :: this

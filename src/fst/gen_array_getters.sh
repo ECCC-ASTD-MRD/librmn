@@ -28,7 +28,7 @@ for RI in I R ; do
 
             [[ $D == 3 ]] && SHAPE='this % ni, this % nj, this % nk'
             [[ $D == 2 ]] && SHAPE='this % ni, this % nj'
-            [[ $D == 1 ]] && SHAPE='this % ni'
+            [[ $D == 1 ]] && SHAPE='this % ni * this % nj * this % nk'
             cat << EOT
 
     subroutine fst24_record_get_data_array_${RI}${L}_${D}D(this, array)

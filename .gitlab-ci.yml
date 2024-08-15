@@ -24,9 +24,9 @@ before_script:
 #    script:
 #       - find ${ECCI_BUILD_DIR}/precaution -type d -mtime +7 -exec rm -rfv {} \; || true
 
-#----- rhel-8-icelake-64_inteloneapi-2024.0.1
+#----- rhel-8-icelake-64_inteloneapi-2024.2.0
 
-build:rhel-8-icelake-64_inteloneapi-2024.0.1:
+build:rhel-8-icelake-64_inteloneapi-2024.2.0:
    stage: build
    tags:
       - concurrent
@@ -37,16 +37,16 @@ build:rhel-8-icelake-64_inteloneapi-2024.0.1:
       - tags
    script:
       - set +e
-      - source ${ECCI_ENV}/latest/rhel-8-icelake-64/inteloneapi-2024.0.1.sh
+      - source ${ECCI_ENV}/latest/rhel-8-icelake-64/inteloneapi-2024.2.0.sh
       - set -e
-      - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.0.1
+      - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.2.0
       - SRC_DIR=$(pwd)
-      - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.0.1
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.2.0
       - cmake ${SRC_DIR}
       - time make -j $NCPUS
    allow_failure: true
 
-test:rhel-8-icelake-64_inteloneapi-2024.0.1:
+test:rhel-8-icelake-64_inteloneapi-2024.2.0:
    stage: test
    tags:
       - concurrent
@@ -56,16 +56,16 @@ test:rhel-8-icelake-64_inteloneapi-2024.0.1:
      - /^dev.*$/
      - tags
    dependencies:
-     - build:rhel-8-icelake-64_inteloneapi-2024.0.1
+     - build:rhel-8-icelake-64_inteloneapi-2024.2.0
    script:
       - set +e
-      - source ${ECCI_ENV}/latest/rhel-8-icelake-64/inteloneapi-2024.0.1.sh
+      - source ${ECCI_ENV}/latest/rhel-8-icelake-64/inteloneapi-2024.2.0.sh
       - set -e
-      - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.0.1
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.2.0
       - make check
    allow_failure: true
 
-package:rhel-8-icelake-64_inteloneapi-2024.0.1:
+package:rhel-8-icelake-64_inteloneapi-2024.2.0:
    stage: package
    tags:
       - concurrent
@@ -76,14 +76,14 @@ package:rhel-8-icelake-64_inteloneapi-2024.0.1:
       - tags
       - schedules
    dependencies:
-      - build:rhel-8-icelake-64_inteloneapi-2024.0.1
+      - build:rhel-8-icelake-64_inteloneapi-2024.2.0
    environment:
       name: testing
    script:
       - set +e
-      - source ${ECCI_ENV}/latest/rhel-8-icelake-64/inteloneapi-2024.0.1.sh
+      - source ${ECCI_ENV}/latest/rhel-8-icelake-64/inteloneapi-2024.2.0.sh
       - set -e
-      - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.0.1
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.2.0
       - make package
       - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
    allow_failure: true
@@ -345,9 +345,12 @@ build:rhel-8-amd64_gnu-14.1.0:
      - tags
    script:
       - source ${ECCI_ENV}/latest/profile.sh
+      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load gcc14
       - export EC_ARCH=Linux_x86-64/gnu-14.1.0
+      - export COMP_ARCH=gnu-14.1.0
+      - export ORDENV_PLAT=rhel-8-amd64-64
       - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
@@ -368,6 +371,7 @@ test:rhel-8-amd64_gnu-14.1.0:
    script:
       - set +e
       - source ${ECCI_ENV}/latest/profile.sh
+      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load gcc14
       - export EC_ARCH=Linux_x86-64/gnu-14.1.0
@@ -375,6 +379,34 @@ test:rhel-8-amd64_gnu-14.1.0:
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
       - make check
       
+package:rhel-8-amd64_gnu-14.1.0:
+   stage: package
+   tags:
+      - concurrent
+   only:
+      - master
+      - alpha
+      - /^dev.*$/
+      - tags
+      - schedules
+   dependencies:
+      - build:rhel-8-amd64_gnu-14.1.0
+   environment:
+      name: testing
+   script:
+      - set +e
+      - source ${ECCI_ENV}/latest/profile.sh
+      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
+      - export MODULEPATH=~sidr000/modules:$MODULEPATH
+      - module load gcc14
+      - export EC_ARCH=Linux_x86-64/gnu-14.1.0
+      - export COMP_ARCH=gnu-14.1.0
+      - export ORDENV_PLAT=rhel-8-amd64-64
+      - set -e
+      - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
+      - make package
+      - ~/ci-admin-bundle/bin/ci-package-ssm.sh package ${ECCI_PROCESS}
+
 #----- rhel-8-amd64_aocc-4.1.1
 
 build:rhel-8-amd64_aocc-4.1.1:
@@ -388,6 +420,7 @@ build:rhel-8-amd64_aocc-4.1.1:
      - tags
    script:
       - source ${ECCI_ENV}/latest/profile.sh
+      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load aocc-4.1.1
       - export EC_ARCH=Linux_x86-64/aocc
@@ -412,6 +445,7 @@ test:rhel-8-amd64_aocc-4.1.1:
    script:
       - set +e
       - source ${ECCI_ENV}/latest/profile.sh
+      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load aocc-4.1.1
       - export EC_ARCH=Linux_x86-64/aocc
@@ -433,6 +467,7 @@ build:rhel-8-amd64_nvhpc_23.7.0:
      - tags
    script:
       - source ${ECCI_ENV}/latest/profile.sh
+      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load nvhpc_23.7
       - export EC_ARCH=Linux_x86-64/nvhpc
@@ -459,6 +494,7 @@ test:rhel-8-amd64_nvhpc_23.7.0:
    script:
       - set +e
       - source ${ECCI_ENV}/latest/profile.sh
+      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load nvhpc_23.7
       - set -e
@@ -482,6 +518,7 @@ package:rhel-8-amd64_nvhpc_23.7.0:
       name: testing
    script:
       - source ${ECCI_ENV}/latest/profile.sh
+      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load nvhpc_23.7
       - export EC_ARCH=Linux_x86-64/nvhpc

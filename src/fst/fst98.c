@@ -58,7 +58,7 @@ int nb_remap = 0;
 //! backend type (XDF or RSF)
 static char *fst_backend = NULL;
 //! Segment size for RSF, when writing in parallel (in MB)
-static int32_t segment_size_mb = 1;
+static int32_t segment_size_mb = 1000;
 
 #define PRNT_OPTIONS_LEN 128
 
@@ -89,6 +89,7 @@ int32_t has_type_missing_f(const int32_t type_flag) { return has_type_missing(ty
 int32_t is_type_integer_f(const int32_t type_flag) { return is_type_integer(type_flag); }
 int32_t base_fst_type_f(const int32_t type_flag) { return base_fst_type(type_flag); }
 
+
 static void str_cp_init(char * const dst, const int dstLen, const char * const src, const int srcLen) {
     for (int i = 0; i < dstLen - 1; i++) {
         dst[i] = (i < srcLen) ? src[i] : ' ';
@@ -116,7 +117,7 @@ void copy_record_string(
 }
 
 //! This function is slow and possibly not perfect
-int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_t max_length) {
+int32_t is_same_record_string(const char * const str_a, const char * const str_b, const int32_t max_length) {
     char copy_a[max_length];
     char copy_b[max_length];
     copy_record_string(copy_a, str_a, max_length);
@@ -145,28 +146,28 @@ uint32_t get_valid_date32(
     return (uint32_t)origin_date;
 }
 
-void memcpy_8_16(int16_t *p16, int8_t *p8, int nb) {
+void memcpy_8_16(int16_t *p16, const int8_t *p8, int nb) {
     for (int i = 0; i < nb; i++) {
         *p16++ = *p8++;
     }
 }
 
 
-void memcpy_16_8(int8_t *p8, int16_t *p16, int nb) {
+void memcpy_16_8(int8_t *p8, const int16_t *p16, int nb) {
     for (int i = 0; i < nb; i++) {
         *p8++ = *p16++;
     }
 }
 
 
-void memcpy_16_32(int32_t *p32, int16_t *p16, int nbits, int nb) {
+void memcpy_16_32(int32_t *p32, const int16_t *p16, int nbits, int nb) {
     int16_t mask = ~ (-1 << nbits);
     for (int i = 0; i < nb; i++) {
         *p32++ = *p16++ & mask;
     }
 }
 
-void memcpy_32_16(short *p16, int *p32, int nbits, int nb) {
+void memcpy_32_16(int16_t *p16, const int32_t * p32, int nbits, int nb) {
     int32_t mask = ~ (-1 << nbits);
     for (int i = 0; i < nb; i++) {
         *p16++ = *p32++ & mask;
@@ -618,7 +619,6 @@ void print_std_parms(
     }
 
     if (strstr(option, "GRIDINFO")) {
-        F2Cl lc1 = 1, lc2 = 7, lc3 = 7, lc4 = 8, lc5 = 8;
         ig1 = stdf_entry->ig1; ig2 = cracked.ig2;
         ig3 = stdf_entry->ig3; ig4 = stdf_entry->ig4;
         igapg_c(cracked.gtyp, pg1, pg2, pg3, pg4, &ig1, &ig2, &ig3, &ig4);
@@ -1207,9 +1207,13 @@ int c_fstecr_xdf(
     int handle = 0;
 
     if ((rewrit) && (!fte->xdf_seq)) {
-       // find handle for rewrite operation
+        // find handle for rewrite operation
         int niout, njout, nkout;
+
+        void* const old_file_filter = xdf_set_file_filter(iun, NULL); // Remove file filter for this particular search
         handle = c_fstinf(iun, &niout, &njout, &nkout, -1, etiket, ip1, ip2, ip3, typvar, nomvar);
+        xdf_set_file_filter(iun, old_file_filter); // Put file filter back
+
         if (handle < 0) {
             // append mode for xdfput
             handle = 0;
@@ -1504,7 +1508,7 @@ int c_fstecr_xdf(
     // write record to file and add entry to directory
     int ier = c_xdfput(iun, handle, buffer);
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
-        const int strlng = 12;
+        const int strlng = 14;
         char string[strlng];
         snprintf(string, strlng, "Write(%d)", iun);
         print_std_parms(stdf_entry, string, prnt_options, -1);
@@ -2212,7 +2216,7 @@ int c_fstinfx(
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstinfx_rsf(handle, FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, in_etiket, ip1, ip2, ip3, in_typvar,
-                                   in_nomvar);
+                                   in_nomvar, 0);
         }
         else if (FGFDT[index_fnom].attr.rsf == 0) {
             status = c_fstinfx_xdf(handle, FGFDT[index_fnom].iun, ni, nj, nk, datev, in_etiket, ip1, ip2, ip3, in_typvar, in_nomvar);
@@ -2232,7 +2236,7 @@ int c_fstinfx(
 }
 
 
-//! \copydoc c_fstinl
+//! \copydoc c_fstinl()
 //! XDF version
 int c_fstinl_xdf(
     //! [in] Unit number associated to the file in which to search
@@ -3444,23 +3448,23 @@ int c_fstopr(
 //! @return 0 when valid; -1 otherwise
 int c_fstcheck_xdf(
     //! [in]  Path to the file
-    const char *filePath
+    const char * const filePath
 ) {
     return c_xdfcheck(filePath);
 }
+
 
 //! Check FSTD file for corruption
 //! @return 0 when valid; -1 otherwise
 int c_fstcheck(
     //! [in]  Path to the file
-    const char *filePath
+    const char * const filePath
 ) {
     const int32_t type = c_wkoffit(filePath, strlen(filePath));
     if (type == WKF_STDRSF) {
         if (RSF_Basic_check(filePath)) return 0;
         return 1;
-    }
-    else {
+    } else {
         return c_fstcheck_xdf(filePath);
     }
 }
@@ -3559,7 +3563,7 @@ int c_fstouv(
     // Determine whether we open for parallel write, if RSF
     const int32_t seg_size = (strcasestr(options, "PARALLEL") != NULL) ? segment_size_mb : 0;
 
-    const int open_mode = read_only ? RSF_RO : RSF_RW;
+    const rsf_open_mode open_mode = read_only ? RSF_RO : RSF_RW;
     //  (strcasestr(options, "FUSE") != NULL) ? RSF_FUSE : RSF_RW;
 
     FGFDT[i].attr.std = 1; // force attribute to standard file
@@ -5761,151 +5765,99 @@ int32_t f77name(fstnbrv)(int32_t *f_iun)
 }
 
 
-/*****************************************************************************
- *                              F S T O P C                                  *
- *                                                                           *
- *Object                                                                     *
- *   Print out or set a fstd or xdf global variable option.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *   IN     option   option name to be set/printed                           *
- *   IN     value    option value                                            *
- *   IN     getmode  logical (1: get option, 0: set option)                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstopc)(char *f_option, char *f_value, int32_t *f_getmode,
-                        F2Cl ll1, F2Cl ll2)
-{
-  int getmode = *f_getmode, ier;
-  char option[17];
-  char value[129];
-  int l1 = ll1, l2 = ll2;
-
-  l1 = (l1 > 16) ? 16 : l1;
-  l2 = (l2 > 128) ? 128 : l2;
-  strncpy(option, f_option, l1);
-  option[l1] = '\0';
-  l1--;
-  while ((l1 > 0) && (option[l1] == ' ')) {
-    option[l1] = '\0';
-    l1--;
-  }
-  strncpy(value, f_value, l2);
-  value[l2] = '\0';
-  l2--;
-  while ((l2 > 0) && (value[l2] == ' ')) {
-    value[l2] = '\0';
-    l2--;
-  }
-
-  ier = c_fstopc(option, value, getmode);
-  return (int32_t) ier;
-}
-
-
-/*****************************************************************************
- *                              F S T O P I                                  *
- *                                                                           *
- *Object                                                                     *
- *   Print out or set a fstd or xdf global variable option.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *   IN     option   option name to be set/printed                           *
- *   IN     value    option value                                            *
- *   IN     getmode  logical (1: get option, 0: set option)                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstopi)(char *f_option, int32_t *f_value, int32_t * f_getmode,
-                        F2Cl ll1)
-{
-  int getmode = *f_getmode, value = *f_value, ier;
-  int l1 = ll1;
-  char option[7] = {' ', ' ', ' ', ' ', ' ', ' ', '\0'};
-
-  l1 = (l1 > 6) ? 6 : l1;
-  strncpy(option, f_option, l1);
-
-  ier = c_fstopi(option, value, getmode);
-  return (int32_t) ier;
-}
-
-
-/*****************************************************************************
- *                              F S T O P L                                  *
- *                                                                           *
- *Object                                                                     *
- *   Print out or set a fstd or xdf global variable option.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *   IN     option   option name to be set/printed                           *
- *   IN     value    option value                                            *
- *   IN     getmode  logical (1: get option, 0: set option)                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstopl)(char *f_option, int32_t *f_value, int32_t * f_getmode,
-                        F2Cl ll1)
-{
-  int getmode = *f_getmode, value = *f_value, ier;
-  int l1 = ll1;
-  char option[17];
-
-  l1 = (l1 > 16) ? 16 : l1;
-  strncpy(option, f_option, l1);
-  option[l1] = '\0';
-
-  ier = c_fstopl(option, value, getmode);
-  return (int32_t) ier;
-}
-
-
-/*****************************************************************************
- *                              F S T O P R                                  *
- *                                                                           *
- *Object                                                                     *
- *   Print out or set a fstd or xdf global variable option.                  *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *   IN     option   option name to be set/printed                           *
- *   IN     value    option value                                            *
- *   IN     getmode  logical (1: get option, 0: set option)                  *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstopr)(char *f_option, float *f_value, int32_t * f_getmode, F2Cl ll1)
-{
-    int getmode = *f_getmode, ier;
-    float value = *f_value;
+//! \copydoc c_fstopc()
+int32_t f77name(fstopc)(
+    const char * const option,
+    const char * const value,
+    const int32_t * const getmode,
+    F2Cl ll1,
+    F2Cl ll2
+) {
+    char option2[17];
+    char value2[129];
     int l1 = ll1;
-    char option[7];
+    int l2 = ll2;
+
+    l1 = (l1 > 16) ? 16 : l1;
+    l2 = (l2 > 128) ? 128 : l2;
+    strncpy(option2, option, l1);
+    option2[l1] = '\0';
+    l1--;
+    while ((l1 > 0) && (option2[l1] == ' ')) {
+        option2[l1] = '\0';
+        l1--;
+    }
+    strncpy(value2, value, l2);
+    value2[l2] = '\0';
+    l2--;
+    while ((l2 > 0) && (value2[l2] == ' ')) {
+        value2[l2] = '\0';
+        l2--;
+    }
+
+    return (int32_t) c_fstopc(option2, value2, *getmode);
+}
+
+
+//! \copydoc c_fstopi()
+int32_t f77name(fstopi)(
+    const char * const option,
+    const int32_t * const value,
+    const int32_t * const getmode,
+    F2Cl ll1
+) {
+    char option2[7] = {' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+
+    int l1 = ll1;
+    l1 = (l1 > 6) ? 6 : l1;
+    strncpy(option2, option, l1);
+
+    return (int32_t) c_fstopi(option2, *value, *getmode);
+}
+
+
+//! \copydoc c_fstopl()
+int32_t f77name(fstopl)(
+    const char * const option,
+    const int32_t * const value,
+    const int32_t * const getmode,
+    F2Cl ll1
+) {
+    char option2[17];
+
+    int l1 = ll1;
+    l1 = (l1 > 16) ? 16 : l1;
+    strncpy(option2, option, l1);
+    option2[l1] = '\0';
+
+    return (int32_t) c_fstopl(option2, *value, *getmode);
+}
+
+
+//! \copydoc c_fstopr()
+int32_t f77name(fstopr)(
+    const char * const option,
+    const float * const value,
+    const int32_t * const getmode,
+    F2Cl ll1
+) {
+    int l1 = ll1;
+    char option2[7];
 
     l1 = (l1 > 6) ? 6 : l1;
-    strncpy(option, f_option, l1);
-    option[l1] = '\0';
+    strncpy(option2, option, l1);
+    option2[l1] = '\0';
 
-    ier = c_fstopr(option, value, getmode);
-    return (int32_t) ier;
+    return (int32_t) c_fstopr(option2, *value, *getmode);
 }
 
 
-/*****************************************************************************
- *                              F S T C H E C K                              *
- *                                                                           *
- *Object                                                                     *
- *   Checks if an RPN standard file is valid.                                *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  filename Path of the file to be checked                              *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fstcheck)(char *filename, F2Cl lng)
-{
-  int ier;
-  ier = c_fstcheck(filename);
-  return (int32_t) ier;
+//! \copydoc c_fstcheck()
+int32_t f77name(fstcheck)(
+    const char * const filename,
+    F2Cl lng
+) {
+    return (int32_t) c_fstcheck(filename);
 }
 
 
@@ -5923,7 +5875,7 @@ int32_t f77name(fstcheck)(char *filename, F2Cl lng)
  *****************************************************************************/
 int32_t f77name(fstouv)(int32_t *f_iun, char *options, F2Cl lng)
 {
-  return c_fstouv(*f_iun, options);
+    return c_fstouv(*f_iun, options);
 }
 
 
