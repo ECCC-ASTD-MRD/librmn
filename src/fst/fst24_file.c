@@ -1385,7 +1385,7 @@ int32_t fst24_find_next(
     //!> [in,out] Will contain record information if found and, optionally, metadata (if included in search).
     //!> If NULL, we will only check for the existence of a match to the query, without extracting any data from that
     //!> match. If not NULL, must be a valid, initialized record.
-    fst_record* record
+    fst_record * const record
 ) {
     if (!fst24_query_is_valid(query)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Query at %p is not valid\n", __func__, query);
