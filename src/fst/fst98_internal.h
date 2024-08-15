@@ -116,7 +116,7 @@ int c_fstecr_rsf(void *field_in, void *work, int npak, int iun, int index_fnom, 
 int c_fstfrm_rsf(int iun, const int index_fnom);
 int c_fstinfx_rsf(const int handle, const int iun, const int index_fnom, int * const ni, int * const nj,
                   int * const nk, const int datev, const char * const in_etiket, const int ip1, const int ip2,
-                  const int ip3, const char * const in_typvar, const char * const in_nomvar);
+                  const int ip3, const char * const in_typvar, const char * const in_nomvar, const int skip_filter);
 int c_fstlirx_rsf(void *field, int handle, int iun, const int index_fnom, int *ni, int *nj, int *nk, int datev,
                   char *etiket, int ip1, int ip2, int ip3, char *typvar, char *nomvar);
 int c_fstnbr_rsf(const int index_fnom);

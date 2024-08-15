@@ -8,7 +8,7 @@
 #include "rmn/convert_ip.h"
 
 //! List of field/grid descriptor records
-static const char *FST_DESCRIPTOR[]={ ">>","^^","^>","!!","##","HY","PROJ","MTRX",NULL };
+static const char *FST_DESCRIPTOR[]={ ">>","^^","^>","!!","##","#>>#","#^^#","####","HY","PROJ","MTRX",NULL };
 
 const char** fst24_record_get_descriptors(void) {
    return(FST_DESCRIPTOR);
@@ -102,8 +102,8 @@ void fst24_record_print(const fst_record* record) {
         "  Flags:  %ld\n"
         "  Alloc:  %ld\n"
         "  Handle: 0x%x\n"
-        "  dateo: %ld\n"
-        "  datev: %ld\n"
+        "  dateo: %d\n"
+        "  datev: %d\n"
         "  data_type: %d\n"
         "  data_bits: %d\n"
         "  pack_bits: %d\n"

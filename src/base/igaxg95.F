@@ -177,7 +177,6 @@
       return
 
  80   format(' ',79('*'))
- 256  format(256(' '))
  110  print 80
       print *,' <qgblukig> read error encountered in file "gribtable"'
       print *,

@@ -235,10 +235,15 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst24_by_index COMMAND $<TARGET_FILE:fst24_by_index>)
         add_dependencies(check fst24_by_index)
 
+        add_executable(fst_rewrite_with_filter fst/fst_rewrite_with_filter.c)
+        target_link_libraries(fst_rewrite_with_filter rmn::rmn)
+        add_test(NAME fst_rewrite_with_filter COMMAND $<TARGET_FILE:fst_rewrite_with_filter>)
+        add_dependencies(check fst_rewrite_with_filter)
+
         add_executable(readlx_base readlx/readlx_base.F90)
         target_link_libraries(readlx_base rmn::rmn)
         # file(READ ${CMAKE_CURRENT_SOURCE_DIR}/readlx/output_readlx_02.txt EXPECTED_OUTPUT_02)
-        add_test(NAME readlx_base COMMAND sh -c "$<TARGET_FILE:readlx_base> ${CMAKE_CURRENT_SOURCE_DIR}/readlx/inp_readlx_02.txt > ${CMAKE_CURRENT_BINARY_DIR}/output_readlx_02_current.txt")
+        add_test(NAME readlx_base COMMAND sh -c "env -u APP_VERBOSE_COLOR $<TARGET_FILE:readlx_base> ${CMAKE_CURRENT_SOURCE_DIR}/readlx/inp_readlx_02.txt > ${CMAKE_CURRENT_BINARY_DIR}/output_readlx_02_current.txt")
         add_test(NAME readlx_compare_02
                  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/readlx/get_diff.sh
                             ${CMAKE_CURRENT_BINARY_DIR}/output_readlx_02_current.txt

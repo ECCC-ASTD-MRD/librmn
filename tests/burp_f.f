@@ -1714,7 +1714,6 @@
       WRITE(6,*)'*************** FIN DES TESTS ***************'
 333   FORMAT(' --- TEST ',F4.1,2X,A,' ---')
 400   FORMAT(1X,' STNID = ',3X,A9)
-444   FORMAT(1X,A4,2X,A4)
 446   FORMAT(I8,1X,I8,2X,I7,1X,I7,3X,I7)
 777   FORMAT(1X,9(I5,2X))
 778   FORMAT(1X,10(I5,2X))
@@ -1726,6 +1725,7 @@
 1202  FORMAT(3X,I5,7X,I9,4X,E12.4)
       STOP
       END
+
       SUBROUTINE TESTIT(IER)
       INTEGER IER
       IF( (IER.LT. 0))THEN

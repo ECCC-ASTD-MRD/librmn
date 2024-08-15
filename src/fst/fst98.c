@@ -1207,9 +1207,13 @@ int c_fstecr_xdf(
     int handle = 0;
 
     if ((rewrit) && (!fte->xdf_seq)) {
-       // find handle for rewrite operation
+        // find handle for rewrite operation
         int niout, njout, nkout;
+
+        void* const old_file_filter = xdf_set_file_filter(iun, NULL); // Remove file filter for this particular search
         handle = c_fstinf(iun, &niout, &njout, &nkout, -1, etiket, ip1, ip2, ip3, typvar, nomvar);
+        xdf_set_file_filter(iun, old_file_filter); // Put file filter back
+
         if (handle < 0) {
             // append mode for xdfput
             handle = 0;
@@ -1504,7 +1508,7 @@ int c_fstecr_xdf(
     // write record to file and add entry to directory
     int ier = c_xdfput(iun, handle, buffer);
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
-        const int strlng = 12;
+        const int strlng = 14;
         char string[strlng];
         snprintf(string, strlng, "Write(%d)", iun);
         print_std_parms(stdf_entry, string, prnt_options, -1);
@@ -2212,7 +2216,7 @@ int c_fstinfx(
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstinfx_rsf(handle, FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, in_etiket, ip1, ip2, ip3, in_typvar,
-                                   in_nomvar);
+                                   in_nomvar, 0);
         }
         else if (FGFDT[index_fnom].attr.rsf == 0) {
             status = c_fstinfx_xdf(handle, FGFDT[index_fnom].iun, ni, nj, nk, datev, in_etiket, ip1, ip2, ip3, in_typvar, in_nomvar);

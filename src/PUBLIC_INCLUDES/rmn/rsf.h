@@ -200,7 +200,7 @@ void RSF_Dump_dir(RSF_handle h) ;
 
 void RSF_Dump_vdir(RSF_handle h) ;
 
-int32_t RSF_Valid_handle(RSF_handle h) ;
+int32_t RSF_Is_handle_valid(RSF_handle h) ;
 
 //! create pointer to a new allocated record (C)
 RSF_record *RSF_New_record(RSF_handle h, int32_t rec_meta, int32_t dir_meta, const uint8_t rec_type,
@@ -226,7 +226,7 @@ int32_t RSF_Key32(int64_t key64) ;
 int64_t RSF_Key64(int32_t key32) ;
 uint32_t RSF_Key64_to_file_slot(int64_t key64) ;
 int32_t RSF_Key32_type(int32_t key32) ;
-int32_t RSF_File_slot(RSF_handle h) ;
+int32_t RSF_Get_file_slot(RSF_handle h) ;
 int64_t RSF_Make_key(const int32_t slot, const int32_t record_id) ;
 RSF_handle RSF_Key32_to_handle(int32_t key32) ;
 RSF_handle RSF_Key64_to_handle(int64_t key64) ;

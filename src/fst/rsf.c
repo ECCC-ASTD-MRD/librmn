@@ -180,11 +180,11 @@ uint32_t RSF_Key64_to_file_slot(int64_t key64) {
     return key64_to_file_slot(key64);
 }
 
-// generate a 64 bit record key  (slot:32, index:32)
-// from a 32 bit RSF key (sign:1, one:1 , index : 20, slot:10)
-// code may have to be added to deal properly with negative key32 values
-// code may be added to check that slot and index make sense
-// an error should be returned if bit 30 is 0, i.e. ((key32 >> 30) & 1) == 0
+//! generate a 64 bit record key  (slot:32, index:32)
+//! from a 32 bit RSF key (sign:1, one:1 , index : 20, slot:10)
+//! code may have to be added to deal properly with negative key32 values
+//! code may be added to check that slot and index make sense
+//! an error should be returned if bit 30 is 0, i.e. ((key32 >> 30) & 1) == 0
 int64_t RSF_Key64(int32_t key32){
     uint64_t key64 = (key32 & 0x3FF);          // slot number (10 bits)
     key64 <<= 32;                              // shift to proper position
@@ -210,11 +210,10 @@ RSF_handle RSF_Key64_to_handle(int64_t key64) {
 }
 
 //! Check if given file points to a valid RSF_File structure
-//! \note The file's slot will be set if it hadn't been already
 //! \return Slot number + 1 if valid structure, otherwise return 0
-static uint32_t RSF_Valid_file(
+static uint32_t RSF_Is_file_valid(
     //! Pointer to RSF_File structure
-    RSF_File * const fp
+    const RSF_File * const fp
 ) {
     if (fp == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file handle is NULL\n", __func__);
@@ -231,8 +230,7 @@ static uint32_t RSF_Valid_file(
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid fd < 0 (%d)\n", __func__, fp->fd);
         return 0;                   // file is not open, ERROR
     }
-    // get file slot from file handle table if not initialized
-    if (fp->slot < 0) fp->slot = RSF_Find_file_slot(fp);
+
     // check validity of fp->slot
     if ((fp->slot < 0) || (fp->slot >= max_rsf_files_open)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: slot number found in file handle is invalid\n", __func__);
@@ -328,8 +326,8 @@ static int64_t RSF_Add_vdir_entry(
     // fprintf(stderr, "RSF_Add_vdir_entry: meta data length = 0x%x, record length %d, elem size %d\n", mlr, rl, element_size);
 
     if (fp == NULL) return -1;           // invalid file struct pointer
-    int64_t slot = RSF_Valid_file(fp);
-    if ( ! slot ) return -1;             // something not O.K. with fp if RSF_Valid_file returned 0
+    int64_t slot = RSF_Is_file_valid(fp);
+    if ( ! slot ) return -1;             // something not O.K. with fp if RSF_Is_file_valid returned 0
     slot <<= 32;                          // file slot number (origin 1)
     RSF_Vdir_setup(fp);
     directory_block * dd = fp->dirblocks; // current directory entries block
@@ -390,7 +388,7 @@ static int32_t RSF_Get_vdir_entry(
     *rl = 0;
     *meta = NULL;
     char *error;
-    int32_t slot = RSF_Valid_file(fp);
+    int32_t slot = RSF_Is_file_valid(fp);
     if ( ! slot ) {
         error = "invalid file struct pointer";
         goto ERROR;
@@ -448,7 +446,7 @@ static int64_t RSF_Scan_vdir(
     rsf_rec_class crit_class = 0;
     rsf_rec_type crit_type = 0;
 
-    const int64_t slot = RSF_Valid_file(fp);
+    const int64_t slot = RSF_Is_file_valid(fp);
     if (!slot) {
         // something wrong with fp
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: key = %16.16lx, invalid file reference\n", __func__, key0);
@@ -678,10 +676,11 @@ static size_t RSF_Vdir_record_size(const RSF_File * const fp){
 }
 
 //! Write directory to file from memory directory (variable length metadata).
-//! It is NOT assumed that the file is correctly positioned
+//! It is NOT assumed that the file is correctly positioned.
+//! Thread safe using the given file's mutex.
 //! \return Directory size
 static int64_t RSF_Write_vdir(RSF_File * const fp){
-    int32_t slot = RSF_Valid_file(fp);
+    int32_t slot = RSF_Is_file_valid(fp);
     if ( ! slot ) return 0;             // something wrong with fp
     if (fp->dir_read >= fp->vdir_used) return 0;               // nothing to write
 
@@ -723,12 +722,19 @@ static int64_t RSF_Write_vdir(RSF_File * const fp){
         e += dir_entry_size;
     }
 
+    // --- START critical region ---
+    RSF_Multithread_lock(fp);
     lseek(fp->fd, fp->next_write , SEEK_SET);        // set position after last write (SOS or DATA record)
     ssize_t n_written = write(fp->fd, vdir, dir_rec_size);   // write directory record
     fp->next_write += n_written;                     // update last write position
     fp->last_op = OP_WRITE;                          // last operation was a write
+    const off_t next_write = fp->next_write; // Save for printing
+    RSF_Multithread_unlock(fp);
+    // --- END critical region ---
+
     Lib_Log(APP_LIBFST, APP_EXTRA, "%s: fp->next_write = %lx, vdir record size = %ld \n",
-            __func__, fp->next_write, dir_rec_size);
+            __func__, next_write, dir_rec_size);
+
     if (n_written != dir_rec_size) {                   // everything written ?
         dir_rec_size = 0;                              // error, return 0 as directory size
     }
@@ -874,7 +880,7 @@ RSF_record *RSF_New_record(
     RSF_record * rec;
     void *p;
 
-    if ( ! RSF_Valid_file(fp) ) return NULL;
+    if ( ! RSF_Is_file_valid(fp) ) return NULL;
     // calculate space needed for the requested "record"
     if (rec_meta < fp->rec_meta) rec_meta = fp->rec_meta;
     if (dir_meta < fp->dir_meta) dir_meta = fp->dir_meta;
@@ -1076,7 +1082,7 @@ size_t RSF_Adjust_data_record(RSF_handle h, RSF_record *rec){
   size_t new_size;
   size_t data_bytes;
 
-  if( ! RSF_Valid_file(fp) ) return 0L;
+  if( ! RSF_Is_file_valid(fp) ) return 0L;
   data_bytes = rec->data_size;                           // get data size from record
   if(data_bytes == 0) return 0L;                       // no data in record
 
@@ -1102,7 +1108,7 @@ int64_t RSF_Used_space(RSF_handle h){
   RSF_File *fp = (RSF_File *) h.p;
   uint64_t used;
 
-  if( ! RSF_Valid_file(fp) ) return -1;
+  if( ! RSF_Is_file_valid(fp) ) return -1;
 
   used = fp->next_write - fp->seg_base;
 
@@ -1117,7 +1123,7 @@ int64_t RSF_Available_space(RSF_handle h){
   RSF_File *fp = (RSF_File *) h.p;
   uint64_t used;
 
-  if( ! RSF_Valid_file(fp) ) return -1;
+  if( ! RSF_Is_file_valid(fp) ) return -1;
   if(fp->seg_max == 0) return 0x7FFFFFFFFFFFFFFFl;           // no practical limit if not a sparse segment
 
   used = fp->next_write - fp->seg_base +                      // space already used in segment
@@ -1140,7 +1146,7 @@ uint64_t RSF_Put_null_record(
     start_of_record sor = SOR;      // start of data record
     end_of_record   eor = EOR;      // end of data record
 
-    if ( ! RSF_Valid_file(fp) ) return 0;
+    if ( ! RSF_Is_file_valid(fp) ) return 0;
 
     if (RSF_Ensure_new_segment(fp) < 0) return 0; // Can't put a null record if we don't have a writeable segment
 
@@ -1200,7 +1206,7 @@ int64_t RSF_Put_chunks(RSF_handle h, RSF_record *record,
     size_t data_bytes = 0;
     int i;
 
-    if( ! RSF_Valid_file(fp) ) goto ERROR;          // something not O.K. with fp
+    if( ! RSF_Is_file_valid(fp) ) goto ERROR;          // something not O.K. with fp
     if( RSF_Ensure_new_segment(fp) < 0 ) goto ERROR;// We don't have write access to the file
     if( fp->next_write <= 0) goto ERROR;            // next_write address is not set
 
@@ -1344,7 +1350,7 @@ int64_t RSF_Put_bytes(
     end_of_record   eor = EOR;      // end of data record
     off_t gap;
 
-    if ( ! RSF_Valid_file(fp) ) return 0;          // something not O.K. with fp
+    if ( ! RSF_Is_file_valid(fp) ) return 0;          // something not O.K. with fp
     if ( RSF_Ensure_new_segment(fp) < 0 ) return 0; // Don't have write permission
 
     // metadata stored in directory may be shorter than record metadata
@@ -1560,7 +1566,7 @@ int64_t RSF_Get_file(
     *meta = NULL;
     *meta_size = 0;
 
-    int64_t slot = RSF_Valid_file(fp);
+    int64_t slot = RSF_Is_file_valid(fp);
     if ( ! slot ) return -1; // something wrong with fp
 
     uint64_t wa, rl;
@@ -1652,7 +1658,7 @@ int64_t RSF_Put_file(RSF_handle h, char *filename, uint32_t *meta, uint32_t meta
 
   dir_meta = NULL; file_meta = NULL; fmeta = NULL;
 
-  if( ! (slot = RSF_Valid_file(fp)) ) goto ERROR; // something wrong with fp
+  if( ! (slot = RSF_Is_file_valid(fp)) ) goto ERROR; // something wrong with fp
   slot <<= 32;
   if( RSF_Ensure_new_segment(fp) < 0 ) goto ERROR; // Don't have write permission
   if( fp->next_write <= 0) goto ERROR;            // next_write address is not set
@@ -1817,7 +1823,7 @@ RSF_record_info RSF_Get_record_info_by_index(
 ) {
     RSF_File *fp = (RSF_File *) h.p;
 
-    const int32_t fslot = RSF_Valid_file(fp);
+    const int32_t fslot = RSF_Is_file_valid(fp);
     if (fslot == 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid file pointer\n", __func__);
         return info0;
@@ -1883,7 +1889,7 @@ RSF_record_info RSF_Get_record_info_by_index(
 //! Determine whether the given record key is found in the given file
 int32_t RSF_Is_record_in_file(RSF_handle h, const int64_t key) {
   const uint32_t record_slot = key64_to_file_slot(key);
-  const uint32_t file_slot = RSF_Valid_file(h.p);
+  const uint32_t file_slot = RSF_Is_file_valid(h.p);
   return (file_slot == record_slot);
 }
 
@@ -1895,7 +1901,7 @@ RSF_record_info RSF_Get_record_info(
 ) {
   RSF_File *fp = (RSF_File *) h.p;
 
-  const int32_t fslot = RSF_Valid_file(fp);
+  const int32_t fslot = RSF_Is_file_valid(fp);
   const int32_t slot  = key >> 32;
   if (fslot == 0 || slot != fslot) {
     Lib_Log(APP_LIBFST, APP_ERROR, "%s: inconsistent file slot\n", __func__);
@@ -1914,7 +1920,7 @@ RSF_record_info RSF_Get_record_info(
 ssize_t RSF_Read(RSF_handle h, void *buf, int64_t address, int64_t nelem, int itemsize) {
   RSF_File *fp = (RSF_File *) h.p;
   ssize_t nbytes;
-  int32_t fslot = RSF_Valid_file(fp);
+  int32_t fslot = RSF_Is_file_valid(fp);
   size_t count = nelem * itemsize;
   off_t offset;
 
@@ -1933,7 +1939,7 @@ ssize_t RSF_Read(RSF_handle h, void *buf, int64_t address, int64_t nelem, int it
 // ssize_t RSF_Write(RSF_handle h, void *buf, int64_t address, int64_t nelem, int64_t itemsize) {
 //   RSF_File *fp = (RSF_File *) h.p;
 //   ssize_t nbytes;
-//   int32_t fslot = RSF_Valid_file(fp);
+//   int32_t fslot = RSF_Is_file_valid(fp);
 //   size_t count = nelem * itemsize;
 //   off_t offset;
 //
@@ -2052,13 +2058,13 @@ RSF_record *RSF_Get_record(
 
 uint32_t RSF_Get_num_records(RSF_handle h) {
     const RSF_File * const fp = (RSF_File *) h.p;
-    if (! RSF_Valid_file(fp) ) return UINT_MAX;
+    if (! RSF_Is_file_valid(fp) ) return UINT_MAX;
     return fp->vdir_used - fp->num_deleted_records;
 }
 
 uint32_t RSF_Get_num_records_at_open(RSF_handle h) {
     const RSF_File * const fp = (RSF_File *) h.p;
-    if (! RSF_Valid_file(fp) ) return UINT_MAX;
+    if (! RSF_Is_file_valid(fp) ) return UINT_MAX;
     return fp->dir_read - fp->num_deleted_records;
 }
 
@@ -2074,12 +2080,12 @@ void *RSF_Get_next(RSF_handle h) {
 
 //! Check whether the given handle points to a valid RSF file
 //! \return 1 if the file is valid, 0 if not
-//! \sa RSF_Valid_file
-int32_t RSF_Valid_handle(
+//! \sa RSF_Is_file_valid
+int32_t RSF_Is_handle_valid(
     RSF_handle h //!< The handle to check
 ) {
     const RSF_File * const fp = (RSF_File *) h.p;
-    if ( RSF_Valid_file(fp) ) return 1;
+    if ( RSF_Is_file_valid(fp) ) return 1;
     return 0;
 }
 
@@ -2536,7 +2542,7 @@ int32_t RSF_Close_compact_segment(RSF_handle h){
   start_of_segment sos = SOS;
   end_of_segment eos = EOS;
 
-  if( ! (slot = RSF_Valid_file(fp)) ) return 0;   // something not O.K. with fp
+  if( ! (slot = RSF_Is_file_valid(fp)) ) return 0;   // something not O.K. with fp
   if( (fp->mode & RSF_RO) == RSF_RO) return 1;    // file open in read only mode, nothing to do
 
   if(fp->seg_max != 0) return 1;                  // not a compact segment
@@ -2611,7 +2617,7 @@ int32_t RSF_Switch_sparse_segment(RSF_handle h, int64_t min_size){
   end_of_segment eos = EOS;
   end_of_segment eos2 = EOS;
 // sleep(1);
-  if( ! (slot = RSF_Valid_file(fp)) ) return 0;   // something not O.K. with fp
+  if( ! (slot = RSF_Is_file_valid(fp)) ) return 0;   // something not O.K. with fp
   if( (fp->mode & RSF_RO) == RSF_RO) return 1;    // file open in read only mode, nothing to do
 
   if(fp->seg_max == 0) return 1; // not a sparse segment
@@ -2764,7 +2770,7 @@ int32_t RSF_Close_file(RSF_handle h){
   uint64_t sparse_start, sparse_top;
   directory_block *purge;
 
-  if( ! (slot = RSF_Valid_file(fp)) ) return 0;   // something not O.K. with fp
+  if( ! (slot = RSF_Is_file_valid(fp)) ) return 0;   // something not O.K. with fp
 
   Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Closing file %s, open in mode %s\n", __func__, fp->name, open_mode_to_str(fp->mode));
 
@@ -2927,7 +2933,7 @@ void RSF_Dump_vdir(RSF_handle h) {
   uint32_t *meta;
   vdir_entry *ventry;
 
-  if( ! (slot = RSF_Valid_file(fp)) ) return;   // something not O.K. with fp
+  if( ! (slot = RSF_Is_file_valid(fp)) ) return;   // something not O.K. with fp
 
   for(i = 0; i < fp->vdir_used; i++){
     ventry = fp->vdir[i];
@@ -3283,7 +3289,7 @@ END :
 }
 
 //! \return File slot of given file handle
-int32_t RSF_File_slot(RSF_handle h) {
+int32_t RSF_Get_file_slot(RSF_handle h) {
   RSF_File *fp = (RSF_File *) h.p;
   return fp->slot;
 }

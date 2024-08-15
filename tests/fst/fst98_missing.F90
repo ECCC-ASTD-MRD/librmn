@@ -101,9 +101,6 @@ contains
     bm = -1
     ubm = -1
 
-    101 format('Missing values: status ', I2, ', ', 2(G14.5, ', '), I11, ', ', 5I7, ', ', 4G14.5)
-    102 format(                           I2, ': ', 2(G14.5, ', '), I11, ', ', 5I7, ', ', 4G14.5)
-
     status = get_missing_value_flags(fm, im, uim, dm, sm, usm, bm, ubm)
     call check_status(status, expected = missing_value_status, fail_message = 'get_missing_value_flags')
     call print_values('Missing values: status', s, fm, dm, im, sm, bm, uim, usm, ubm)
