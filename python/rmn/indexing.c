@@ -1,6 +1,7 @@
 #include "indexing.h"
 #include <pthread.h>
 #include <rmn.h>
+#include <App.h>
 #include <sys/types.h> // gettid
 static pthread_mutex_t grow_mutex = PTHREAD_MUTEX_INITIALIZER;
 
