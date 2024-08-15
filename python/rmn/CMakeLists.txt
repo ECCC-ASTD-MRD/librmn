@@ -16,7 +16,10 @@ foreach(f IN LISTS python_files)
 endforeach()
 install(FILES ${python_files} DESTINATION lib/python/rmn)
 
-target_link_libraries(_rmn PRIVATE rmn-shared ${PYTHON_LIBRARIES})
+if(NOT BUILD_SHARED_LIBS)
+    message(FATAL_ERROR "Python extension module needs rmn-shared:  Re-run CMake with '-DBUILD_SHARED_LIBS=ON'")
+endif()
+target_link_libraries(_rmn PRIVATE rmn::rmn-shared ${PYTHON_LIBRARIES})
 target_include_directories(_rmn PRIVATE ${PYTHON_INCLUDE_DIRS})
 
 install(TARGETS _rmn LIBRARY DESTINATION lib/python/rmn)
@@ -33,4 +36,4 @@ add_dependencies(test_py _rmn)
 configure_file(setup.in.sh setup.sh @ONLY)
 
 add_executable(test_indexing indexing.c test_indexing.c)
-target_link_libraries(test_indexing PRIVATE rmn-shared pthread)
+target_link_libraries(test_indexing PRIVATE rmn::rmn-shared pthread)
