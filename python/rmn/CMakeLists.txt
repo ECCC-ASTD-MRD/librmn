@@ -16,7 +16,7 @@ foreach(f IN LISTS python_files)
 endforeach()
 install(FILES ${python_files} DESTINATION lib/python/rmn)
 
-target_link_libraries(_rmn PRIVATE rmn-shared ${PYTHON_LIBRARIES})
+target_link_libraries(_rmn PRIVATE rmn::rmn ${PYTHON_LIBRARIES})
 target_include_directories(_rmn PRIVATE ${PYTHON_INCLUDE_DIRS})
 
 install(TARGETS _rmn LIBRARY DESTINATION lib/python/rmn)
@@ -32,5 +32,8 @@ add_dependencies(test_py _rmn)
 
 configure_file(setup.in.sh setup.sh @ONLY)
 
+add_executable(test_indexing_ori indexing_ori.c test_indexing.c)
+target_link_libraries(test_indexing_ori PRIVATE rmn::rmn pthread)
+
 add_executable(test_indexing indexing.c test_indexing.c)
-target_link_libraries(test_indexing PRIVATE rmn-shared pthread)
+target_link_libraries(test_indexing PRIVATE rmn::rmn OpenMP::OpenMP_C OpenMP::OpenMP_Fortran)

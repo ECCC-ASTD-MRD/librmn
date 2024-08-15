@@ -1,6 +1,6 @@
 #include <inttypes.h>
 #include <string.h> //size_t
-#include <rmn/fst24_file.h>
+#include <rmn.h>
 /*
  * Each field represents a column in a table where each row represents a record
  * This organization allows the creation of numpy arrays of homogenous type
@@ -16,6 +16,7 @@ typedef struct
     uint32_t *deet;
     uint32_t *npas;
     uint32_t *pack_bits;
+    uint32_t *data_bits;
     uint32_t *data_type;
     uint32_t *ip1;
     uint32_t *ip2;
@@ -28,13 +29,6 @@ typedef struct
     uint32_t *ig2;
     uint32_t *ig3;
     uint32_t *ig4;
-    uint32_t *swa;
-    uint32_t *lng;
-    uint32_t *dltf;
-    uint32_t *ubc;
-    uint32_t *extra1;
-    uint32_t *extra2;
-    uint32_t *extra3;
     uint32_t *file_index;
     char *path;
 } RecordData;

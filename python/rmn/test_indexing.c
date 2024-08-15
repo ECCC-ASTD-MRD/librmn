@@ -20,7 +20,7 @@ int main(int argc, char **argv){
         return 1;
     }
     fprintf(stderr, "Found %d files matching the regex '%s' in directory '%s'\n", nb_files, pattern, dirPath);
-
+exit;
     RecordData *raw_columns = rmn_get_index_columns_raw((const char **)filenames, nb_files);
     if(raw_columns == NULL){
         return 1;
@@ -29,7 +29,7 @@ int main(int argc, char **argv){
     for(int i = 0; i < nb_files; i++){
         free(filenames[i]);
     }
-    free_record_data(raw_columns);
+//    free_record_data(raw_columns);
 }
 
 int findFilesMatchingRegex(const char *dirPath, const char *pattern, char **paths, int *nb_paths)
