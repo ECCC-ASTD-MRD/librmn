@@ -47,6 +47,7 @@ endif()
 #find_package(json-c CONFIG REQUIRED)
 #find_package(UDUNITS2)
 find_package(LibXml2 REQUIRED)
+find_package(Python 3 REQUIRED Development NumPy Interpreter)
 
 include(ec_doxygen)         # Doxygen target doc
 
@@ -377,6 +378,7 @@ install(
     DESTINATION "${CONFIG_INSTALL_DIR}"
 )
 
+add_subdirectory(python/rmn)
 add_subdirectory(tests)
 
 # Packaging

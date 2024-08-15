@@ -1,4 +1,6 @@
 #include "indexing.h"
+#include "App.h"
+#include "App_Timer.h"
 #include "rmn.h"
 #include "rmn/fnom.h"
     
@@ -93,16 +95,19 @@ RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
     fst_file *f[MAXFILES];
     int     nb[MAXFILES],p[MAXFILES],pos[MAXFILES];
 
+nb_files=2;
+    memset(f,0x0,MAXFILES*sizeof(fst_file*));
     fprintf(stderr, "===> Collecting all records ...\n");
     App_TimerStart(&t);
 
    // Open all files in parallel
    #pragma omp parallel for default(none) private(i) shared(nb_files,filenames,f,nb)
    for(i = 0; i < nb_files; i++){
-      f[i] = fst24_open(filenames[i], NULL);
-      if(!f) {
+      f[i] = fst24_open(filenames[i],"RND+R/O");
+      if(!f[i]) {
          App_Log(APP_ERROR,"%s: Unable to open file %s\n", __func__, filenames[i]);
-         nb[i]=0;     
+         nb[i]=0;    
+         exit; 
          continue;
       }
       nb[i]=fst24_get_num_records(f[i]);     
@@ -129,10 +134,13 @@ RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
    fst_query *q=NULL;
    fst_record result = default_fst_record;
    int n=0;
-   #pragma omp parallel for default(none) private(i,n,q,result) shared(nb_files,f,nb,pos,raw_columns,filenames)
+   #pragma omp parallel for default(none) private(i,n,q,result) shared(stderr,nb_files,f,nb,pos,raw_columns,filenames)
    for(int i = 0; i < nb_files; i++){
+      fprintf(stderr, "Parsing file %s\n",f[i]);
       n=pos[i];
-      q = fst24_new_query(f[i], &default_fst_record, NULL);
+      if (!(q = fst24_new_query(f[i], &default_fst_record, NULL))) {
+        exit;
+      }
       while(fst24_find_next(q, &result)){
          raw_columns->ni[i] = result.ni;
          raw_columns->nj[i] = result.nj;

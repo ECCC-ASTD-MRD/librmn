@@ -33,7 +33,7 @@ add_dependencies(test_py _rmn)
 configure_file(setup.in.sh setup.sh @ONLY)
 
 add_executable(test_indexing_ori indexing_ori.c test_indexing.c)
-target_link_libraries(test_indexing_ori PRIVATE rmn::rmn pthread)
+target_link_libraries(test_indexing_ori PRIVATE rmn::rmn-shared pthread)
 
 add_executable(test_indexing indexing.c test_indexing.c)
-target_link_libraries(test_indexing PRIVATE rmn::rmn OpenMP::OpenMP_C OpenMP::OpenMP_Fortran)
+target_link_libraries(test_indexing PRIVATE rmn::rmn-ompi-shared OpenMP::OpenMP_C OpenMP::OpenMP_Fortran)
