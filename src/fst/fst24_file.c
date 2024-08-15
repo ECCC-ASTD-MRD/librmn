@@ -1455,10 +1455,10 @@ int32_t is_actual_match(fst_record* const record, const fst_query* const query) 
 //! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
 int32_t fst24_find_next(
     fst_query* const query, //!< [in] Query used for the search. Must be for an open file.
-    //!> [in,out] Will contain record information if found and, optionally, metadata (if included in the search query).
-    //!> If NULL, we will only check for the existence of a match to the query, without extracting any information from
-    //!> that match. If not NULL, must be a valid, initialized record.
-    fst_record* record
+    //!> [in,out] Will contain record information if found and, optionally, metadata (if included in search).
+    //!> If NULL, we will only check for the existence of a match to the query, without extracting any data from that
+    //!> match. If not NULL, must be a valid, initialized record.
+    fst_record * const record
 ) {
     if (!fst24_query_is_valid(query)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Query at %p is not valid\n", __func__, query);
