@@ -752,11 +752,15 @@ typedef struct {
 /*****************************************************************************/
 //! Pointer to a function returning a uint32_t
 typedef uint32_t* fn_ptr();
+//! Pointer to a "build_info" function
+typedef void (*build_info_fn)(uint32_t * const, uint32_t * const, const int, const int);
 //! Pointer to a primary keys building function
 typedef uint32_t* fn_b_p(uint32_t* buf, uint32_t* keys, uint32_t* mask,
                      uint32_t* mskkeys, int index, int mode);
 //! Pointer to a info keys building function
 typedef uint32_t* fn_b_i(uint32_t* buf, uint32_t* keys, int index, int mode);
+//! Pointer to a match function
+typedef int (*match_fn)(const int handle);
 
 typedef struct {
     //! Pointer to directory pages
@@ -766,11 +770,11 @@ typedef struct {
     //! Pointer to primary key building function
     fn_b_p* build_primary;
     //! Pointer to info building function
-    fn_ptr* build_info;
+    build_info_fn build_info;
     //! Pointer to file scan function
     fn_ptr* scan_file;
     //! Pointer to record filter function
-    fn_ptr* file_filter;
+    match_fn file_filter;
     //! Pointer to current directory entry
     uint32_t* cur_entry;
     //! Pointer to file header

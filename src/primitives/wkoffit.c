@@ -18,11 +18,15 @@
  * Boston, MA 02111-1307, USA.
  */
 
+//! \file
+
 #define _LARGEFILE64_SOURCE
 #define _FILE_OFFSET_BITS 64
 
-#define CMCARC_SIGN "CMCARCHS"     /* signature du debut d'un fichier cmcarc */
-#define CMCARC_SIGN_V5 "CMCARCH5"  /* signature du debut d'un fichier cmcarc version 5 */
+//! Signature du debut d'un fichier cmcarc
+#define CMCARC_SIGN "CMCARCHS"
+//! Signature du debut d'un fichier cmcarc version 5
+#define CMCARC_SIGN_V5 "CMCARCH5"
 
 #define SIGN_STD89_RND  012525252525
 #define SIGN_STD89_SEQ  025252525252
@@ -165,7 +169,7 @@ static   char *enter_pcl = "\033%-12345X@PJL ENTER LANGUAGE=PCL";
 static   char *enter_ps = "\033%-12345X@PJL ENTER LANGUAGE=POSTSCRIPT";
 #define PCL_MAX_LEN 512000
 
-static float Get_Frac();
+static float Get_Frac(FILE *fp);
 
 static int mutant_kmw = FALSE;
 
@@ -247,55 +251,55 @@ static int isftnbin(
 }
 
 
-//! Return code type of file
-/*!
-    @return File type code
-    -3  INEXISTANT
-    -2  VIDE
-    -1  INCONNU
-     1  STANDARD RANDOM 89
-     2  STANDARD SEQUENTIEL 89
-     3  STANDARD SEQUENTIEL FORTRAN 89
-     4  CCRN
-     5  CCRN-RPN
-     6  BURP
-     7  GRIB
-     8  BUFR
-     9  BLOK
-     10 FORTRAN
-     11 COMPRESS
-     12 GIF89
-     13 GIF87
-     14 IRIS
-     15 JPG
-     16 KMW
-     17 PBM
-     18 PCL
-     19 PCX
-     20 PDSVICAR
-     21 PM
-     22 PPM
-     23 PS
-     24 KMW_
-     25 RRBX
-     26 SUNRAS
-     27 TIFF
-     28 UTAHRLE
-     29 XBM
-     30 XWD
-     31 ASCII
-     32 BMP
-     33 STANDARD RANDOM 98
-     34 STANDARD SEQUENTIEL 98
-     35 NETCDF
-     36 FICHIER CMCARC v4
-     37 FICHIER CMCARC v5
-     38 HDF5
- */
+//! Get type of file
+//! \return File type code
+//! | Code | File type
+//! | ---: | :----------------------------- |
+//! |   -3 | INEXISTANT                     |
+//! |   -2 | VIDE                           |
+//! |   -1 | INCONNU                        |
+//! |    1 | STANDARD RANDOM 89             |
+//! |    2 | STANDARD SEQUENTIEL 89         |
+//! |    3 | STANDARD SEQUENTIEL FORTRAN 89 |
+//! |    4 | CCRN                           |
+//! |    5 | CCRN-RPN                       |
+//! |    6 | BURP                           |
+//! |    7 | GRIB                           |
+//! |    8 | BUFR                           |
+//! |    9 | BLOK                           |
+//! |   10 | FORTRAN                        |
+//! |   11 | COMPRESS                       |
+//! |   12 | GIF89                          |
+//! |   13 | GIF87                          |
+//! |   14 | IRIS                           |
+//! |   15 | JPG                            |
+//! |   16 | KMW                            |
+//! |   17 | PBM                            |
+//! |   18 | PCL                            |
+//! |   19 | PCX                            |
+//! |   20 | PDSVICAR                       |
+//! |   21 | PM                             |
+//! |   22 | PPM                            |
+//! |   23 | PS                             |
+//! |   24 | KMW_                           |
+//! |   25 | RRBX                           |
+//! |   26 | SUNRAS                         |
+//! |   27 | TIFF                           |
+//! |   28 | UTAHRLE                        |
+//! |   29 | XBM                            |
+//! |   30 | XWD                            |
+//! |   31 | ASCII                          |
+//! |   32 | BMP                            |
+//! |   33 | STANDARD RANDOM 98             |
+//! |   34 | STANDARD SEQUENTIEL 98         |
+//! |   35 | NETCDF                         |
+//! |   36 | FICHIER CMCARC v4              |
+//! |   37 | FICHIER CMCARC v5              |
+//! |   38 | HDF5                           |
 int32_t c_wkoffit(
-    //! Path of the file to examine
+    //! [in] Path of the file to examine
     const char * const filePath,
-    //! Fall back to legacy fnom mode for filenames if True
+    //! [in] Fall back to legacy fnom mode for filenames if True
     const int l1
 ) {
     FILE *pf;

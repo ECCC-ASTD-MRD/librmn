@@ -13,5 +13,5 @@ int main(void)
         return -1;
     }
   
-    if (fst24_close(my_file) != TRUE) return -1;
+    if (!fst24_close(my_file)) return -1;
 }

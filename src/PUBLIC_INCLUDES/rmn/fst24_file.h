@@ -18,6 +18,7 @@ typedef struct {
     int32_t ip2_all; //!< When trying to match a certain IP2, match all encodings that result in the same encoded value
     int32_t ip3_all; //!< When trying to match a certain IP3, match all encodings that result in the same encoded value
     int32_t stamp_norun; //!< Datestamp contains a run in the first 3 bits that must not be checked (used in older files)
+    int32_t skip_filter; //!< A filter can be specified with the "excdes" mechanism. Enabling this option disables the filter this query.
 } fst_query_options;
 
 static fst_query_options default_query_options = (fst_query_options) {
@@ -25,6 +26,7 @@ static fst_query_options default_query_options = (fst_query_options) {
     .ip2_all = 0,
     .ip3_all = 0,
     .stamp_norun = 0,
+    .skip_filter = 0,
 };
 
 //! @defgroup public_fst Public FST C API
@@ -38,8 +40,8 @@ int64_t     fst24_get_num_records(const fst_file* const file);
 int32_t     fst24_get_unit(const fst_file* const file);
 int32_t     fst24_get_record_by_index(const fst_file* const file, const int32_t index, fst_record* const record);
 int32_t     fst24_eof(const fst_file* const file);
-char*       fst24_get_tag(const fst_file* const file);
-char*       fst24_set_tag(fst_file* file,const char* const tag);
+const char* fst24_get_tag(const fst_file* const file);
+const char* fst24_set_tag(fst_file* file,const char* const tag);
 
 int32_t    fst24_read_record(fst_record* const record);
 void*      fst24_read_metadata(fst_record* const record);

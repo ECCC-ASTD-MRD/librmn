@@ -8,7 +8,7 @@
 #include "rmn/convert_ip.h"
 
 //! List of field/grid descriptor records
-static const char *FST_DESCRIPTOR[]={ ">>","^^","^>","!!","##","HY","PROJ","MTRX",NULL };
+static const char *FST_DESCRIPTOR[]={ ">>","^^","^>","!!","##","#>>#","#^^#","####","HY","PROJ","MTRX",NULL };
 
 const char** fst24_record_get_descriptors(void) {
    return(FST_DESCRIPTOR);
@@ -102,8 +102,8 @@ void fst24_record_print(const fst_record* record) {
         "  Flags:  %ld\n"
         "  Alloc:  %ld\n"
         "  Handle: 0x%x\n"
-        "  dateo: %ld\n"
-        "  datev: %ld\n"
+        "  dateo: %d\n"
+        "  datev: %d\n"
         "  data_type: %d\n"
         "  data_bits: %d\n"
         "  pack_bits: %d\n"
@@ -957,8 +957,8 @@ void print_non_wildcards(const fst_record* const record) {
     char buffer[1024];
     char* ptr = buffer;
 
-    if (record->dateo != default_fst_record.dateo) ptr += snprintf(ptr, 30, "dateo=%ld ", record->dateo);
-    if (record->datev != default_fst_record.datev) ptr += snprintf(ptr, 30, "datev=%ld ", record->datev);
+    if (record->dateo != default_fst_record.dateo) ptr += snprintf(ptr, 30, "dateo=%d ", record->dateo);
+    if (record->datev != default_fst_record.datev) ptr += snprintf(ptr, 30, "datev=%d ", record->datev);
     if (record->data_type != default_fst_record.data_type) ptr += snprintf(ptr, 20, "data_type=%d ", record->data_type);
     if (record->data_bits != default_fst_record.data_bits) ptr += snprintf(ptr, 20, "data_bits=%d ", record->data_bits);
     if (record->pack_bits != default_fst_record.pack_bits) ptr += snprintf(ptr, 20, "pack_bits=%d ", record->pack_bits);

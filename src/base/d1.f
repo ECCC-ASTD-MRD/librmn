@@ -92,15 +92,15 @@
       I = 1
       IP = 1
       SIGN = 1.0
-*     GO TO 10
-   10 D1 = SIGN * ( C1*Y(IP)+C2*Y(IP+I)+C3*Y(IP+2*I)+C4*Y(IP+3*I))
+      D1 = SIGN * ( C1*Y(IP)+C2*Y(IP+I)+C3*Y(IP+2*I)+C4*Y(IP+3*I))
      1                  * R20/H
       return
       end
+
+
 *
 * DN
 *
-*    E N T R Y DN(Y,H,N)
       real function dn(Y,H,N)
       use d1_dn
       implicit none
@@ -113,7 +113,7 @@
       IP = N
       SIGN = -1.0
 *
-   10 DN = SIGN * ( C1*Y(IP)+C2*Y(IP+I)+C3*Y(IP+2*I)+C4*Y(IP+3*I))
+      DN = SIGN * ( C1*Y(IP)+C2*Y(IP+I)+C3*Y(IP+2*I)+C4*Y(IP+3*I))
      1                  * R20/H
 *
 *-------------------------------------------------------------------

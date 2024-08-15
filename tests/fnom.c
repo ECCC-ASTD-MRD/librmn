@@ -1,6 +1,9 @@
+#include <errno.h>
 #include <stdlib.h>
 
 #include <omp.h>
+
+#include <App.h>
 #include <rmn.h>
 
 const char* tmp_dir = NULL;
@@ -330,6 +333,18 @@ int check_burp(const int num_files) {
 }
 
 int main(void) {
+
+    // First set the system limit for number of open files
+    {
+        struct rlimit limit;
+  
+        limit.rlim_cur = 5000;
+        limit.rlim_max = 5000;
+        if (setrlimit(RLIMIT_NOFILE, &limit) != 0) {
+            App_Log(APP_ERROR, "setrlimit() failed with errno = %d\n", errno);
+            return -1;
+        }
+    }
 
     tmp_dir = getenv("TMPDIR");
     if (tmp_dir == NULL) tmp_dir = ".";

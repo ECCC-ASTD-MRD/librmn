@@ -83,10 +83,10 @@ void copy_record_string(char* const dest, const char* const src, const int32_t m
 int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_t max_length);
 int init_ip_vals(void);
 int ip_is_equal(int target, const int ip, int ind);
-void memcpy_8_16(int16_t *p16, int8_t *p8, int nb);
-void memcpy_16_8(int8_t *p8, int16_t *p16, int nb);
-void memcpy_16_32(int32_t *p32, int16_t *p16, int nbits, int nb);
-void memcpy_32_16(short *p16, int *p32, int nbits, int nb);
+void memcpy_8_16(int16_t *p16, const int8_t *p8, int nb);
+void memcpy_16_8(int8_t *p8, const int16_t *p16, int nb);
+void memcpy_16_32(int32_t *p32, const int16_t *p16, int nbits, int nb);
+void memcpy_32_16(int16_t *p16, const int32_t *p32, int nbits, int nb);
 void print_std_parms(const stdf_dir_keys * const stdf_entry, const char * const pre, const char * const option,
                      const int header);
 void crack_std_parms(const stdf_dir_keys * const stdf_entry, stdf_special_parms * const cracked_parms);
@@ -99,7 +99,7 @@ int c_fstluk_xdf(void * const vfield, const int handle, int * const ni, int * co
 int c_fstprm_xdf(int handle, int *dateo, int *deet, int *npas, int *ni, int *nj, int *nk, int *nbits, int *datyp,
     int *ip1, int *ip2, int *ip3, char *typvar, char *nomvar, char *etiket, char *grtyp, int *ig1, int *ig2, int *ig3,
     int *ig4, int *swa, int *lng, int *dltf, int *ubc, int *extra1, int *extra2, int *extra3);
-int c_fstcheck_xdf(const char *filePath);
+int c_fstcheck_xdf(const char * const filePath);
 int c_fstsui_xdf(int iun, int *ni, int *nj, int *nk);
 int FstCanTranslateName(const char *varname);
 char *kinds(int kind);
@@ -116,11 +116,11 @@ int c_fstecr_rsf(void *field_in, void *work, int npak, int iun, int index_fnom, 
 int c_fstfrm_rsf(int iun, const int index_fnom);
 int c_fstinfx_rsf(const int handle, const int iun, const int index_fnom, int * const ni, int * const nj,
                   int * const nk, const int datev, const char * const in_etiket, const int ip1, const int ip2,
-                  const int ip3, const char * const in_typvar, const char * const in_nomvar);
+                  const int ip3, const char * const in_typvar, const char * const in_nomvar, const int skip_filter);
 int c_fstlirx_rsf(void *field, int handle, int iun, const int index_fnom, int *ni, int *nj, int *nk, int datev,
                   char *etiket, int ip1, int ip2, int ip3, char *typvar, char *nomvar);
 int c_fstnbr_rsf(const int index_fnom);
-int c_fstouv_rsf(const int index_fnom, const int mode, const int32_t parallel_segment_size_mb);
+int c_fstouv_rsf(const int index_fnom, const rsf_open_mode mode, const int32_t parallel_segment_size_mb);
 int c_fstluk_rsf(void * const vfield, const RSF_handle file_handle,
                  const int key, int * const ni, int * const nj, int * const nk);
 int c_fsteff_rsf(RSF_handle file_handle, int handle);

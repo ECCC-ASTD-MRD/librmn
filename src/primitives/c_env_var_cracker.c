@@ -16,13 +16,21 @@
 
 #define _cptofcd(a,b) (a)
 
+typedef void (*user_c_fn)(char* name, int index, char* value);
+typedef void (*user_f_fn)(char* name, int * index, char* value, F2Cl l1, F2Cl l2);
+
+void call_user_f(user_f_fn u, char* name, int index, char* value) {
+    char * fp1 = _cptofcd(name, strlen(name));
+    char * fp2 = _cptofcd(value, strlen(value));
+    u(fp1, &index, fp2, strlen(fp1), strlen(fp2));
+}
 
 static void call_user_function(
     char *name,
     int index,
     char *value,
     const char * const lang,
-    void (*user_function)()
+    user_c_fn user_function
 ) {
     if (strcmp(lang, "C") == 0)  {
         /* option: user function in C */
@@ -35,9 +43,7 @@ static void call_user_function(
         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: Call user Fortran function\n",__func__);
 #endif
         /* option: user function in Fortran */
-        char * fp1 = _cptofcd(name, strlen(name));
-        char * fp2 = _cptofcd(value, strlen(value));
-        user_function(fp1, &index, fp2, strlen(fp1), strlen(fp2));
+        call_user_f((user_f_fn)user_function, name, index, value);
     }
 }
 
