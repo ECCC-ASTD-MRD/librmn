@@ -1207,7 +1207,7 @@ int c_fstecr_xdf(
     int handle = 0;
 
     if ((rewrit) && (!fte->xdf_seq)) {
-       // find handle for rewrite operation
+        // find handle for rewrite operation
         int niout, njout, nkout;
 
         void* const old_file_filter = xdf_set_file_filter(iun, NULL); // Remove file filter for this particular search
@@ -1217,8 +1217,6 @@ int c_fstecr_xdf(
         if (handle < 0) {
             // append mode for xdfput
             handle = 0;
-        } else if (rewrit==FST_SKIP) {
-            return handle;
         }
     }
 
