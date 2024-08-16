@@ -1263,7 +1263,7 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
     // if(make_1d_array_and_add_to_dict(columns, "extra1", raw_columns->nb_records, NPY_INT32, raw_columns->extra1)){ goto error; }
     // if(make_1d_array_and_add_to_dict(columns, "extra2", raw_columns->nb_records, NPY_INT32, raw_columns->extra2)){ goto error; }
     // if(make_1d_array_and_add_to_dict(columns, "extra3", raw_columns->nb_records, NPY_INT32, raw_columns->extra3)){ goto error; }
-    if(make_1d_string_array_and_add_to_dict(columns, "path", raw_columns->nb_records, PATH_MAX+1, raw_columns->path)){ goto error; }
+    //if(make_1d_string_array_and_add_to_dict(columns, "path", raw_columns->nb_records, PATH_MAX+1, raw_columns->path)){ goto error; }
 
     free(raw_columns); // The struct contains a bunch of arrays but we don't want
                        // to free them since we gave them away to some numpy arrays

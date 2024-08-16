@@ -16,6 +16,47 @@ RecordData *index_rmn_file(const char *filename, const char *mode){
     return NULL;
 }
 
+RecordData *NewRecordDataNew(size_t nb_records)
+{    
+   uint32_t n=0,size=17*sizeof(int32_t)+(FST_TYPVAR_LEN+FST_NOMVAR_LEN+FST_ETIKET_LEN+FST_GTYP_LEN+PATH_MAX+1)*sizeof(char);
+   char *data=NULL;
+   RecordData *rdata=NULL;
+
+   if ((data=(char*)malloc(size*nb_records))) {
+ 
+        rdata = (RecordData*)malloc(sizeof(RecordData));
+
+        rdata->nb_records=nb_records;
+        rdata->ni = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->nj = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->nk = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+
+        rdata->dateo = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->deet = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->npas = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->pack_bits = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->data_bits = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->data_type = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->ip1 = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->ip2 = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->ip3 = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+
+        rdata->typvar = (char*)(&data[n]);n+=(nb_records*FST_TYPVAR_LEN * sizeof(char));
+        rdata->nomvar = (char*)(&data[n]);n+=(nb_records*FST_NOMVAR_LEN * sizeof(char));
+        rdata->etiket = (char*)(&data[n]);n+=(nb_records*FST_ETIKET_LEN * sizeof(char));
+        rdata->grtyp = (char*)(&data[n]);n+=(nb_records*FST_GTYP_LEN * sizeof(char));
+//        rdata->path = (char*)(&data[n]);n+=(nb_records*(PATH_MAX+1) * sizeof(char));
+
+        rdata->ig1 = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->ig2 = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->ig3 = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+        rdata->ig4 = (uint32_t*)(&data[n]);n+=(nb_records*sizeof(uint32_t));
+
+        rdata->file_index = (uint32_t*)(&data[n]);
+   }
+   return(rdata);
+}
+
 RecordData *NewRecordData(size_t nb_records)
 {
     RecordData *data = malloc(sizeof(*data));
@@ -36,7 +77,7 @@ RecordData *NewRecordData(size_t nb_records)
     data->nomvar = malloc(nb_records*FST_NOMVAR_LEN * sizeof(char));
     data->etiket = malloc(nb_records*FST_ETIKET_LEN * sizeof(char));
     data->grtyp = malloc(nb_records*FST_GTYP_LEN * sizeof(char));
-    data->path = malloc(nb_records*(PATH_MAX+1) * sizeof(char));
+//    data->path = malloc(nb_records*(PATH_MAX+1) * sizeof(char));
 
     data->ig1 = malloc(nb_records*sizeof(*(data->ig1)));
     data->ig2 = malloc(nb_records*sizeof(*(data->ig2)));
@@ -52,7 +93,7 @@ RecordData *NewRecordData(size_t nb_records)
         data->ip2 == NULL || data->ip3 == NULL || data->typvar == NULL ||
         data->nomvar == NULL || data->etiket == NULL || data->grtyp == NULL ||
         data->ig1 == NULL || data->ig2 == NULL || data->ig3 == NULL ||
-        data->ig4 == NULL || data->path == NULL){
+        data->ig4 == NULL){
         free_record_data(data);
         return NULL;
     }
@@ -78,7 +119,6 @@ void free_record_data(RecordData *data)
     free(data->nomvar);
     free(data->etiket);
     free(data->grtyp);
-    free(data->path);
 
     free(data->ig1);
     free(data->ig2);
@@ -291,7 +331,7 @@ RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
 
 
     fprintf(stderr, "Reorganizing data into column arrays\n");
-    raw_columns = NewRecordData(total_nb_records);
+    raw_columns = NewRecordDataNew(total_nb_records);
     if(raw_columns == NULL){
         return NULL;
 
@@ -325,7 +365,7 @@ RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
             strncpy(raw_columns->grtyp  + i*FST_GTYP_LEN, r->grtyp, FST_GTYP_LEN);
             // Discuss with JP how we can maintain the filepath association with
             // the records.
-            strncpy(raw_columns->path + i*(PATH_MAX+1), filename, PATH_MAX);
+//            strncpy(raw_columns->path + i*(PATH_MAX+1), filename, PATH_MAX);
 
             raw_columns->ig1[i] = r->ig1;
             raw_columns->ig2[i] = r->ig2;

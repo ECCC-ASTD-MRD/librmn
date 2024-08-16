@@ -30,7 +30,6 @@ typedef struct
     uint32_t *ig3;
     uint32_t *ig4;
     uint32_t *file_index;
-    char *path;
 } RecordData;
 
 typedef struct {

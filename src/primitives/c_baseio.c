@@ -1271,9 +1271,8 @@ int c_waread2(
         lnwords -= (offset + lnwords - 1 - FGFDT[entry].eff_file_size);
     }
     if ( lnwords == 0 ) return 0;
-    if(qqcward((uint32_t *)buf, offset, lnwords, entry) < 0){
-        return -1;
-    }
+    qqcward((uint32_t *)buf, offset, lnwords, entry);
+
     if (*little_endian) swap_buffer_endianness(bufswap, lnwords);
     return lnwords;
 }
