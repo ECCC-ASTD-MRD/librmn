@@ -38,7 +38,6 @@ static int init_package_done = 0;
 // prototypes declarations
 static int get_free_index();
 static void init_file(file_table_entry* const entry, const int index);
-static void init_package();
 static int32_t scan_random(int file_index);
 static int32_t add_dir_page(int file_index, int wflag);
 static int32_t rewind_file(int file_index, int handle);
@@ -49,6 +48,7 @@ static void build_gen_prim_keys(uint32_t *buf, uint32_t *keys, uint32_t *mask,
                                 uint32_t *mskkeys, int index, int mode);
 static void build_gen_info_keys(uint32_t * const buf, uint32_t * const keys, const int index, const int mode);
 
+const int ABSOLUTE_MAX_XDF_FILES = 1024;
 file_table_entry_ptr* file_table = NULL;
 int MAX_XDF_FILES = 0;
 
@@ -78,14 +78,15 @@ int initialize_xdf() {
 
     if (MAX_XDF_FILES > 0) goto unlock; // Check again after locking, in case someone else was initializing
 
-    file_table = (file_table_entry_ptr*) calloc(MAX_FNOM_FILES, sizeof(file_table_entry_ptr));
+    const int num_files = MAX_FNOM_FILES > ABSOLUTE_MAX_XDF_FILES ? ABSOLUTE_MAX_XDF_FILES : MAX_FNOM_FILES;
+    file_table = (file_table_entry_ptr*) calloc(num_files, sizeof(file_table_entry_ptr));
     if (file_table == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate space for file table (%d files)\n",
-                __func__, MAX_FNOM_FILES);
+                __func__, num_files);
         goto unlock;
     }
 
-    MAX_XDF_FILES = MAX_FNOM_FILES; // Signal to other threads that the API is initialized
+    MAX_XDF_FILES = num_files; // Signal to other threads that the API is initialized
 
     // Init first entry to start with file index = 1. Is that really useful? We need to have the API initialized to call the get_free_index() function.
     int ind = get_free_index();
@@ -1743,7 +1744,7 @@ int c_xdfopn(
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opening file with iun %d\n", __func__, iun);
 
-    if ((iun <= 0) || (iun >= MAX_XDF_FILES)) {
+    if ((iun <= 0) || (iun >= MAX_FNOM_FILES)) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid unit number=%d\n",__func__,iun);
         return(ERR_BAD_UNIT);
     }
@@ -1754,6 +1755,11 @@ int c_xdfopn(
     }
 
     int index = get_free_index();
+    if (index < 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to assign slot for opening XDF file with iun %d\n", __func__, iun);
+        return index;
+    }
+
     Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Assigning unit %d to entry index %d\n", __func__, iun, index);
     file_table[index]->iun = iun;
     file_table[index]->file_index = index;
@@ -3027,7 +3033,7 @@ int file_index_xdf(
 }
 
 //! Find a free position in file table and initialize file attributes.
-//! \return Free position index or error code
+//! \return Free position index or negative error code
 static int get_free_index()
 {
     int nlimite;

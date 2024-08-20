@@ -151,6 +151,8 @@ int check_xdf(const int num_files) {
 
     fst_file* files[num_files];
 
+    const int MAX_NUM_XDF = 1023;
+
     int num_errors = 0;
 
     #pragma omp parallel num_threads(8) reduction(+:num_errors)
@@ -187,7 +189,7 @@ int check_xdf(const int num_files) {
 
     // Open max, all at once (XDF)
     #pragma omp parallel for num_threads(9) reduction(+:num_errors)
-    for (int i = 0; i < num_files; i++) {
+    for (int i = 0; i < MAX_NUM_XDF; i++) {
         char filename[100];
         get_filename(filename, i);
         // App_Log(APP_VERBATIM, "Opening XDF %d (all at once)\n", i);
@@ -205,7 +207,7 @@ int check_xdf(const int num_files) {
     num_errors = 0;
 
     #pragma omp parallel for num_threads(7) reduction(+:num_errors)
-    for (int i = 0; i < num_files; i++) {
+    for (int i = 0; i < MAX_NUM_XDF; i++) {
         if (!fst24_close(files[i])) {
             App_Log(APP_ERROR, "Unable to close XDF file %d\n", i);
             num_errors++;
@@ -292,11 +294,13 @@ int check_burp(const int num_files) {
 
     int32_t iun_list[num_files];
 
+    const int MAX_NUM_BURP = 1023;
+
     int num_errors = 0;
 
     // Open max, all at once (BURP)
     #pragma omp parallel for num_threads(9) reduction(+:num_errors)
-    for (int i = 0; i < num_files; i++) {
+    for (int i = 0; i < MAX_NUM_BURP; i++) {
         iun_list[i] = 0;
         char filename[100];
         get_filename(filename, i);
@@ -315,7 +319,7 @@ int check_burp(const int num_files) {
     App_Log(APP_INFO, "Testing BURP (close)\n");
 
     #pragma omp parallel for num_threads(8) reduction(+:num_errors)
-    for (int i = 0; i < num_files; i++) {
+    for (int i = 0; i < MAX_NUM_BURP; i++) {
         if (c_mrfcls(iun_list[i]) != 0) {
             App_Log(APP_ERROR, "Unable to mrfcls BURP file %d (iun %d)\n", i, iun_list[i]);
             num_errors++;
