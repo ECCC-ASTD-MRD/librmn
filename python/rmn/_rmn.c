@@ -197,6 +197,17 @@ struct py_fst_query {
     struct py_fst24_file *file_ref;
 };
 
+static PyObject *py_fst_query_rewind(struct py_fst_query *self);
+static PyMethodDef py_fst_query_method_defs[] = {
+    {
+        .ml_name = "rewind",
+        .ml_meth = (PyCFunction) py_fst_query_rewind,
+        .ml_flags = METH_NOARGS,
+        .ml_doc = "Reset a query to the beginning of the results",
+    },
+    {NULL, NULL, 0, NULL},
+};
+
 static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 static PyObject *py_fst_query_iternext(struct py_fst_query *self);
 static PyObject *py_fst_query_get_iter(struct py_fst_query *self);
@@ -212,6 +223,7 @@ static PyTypeObject py_fst_query_type = {
     .tp_new = py_fst_query_new,
     .tp_iternext = (iternextfunc) py_fst_query_iternext,
     .tp_iter = (getiterfunc) PyObject_SelfIter,
+    .tp_methods = py_fst_query_method_defs,
 };
 
 /*******************************************************************************
@@ -837,6 +849,17 @@ static PyObject *py_fst_query_iternext(struct py_fst_query *self)
     py_rec->rec = result;
 
     return (PyObject *)py_rec;
+}
+
+static PyObject *py_fst_query_rewind(struct py_fst_query *self)
+{
+    int ok = fst24_rewind_search(self->ref);
+    if(!ok){
+        PyErr_Format(RpnExc_FstFileError, "Call to fst24_rewind_search(%p) failed", self->ref);
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
 }
 
 static PyObject * py_fst_record_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
