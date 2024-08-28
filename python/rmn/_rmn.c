@@ -155,6 +155,7 @@ static PyMethodDef py_fst24_file_method_defs[] = {
     {NULL, NULL, 0, NULL},
 };
 
+static PyObject *py_fst24_file_empty_query(struct py_fst24_file *self);
 static PyTypeObject py_fst24_file_type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     .tp_name = "_rmn.fst24_file",
@@ -169,6 +170,7 @@ static PyTypeObject py_fst24_file_type = {
     .tp_repr = (reprfunc) py_fst24_file_str,
     .tp_members = py_fst24_file_member_def,
     .tp_methods = py_fst24_file_method_defs,
+    .tp_iter = (getiterfunc) py_fst24_file_empty_query,
 };
 /*******************************************************************************
  * fst_query declarations
@@ -692,6 +694,26 @@ static PyObject *py_fst24_file_new_query(struct py_fst24_file *self, PyObject *a
 
     // Because py_fst_query_new uses type->tp_alloc, it automatically returns
     // an object with a refcount of 1.
+    struct py_fst_query *py_new_query = (struct py_fst_query *) py_fst_query_new(&py_fst_query_type, NULL, NULL);
+    py_new_query->ref = new_query;
+
+    Py_INCREF(self);
+    py_new_query->file_ref = self;
+
+    return (PyObject *)py_new_query;
+}
+
+static PyObject *py_fst24_file_empty_query(struct py_fst24_file *self)
+{
+    // Should be able to call py_fst24_file_new_query with no arguments
+    // but for that I need to build an empty tuple and empty dictionary for
+    // the args and kwargs
+    fst_query *new_query = fst24_new_query(self->ref, &default_fst_record, NULL);
+    if(new_query == NULL){
+        PyErr_SetString(RpnExc_FstFileError, App_ErrorGet());
+        return NULL;
+    }
+
     struct py_fst_query *py_new_query = (struct py_fst_query *) py_fst_query_new(&py_fst_query_type, NULL, NULL);
     py_new_query->ref = new_query;
 
