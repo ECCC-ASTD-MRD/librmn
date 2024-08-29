@@ -620,7 +620,7 @@ int init_fst_record_from_args_and_keywords(fst_record *rec, PyObject *args, PyOb
                 &typvar, &grtyp, &nomvar, &etiket,
                 &py_record_arg
     )){
-        fprintf(stderr, "%s(): ERROR Parsing arguments", __func__);
+        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): ERROR Parsing arguments", __func__);
         return 1;
     }
 
@@ -682,7 +682,7 @@ static PyObject *py_fst24_file_new_query(struct py_fst24_file *self, PyObject *a
     }
 
     // if(criteria.dateo != default_fst_record.dateo){
-    //     fprintf(stderr, "WARNING: Removing dateo from search criteria\n");
+    //     Lib_Log(APP_LIBRMN, APP_DEBUG, "WARNING: Removing dateo from search criteria\n");
     //     criteria.dateo = default_fst_record.dateo;
     // }
 
@@ -788,11 +788,12 @@ static PyObject *py_fst24_file_str(struct py_fst24_file *self, PyObject *Py_UNUS
 
 static void py_fst24_file_dealloc(struct py_fst24_file *self)
 {
-    // if(self->filename == NULL){
-    //     PySys_FormatStderr("%s() file=(null)\n", __func__);
-    // } else {
-    //     PySys_FormatStderr("%s() file=%U\n", __func__, self->filename);
-    // }
+    if(self->filename == NULL){
+        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s() file=(null)\n", __func__);
+    } else {
+        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s() file=%s\n", __func__, PyUnicode_AsUTF8(self->filename));
+        // PySys_FormatStderr("%s() file=%U\n", __func__, self->filename);
+    }
 
     Py_XDECREF(self->filename);
     Py_XDECREF(self->options);
@@ -800,7 +801,7 @@ static void py_fst24_file_dealloc(struct py_fst24_file *self)
         // TODO Error handling for this
         fst24_close(self->ref);
     } else {
-        fprintf(stderr, "%s(): self->ref is NULL so not calling fst24_close()\n", __func__);
+        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): self->ref is NULL so not calling fst24_close()\n", __func__);
     }
     Py_TYPE(self)->tp_free((PyObject *)self);
 }
@@ -828,13 +829,12 @@ static PyObject *py_fst_query_new(PyTypeObject *type, PyObject *args, PyObject *
 
 static void py_fst_query_dealloc(struct py_fst_query *self)
 {
-    // if(self->file_ref == NULL){
-    //     PySys_FormatStderr("%s() file=(null)\n", __func__);
-    // } else {
-    //     PySys_FormatStderr("%s() file=%U\n", __func__, self->file_ref->filename);
-    // }
-    // self->ref could be NULL because we are not enforcing creation only by
-    // .new_query method on fst24_file.
+    if(self->file_ref == NULL || self->file_ref->filename == NULL){
+        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s() file=(null)\n", __func__);
+    } else {
+        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s() file=%s\n", __func__, PyUnicode_AsUTF8(self->file_ref->filename));
+    }
+
     if(self->ref != NULL){
         fst24_query_free(self->ref);
     }
@@ -907,6 +907,7 @@ static void py_fst_record_dealloc(struct py_fst_record *self)
     // The user still has a reference to the numpy array whose data is rec.data
     // so rec.data should not be freed.
 
+    Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): Freeing self->rec=%p, self->rec.data=%p\n", __func__, &(self->rec), self->rec.data);
     if(self->rec.data != NULL){
         // If rec.data != NULL, that means we created a numpy array holding the
         // data, that data should belong to the numpy array
@@ -1005,7 +1006,7 @@ static int set_attr_string_pad_space(PyObject* self, PyObject *to_assign, size_t
      */
     Py_ssize_t size;
     const char *typvar_buf = PyUnicode_AsUTF8AndSize(to_assign, &size);
-    // fprintf(stderr, "%s(): size = %lu\n", __func__, size);
+    // Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): size = %lu\n", __func__, size);
     if(size > len + 1){
         PyErr_Format(PyExc_ValueError, "Cannot assign string longer than '%d' to %s of record: %lu", len, name, size);
         return -1;
@@ -1047,7 +1048,9 @@ static int py_fst_record_set_etiket(struct py_fst_record *self, PyObject *to_ass
 }
 
 static void free_capsule_ptr(void *capsule) {
-    void * ptr = PyCapsule_GetPointer(capsule, PyCapsule_GetName(capsule));
+    const char * name = PyCapsule_GetName(capsule);
+    void * ptr = PyCapsule_GetPointer(capsule, name);
+    Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): Name=%s: freeing pointer %p\n", __func__, name, ptr);
     free(ptr);
 };
 
@@ -1093,6 +1096,13 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
         // https://numpy.org/doc/stable/reference/c-api/array.html#c.NPY_ARRAY_OWNDATA
         // it says to use a certain test as an example, this test can be found
         // in the source code of numpy: numpy/_core/tests/test_mem_policy.py:78-100
+        // TODO: Make make sure librmn doesn't deallocate the record data:
+        // - The numpy array may outlive the record
+        //   def f(fst_file):
+        //      r = ... get record from file
+        //      return r.data # record gets deleted but numpy array lives on
+        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): Passing %p to PyCapsule_New\n", __func__, (self->rec).data);
+        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): BTW, self->rec=%p\n", __func__, &(self->rec));
         PyObject *capsule = PyCapsule_New(self->rec.data, "numpy array data capsule", (PyCapsule_Destructor)&free_capsule_ptr);
         if(capsule == NULL){
             Py_DECREF(array);
@@ -1245,7 +1255,7 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
     for(int i = 0; i < nb_files ; i++){
         PyObject *item = PyList_GetItem(file_list, i);
         if(item == NULL){
-            fprintf(stderr, "%s(): ERROR: OOPSIE: Better error handling is required to not leak memory (Phil)\n", __func__);
+            Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): ERROR: OOPSIE: Better error handling is required to not leak memory (Phil)\n", __func__);
             return NULL;
         }
         const char *filename = PyUnicode_AsUTF8AndSize(item, NULL);
@@ -1268,7 +1278,7 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
      * Create a dictionnary where the keys are column names and the values
      * are numpy arrays created from the raw column data
      */
-    fprintf(stderr, "Creating numpy arrays and assigning them as keys in a dictionnary\n");
+    Lib_Log(APP_LIBRMN, APP_DEBUG, "Creating numpy arrays and assigning them as keys in a dictionnary\n");
     PyObject *columns = PyDict_New();
     npy_intp dims[] = {raw_columns->nb_records};
 
@@ -1312,7 +1322,7 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
 
     free(raw_columns); // The struct contains a bunch of arrays but we don't want
                        // to free them since we gave them away to some numpy arrays
-    fprintf(stderr, "Handing control back to Python\n");
+    Lib_Log(APP_LIBRMN, APP_DEBUG, "Handing control back to Python\n");
     return columns;
 error:
     free(raw_columns);
