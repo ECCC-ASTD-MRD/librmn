@@ -115,8 +115,6 @@
       DATA ARBPSI /99999.0/
 
 
-#include "cubic.cdk"
-#include "lagrange.cdk"
       if(mode .eq. 0) then
         KASE = GLOBAL
         NPOLY = LJ
@@ -292,4 +290,7 @@
       IF (PSI.LT.0.0) PSI = PSI + 360.0
       RETURN
   600 FORMAT(//' LAMBDA PHI LI LJ SBRT VGLOGG WRONG VALUE',2E12.4,2I7)
+      CONTAINS
+#include "cubic.cdk"
+#include "lagrange.cdk"
       END

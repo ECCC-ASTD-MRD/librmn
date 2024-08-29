@@ -21,8 +21,22 @@
 ***S/P NPSPIN - COMPUTE DIRECTION AND SPEED AT POLE NORTH OR SOUTH
 *              USING ALLPTS ON THE 2 CLOSESTS LATITUDE CIRCLE
 
+      module npspin_helper
+          implicit none
+      contains
+
+* POLIN FUNCTION(9/8 OF UV1 LESS 1/8 OF UV2) / NO OF PTS
+      pure function POLIN(UV1 , UV2 ,I) result(res)
+          implicit none
+          real,    intent(in) :: UV1, UV2
+          integer, intent(in) :: I
+          real :: res
+          res = (UV1 * 1.125 - UV2*0.125) /FLOAT(I)
+      end function POLIN
+      end module npspin_helper
 
       SUBROUTINE NPSPIN (SPEED,PSI,U,V,LI,LJ,KASE,PHI,ARBPSI,DELLAM)
+      use npspin_helper
       REAL U(LI,LJ), V(LI,LJ)
 *
 *AUTEUR   - P.SARRAZIN DEC 78 DRPN DORVAL QUEBEC CANADA
@@ -62,10 +76,6 @@
 #include "pi.cdk"
 
 
-* POLIN FUNCTION(9/8 OF UV1 LESS 1/8 OF UV2) / NO OF PTS
-
-
-      POLIN (UV1 , UV2 ,I) = (UV1 * 1.125 - UV2*0.125) /FLOAT(I)
 *
 * POSITION OF COORDINATE OF SOUTH OR NORTH POLE
 

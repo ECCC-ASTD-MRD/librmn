@@ -61,15 +61,7 @@
       real(kind = real64) :: y,y1,y2,y3,y4
       real(kind = real64) :: y11, y12, y13, y14
       real(kind = real64) :: ay1, ay2, ay3, ay4
-      real(kind = real64) :: fa, fa2, fa3, fa4
-      real(kind = real64) :: a1,a2,a3,a4,c1,c2,c3,c4,c5,c6
-      
-#include "cubic8.cdk"
-
-      fa(a1,a2,a3,a4,x,x1,x2,x3)=a1+(x-x1)*(a2+(x-x2)*(a3+a4*(x-x3)))
-      fa2(c1,a1,a2)=c1*(a2-a1)
-      fa3(c1,c2,c3,a1,a2,a3)=c2*(c3*(a3-a2)-c1*(a2-a1))
-      fa4(c1,c2,c3,c4,c5,c6,a1,a2,a3,a4)=c4*(c5*(c6*(a4-a3)-c3*      (a3-a2)) - c2*(c3*(a3-a2)-c1*(a2-a1)))
+      real(kind = real64) :: dx
       
       do n=1,npts
          i = min(i2-2,max(i1+1,ifix(px(n))))
@@ -106,5 +98,8 @@
       enddo
       
       return
-      end
+      contains 
+#include "cubic8.cdk"
+#include "fa8.cdk"
+      end subroutine ez_gggdint_nw
       

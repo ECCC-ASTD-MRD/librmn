@@ -28,7 +28,6 @@
 
       real(kind = real64) :: x, y, x1, x2, y1, y2, dx, dy
 
-#include "zlin8.cdk"
       do n=1,npts
          limite = ni+2-wrap
          i = min(ni-2+wrap,max(1,ifix(px(n))))
@@ -62,5 +61,7 @@
       enddo
 
       return
+      contains
+#include "zlin8.cdk"
       end
 

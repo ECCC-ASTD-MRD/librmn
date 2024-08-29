@@ -57,11 +57,6 @@
 *--------------------------------------------------------------------------
 *
       REAL LAMBDA
-*      DATA ORDINT /3/
-#include "lagrange.cdk"
-#include "cubic.cdk"
-
-
 *
       ORDINT = 3
       X = 1 + (LAMBDA-XLO0) / DLON
@@ -139,4 +134,7 @@
 
 
       RETURN
+      CONTAINS
+#include "cubic.cdk"
+#include "lagrange.cdk"
       END
