@@ -1086,22 +1086,37 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
             PyErr_Format(RpnExc_FstFileError, "Accessing record data: %s", App_ErrorGet());
             return NULL;
         }
+        switch(self->rec.data_type & (~FST_TYPE_TURBOPACK)){
+            case FST_TYPE_REAL:
+            case FST_TYPE_REAL_IEEE:
+                break;
+            default:
+                PyErr_Format(PyExc_NotImplementedError, "%s() Cannot get data for record that is of other type than FST_TYPE_REAL or FST_TYPE_REAL_IEEE: %d", __func__, self->rec.data_type);
+                return NULL;
+        }
 
-        // TODO: Look at the record to find out what the actual data_type is
-        // so that we set the type for the numpy array appropriately.
-        size_t thing_size = self->rec.data_bits / 8;
+        int typenum;
+        switch(self->rec.data_bits){
+            case 32: typenum = NPY_FLOAT32; break;
+            case 64: typenum = NPY_FLOAT64; break;
+            default:
+                PyErr_Format(PyExc_NotImplementedError, "%s() Only records with elements of size (record.data_bits) equal to 32 (float) and 64 (double) are handled: %d", __func__, self->rec.data_bits);
+                return NULL;
+        }
+
         // TODO: Consider if we want to have the shape be (ni, nj) if nk == 1,
         // otherwise we can just always return arrays of shape (ni, nj, nk).
-        // TODO: Ensure data ordering is OK (C vs Fortran)
         int ndims = 3;
-        // npy_intp dims[3] = {self->rec.ni, self->rec.nj, self->rec.nk};
-        npy_intp dims[3] = {self->rec.nk, self->rec.nj, self->rec.ni};
+        npy_intp dims[3] = {self->rec.ni, self->rec.nj, self->rec.nk};
 
-        PyObject * array = PyArray_SimpleNewFromData(ndims, dims, NPY_FLOAT32, self->rec.data);
+        PyObject * array = PyArray_SimpleNewFromData(ndims, dims, typenum, self->rec.data);
         if(array == NULL){
             return NULL;
         }
 
+        // TODO: Ensure data ordering is OK (C vs Fortran)
+        //       Do we need to pass the flag NPY_ARRAY_F_CONTIGUOUS
+        PyArray_UpdateFlags((PyArrayObject*)array, NPY_ARRAY_C_CONTIGUOUS);
         // Documentation says that we should not set NPY_ARRAY_OWNDATA manually:
         // https://numpy.org/doc/stable/reference/c-api/array.html#c.NPY_ARRAY_OWNDATA
         // it says to use a certain test as an example, this test can be found
@@ -1144,6 +1159,30 @@ static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assig
         // When the object to assign is NULL, that means the python code wants
         // us to simply delete the attribute.
         return 0;
+    }
+
+    switch(self->rec.data_type & (~FST_TYPE_TURBOPACK)){
+        case FST_TYPE_REAL:
+        case FST_TYPE_REAL_IEEE:
+            break;
+        default:
+            PyErr_Format(PyExc_NotImplementedError, "%s() Cannot set data for record that is of other type than FST_TYPE_REAL or FST_TYPE_REAL_IEEE: %d", __func__, self->rec.data_type);
+            return -1;
+    }
+    int type = PyArray_TYPE((PyArrayObject *)to_assign);
+    int expected_data_bits;
+
+    switch(type){
+        case NPY_FLOAT32: expected_data_bits = 32; break;
+        case NPY_FLOAT64: expected_data_bits = 64; break;
+        default:
+            PyErr_Format(PyExc_NotImplementedError, "Only numpy arrays of type NPY_FLOAT32 or NPY_FLOAT64 are handled", __func__);
+            return -1;
+    }
+
+    if(expected_data_bits != self->rec.data_bits){
+        PyErr_Format(PyExc_TypeError, "Data array to be assigned has elements of size %d but record has data_bits=%d", expected_data_bits, self->rec.data_bits);
+        return -1;
     }
 
     // Check the type of the passed object.  Here we just refust anything that
