@@ -235,6 +235,7 @@ struct py_fst_record {
     PyObject_HEAD
     fst_record rec;
     PyObject *data_array;
+    struct py_fst24_file *origin;
 };
 
 // For all the fields that are of basic type we can do it this way, but for the
@@ -867,8 +868,13 @@ static PyObject *py_fst_query_iternext(struct py_fst_query *self)
         return NULL;
     }
 
+    // TODO Records that come from a file need to hold a reference to that file
+    // otherwise reading their data could attempt to read from a file that
+    // doesn't exist anymore.
     struct py_fst_record *py_rec = (struct py_fst_record *) py_fst_record_new(&py_fst_record_type, NULL, NULL);
     py_rec->rec = result;
+    py_rec->origin = self->file_ref;
+    Py_INCREF(py_rec->origin);
 
     return (PyObject *)py_rec;
 }
@@ -936,6 +942,10 @@ static void py_fst_record_dealloc(struct py_fst_record *self)
     PyObject *tmp;
     tmp = self->data_array;
     self->data_array = NULL;
+    Py_XDECREF(tmp);
+
+    tmp = (PyObject *)self->origin;
+    self->origin = NULL;
     Py_XDECREF(tmp);
 
     Py_TYPE(self)->tp_free((PyObject *)self);
