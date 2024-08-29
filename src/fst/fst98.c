@@ -2208,11 +2208,22 @@ int c_fstinfx(
         return ERR_NO_FNOM;
     }
 
+    fstd_usage_info* info = &fst98_open_files[index_fnom];
+    info->inf_param.datev = datev;
+    info->inf_param.ip1 = ip1;
+    info->inf_param.ip2 = ip2;
+    info->inf_param.ip3 = ip3;
+    strncpy(info->inf_param.nomvar, in_nomvar, FST_NOMVAR_LEN);
+    strncpy(info->inf_param.typvar, in_typvar, FST_TYPVAR_LEN);
+    strncpy(info->inf_param.etiket, in_etiket, FST_ETIKET_LEN);
+
     int status = -1;
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d, IP all flags %d %d %d\n",
                 __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file,
                 ip1s_flag, ip2s_flag, ip3s_flag);
+
+        fst98_open_files[index_fnom].search_done = 0;
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstinfx_rsf(handle, FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, in_etiket, ip1, ip2, ip3, in_typvar,
@@ -2227,7 +2238,8 @@ int c_fstinfx(
         // Stop if error, but we continue looking if it's just because we didn't find a match
         if (status < 0 && status != ERR_NOT_FOUND) return status;
 
-        index_fnom = fst98_open_files[index_fnom].next_file;
+        fst98_open_files[index_fnom].search_done = 1; // Indicate search is complete in this file
+        index_fnom = fst98_open_files[index_fnom].next_file; // Go to next file in linked list
     }
 
     if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
@@ -4066,26 +4078,45 @@ int c_fstsui(
     }
 
     int status = -1;
-    while (index_fnom >= 0) {
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
 
-        if (FGFDT[index_fnom].attr.rsf == 1) {
-            status = c_fstsui_rsf(FGFDT[index_fnom].iun, index_fnom, ni, nj, nk);
-        }
-        else if (FGFDT[index_fnom].attr.rsf == 0) {
-            status = c_fstsui_xdf(FGFDT[index_fnom].iun, ni, nj, nk);
-        }
-
-        if (status > 0) return status; // Found it!
-
-        // Stop if error, but we continue looking if it's just because we didn't find a match
-        if (status < 0 && status != ERR_NOT_FOUND) return status;
-
+    // In case the file to search belongs to a linked list, find the next file in that list
+    // that was not fully searched yet
+    while (fst98_open_files[index_fnom].search_done == 1) {
         index_fnom = fst98_open_files[index_fnom].next_file;
+        if (index_fnom < 0) return ERR_NOT_FOUND;
     }
 
-    return status;
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
+            __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
+
+    // Look for the next record in that not-finished-searching file
+    if (FGFDT[index_fnom].attr.rsf == 1) {
+        status = c_fstsui_rsf(FGFDT[index_fnom].iun, index_fnom, ni, nj, nk);
+    }
+    else if (FGFDT[index_fnom].attr.rsf == 0) {
+        status = c_fstsui_xdf(FGFDT[index_fnom].iun, ni, nj, nk);
+    }
+
+    if (status > 0) return status; // Found it!
+
+    // Stop if error, unless it's just because we didn't find a match. In that case, we will continue looking (in the next file in list)
+    if (status < 0 && status != ERR_NOT_FOUND) return status;
+
+    // We're done searching this file
+    fst98_open_files[index_fnom].search_done = 1;
+
+    // We will now be looking at the next file in the linked list
+    const fstd_usage_info* old_info = &fst98_open_files[index_fnom];
+    index_fnom = old_info->next_file;
+    if (index_fnom >= 0) {
+        // Return whatever we find with fstinf. It will look in all further files in the linked list, if necessary. It will
+        // also set up the next call to fstsui, if needed.
+        return c_fstinf(FGFDT[index_fnom].iun, ni, nj, nk,
+            old_info->inf_param.datev, old_info->inf_param.etiket, old_info->inf_param.ip1, old_info->inf_param.ip2, old_info->inf_param.ip3,
+            old_info->inf_param.typvar, old_info->inf_param.nomvar);
+    }
+
+    return -1;
 }
 
 

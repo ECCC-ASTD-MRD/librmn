@@ -59,6 +59,16 @@ static inline void swap_words(void* array, const int32_t num_elem64) {
 typedef struct {
     fst_query query;
     int32_t next_file;
+    int32_t search_done;
+    struct {
+        int datev;
+        int ip1;
+        int ip2;
+        int ip3;
+        char typvar[FST_TYPVAR_LEN];
+        char etiket[FST_ETIKET_LEN];
+        char nomvar[FST_NOMVAR_LEN];
+    } inf_param;
 } fstd_usage_info;
 
 extern int remap_table[2][10];

@@ -1648,7 +1648,8 @@ int c_xdfloc2(
     } else if (handle == -1) {
         //! Search from current position
         if (((fte->cur_entry == NULL) || (fte->cur_pageno == -1)) && (! fte->xdf_seq)) {
-            Lib_Log(APP_LIBFST,APP_ERROR,"%s: current file position is invalid\n",__func__);
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: current file position is invalid (entry %d, page # %d)\n",
+                    __func__, fte->cur_entry, fte->cur_pageno);
             return(ERR_NO_POS);
         }
     } else {

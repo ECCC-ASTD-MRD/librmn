@@ -176,42 +176,42 @@ contains
             call check_status(status, expected = record_key, fail_message = 'fstluk (ip3 = 2)')
             work_array(:) = 0
             record_key2 = fstlis(work_array, unit_list(1), ni, nj, nk)
-            call check_status(record_key2, expected_min = record_key + 1, fail_message = 'fstluk (ip3 = 2)')
+            call check_status(record_key2, expected_min = record_key + 1, fail_message = 'fstlis (ip3 = 2)')
             status = fstsui(unit_list(1), ni, nj, nk)
-            call check_status(status, expected_min = record_key2 + 1, fail_message = 'fstluk (ip3 = 2)')
+            call check_status(status, expected_min = record_key2 + 1, fail_message = 'fstsui (ip3 = 2)')
 
             record_key = fstinf(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 30, ' ', ' ')
             call check_status(record_key, expected_min = 1, fail_message = 'fstinf (ip3 = 30)')
             work_array(:) = 0
             status = fstluk(work_array, record_key, ni, nj, nk)
-            call check_status(status, expected = record_key, fail_message = 'fstluk (ip3 = 2)')
+            call check_status(status, expected = record_key, fail_message = 'fstluk (ip3 = 30)')
             work_array(:) = 0
             record_key2 = fstlis(work_array, unit_list(1), ni, nj, nk)
-            call check_status(record_key2, expected_min = record_key + 1, fail_message = 'fstluk (ip3 = 2)')
+            call check_status(record_key2, expected_min = record_key + 1, fail_message = 'fstlis (ip3 = 30)')
             status = fstsui(unit_list(1), ni, nj, nk)
-            call check_status(status, expected_min = record_key2 + 1, fail_message = 'fstluk (ip3 = 2)')
+            call check_status(status, expected_min = record_key2 + 1, fail_message = 'fstsui (ip3 = 30)')
 
             record_key = fstinf(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 100, ' ', ' ')
             call check_status(record_key, expected_min = 1, fail_message = 'fstinf (ip3 = 100)')
             work_array(:) = 0
             status = fstluk(work_array, record_key, ni, nj, nk)
-            call check_status(status, expected = record_key, fail_message = 'fstluk (ip3 = 2)')
+            call check_status(status, expected = record_key, fail_message = 'fstluk (ip3 = 100)')
             work_array(:) = 0
             record_key2 = fstlis(work_array, unit_list(1), ni, nj, nk)
-            call check_status(record_key2, expected_min = record_key + 1, fail_message = 'fstluk (ip3 = 2)')
+            call check_status(record_key2, expected_min = record_key + 1, fail_message = 'fstlis (ip3 = 100)')
             status = fstsui(unit_list(1), ni, nj, nk)
-            call check_status(status, expected_min = record_key2 + 1, fail_message = 'fstluk (ip3 = 2)')
+            call check_status(status, expected_min = record_key2 + 1, fail_message = 'fstsui (ip3 = 100)')
 
             record_key = fstinf(unit_list(1), ni, nj, nk, -1, ' ', -1, -1, 1234, ' ', ' ')
             call check_status(record_key, expected_min = 1, fail_message = 'fstinf (ip3 = 1234)')
             work_array(:) = 0
             status = fstluk(work_array, record_key, ni, nj, nk)
-            call check_status(status, expected = record_key, fail_message = 'fstluk (ip3 = 2)')
+            call check_status(status, expected = record_key, fail_message = 'fstluk (ip3 = 1234)')
             work_array(:) = 0
             record_key2 = fstlis(work_array, unit_list(1), ni, nj, nk)
-            call check_status(record_key2, expected_min = record_key + 1, fail_message = 'fstluk (ip3 = 2)')
+            call check_status(record_key2, expected_min = record_key + 1, fail_message = 'fstlis (ip3 = 1234)')
             status = fstsui(unit_list(1), ni, nj, nk)
-            call check_status(status, expected_min = record_key2 + 1, fail_message = 'fstluk (ip3 = 2)')
+            call check_status(status, expected_min = record_key2 + 1, fail_message = 'fstsui (ip3 = 1234)')
 
         end block
 
