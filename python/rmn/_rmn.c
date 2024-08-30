@@ -1086,6 +1086,14 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
             PyErr_Format(RpnExc_FstFileError, "Accessing record data: %s", App_ErrorGet());
             return NULL;
         }
+
+        // TODO: Implemented a basic checking to ensure we can only access the
+        //       data of float and double type records because those are the
+        //       only types for which I've implemented the creation of a numpy
+        //       array from the data.
+        //       - Need to verify that the checking is correct
+        //       - Need to code for creation of numpy arrays for the other
+        //         possible types.
         switch(self->rec.data_type & (~FST_TYPE_TURBOPACK)){
             case FST_TYPE_REAL:
             case FST_TYPE_REAL_IEEE:
@@ -1161,6 +1169,13 @@ static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assig
         return 0;
     }
 
+    // TODO: I did some guessing to implement basic checks on the type of the
+    //       numpy array assigned to record.data to handle floats and doubles
+    //       and make sure that the type of the array elements is coherent with
+    //       the values of record.data_type and record.data_bits.
+    //       I did a lot of guessing which should be checked.
+    //       - Ensure verification is correct
+    //       - Add code to handle other types of records
     switch(self->rec.data_type & (~FST_TYPE_TURBOPACK)){
         case FST_TYPE_REAL:
         case FST_TYPE_REAL_IEEE:
