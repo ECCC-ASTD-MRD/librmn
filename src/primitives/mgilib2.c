@@ -277,7 +277,7 @@ int32_t f77name (mgi_term) () {
     int ier = -1;
 
     for (int chan = 0; chan <= ichan; chan++) {
-        if (chn[chan].name && strcmp((char *)chn[chan].name, "") && chn[chan].gchannel > 0) {
+        if (strcmp((char *)chn[chan].name, "") && chn[chan].gchannel > 0) {
             ier = send_command("END");
             Lib_Log(APP_LIBRMN,APP_INFO,"%s: bchannel \"%s\" has been closed\n",__func__,chn[chan].name);
 

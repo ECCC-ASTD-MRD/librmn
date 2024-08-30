@@ -760,7 +760,7 @@ static void packTokensParallelogram(
                     for (int n = 0; n <= lcl_n; n++) {
                         for (int m = 0; m <= lcl_m; m++) {
                             k = FTN2C(i + m, j + n, ni);
-                            token = (unsigned int) (ufld_dst[k] & ~((-1) << 17));
+                            token = (unsigned int) (ufld_dst[k] & ~((-1u) << 17));
                             stuff(token, cur, 32, 17, lastWordShifted, spaceInLastWord);
                         }
                     }
@@ -771,7 +771,7 @@ static void packTokensParallelogram(
                     for (int n = 0; n <= lcl_n; n++) {
                         for (int m = 0; m <= lcl_m; m++) {
                             k = FTN2C(i + m, j + n, ni);
-                            token = (unsigned int) (ufld_dst[k] & ~((-1) << nbits2));
+                            token = (unsigned int) (ufld_dst[k] & ~((-1u) << nbits2));
                             stuff(token, cur, 32, nbits2, lastWordShifted, spaceInLastWord);
                         }
                     }
@@ -1078,7 +1078,7 @@ void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoar
             if (!(m == 0 && n == 0))
               {
               k = FTN2C(i+m,j+n,ni);
-              token = (unsigned int) (diffs[k] & ~((-1) << 17));
+              token = (unsigned int) (diffs[k] & ~((-1u) << 17));
               stuff(token, cur, 32, 17, lastWordShifted, spaceInLastWord);
               }
             }
@@ -1094,7 +1094,7 @@ void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoar
             if (!(m == 0 && n == 0))
               {
               k = FTN2C(i+m,j+n,ni);
-              token = (unsigned int) (diffs[k] & ~((-1) << nbits2));
+              token = (unsigned int) (diffs[k] & ~((-1u) << nbits2));
               stuff(token, cur, 32, nbits2, lastWordShifted, spaceInLastWord);
               }
             }
