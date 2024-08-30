@@ -21,6 +21,10 @@ filename = "/fs/site5/eccc/cmd/w/spst900/spooki/spooki_dir/pluginsRelatedStuff/A
 if not os.path.isfile(filename):
     raise RuntimeError(f"Test file does not exist")
 
+def iterate_on_whole_file():
+    for rec in rmn.fst24_file(filename=filename):
+        print(rec)
+
 def open_file():
     print_py("Create fst24_file")
     rmn.fst24_file(filename=filename, options="")
@@ -184,16 +188,17 @@ if __name__ == "__main__":
     # open_non_existant_file_without_W_option()
     # create_file_with_data(rsf=False)
 
-    # The created file with rsf must be inspected with a sufficiently recent
-    # version of voir.  Also, there are error messages that are printed
-    # (ERROR) META|Meta_Init: Unable to initialize profiles, CMCCONST and META_PROFPATH variable not defined
-    # (ERROR) META|Dict_Load: Environment variable CMCCONST not defined, source the CMOI base domain
-    # but the file was created successfully so these are not actually errors.
+    # # The created file with rsf must be inspected with a sufficiently recent
+    # # version of voir.  Also, there are error messages that are printed
+    # # (ERROR) META|Meta_Init: Unable to initialize profiles, CMCCONST and META_PROFPATH variable not defined
+    # # (ERROR) META|Dict_Load: Environment variable CMCCONST not defined, source the CMOI base domain
+    # # but the file was created successfully so these are not actually errors.
     # create_file_with_data(rsf=True)
 
     # attempt_to_write_non_record_to_file()
     # invalid_access_of_record_data()
     # test_record_attributes()
     # create_record_and_assign_data()
-    get_record_by_index()
+    # get_record_by_index()
+    iterate_on_whole_file()
 
