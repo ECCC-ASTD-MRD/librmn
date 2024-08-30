@@ -1,6 +1,6 @@
 ## Examples
 
-See demos subdirectory for some files that expand on the APIs demonstrated
+See [demos](./demos) subdirectory for some files that expand on the APIs demonstrated
 here.
 
 ### Opening and closing a file
