@@ -45,7 +45,7 @@ int main() {
     int num = 1;
     int numlen = 0;
 
-    int res = f77name(prog_filename)(fileName, "pp", &date, &hour, &min, &sec, &npex, &npey, &num, &numlen, "", fileNameLen, 2, 0);
+    int res = f77name(prog_filename)(fileName, (unsigned char *)"pp", &date, &hour, &min, &sec, &npex, &npey, &num, &numlen, "", fileNameLen, 2, 0);
     int i = 0;
     while (fileName[i] != ' ') i++;
     fileName[i] = '\0';
@@ -61,7 +61,7 @@ int main() {
     num = 1;
     numlen = 3;
 
-    res = f77name(prog_filename)(fileName, "si", &date, &hour, &min, &sec, &npex, &npey, &num, &numlen, "", fileNameLen, 2, 0);
+    res = f77name(prog_filename)(fileName, (unsigned char *)"si", &date, &hour, &min, &sec, &npex, &npey, &num, &numlen, "", fileNameLen, 2, 0);
     i = 0;
     while (fileName[i] != ' ') i++;
     fileName[i] = '\0';

@@ -157,7 +157,7 @@ int main (int argc, char* argv[])
     {
         rempli(tblval,10,5,7);
         ier += c_mrbadd(bufa,&blkno, a_block_size[0], a_block_size[1], a_block_size[2],
-                        5,12,++i,32,&bit0, datyp_compact_uint, lstelea, tblval);
+                        5,12,++i,32,&bit0, datyp_compact_uint, (uint32_t *)lstelea, (uint32_t *)tblval);
         if (verbose > 1) printf(" *** info blkno = %d  bit0 = %d \n",blkno,bit0);
     }
     testit(ier);
@@ -169,7 +169,7 @@ int main (int argc, char* argv[])
     {
         rempli(tblval,4,5,7);
         ier += c_mrbadd(bufb,&blkno, b_block_size[0], b_block_size[1], b_block_size[2],
-                        5,12,++i,32,&bit0, datyp_compact_uint, lsteleb, tblval);
+                        5,12,++i,32,&bit0, datyp_compact_uint, (uint32_t *)lsteleb, (uint32_t *)tblval);
         if (verbose > 1) printf(" *** info blkno = %d  bit0 = %d \n",blkno,bit0);
     }
     testit(ier);
@@ -181,7 +181,7 @@ int main (int argc, char* argv[])
     {
         rempli(tblval,6,5,7);
         ier += c_mrbadd(bufc,&blkno, c_block_size[0], c_block_size[1], c_block_size[2],
-                        5,12,++i,32,&bit0, datyp_compact_uint, lstelec, tblval);
+                        5,12,++i,32,&bit0, datyp_compact_uint, (uint32_t *)lstelec, (uint32_t *)tblval);
         if (verbose > 1) printf(" *** info blkno = %d  bit0 = %d \n",blkno,bit0);
     }
     testit(ier);
@@ -259,7 +259,7 @@ int main (int argc, char* argv[])
     while(i--)
         *pttcmp++ = 5 * i;
 
-    ier = c_mrbxtr(bufa,5,lstcomp,tblval);
+    ier = c_mrbxtr(bufa,5,(uint32_t *)lstcomp,(uint32_t *)tblval);
 
     ier = i =0 ;
     while(i < 10)
@@ -281,8 +281,8 @@ int main (int argc, char* argv[])
 
 
     printf(" %3.1f  mrbhdr bufa \n",7.0);
-    ier = c_mrbhdr(bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
-                   &elev,&drcv,&date,&oars,&run,&nblk,sup,0,xaux,0);
+    ier = c_mrbhdr((uint32_t *)bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+                   &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
 
     printf(" temps  = %d\n",temps);
     printf(" flgs  = %d\n",flgs);
@@ -305,8 +305,8 @@ int main (int argc, char* argv[])
     testit(ier);
 
     printf(" %3.1f  mrbhdr bufb \n",7.1);
-    ier = c_mrbhdr(bufb,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
-                   &elev,&drcv,&date,&oars,&run,&nblk,sup,0,xaux,0);
+    ier = c_mrbhdr((uint32_t *)bufb,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+                   &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
 
     printf(" temps  = %d\n",temps);
     printf(" flgs  = %d\n",flgs);
@@ -329,8 +329,8 @@ int main (int argc, char* argv[])
     testit(ier);
 
     printf(" %3.1f  mrbhdr bufc \n",7.2);
-    ier = c_mrbhdr(bufc,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
-                   &elev,&drcv,&date,&oars,&run,&nblk,sup,0,xaux,0);
+    ier = c_mrbhdr((uint32_t *)bufc,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+                   &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
 
     printf(" temps  = %d\n",temps);
     printf(" flgs  = %d\n",flgs);
@@ -391,21 +391,21 @@ int main (int argc, char* argv[])
 
     printf(" %3.1f mrbprm bloc no blkno bufa-bufb-bufc\n",9.0);
 
-    ier = c_mrbprm(bufa,ier,&nele,&nval,&nt,&bfam,&bdesc,&btyp,&nbit,
+    ier = c_mrbprm((uint32_t *)bufa,ier,&nele,&nval,&nt,&bfam,&bdesc,&btyp,&nbit,
                    &bit0,&datyp);
     printf(" nele = %d nval = %d nt = %d bfam = %d bdesc = %d btyp = %d \n",
              nele,nval,nt,bfam,bdesc,btyp);
     printf(" nbit = %d bit0 = %d datyp = %d\n",nbit,bit0,datyp);
     testit(ier);
 
-    ier = c_mrbprm(bufb,ier1,&nele,&nval,&nt,&bfam,&bdesc,&btyp,&nbit,
+    ier = c_mrbprm((uint32_t *)bufb,ier1,&nele,&nval,&nt,&bfam,&bdesc,&btyp,&nbit,
                    &bit0,&datyp);
     printf(" nele = %d nval = %d nt = %d bfam = %d bdesc = %d btyp = %d \n",
              nele,nval,nt,bfam,bdesc,btyp);
     printf(" nbit = %d bit0 = %d datyp = %d\n",nbit,bit0,datyp);
     testit(ier);
 
-    ier = c_mrbprm(bufc,ier2,&nele,&nval,&nt,&bfam,&bdesc,&btyp,&nbit,
+    ier = c_mrbprm((uint32_t *)bufc,ier2,&nele,&nval,&nt,&bfam,&bdesc,&btyp,&nbit,
                    &bit0,&datyp);
     printf(" nele = %d nval = %d nt = %d bfam = %d bdesc = %d btyp = %d \n",
              nele,nval,nt,bfam,bdesc,btyp);
@@ -462,8 +462,8 @@ int main (int argc, char* argv[])
     printf(" %4.1f remplacer bloc 8 par bloc 5 dans bufa\n",12.0);
     printf(" %4.1f mrbrep + mrbxtr pour comparaison\n",12.0);
 
-    ier = c_mrbrep(bufa,8,tblcomp);
-    ier = c_mrbxtr(bufa,8,lstcomp,tblval);
+    ier = c_mrbrep(bufa,8,(uint32_t *)tblcomp);
+    ier = c_mrbxtr(bufa,8,(uint32_t *)lstcomp,(uint32_t *)tblval);
     ier = i =0 ;
     while(i < 10)
     {
@@ -785,10 +785,10 @@ int main (int argc, char* argv[])
     
     ier = 0;
     rempli(tblval,130,5,7);
-    ier += c_mrbadd(bufe,&blkno,130,5,7,5,12,1,32,&bit0,2,lstelee,tblval);
+    ier += c_mrbadd(bufe,&blkno,130,5,7,5,12,1,32,&bit0,2,(uint32_t *)lstelee,(uint32_t *)tblval);
     printf(" *** info blkno = %d  bit0 = %d \n",blkno,bit0);
     rempli(tblval,4,268,7);
-    ier += c_mrbadd(bufe,&blkno,4,268,7,5,12,2,32,&bit0,2,lstelee,tblval);
+    ier += c_mrbadd(bufe,&blkno,4,268,7,5,12,2,32,&bit0,2,(uint32_t *)lstelee,(uint32_t *)tblval);
     printf(" *** info blkno = %d  bit0 = %d \n",blkno,bit0);
     rempli(tblval,4,5,270);
     printf(" bloc3 contient des vaeurs negatives");
@@ -799,13 +799,13 @@ int main (int argc, char* argv[])
     *(pttval+5) = -4; 
     *(pttval+6) = -5; 
     *(pttval+7) = -6; 
-    ier += c_mrbadd(bufe,&blkno,4,5,270,5,12,3,24,&bit0,4,lstelee,tblval);
+    ier += c_mrbadd(bufe,&blkno,4,5,270,5,12,3,24,&bit0,4,(uint32_t *)lstelee,(uint32_t *)tblval);
     printf(" *** info blkno = %d  bit0 = %d \n",blkno,bit0);
     testit(ier);
 
     printf(" %4.1f mrbxtr pour bloc3 de bufe\n",31.2);
 
-    ier = c_mrbxtr(bufe,3,clistee,etblval);
+    ier = c_mrbxtr(bufe,3,(uint32_t *)clistee,(uint32_t *)etblval);
 
     for (i = 0; i < 4; i++)
     {
@@ -816,7 +816,7 @@ int main (int argc, char* argv[])
 
 
     printf(" %4.1f mrbprm pour bloc 1 bufe\n",31.3);
-    ier = c_mrbprm(bufe,1,&nele,&nval,&nt,&bfam,&bdesc,&btyp,&nbit,
+    ier = c_mrbprm((uint32_t *)bufe,1,&nele,&nval,&nt,&bfam,&bdesc,&btyp,&nbit,
                    &bit0,&datyp);
     printf(" nele = %d nval = %d nt = %d bfam = %d bdesc = %d btyp = %d \n",
              nele,nval,nt,bfam,bdesc,btyp);
@@ -824,7 +824,7 @@ int main (int argc, char* argv[])
     testit(ier);
 
     printf(" %4.1f mrbprm pour bloc 2 bufe\n",31.4);
-    ier = c_mrbprm(bufe,2,&nele,&nval,&nt,&bfam,&bdesc,&btyp,&nbit,
+    ier = c_mrbprm((uint32_t *)bufe,2,&nele,&nval,&nt,&bfam,&bdesc,&btyp,&nbit,
                    &bit0,&datyp);
     printf(" nele = %d nval = %d nt = %d bfam = %d bdesc = %d btyp = %d \n",
              nele,nval,nt,bfam,bdesc,btyp);
@@ -832,7 +832,7 @@ int main (int argc, char* argv[])
     testit(ier);
 
     printf(" %4.1f mrbprm pour bloc 3 bufe\n",31.5);
-    ier = c_mrbprm(bufe,3,&nele,&nval,&nt,&bfam,&bdesc,&btyp,&nbit,
+    ier = c_mrbprm((uint32_t *)bufe,3,&nele,&nval,&nt,&bfam,&bdesc,&btyp,&nbit,
                    &bit0,&datyp);
     printf(" nele = %d nval = %d nt = %d bfam = %d bdesc = %d btyp = %d \n",
              nele,nval,nt,bfam,bdesc,btyp);
@@ -917,8 +917,8 @@ int main (int argc, char* argv[])
     ier1 = c_mrbini(10,bufa,1123,0377,"station12",2,1800,3600,
                    0,0,975,42,901024,65535,1,sup,0,xaux,0);
 
-    ier = c_mrbhdr(bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
-                   &elev,&drcv,&date,&oars,&run,&nblk,sup,0,xaux,0);
+    ier = c_mrbhdr((uint32_t *)bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+                   &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
     printf(" temps  = %d\n",temps);
     printf(" flgs  = %d\n",flgs);
     printf(" stnid = ");
@@ -951,8 +951,8 @@ int main (int argc, char* argv[])
     ier = c_mrfget(ier1,bufa);
    
 
-    ier = c_mrbhdr(bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
-                   &elev,&drcv,&date,&oars,&run,&nblk,sup,0,xaux,0);
+    ier = c_mrbhdr((uint32_t *)bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+                   &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
     printf(" temps  = %d\n",temps);
     printf(" flgs  = %d\n",flgs);
     printf(" stnid = ");
@@ -1002,7 +1002,7 @@ int main (int argc, char* argv[])
       bktyp = i;
       rempli(tblval,10,5,7);
       ier1 += c_mrbadd(bufa,&blkno,10,5,7,5,12,c_mrbtyp(&bknat,&bktyp,&bkstp,-1),
-                    30,&bit0,2,lstelea,tblval);
+                    30,&bit0,2,(uint32_t *)lstelea,(uint32_t *)tblval);
         printf(" *** info blkno = %d  bit0 = %d \n",blkno,bit0);
         i++;
     }

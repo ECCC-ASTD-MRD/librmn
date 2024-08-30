@@ -462,8 +462,6 @@ int c_mrbadd(
     uint32_t *pos;
     int inbit, idatyp, nombre, err, left, i, bits_added, bfamho;
     int done,indx;
-    uint32_t r_nele, r_nval, r_nt, r_bfam, r_bdesc;
-    uint32_t r_btyp, r_nbit, r_bit0, r_datyp;
 
     // initialize block header to 0
     memset(&entete, 0, sizeof(entete));
@@ -557,11 +555,13 @@ int c_mrbadd(
     buf->buf9 += NBENTB;
     *bkno = buf->buf78.buf8;
 
-    if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_INFO) {
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
+        int32_t r_nele, r_nval, r_nt, r_bfam, r_bdesc;
+        int32_t r_btyp, r_nbit, r_bit0, r_datyp;
         err = c_mrbprm((uint32_t *)buf, *bkno, &r_nele, &r_nval, &r_nt, &r_bfam, &r_bdesc,
             &r_btyp, &r_nbit, &r_bit0, &r_datyp);
         Lib_Log(APP_LIBFST,APP_INFO,"%s: write block #%5d NELE=%5d NVAL=%5d NT=%5d BFAM=%4d BTYP=%4d NBITS=%2d BIT0=%8d DATYP=%1d\n",__func__,*bkno, r_nele, r_nval, r_nt, r_bfam, r_btyp, r_nbit, r_bit0, r_datyp);
-      }
+    }
     return 0;
 }
 
