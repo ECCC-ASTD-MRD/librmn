@@ -82,10 +82,6 @@ if (EC_INIT_DONE LESS 2)
         add_executable(generate_fstd EXCLUDE_FROM_ALL fst/generate_fstd.F90)
         target_link_libraries(generate_fstd test_helper)
 
-        add_executable(rsf_dump test_rsf.c)
-        target_link_libraries(rsf_dump rmn::rmn)
-        target_compile_definitions(rsf_dump PRIVATE RSF_DUMP)
-
         add_executable(rsf_fuse fst/rsf_fuse.c)
         target_link_libraries(rsf_fuse rmn::rmn)
 

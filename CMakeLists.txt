@@ -377,6 +377,7 @@ install(
     DESTINATION "${CONFIG_INSTALL_DIR}"
 )
 
+add_subdirectory(utils)
 add_subdirectory(tests)
 
 # Packaging
