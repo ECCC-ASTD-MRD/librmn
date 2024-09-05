@@ -34,7 +34,7 @@ int test98(const int is_rsf) {
 
     status = c_fstecr(dummy_data, NULL, -32, iun, 0, 0, 0, 1, 1, 1, TEST_IP + 1, 1, 1, "  ", "    ", "            ", "  ",
                  1, 1, 1, 1, 1, FST_SKIP);
-    if (status <= 0) {
+    if (status != 0) {
         App_Log(APP_ERROR, "%s: Error writing single record (2). Status = %d (0x%x)\n", __func__, status, status);
         return -1;
     }

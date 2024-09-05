@@ -1218,7 +1218,7 @@ int c_fstecr_xdf(
             // append mode for xdfput
             handle = 0;
         } else if (rewrit==FST_SKIP) {
-            return handle;
+            return 0; // Success
         }
     }
 

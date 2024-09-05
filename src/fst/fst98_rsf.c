@@ -136,7 +136,7 @@ int c_fstecr_rsf(
         if (handle >= 0) {
             if (rewrit == FST_SKIP) {
                 // A similar record already exists, so nothing more to do
-                return handle;
+                return 0; // Success
             }
 
             // Delete the record before writing the new one
