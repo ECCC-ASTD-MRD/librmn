@@ -533,8 +533,7 @@ static int py_fst24_file_init(struct py_fst24_file *self, PyObject *args, PyObje
     struct fst24_file_ *ref = fst24_open(filename, options);
 
     if(ref == NULL){
-        char * app_error = App_ErrorGet();
-        PyErr_Format(RpnExc_FstFileError, "%s: '%s'", app_error, filename);
+        PyErr_Format(RpnExc_FstFileError, "file: '%s': %s", filename, App_ErrorGet());
         return -1;
     }
 
@@ -585,7 +584,6 @@ static PyObject *py_fst24_file_retself(PyObject *self, PyObject *args){
 
 static PyObject *py_fst24_file_close(struct py_fst24_file *self, PyObject *Py_UNUSED(args))
 {
-    // PySys_FormatStderr("%s(): filename=%U\n", __func__, self->filename);
     if(!fst24_close(self->ref)){
         PyErr_SetString(RpnExc_FstFileError, App_ErrorGet());
     }
@@ -759,6 +757,7 @@ static PyObject *py_fst24_file_write(struct py_fst24_file *self, PyObject *args,
      * Make the underlying C call with error checking
      */
     if(fst24_write(self->ref, &py_rec->rec, rewrite) != 1){
+        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): Error calling C function fst24_write()\n", __func__);
         PyErr_Format(RpnExc_FstFileError, "%s", App_ErrorGet());
         return NULL;
     }
