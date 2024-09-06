@@ -8,197 +8,164 @@
 #
 # This is because it changes how the relative imports work.
 #
-def print_py(s):
-    print(f"\033[1;32m\nPYTHON: {s}\033[0m")
 
 import numpy as np
 import os
-# os.environ['APP_VERBOSE'] = 'fatal'
 import rmn
 import sys
+import tempfile
+import unittest
 
-filename = "/fs/site5/eccc/cmd/w/spst900/spooki/spooki_dir/pluginsRelatedStuff/AbsoluteValue/testsFiles/AbsoluteValue_file2cmp.std"
-if not os.path.isfile(filename):
-    raise RuntimeError(f"Test file does not exist")
+keep_tmpdir = False
 
-def iterate_on_whole_file():
-    for rec in rmn.fst24_file(filename=filename):
-        print(rec)
+# Don't print error messages from librmn since many of the tests cause errors
+# on purpose to check that the python module raises exceptions.
+os.environ['APP_VERBOSE'] = "SYSTEM"
+print(f'Setting APP_VERBOSE to SYSTEM')
 
-def open_file():
-    print_py("Create fst24_file")
-    rmn.fst24_file(filename=filename, options="")
+class TestRMNPackage(unittest.TestCase):
+    def setUp(self):
+        self.input_file = "/home/sici000/ci_data/rpn-tools/stdfile.rpn"
+        self.invalid_file = "/home/sici000/.profile"
 
-def create_query_and_iterate_on_records():
-    print_py("Iterate over records of fst24_file")
-    q4 = rmn.fst24_file(filename=filename).new_query(ip3=0)
-    print(q4)
-    for record in q4:
-        ip3 = record.ip3 # PyMemberDef
-        nomvar = record.nomvar # PyGetSetDef
-        etiket = record.etiket # PyGetSetDef
-        print(f"PYTHON: Result from q3: {record}", file=sys.stderr) # .tp_str
-        print(f"PYTHON: Record has ip3={ip3}, nomvar='{nomvar}', etiket='{etiket}'", file=sys.stderr); #.tp_getset
-        print(record.data)
+        if keep_tmpdir:
+            self.tmpdir = tempfile.mkdtemp()
+        else:
+            self.tmpdir_obj = tempfile.TemporaryDirectory()
+            self.tmpdir = self.tmpdir_obj.name
 
-def open_invalid_file():
-    print_py("Attempt to open existing non-fst file")
-    try:
-        f2 = rmn.fst24_file(filename="/home/phc001/.profile", options="");
-    except rmn.FstFileError as e:
-        print(f"Got exception as expected: {repr(e)}")
+    def tearDown(self):
+        if keep_tmpdir:
+            print(f"Temporary files for {self._testMethodName} kept in {self.tmpdir}")
+        else:
+            self.tmpdir_obj.cleanup()
 
-def open_empty_filename():
-    print_py("Attempt to open empty string filename")
-    try:
-        f2 = rmn.fst24_file(filename="", options="");
-    except rmn.FstFileError as e:
-        print(f"Got exception as expected: {type(e)}:{e}")
+    def create_record(self):
+        rec = rmn.fst_record(
+            dateo=1, datev=2,
+            data_type=5, data_bits=32, pack_bits=32,
+            ni=8, nj=9, nk=1,
+            ip1=1,ip2=2,ip3=3,
+            ig1=1, ig2=2, ig3=3, ig4=4,
+            nomvar="RPN", typvar="Y", grtyp="X"
+        )
+        rec.deet = 0
+        rec.npas = 0
+        rec.etiket = "unittest"
+        return rec
 
-def open_file_bad_arguments():
-    print_py("Attempt to create file object using non-keyword argumetns")
-    try:
-        f2 = rmn.fst24_file(filename)
-    except TypeError as e:
-        print(f"Got exception as expected: {repr(e)}")
+    def create_record_with_data(self):
+        rec = self.create_record()
+        rec.data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk)).astype('f')
+        return rec
 
-def open_file_no_options():
-    print_py("Open valid file without passing options argument")
-    f2 = rmn.fst24_file(filename=filename)
+    def test_create_file(self):
+        filename = f'{self.tmpdir}/new_file.std'
+        with rmn.fst24_file(filename=filename, options='R/W') as f:
+            pass
+        assert(os.path.isfile(filename))
 
+    def test_iterate_whole_file(self):
+        with rmn.fst24_file(filename=self.input_file, options="R/O") as f:
+            nb_rec = 0
+            for rec in f:
+                nb_rec += 1
+        self.assertEqual(nb_rec, 161)
 
-def create_record_and_assign_data():
-    print_py("Creating a record with data we created in Python")
-    # rec = rmn.fst_record(nomvar="<<", ip3=42)
-    rec = rmn.fst_record(dateo=1, datev=2, data_type=3, data_bits=4, pack_bits=8,
-                         ni=8, nj=9, nk=1, ip1=1,ip2=2,ip3=3, ig1=-1, ig2=-2, ig3=-3, ig4=-4, nomvar="phil", typvar="Y", grtyp="X", etiket="VincentMagnoux")
-    print(rec)
+    def test_iterate_on_query(self):
+        from collections import defaultdict
+        with rmn.fst24_file(filename=self.input_file, options="R/O") as f:
+            q = f.new_query(nomvar='AL')
+            self.assertEqual(len(list(q)), 15)
 
-    # No idea if the NI, NJ, NK are in the right order
-    x = np.random.random(rec.nk * rec.nj * rec.ni).reshape((rec.nk, rec.nj, rec.ni))
-    # rec.etiket = "VincentMagnoux"
-    # rec.data = x
-    print(rec.data)
-    return rec
+    def test_record_attribute_access(self):
+        with rmn.fst24_file(filename=self.input_file, options="R/O") as f:
+            rec = next(iter(f))
+            self.assertEqual(rec.nomvar, '>>')
+            self.assertEqual(rec.etiket, 'GEM_NEMO')
+            self.assertEqual(rec.ni, 257)
+            self.assertEqual(rec.nj, 1)
+            self.assertEqual(rec.nk, 1)
+            self.assertEqual(rec.dateo, 287576000)
+            self.assertEqual(rec.ip1, 77343)
+            self.assertEqual(rec.ip2, 96583)
+            self.assertEqual(rec.ip3, 0)
+            self.assertEqual(rec.ig1, 900)
+            self.assertEqual(rec.ig2, 0)
+            self.assertEqual(rec.ig3, 43200)
+            self.assertEqual(rec.ig4, 43200)
+            self.assertEqual(rec.deet, 0)
+            self.assertEqual(rec.npas, 0)
+            self.assertEqual(rec.data_type, 5)
+            self.assertEqual(rec.grtyp, 'E')
+            self.assertEqual(rec.typvar, 'X')
+            self.assertEqual(rec.data_bits, 32)
+            self.assertEqual(rec.pack_bits, 32)
 
+    def test_invalid_opens(self):
 
-def invalid_access_of_record_data():
-    print_py("Attempting to obtain the data of a record that has no file or data")
-    # When reading a file with the for loop with the query as an iterator, it looks
-    # really cool to do `rec.data` to access the data of the record with the
-    # property mechanism that hides getters and setters, and that the data is only
-    # read on demand and only once.  However, in the context where a user is
-    # creating a record with the intention of writing it in a file, accessing
-    # `rec.data` when there is no file and no data to be read is not nice.
-    new_rec = rmn.fst_record(nomvar="TT", ip3=82)
+        def open_invalid_file():
+            f = rmn.fst24_file(filename=self.invalid_file, options="");
+        def open_empty_file():
+            f = rmn.fst24_file(filename="", options="");
+        def open_file_bad_arguments():
+            f = rmn.fst24_file(self.input_file, options="");
+        def open_noexist_without_RW():
+            f = rmn.fst24_file(filename=f'{self.tmpdir}/noexist.std');
 
-    # It makes sense that the user should not try to access the data of a record
-    # that has no data, so I think what we want is simply for this line to throw
-    # the right exception or it should return None.
-    # But right now we get valueError because we try to create a numpy array with
-    # negative dimensions
-    new_rec.ni = new_rec.nj = new_rec.nk = 1
-    print(new_rec)
-    print(f"Data of record: {new_rec.data}")
+        self.assertRaises(rmn.FstFileError, open_invalid_file)
+        self.assertRaises(rmn.FstFileError, open_empty_file)
+        self.assertRaises(TypeError, open_file_bad_arguments)
+        self.assertRaises(rmn.FstFileError, open_noexist_without_RW)
 
-def open_non_existant_file_without_W_option():
-    print_py("Attempt to open non-existant file without 'W' option")
-    try:
-        f3 = rmn.fst24_file(filename="noexist", options="R")
-    except rmn.FstFileError as e:
-        print(f"Got exception as expected: {repr(e)}")
+    def test_create_record(self):
+        rec = self.create_record()
+        self.assertEqual(rec.ni, 8)
 
-    f3 = rmn.fst24_file(filename="my_fst_file.fst", options="R/W")
+    def test_access_record_data_of_record_without_data(self):
+        rec = self.create_record()
+        self.assertIs(rec.data, None)
 
-def create_file_with_data(rsf=True):
-    backend_type = 'rsf' if rsf else 'xdf'
-    print_py(f"Create new {backend_type} file with data")
-    filename = f"new_{backend_type}_file.fst"
-    if os.path.isfile(filename):
-        os.remove(filename)
+    def test_create_record_with_data(self):
+        rec = self.create_record_with_data()
+        self.assertIsInstance(rec.data, np.ndarray)
+        self.assertEqual(rec.data.shape, (rec.ni, rec.nj, rec.nk))
 
+    def test_create_file_with_data(self):
+        to_write = self.create_record_with_data()
+        filename = f"{self.tmpdir}/new_file.std"
+        with rmn.fst24_file(filename=filename, options="R/W") as f:
+            f.write(to_write, rewrite=True)
 
-    rec = rmn.get_test_record()
-    rec.ni = rec.nj = 8
-    rec.nk = 1
+        with rmn.fst24_file(filename=filename, options="R/O") as f:
+            read_from_file = next(iter(f))
+            self.assertTrue(np.array_equal(to_write.data, read_from_file.data))
 
-    rec.data = np.random.random(rec.nk * rec.nj * rec.ni).reshape((rec.nk, rec.nj, rec.ni))
+    def test_write_to_closed_file(self):
+        with rmn.fst24_file(filename=f'{self.tmpdir}/write_to_closed.std', options='R/W') as f:
+            g = f
+        def write_to_closed_file():
+            rec = self.create_record_with_data()
+            g.write(rec, rewrite=True)
+        self.assertRaises(rmn.FstFileError, write_to_closed_file)
 
-    with rmn.fst24_file(filename=filename, options="R/W+RSF" if rsf else "R/W+XDF") as f:
-        f.write(rec, rewrite=False)
+    def test_assign_invalid_data(self):
+        rec = self.create_record()
+        rec.data_type = 5
+        double_array = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk))
+        single_array = double_array.astype('f')
+        def assign_double_array_to_record_of_single():
+            rec.data_bits = 32
+            rec.data = double_array
+        def assign_single_array_to_record_of_double():
+            rec.data_bits = 64
+            rec.data = single_array
+        def assign_non_array_to_record_data():
+            rec.data = [1,2,3,4]
 
-    print("Successfully wrote record to file")
-
-def attempt_to_write_non_record_to_file():
-    print_py("attempt to write non-record into an fst24_file")
-    filename = "new_fst_file.fst"
-    if os.path.isfile(filename):
-        os.remove(filename)
-
-    f = rmn.fst24_file(filename=filename, options="R/W")
-
-    try:
-        f.write("this is not a record")
-    except TypeError as e:
-        print(f"Got exception as expected: {repr(e)}")
-
-def test_record_attributes():
-    print_py("Iterate over records of fst24_file")
-    q4 = rmn.fst24_file(filename=filename).new_query(ip3=0)
-    print(q4)
-    for record in q4:
-        print(f"PYTHON: dateo={repr(record.dateo)}")
-        print(f"PYTHON: datev={repr(record.datev)}")
-        print(f"PYTHON: data_type={repr(record.data_type)}")
-        print(f"PYTHON: data_bits={repr(record.data_bits)}")
-        print(f"PYTHON: pack_bits={repr(record.pack_bits)}")
-        print(f"PYTHON: ni={repr(record.ni)}")
-        print(f"PYTHON: nj={repr(record.nj)}")
-        print(f"PYTHON: nk={repr(record.nk)}")
-        print(f"PYTHON: deet={repr(record.deet)}")
-        print(f"PYTHON: npas={repr(record.npas)}")
-        print(f"PYTHON: ip1={repr(record.ip1)}")
-        print(f"PYTHON: ip2={repr(record.ip2)}")
-        print(f"PYTHON: ip3={repr(record.ip3)}")
-        print(f"PYTHON: ig1={repr(record.ig1)}")
-        print(f"PYTHON: ig2={repr(record.ig2)}")
-        print(f"PYTHON: ig3={repr(record.ig3)}")
-        print(f"PYTHON: ig4={repr(record.ig4)}")
-        print(f"PYTHON: typvar={repr(record.typvar)}")
-        print(f"PYTHON: grtyp={repr(record.grtyp)}")
-        print(f"PYTHON: nomvar={repr(record.nomvar)}")
-        print(f"PYTHON: etiket={repr(record.etiket)}")
-        break
-
-def get_record_by_index():
-    file = rmn.fst24_file(filename=filename)
-    query = file.new_query()
-    next(query)
-    rec = next(query)
-    print(rec)
-    file = None
-    query = None
-    dat = rec.data
-    print(dat)
-
+        self.assertRaises(TypeError, assign_double_array_to_record_of_single)
+        self.assertRaises(TypeError, assign_single_array_to_record_of_double)
+        self.assertRaises(TypeError, assign_non_array_to_record_data)
 
 if __name__ == "__main__":
-    # create_query_and_iterate_on_records()
-    # open_empty_filename()
-    # open_non_existant_file_without_W_option()
-    # create_file_with_data(rsf=False)
-
-    # # The created file with rsf must be inspected with a sufficiently recent
-    # # version of voir.  Also, there are error messages that are printed
-    # # (ERROR) META|Meta_Init: Unable to initialize profiles, CMCCONST and META_PROFPATH variable not defined
-    # # (ERROR) META|Dict_Load: Environment variable CMCCONST not defined, source the CMOI base domain
-    # # but the file was created successfully so these are not actually errors.
-    # create_file_with_data(rsf=True)
-
-    # attempt_to_write_non_record_to_file()
-    # invalid_access_of_record_data()
-    # test_record_attributes()
-    # create_record_and_assign_data()
-    # get_record_by_index()
-    iterate_on_whole_file()
-
+    unittest.main()
