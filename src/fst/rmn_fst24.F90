@@ -26,6 +26,7 @@ module rmn_fst24
         procedure, pass   :: close    => fst24_file_close       !< \copydoc fst24_file_close
         procedure, pass   :: get_num_records => fst24_file_get_num_records !< fst24_file_get_num_records 
         procedure, pass   :: get_unit => fst24_file_get_unit    !< \copydoc fst24_file_get_unit
+        procedure, pass   :: is_rsf   => fst24_file_is_rsf      !< \copydoc fst24_file_is_rsf
 
         procedure, pass :: new_query => fst24_file_new_query !< \copydoc fst24_file_new_query
         procedure, pass :: read => fst24_file_read !< \copydoc fst24_file_read
@@ -171,6 +172,17 @@ contains
 
         status = fst24_get_unit(this % file_ptr)
     end function fst24_file_get_unit
+
+    !> \return .true. if the file is of type RSF, .false. if XDF or if not open
+    function fst24_file_is_rsf(this) result(is_rsf)
+        implicit none
+        class(fst_file), intent(in) :: this
+        logical :: is_rsf
+        integer(C_INT32_T) :: status
+        status = fst24_is_rsf(this % file_ptr)
+        is_rsf = .false.
+        if (status > 0) is_rsf = .true.
+    end function fst24_file_is_rsf
 
     !> \copybrief fst24_read
     !> \return .true. if we found a record, .false. if not or if error

@@ -262,6 +262,13 @@ int ip_is_equal(
     return 0;
 }
 
+//! Determine whether the file corresponding to the given unit number is of type RSF
+//! \return 1 if the file is RSF, 0 if not, or if there is an error.
+int32_t c_fst_is_rsf(const int iun) {
+    int32_t index_fnom;
+    const int32_t status = is_rsf(iun, &index_fnom);
+    return status == 1;
+}
 
 //! Reassembles split variables
 void crack_std_parms(

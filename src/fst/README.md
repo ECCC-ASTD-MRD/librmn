@@ -970,6 +970,9 @@ typedef struct {
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst24_is_open(const fst_file* const file);
 
+//! \return Whether the given file is of type RSF, or 0 if the input does not point to an open file
+int32_t fst24_is_rsf(const fst_file* const file);
+
 //! \return The name of the file, if open. NULL otherwise
 const char* fst24_file_name(const fst_file* const file);
 
@@ -1271,6 +1274,7 @@ type :: fst_file
 contains
     procedure, nopass :: is_valid
     procedure, pass   :: is_open
+    procedure, pass   :: is_rsf
     procedure, pass   :: open
     procedure, pass   :: close
     procedure, pass   :: get_num_records
@@ -1374,6 +1378,13 @@ function is_open(this) result(is_open)
     class(fst_file), intent(in) :: this !< fst24_file instance
     logical :: is_open !< Whether this file is open
 end function is_open
+
+!> Return .true. if the file is of type RSF, .false. if XDF or if not open
+function is_rsf(this) result(is_rsf)
+    implicit none
+    class(fst_file), intent(in) :: this
+    logical :: is_rsf
+end function is_rsf
 
 !> Return Name of the file if open, an empty string otherwise
 function fst24_file_get_name(this) result(name)

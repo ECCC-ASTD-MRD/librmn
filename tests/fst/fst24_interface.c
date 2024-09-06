@@ -90,6 +90,16 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
         return -1;
     }
 
+    if (fst24_is_rsf(new_file) != is_rsf) {
+        App_Log(APP_ERROR, "New file has the wrong type (XDF/RSF)\n");
+        return -1;
+    }
+
+    if (!fst24_is_open(new_file)) {
+        App_Log(APP_ERROR, "New file is not open!\n");
+        return -1;
+    }
+
     /////////////////////////////////////
     // Write a record
     {
@@ -153,8 +163,13 @@ int test_fst24_interface(const int is_rsf) {
     // Open existing file
     const char* options2 = "RND+R/O";
     fst_file* test_file = fst24_open(test_file_names[0], options2);
-    if (test_file == NULL) {
+    if (!fst24_is_open(test_file)) {
         App_Log(APP_ERROR, "Unable to open newly-created test file with name %s and options %s\n", test_file_names[0], options2);
+        return -1;
+    }
+
+    if (fst24_is_rsf(test_file) != is_rsf) {
+        App_Log(APP_ERROR, "Test file has wrong RSF/XDF type\n");
         return -1;
     }
 
