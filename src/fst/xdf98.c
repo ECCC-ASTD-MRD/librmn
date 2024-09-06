@@ -979,7 +979,7 @@ int c_xdfdel(
     // validate index, page number and record number
 
     if ((index >= MAX_XDF_FILES) || (file_table[index] == NULL) || (file_table[index]->iun < 0)) {
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle, invalid file index\n",__func__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle, invalid file index %i\n",__func__,index);
         return(ERR_BAD_HNDL);
     }
 
@@ -1080,7 +1080,7 @@ int c_xdfget2(
 
     // validate index, page number and record number
     if ((index >= MAX_XDF_FILES) || (file_table[index] == NULL) || (file_table[index]->iun < 0)) {
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle, invalid file index\n",__func__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle, invalid file index %i\n",__func__,index);
         return(ERR_BAD_HNDL);
     }
 
@@ -2093,7 +2093,7 @@ int c_xdfprm(
 
     // Validate index, page number and record number
     if ((file_table[index] == NULL) || (file_table[index]->iun < 0)) {
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle, invalid file index\n",__func__);
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid handle, invalid file index %i\n",__func__,index);
         return(ERR_BAD_HNDL);
     }
 

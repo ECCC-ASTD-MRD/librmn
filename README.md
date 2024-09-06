@@ -11,6 +11,7 @@ Its main components are Standard RPN files and the EZ interpolator.
 ### Components
   * [Standard files](src/fst/README.md)
   * [Extended metadata](src/Meta/README.md)
+  * [FST24 Python interface](python/rmn/README.md)
 
 ## Getting the code
 
