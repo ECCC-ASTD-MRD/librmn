@@ -152,6 +152,12 @@ static PyMethodDef py_fst24_file_method_defs[] = {
         .ml_meth = (PyCFunction) py_fst24_file_get_record_by_index,
         .ml_doc = "Get a record by its file_index",
     },
+    {
+        .ml_name = "close",
+        .ml_flags = METH_NOARGS,
+        .ml_meth = (PyCFunction) py_fst24_file_close,
+        .ml_doc = "Explicitly close an fst24_file.  NOTE: It is preferred to either let files get closed automatically or use a `with` block to have explicit control over when a file is closed",
+    },
     {NULL, NULL, 0, NULL},
 };
 
