@@ -1163,6 +1163,16 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
 
 static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assign, void *closure)
 {
+
+    // Check the type of the passed object.  Here we just refust anything that
+    // is not a numpy array but we could check for other acceptable types
+    // and when we go to write the record in a file, we could do something
+    // different based on the type.
+    if(Py_TYPE(to_assign) !=  &PyArray_Type){
+        PyErr_SetString(PyExc_TypeError, "The data of a record must be a numpy array");
+        return -1;
+    }
+
     if(self->data_array != NULL){
         PyObject *tmp = self->data_array;
         self->data_array = NULL;
@@ -1203,15 +1213,6 @@ static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assig
 
     if(expected_data_bits != self->rec.data_bits){
         PyErr_Format(PyExc_TypeError, "Data array to be assigned has elements of size %d but record has data_bits=%d", expected_data_bits, self->rec.data_bits);
-        return -1;
-    }
-
-    // Check the type of the passed object.  Here we just refust anything that
-    // is not a numpy array but we could check for other acceptable types
-    // and when we go to write the record in a file, we could do something
-    // different based on the type.
-    if(Py_TYPE(to_assign) !=  &PyArray_Type){
-        PyErr_SetString(PyExc_TypeError, "The data of a record must be a numpy array");
         return -1;
     }
 
