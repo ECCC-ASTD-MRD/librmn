@@ -254,14 +254,14 @@ static PyMemberDef py_fst_record_members[] = {
     // Dates
     {
         .name = "dateo",
-        .type = T_LONG,
+        .type = T_INT,
         .offset = offsetof(struct py_fst_record, rec.dateo),
         .flags = 0,
         .doc = "Raw dateo of record",
     },
     {
         .name = "datev",
-        .type = T_LONG,
+        .type = T_INT,
         .offset = offsetof(struct py_fst_record, rec.datev),
         .flags = 0,
         .doc = "Raw datev of record",
