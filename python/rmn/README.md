@@ -173,3 +173,26 @@ with rmn.fst24_file(filename="my-file.std", options="R/W") as f:
     f.write(rec_1, rewrite=True)
     # File is closed when exiting this block.
 ```
+
+### Index many files into a single pandas DataFrame
+
+The `C` extension provides a function that returns a dictionary that can be
+given to the `pandas.DataFrame` constructor.
+
+```
+import rmn
+import pandas as pd
+
+many_files = [<list of file paths>]
+
+columns = rmn.get_index_columns(many_files)
+
+index = pd.DataFrame(columns)
+```
+
+Once the metadata of records is in a `DataFrame`, we can do any data frame
+operation to select certain rows or apply functions to rows or columns.
+
+```
+just_tt = index[index['nomvar'] == 'TT']
+```
