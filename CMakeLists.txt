@@ -45,6 +45,8 @@ if (NOT ("${CMAKE_C_COMPILER_ID}" STREQUAL "IntelLLVM"))
     set(RMN_LLVM_ADDRESS_SANITIZER OFF)
 endif()
 
+option(BUILD_PYTHON "Build Python interface" OFF)
+
 set(RMN_BUILD_SHARED ON)
 if (${RMN_LLVM_ADDRESS_SANITIZER})
     set(RMN_BUILD_SHARED OFF)
@@ -386,7 +388,12 @@ install(
 )
 
 add_subdirectory(utils)
-add_subdirectory(python/rmn)
+if(BUILD_PYTHON)
+    message(STATUS "(EC) Python interface will be built")
+    add_subdirectory(python/rmn)
+else()
+    message(STATUS "(EC) Python interface will NOT be built")
+endif()
 add_subdirectory(tests)
 
 # Packaging
@@ -408,4 +415,3 @@ set(CPACK_PACKAGE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_NAME}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${NAME}_${PROJECT_VERSION}")
 include(CPack)
-
