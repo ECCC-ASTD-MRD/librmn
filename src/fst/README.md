@@ -1457,7 +1457,7 @@ end function get_record_by_index
 !> Return unit of the file if open, 0 otherwise
 function get_unit(this) result(status)
     implicit none
-    class(fst_file), intent(inout) :: this
+    class(fst_file), intent(in) :: this
     integer(C_INT32_T) :: status
 end function get_unit
 
@@ -1471,7 +1471,7 @@ function new_query(this,                                                        
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
         ip1_all, ip2_all, ip3_all,stamp_norun) result(query)
     implicit none
-    class(fst_file), intent(inout) :: this
+    class(fst_file), intent(in) :: this
     integer(C_INT32_T), intent(in), optional :: dateo, datev
     integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
