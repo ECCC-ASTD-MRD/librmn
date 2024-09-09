@@ -1,6 +1,6 @@
 #include "indexing.h"
 #include <pthread.h>
-#include "App_Timer.h"
+#include <App.h>
 #include <rmn.h>
 #include <sys/types.h> // gettid
 static pthread_mutex_t grow_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -318,7 +318,7 @@ RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
 
 #endif
     App_TimerStop(&t);
-    fprintf(stderr, ".... Collecting all records took %f ms\n", App_TimerTime_ms(&t));
+    fprintf(stderr, ".... Collecting all records took %f ms\n", App_TimerTotalTime_ms(&t));
 
     fprintf(stderr, "===> Reorganizing record data into columns for DataFrame\n");
     App_TimerInit(&t);
@@ -376,7 +376,7 @@ RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
         }
     }
     App_TimerStop(&t);
-    fprintf(stderr, ".... Reorganizing data into columns for DataFrame took %f ms\n", App_TimerTime_ms(&t));
+    fprintf(stderr, ".... Reorganizing data into columns for DataFrame took %f ms\n", App_TimerTotalTime_ms(&t));
 
 error:
     fprintf(stderr, "Freeing record vectors\n");
