@@ -122,12 +122,26 @@ interface
         type(C_PTR) :: file_ptr
     end function fst24_open
 
+    function fst24_open_link_c(file_names) result(file_ptr) bind(C, name = 'fst24_open_link')
+        import :: C_PTR, C_CHAR
+        implicit none
+        type(C_PTR), intent(in) :: file_names
+        type(C_PTR) :: file_ptr
+    end function fst24_open_link_c
+
     function fst24_close(file) result(could_close) bind(C, name = 'fst24_close')
         import :: C_PTR, C_INT32_T
         implicit none
         type(C_PTR), intent(in), value :: file
         integer(C_INT32_T) :: could_close
     end function fst24_close
+
+   function fst24_close_unlink_c(file) result(could_close) bind(C, name = 'fst24_close_unlink')
+        import :: C_PTR, C_INT32_T
+        implicit none
+        type(C_PTR), intent(in), value :: file
+        integer(C_INT32_T) :: could_close
+    end function fst24_close_unlink_c
 
     function fst24_get_num_records(file) result(num_records) bind(C, name = 'fst24_get_num_records')
         import :: C_INT64_T, C_PTR

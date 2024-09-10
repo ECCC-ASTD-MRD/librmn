@@ -466,6 +466,7 @@ function test_fst24_interface(is_rsf) result(success)
     ! // Everything again, with linked files
     block
         type(fst_file), dimension(3) :: file_list
+        type(fst_file) :: file_link
         type(fst_record), dimension(10) :: results
         integer(C_INT64_T) :: num_records
         type(fst_record) :: result2
@@ -479,6 +480,12 @@ function test_fst24_interface(is_rsf) result(success)
             call app_log(APP_ERROR, 'Unable to create other files for link tests')
             return
         end if
+
+!        call app_log(APP_INFO, 'Testing open and link')
+!        file_link=fst24_open_link(file_list)
+!        call file_link % print_summary(ip2 = .true., ip3 = .true.)
+!        call app_log(APP_INFO, 'Testing close and unlink')
+!        success=file_link%close_unlink()
 
         success = file_list(2) % open(test_file_names(2), options = 'R/O') .and.            &
                   file_list(3) % open(test_file_names(3), options = 'R/O')

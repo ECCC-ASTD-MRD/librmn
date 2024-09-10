@@ -24,6 +24,7 @@ module rmn_fst24
         procedure, pass   :: get_name => fst24_file_get_name    !< \copydoc fst24_file_get_name
         procedure, pass   :: open     => fst24_file_open        !< \copydoc fst24_file_open
         procedure, pass   :: close    => fst24_file_close       !< \copydoc fst24_file_close
+        procedure, pass   :: close_unlink => fst24_file_close_unlink       !< \copydoc fst24_file_close_unlink
         procedure, pass   :: get_num_records => fst24_file_get_num_records !< fst24_file_get_num_records 
         procedure, pass   :: get_unit => fst24_file_get_unit    !< \copydoc fst24_file_get_unit
 
@@ -116,7 +117,7 @@ contains
 
     !> \copybrief fst24_open
     function fst24_file_open(this, filename, options) result(could_open)
-        class(fst_file),intent(inout)        :: this     !< fst_file instance. Must not be an already-open file
+        class(fst_file),intent(inout)          :: this     !< fst_file instance. Must not be an already-open file
         character(len=*), intent(in)           :: filename !< Name of the file we want to open
         character(len=*), intent(in), optional :: options  !< Additional options to pass
 
@@ -138,6 +139,24 @@ contains
         could_open = this % is_open()
     end function fst24_file_open
 
+    !> \copybrief fst24_open_link_c
+!    function fst24_open_link(filenames) result(file)
+!        implicit none
+!        type(character(len=*)), dimension(*) :: filenames !< Name of the files we want to open and link
+!        class(fst_file), allocatable :: file              !< fst_file instance. Must not be an already-open file
+
+!        type(character(len=:)), allocatable, dimension(:) :: c_filenames
+!        integer(C_INT32_T) :: n
+      
+!        allocate(character(len=size(filenames,dim=1)) :: c_filenames(4096))
+!        do while (n<size(filenames,dim=1))
+!            c_filenames(n)=trim(filenames(n))//achar(0)
+!        enddo
+
+!       file % file_ptr = fst24_open_link_c(c_loc(c_filenames))
+!        deallocate(c_filenames)
+!    end function fst24_open_link
+
     !> \copybrief fst24_close
     function fst24_file_close(this) result(could_close)
         implicit none
@@ -151,6 +170,20 @@ contains
         this % file_ptr = c_null_ptr
         if (c_could_close == 1) could_close = .true.
     end function fst24_file_close
+
+    !> \copybrief fst24_close_unlink_c
+    function fst24_file_close_unlink(this) result(could_close)
+        implicit none
+        class(fst_file), intent(inout) :: this  !< fst_file instance of link we want to close
+        logical :: could_close                  !< Whether we were actually able to close it
+
+        integer(C_INT32_T) :: c_could_close
+        could_close = .false.
+        c_could_close = fst24_close_unlink_c(this % file_ptr)
+
+        this % file_ptr = c_null_ptr
+        if (c_could_close == 1) could_close = .true.
+    end function fst24_file_close_unlink
 
     !> \copybrief fst24_get_num_records
     !> \return Number of record in file (including linked files). 0 if file is invalid or not open.

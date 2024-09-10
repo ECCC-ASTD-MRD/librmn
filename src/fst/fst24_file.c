@@ -173,6 +173,47 @@ int32_t fst24_close(fst_file* const file) {
     return TRUE;
 }
 
+fst_file* fst24_open_link(
+   const char** const filePaths,  //!< List of file path to open
+   int32_t            fileNb      //!< Number of files in list
+) {
+   fst_file **files;
+   int n=0,nerr=0;
+
+   files=(fst_file**)calloc(fileNb,sizeof(fst_file*));
+
+   for(n=0;n<fileNb;n++) {
+       if (!(files[n-nerr]=fst24_open(filePaths[n],"RND+R/O"))) {
+          Lib_Log(APP_LIBFST,APP_ERROR, "%s: Unable to link file (%s)\n",__func__,filePaths[n]);
+          nerr++;
+       }
+   }
+
+   n=fst24_link(files,fileNb-nerr);
+   return(files[0]);
+}
+
+int32_t fst24_close_unlink(
+   fst_file* const file   //!< first file of link
+) {
+   fst_file* current,*tmp;
+
+   if (!fst24_is_open(file)) {
+      Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n", __func__, file ? file->path : "(nil)");
+      return FALSE;
+   }
+
+   current=file; 
+   while (current->next) {
+      tmp=current;
+      current=current->next;
+      tmp->next=NULL; 
+      fst24_close(tmp);
+   }
+
+   return TRUE;
+}
+
 //! Commit data and metadata to disk if the file has changed in memory
 //!
 //! Thread safety: Always safe to call concurrently on different open files.

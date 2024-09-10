@@ -362,6 +362,20 @@ int test_fst24_interface(const int is_rsf) {
     if (create_file(test_file_names[1], !is_rsf, test_record.ip2 + 1, test_record.ip3 + 1) < 0) return -1;
     if (create_file(test_file_names[2], is_rsf, test_record.ip2 + 2, test_record.ip3 + 1) < 0) return -1;
 
+    App_Log(APP_INFO,"Testing open and link\n");
+    fst_file* test_link=NULL; 
+    if (!(test_link=fst24_open_link(test_file_names, 3))) {
+        App_Log(APP_ERROR, "Unable to open and link files\n");
+        return -1;
+    }
+    fst24_print_summary(test_link, NULL);
+
+    App_Log(APP_INFO,"Testing close and unlink\n");
+    if (!fst24_close_unlink(test_link)) {
+        App_Log(APP_ERROR, "Unable to close and unlink files\n");
+        return -1;
+    }
+    
     file_list[1] = fst24_open(test_file_names[1], options2);
     file_list[2] = fst24_open(test_file_names[2], options2);
 
@@ -387,7 +401,6 @@ int test_fst24_interface(const int is_rsf) {
         App_Log(APP_ERROR, "Should not succeed linking already-linked file\n");
         return -1;
     }
-
     fst24_print_summary(test_file, NULL);
 
     {
