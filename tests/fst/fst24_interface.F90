@@ -229,6 +229,11 @@ function test_fst24_interface(is_rsf) result(success)
 
     call App_Log(APP_INFO, 'Opened file ' // test_file % get_name())
 
+    if (test_file % is_rsf() .neqv. is_rsf) then
+        call App_Log(APP_ERROR, 'Test file has wrong RSF/XDF type')
+        return
+    end if
+
     block
         integer(C_INT64_T) :: num_rec
         num_rec = test_file % get_num_records()

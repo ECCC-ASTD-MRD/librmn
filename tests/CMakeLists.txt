@@ -82,10 +82,6 @@ if (EC_INIT_DONE LESS 2)
         add_executable(generate_fstd EXCLUDE_FROM_ALL fst/generate_fstd.F90)
         target_link_libraries(generate_fstd test_helper)
 
-        add_executable(rsf_dump test_rsf.c)
-        target_link_libraries(rsf_dump rmn::rmn)
-        target_compile_definitions(rsf_dump PRIVATE RSF_DUMP)
-
         add_executable(rsf_fuse fst/rsf_fuse.c)
         target_link_libraries(rsf_fuse rmn::rmn)
 
@@ -272,5 +268,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst24_create_and_write_c COMMAND $<TARGET_FILE:fst24_create_and_write_c>)
         add_dependencies(check fst24_create_and_write_c)
 
+        if(BUILD_PYTHON)
+            add_dependencies(check _rmn)
+            set(set_pythonpath "PYTHONPATH=${CMAKE_BINARY_DIR}/python\${PYTHONPATH:+:\${PYTHONPATH}}")
+            add_test( NAME python_import_package COMMAND bash -c "${set_pythonpath} python3 -c 'import rmn'")
+            add_test( NAME python_unit_tests COMMAND bash -c "${set_pythonpath} python3 ${CMAKE_CURRENT_SOURCE_DIR}/test_rmn.py")
+        endif()
     endif()
 endif()

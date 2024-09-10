@@ -2,6 +2,13 @@
 !
   interface
 
+    function c_fst_is_rsf(iun) result(is_rsf) bind(C, name = 'c_fst_is_rsf')
+      import :: C_INT, C_INT32_T
+      implicit none
+      integer(C_INT), intent(in), value :: iun
+      integer(C_INT32_T) :: is_rsf
+    end function c_fst_is_rsf
+
     ! int c_fst_data_length(int length_type);
     function c_fst_data_length(length_type) result(status) bind(C, name='c_fst_data_length')
       import :: C_INT

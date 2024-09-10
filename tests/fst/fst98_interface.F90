@@ -1,7 +1,4 @@
 
-#ifndef FST_TEST_IS_RSF
-#define FST_TEST_IS_RSF .true.
-#endif
 
 module test_fst98_interface_module
     use app
@@ -56,8 +53,16 @@ subroutine test_fst98_interface(is_rsf)
     iun = 0
     if (is_rsf) then
         status = fstouv(test_file_name, iun, 'STD+RND+RSF')
+        if (.not. fst_is_rsf(iun)) then
+            call App_Log(APP_ERROR, 'File should be RSF!')
+            error stop 1
+        end if
     else
         status = fstouv(test_file_name, iun, 'STD+RND+XDF')
+        if (fst_is_rsf(iun)) then
+            call App_Log(APP_ERROR, 'File should not be RSF!')
+            error stop 1
+        end if
     end if
     call check_status(status, expected_min = 0, fail_message = 'ouv')
 

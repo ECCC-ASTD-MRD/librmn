@@ -58,7 +58,7 @@ static int32_t RSF_Find_file_slot(
 //! Find a free slot in global slot table and set it to p
 //! \return Slot number if successful, -1 if table is full
 static int32_t RSF_Set_file_slot(
-    const RSF_File * const fp //!< [in] Pointer to an RSF_file structure
+    RSF_File * const fp //!< [in] Pointer to an RSF_file structure
 ) {
     if (rsf_files == NULL) rsf_files = RSF_Slot_table_allocate();  // first time around, allocate table
     if (rsf_files == NULL) return -1;

@@ -168,12 +168,12 @@ redo:
  buffer_in=buffer_out=buffer+1024;   /* make sure that it is possible to push back some chars */
  *buffer_in=0xFF;
 
- if(NULL != fgets(buffer_in,buffer_end-buffer_in-1,streamd))
-   nc=strlen(buffer_in);
+ if(NULL != fgets((char *)buffer_in,buffer_end-buffer_in-1,streamd))
+   nc=strlen((char *)buffer_in);
  else
    nc=0;
 
- temp=buffer_in;
+ temp = (char *)buffer_in;
  while(*temp==' ' || *temp=='\t')temp++;
  if(*temp=='\n') goto redo;
 

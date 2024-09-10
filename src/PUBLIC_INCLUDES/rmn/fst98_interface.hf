@@ -1,6 +1,6 @@
 !> \file fst98_interface.hf Interface declaration of FST functions for Fortran
 
-#include "c_fst98_interface.hf"
+#include "rmn/c_fst98_interface.hf"
 !
 ! do not include the interface to the Fortran functions if C_INTERFACE_ONLY is defined
 ! (used by fstd98_mod.F90 to avoid duplicate interfaces)
@@ -8,6 +8,7 @@
 #if ! defined(C_INTERFACE_ONLY)
 
 interface
+
     !> Open a RPN file
     function fstouv(iun, options) result (status)
         implicit none
@@ -243,7 +244,7 @@ interface
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer, intent(IN), value :: iun, start
     integer, intent(OUT) :: ni, nj, nk
     integer, intent(IN)  :: datev, ip1, ip2, ip3
@@ -277,7 +278,7 @@ interface
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer, intent(IN), value :: iun
     integer, intent(OUT) :: ni, nj, nk
     integer, intent(IN)  :: datev, ip1, ip2, ip3
@@ -317,7 +318,7 @@ interface
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes ,target
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer, intent(IN), value :: iun
     integer, intent(OUT) :: ni, nj, nk
     integer, intent(IN)  :: datev, ip1, ip2, ip3, lngstr
@@ -347,7 +348,7 @@ interface
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer, intent(IN), value :: iun
     integer, intent(OUT) :: ni, nj, nk
     integer :: handle
@@ -386,7 +387,7 @@ interface
     implicit none
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer, intent(IN), value :: iun
     integer, intent(OUT) :: ni, nj, nk
     integer, intent(IN)  :: datev, ip1, ip2, ip3
@@ -435,7 +436,7 @@ interface
     implicit none
 #define IgnoreTypeKindRank field, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
     integer, intent(IN), value :: iun
     integer, intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer, intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
@@ -478,7 +479,7 @@ interface
         implicit none
 #define IgnoreTypeKindRank field, work
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
         integer, intent(IN), value :: iun
         integer, intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
         integer, intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4, lngstr
@@ -501,7 +502,7 @@ interface
         !> \param[out] field Data field to be read
 #define IgnoreTypeKindRank field
 #define ExtraAttributes 
-#include <IgnoreTypeKindRank.hf>
+#include <rmn/IgnoreTypeKindRank.hf>
         !> Handle of the field to be read
         integer, intent(IN), value :: handle
         !> First dimension of the data field
@@ -515,12 +516,12 @@ interface
     end function fstluk
 
     !> \copydoc c_fstlnk
-    function fstlnk(link_list,n) result(status) bind(C,name='c_fstlnk')
+    function fstlnk(link_list, n) result(status) bind(C,name='c_fstlnk')
         implicit none
-        !> List of unit numbers associated to the files
-        integer, dimension(n) :: link_list
         !> Number of files to link
         integer, intent(IN), value :: n
+        !> List of unit numbers associated to the files
+        integer, dimension(n) :: link_list
         integer :: status
     end function fstlnk
 

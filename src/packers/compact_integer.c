@@ -668,7 +668,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
      *                                                      *
      ********************************************************/
     wordSize                 = 8 * sizeof(uint32_t);
-    arrayOfUnsignedShort     = (short *)unpackedArrayOfShort;
+    arrayOfUnsignedShort     = (unsigned short *)unpackedArrayOfShort;
     theHeader                = (integer_header *)packedHeader;
     packHeader               = (uint32_t *)packedHeader;
     arrayOfPacked            = (uint32_t  *)packedArrayOfInt;

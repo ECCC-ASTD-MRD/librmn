@@ -1,10 +1,17 @@
 # The minimum version can not be 3.16 because of the LINK_LANGUAGE generator expression in Config.cmake.in
 cmake_minimum_required(VERSION 3.20)
 
-message(STATUS "(EC) Generating librmn Makefile")
-
 # Append EC specific module path
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_rpn/modules $ENV{EC_CMAKE_MODULE_PATH})
+foreach(DIR_PATH ${CMAKE_SOURCE_DIR}/cmake_rpn/modules $ENV{EC_CMAKE_MODULE_PATH})
+    if (EXISTS ${DIR_PATH} AND IS_DIRECTORY ${DIR_PATH})
+        message(STATUS "(EC) Adding ${DIR_PATH} to CMAKE_MODULE_PATH")
+        list(APPEND CMAKE_MODULE_PATH ${DIR_PATH})
+    endif()
+endforeach()
+if (NOT CMAKE_MODULE_PATH)
+    message(STATUS "(EC) CMAKE_MODULE_PATH=\"${CMAKE_MODULE_PATH}\"")
+    message(FATAL_ERROR "No paths were added to CMAKE_MODULE_PATH; cmake_rpn will not be found!")
+endif()
 
 include(ec_init)           # Initialise compilers and ec specific functions
 ec_git_version()           # Get version from git state
@@ -38,6 +45,8 @@ if (NOT ("${CMAKE_C_COMPILER_ID}" STREQUAL "IntelLLVM"))
     set(RMN_LLVM_ADDRESS_SANITIZER OFF)
 endif()
 
+option(BUILD_PYTHON "Build Python interface" OFF)
+
 set(RMN_BUILD_SHARED ON)
 if (${RMN_LLVM_ADDRESS_SANITIZER})
     set(RMN_BUILD_SHARED OFF)
@@ -47,6 +56,7 @@ endif()
 #find_package(json-c CONFIG REQUIRED)
 #find_package(UDUNITS2)
 find_package(LibXml2 REQUIRED)
+find_package(Python 3 REQUIRED Development NumPy Interpreter)
 
 include(ec_doxygen)         # Doxygen target doc
 
@@ -377,6 +387,13 @@ install(
     DESTINATION "${CONFIG_INSTALL_DIR}"
 )
 
+add_subdirectory(utils)
+if(BUILD_PYTHON)
+    message(STATUS "(EC) Python interface will be built")
+    add_subdirectory(python/rmn)
+else()
+    message(STATUS "(EC) Python interface will NOT be built")
+endif()
 add_subdirectory(tests)
 
 # Packaging
@@ -398,4 +415,3 @@ set(CPACK_PACKAGE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_NAME}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${NAME}_${PROJECT_VERSION}")
 include(CPack)
-

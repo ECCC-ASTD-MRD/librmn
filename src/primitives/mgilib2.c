@@ -154,10 +154,10 @@ static int f_strcmp(
 
     if (*s1 == ' ') {
         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: before return if (*s1 == ' '), s1 => %s\n",__func__,s1);
-        return check_ends(s1, s2, s2Len, equalLen);
+        return check_ends((char *)s1, (char *)s2, s2Len, equalLen);
     } else if (*s2 == ' ') {
         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: before return if (*s2 == ' '), s2 => %s\n",__func__,s2);
-        return 2 + check_ends(s2, s1, s1Len, equalLen);
+        return 2 + check_ends((char *)s2, (char *)s1, s1Len, equalLen);
     }
 
     return *s1 - *s2;
@@ -277,7 +277,7 @@ int32_t f77name (mgi_term) () {
     int ier = -1;
 
     for (int chan = 0; chan <= ichan; chan++) {
-        if (chn[chan].name && strcmp((char *)chn[chan].name, "") && chn[chan].gchannel > 0) {
+        if (strcmp((char *)chn[chan].name, "") && chn[chan].gchannel > 0) {
             ier = send_command("END");
             Lib_Log(APP_LIBRMN,APP_INFO,"%s: bchannel \"%s\" has been closed\n",__func__,chn[chan].name);
 

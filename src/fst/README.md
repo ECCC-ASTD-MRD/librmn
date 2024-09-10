@@ -970,6 +970,9 @@ typedef struct {
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst24_is_open(const fst_file* const file);
 
+//! \return Whether the given file is of type RSF, or 0 if the input does not point to an open file
+int32_t fst24_is_rsf(const fst_file* const file);
+
 //! \return The name of the file, if open. NULL otherwise
 const char* fst24_file_name(const fst_file* const file);
 
@@ -1271,6 +1274,7 @@ type :: fst_file
 contains
     procedure, nopass :: is_valid
     procedure, pass   :: is_open
+    procedure, pass   :: is_rsf
     procedure, pass   :: open
     procedure, pass   :: close
     procedure, pass   :: get_num_records
@@ -1375,6 +1379,13 @@ function is_open(this) result(is_open)
     logical :: is_open !< Whether this file is open
 end function is_open
 
+!> Return .true. if the file is of type RSF, .false. if XDF or if not open
+function is_rsf(this) result(is_rsf)
+    implicit none
+    class(fst_file), intent(in) :: this
+    logical :: is_rsf
+end function is_rsf
+
 !> Return Name of the file if open, an empty string otherwise
 function fst24_file_get_name(this) result(name)
     implicit none
@@ -1446,7 +1457,7 @@ end function get_record_by_index
 !> Return unit of the file if open, 0 otherwise
 function get_unit(this) result(status)
     implicit none
-    class(fst_file), intent(inout) :: this
+    class(fst_file), intent(in) :: this
     integer(C_INT32_T) :: status
 end function get_unit
 
@@ -1460,7 +1471,7 @@ function new_query(this,                                                        
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
         ip1_all, ip2_all, ip3_all,stamp_norun) result(query)
     implicit none
-    class(fst_file), intent(inout) :: this
+    class(fst_file), intent(in) :: this
     integer(C_INT32_T), intent(in), optional :: dateo, datev
     integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
     integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4

@@ -57,7 +57,7 @@ void c_84bits_token(int32_t *the_84bit_token, unsigned char *grib_header, int32_
   time_of_day_micro = f77name(f_gettimeofday_micro)();
 
   header_crc = calc_crc(grib_header, &length_grib_header, &fseed, 1);
-  Lib_Log(APP_LIBFST,APP_EXTRA,"%s: %d crc: %d timeofday: %lld\n",__func__,strlen(grib_header), header_crc, time_of_day_micro);
+  Lib_Log(APP_LIBFST,APP_EXTRA,"%s: %d crc: %d timeofday: %lld\n", __func__, strlen((const char *)grib_header), header_crc, time_of_day_micro);
 
   micro_secs = time_of_day_micro % 1000000;
   time_of_day = (time_of_day_micro - micro_secs) / 1000000;

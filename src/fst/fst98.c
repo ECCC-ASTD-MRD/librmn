@@ -262,6 +262,13 @@ int ip_is_equal(
     return 0;
 }
 
+//! Determine whether the file corresponding to the given unit number is of type RSF
+//! \return 1 if the file is RSF, 0 if not, or if there is an error.
+int32_t c_fst_is_rsf(const int iun) {
+    int32_t index_fnom;
+    const int32_t status = is_rsf(iun, &index_fnom);
+    return status == 1;
+}
 
 //! Reassembles split variables
 void crack_std_parms(
@@ -350,11 +357,11 @@ void print_std_parms(
     int iip1, kind;
     int ig1, ig2, ig3, ig4;
     char c_level[16], pg1[7], pg2[7], pg3[8], pg4[8];
-    char h_dims[23], h_dateo[16], h_stampo[10], h_datev[26], h_level[16], h_ip1[10], h_grid[32];
-    char v_dims[23], v_dateo[16], v_stampo[10], v_datev[26], v_level[16], v_ip1[10], v_grid[32];
+    char h_dims[23], h_dateo[16], h_stampo[10], h_datev[27], h_level[16], h_ip1[10], h_grid[32];
+    char v_dims[23], v_dateo[16], v_stampo[10], v_datev[27], v_level[16], v_ip1[10], v_grid[32];
     char h_decoded[39], v_decoded[39];
-    char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[20], h_deet[9], h_npas[9], h_dty[5], h_siz[4];
-    char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[20], v_deet[9], v_npas[9], v_dty[5], v_siz[4];
+    char h_nomv[5], h_typv[3], h_etiq[13], h_ip23[20], h_deet[9], h_npas[9], h_dty[9], h_siz[4];
+    char v_nomv[5], v_typv[3], v_etiq[13], v_ip23[20], v_deet[9], v_npas[9], v_dty[9], v_siz[4];
     int posc, posv;
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option=%s\n", __func__, option);
@@ -1218,7 +1225,7 @@ int c_fstecr_xdf(
             // append mode for xdfput
             handle = 0;
         } else if (rewrit==FST_SKIP) {
-            return handle;
+            return 0; // Success
         }
     }
 
@@ -1333,7 +1340,7 @@ int c_fstecr_xdf(
                             nbits = stdf_entry->nbits;
                             memcpy_8_16((int16_t *)&(buffer->data[keys_len+offset]), (int8_t *)field, ni * nj * nk);
                         } else {
-                            memcpy_32_16((short *)&(buffer->data[keys_len+offset]), field, nbits, ni * nj * nk);
+                            memcpy_32_16((short *)&(buffer->data[keys_len+offset]), (const int32_t *)field, nbits, ni * nj * nk);
                         }
                         int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+offset]), ni, nj, nk, nbits, 1, 0);
                         if (compressed_lng < 0) {
@@ -1396,7 +1403,7 @@ int c_fstecr_xdf(
                 stdf_entry->datyp = is_missing | FST_TYPE_SIGNED;
 #ifdef use_old_signed_pack_unpack_code
                 // fprintf(stderr, "OLD PACK CODE======================================\n");
-                uint32_t * field3 = field;
+                int32_t* field3 = (int32_t *)field;
                 if (xdf_short || xdf_byte) {
                     field3 = (int *)alloca(ni * nj * nk*sizeof(int));
                     short * s_field = (short *)field;
@@ -1443,7 +1450,7 @@ int c_fstecr_xdf(
                         int compressed_lng = c_armn_compress32((unsigned char *)&(buffer->data[keys_len+1]), (float *)field, ni, nj, nk, nbits);
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = FST_TYPE_REAL_IEEE;
-                            f77name(ieeepak)(field, &(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
+                            f77name(ieeepak)((int32_t *)field, (int32_t *)&(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
                                 &f_zero, &f_one);
                         } else {
                             int nbytes = 16 + compressed_lng;
@@ -1454,7 +1461,7 @@ int c_fstecr_xdf(
                         }
                     } else {
                         if (datyp == FST_TYPE_COMPLEX) f_ni = f_ni * 2;
-                        f77name(ieeepak)((int32_t*)field_f, &(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
+                        f77name(ieeepak)((int32_t*)field_f, (int32_t *)&(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
                             &f_zero, &f_one);
                     }
                 }
@@ -1466,11 +1473,13 @@ int c_fstecr_xdf(
 
                 if (is_type_turbopack(datyp) && (nbits <= 16)) {
                     // use an additional compression scheme
-                    c_float_packer((float *)field, nbits, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+1+header_size]), ni * nj * nk);
+                    c_float_packer((float *)field, nbits, (int32_t *)&(buffer->data[keys_len+1]),
+                                   (int32_t *)&(buffer->data[keys_len+1+header_size]), ni * nj * nk);
                     int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL;
-                        c_float_packer((float *)field, nbits, &(buffer->data[keys_len]), &(buffer->data[keys_len+header_size]), ni * nj * nk);
+                        c_float_packer((float *)field, nbits, (int32_t *)&(buffer->data[keys_len]),
+                                        (int32_t *)&(buffer->data[keys_len+header_size]), ni * nj * nk);
                     } else {
                         int nbytes = 16 + (header_size*4) + compressed_lng;
                         // fprintf(stderr, "Debug+ apres armn_compress nbytes=%d\n", nbytes);
@@ -1481,7 +1490,8 @@ int c_fstecr_xdf(
                         buffer->nbits = (keys_len + nw) * bitmot;
                     }
                 } else {
-                    c_float_packer((float *)field, nbits, &(buffer->data[keys_len]), &(buffer->data[keys_len+header_size]), ni * nj * nk);
+                    c_float_packer((float *)field, nbits, (int32_t *)&(buffer->data[keys_len]),
+                                   (int32_t *)&(buffer->data[keys_len+header_size]), ni * nj * nk);
                     // fprintf(stderr, "Debug+ fstecr apres float_packer buffer->data=%8X\n", buffer->data[keys_len]);
                 }
                 break;
@@ -2870,7 +2880,7 @@ int c_fstluk_xdf(
                         if (is_type_turbopack(stdf_entry.datyp)) {
                             armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
                             // printf("Debug+ fstluk mode int compress nbytes=%d\n", nbytes);
-                            memcpy_16_32(field, (int16_t *)(buf->data + offset), stdf_entry.nbits, nelm);
+                            memcpy_16_32((int32_t *)field, (int16_t *)(buf->data + offset), stdf_entry.nbits, nelm);
                         } else {
                             ier = compact_integer(field, (void *) NULL, buf->data + offset, nelm, stdf_entry.nbits, 0, xdf_stride, 2);
                         }
@@ -2892,7 +2902,7 @@ int c_fstluk_xdf(
                 // printf("Debug+ fstluk - Signed integer\n");
 #ifdef use_old_signed_pack_unpack_code
                 // fprintf(stderr, "OLD UNPACK CODE ======================================\n");
-                int *field_out;
+                int32_t *field_out;
                 short *s_field_out;
                 signed char *b_field_out;
                 if (xdf_short || xdf_byte) {
@@ -2900,7 +2910,7 @@ int c_fstluk_xdf(
                     s_field_out = (short *)field;
                     b_field_out = (signed char *)field;
                 } else {
-                    field_out = (uint32_t *)field;
+                    field_out = (int32_t *)field;
                 }
                 ier = compact_integer(field_out, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 4);
                 if (xdf_short) {
@@ -2950,7 +2960,7 @@ int c_fstluk_xdf(
                     int32_t f_one = 1;
                     int32_t f_zero = 0;
                     int32_t f_mode = 2;
-                    f77name(ieeepak)(field, buf->data, &nelm, &f_one, &npak, &f_zero, &f_mode);
+                    f77name(ieeepak)((int32_t *)field, (int32_t *)buf->data, &nelm, &f_one, &npak, &f_zero, &f_mode);
                 }
 
                 break;
@@ -2966,9 +2976,9 @@ int c_fstluk_xdf(
                     // fprintf(stderr, "Debug+ buf->data+4+(nbytes/4)-1=%X buf->data+4+(nbytes/4)=%X \n",
                     //    *(buf->data+4+(nbytes/4)-1), *(buf->data+4+(nbytes/4)));
 
-                    c_float_unpacker((float *)field, buf->data + 1, buf->data + 1 + header_size, nelm, &nbits);
+                    c_float_unpacker((float *)field, (int32_t *)(buf->data + 1), (int32_t *)(buf->data + 1 + header_size), nelm, &nbits);
                 } else {
-                    c_float_unpacker((float *)field, buf->data, buf->data + header_size, nelm, &nbits);
+                    c_float_unpacker((float *)field, (int32_t *)buf->data, (int32_t *)(buf->data + header_size), nelm, &nbits);
                 }
                 break;
             }
@@ -5352,7 +5362,7 @@ int32_t f77name(fstinl)(int32_t *f_iun, int32_t *f_ni, int32_t *f_nj,
     str_cp_init(nomvar, FST_NOMVAR_LEN, f_nomvar, ll3);
 
     return (int32_t) c_fstinl(*f_iun, f_ni, f_nj, f_nk, *f_datev, etiket, *f_ip1, *f_ip2, *f_ip3, typvar, nomvar,
-                 (uint32_t *)liste, f_infon, *f_nmax);
+                              liste, f_infon, *f_nmax);
 }
 
 

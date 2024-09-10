@@ -27,6 +27,7 @@ $(    sed -n ' # Get function parameters, if they are on separate lines
 # fnames="fst24_new_query"
 function_fnames="
    fst24_is_open
+   fst24_is_rsf
    fst24_file_name
    fst24_is_valid
    fst24_open

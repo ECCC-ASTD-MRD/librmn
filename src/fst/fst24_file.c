@@ -55,6 +55,12 @@ const char* fst24_file_name(const fst_file* const file) {
     return NULL;
 }
 
+//! \return Whether the given file is of type RSF, or 0 if the input does not point to an open file
+int32_t fst24_is_rsf(const fst_file* const file) {
+    if (fst24_is_open(file)) return file->type == FST_RSF;
+    return 0;
+}
+
 //! Get unit number for API calls that require it. This exists mostly for compatibility with
 //! other libraries and tools that only work with unit numbers rather than a fst_file struct.
 //! \return Unit number. 0 if file is not open or struct is not valid.

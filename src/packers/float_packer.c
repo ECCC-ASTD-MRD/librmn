@@ -83,10 +83,10 @@ int32_t float_unpacker_1(
         mantis = mantis + minimum;
         sgn = (mantis >> 31) & 1;
         /* need absolute value of mantis */
-        if (sgn) mantis =- mantis;
+        if (sgn) mantis = -mantis;
         if (mantis > 0xFFFFFF) mantis = 0xFFFFFF;
         /* eliminate bit 23 (hidden 1) and add exponent */
-        temp.i = (mantis & (~(-1<<23))) | (maxExp << 23);
+        temp.i = (mantis & (~((-1u)<<23))) | (maxExp << 23);
         /* add sign in proper position */
         temp.i = temp.i | (sgn << 31);
         if (mantis & (1 << 23)) {

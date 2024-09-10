@@ -357,9 +357,9 @@ void c_fstunzip_sample(unsigned short *fld, unsigned int *zfld, int ni, int nj, 
   start = 1;
   unpackTokensSample(zc2, idiffs2, zfld, nic2, njc2, nic1, njc1, nbits, step, header, start);
 
-  f77name(fill_coarse_nodes)(zc1, &nic1, &njc1, zc2, &nic2, &njc2, &lclstep);
-  f77name(ibicubic_int4)(zc1, &nic1, &njc1, &lclstep, &ajus_x2, &ajus_y2);
-  f77name(fill_coarse_nodes)(zc1, &nic1, &njc1, zc2, &nic2, &njc2, &lclstep);
+  f77name(fill_coarse_nodes)((int32_t *)zc1, &nic1, &njc1, (int32_t *)zc2, &nic2, &njc2, &lclstep);
+  f77name(ibicubic_int4)((int32_t *)zc1, &nic1, &njc1, &lclstep, &ajus_x2, &ajus_y2);
+  f77name(fill_coarse_nodes)((int32_t *)zc1, &nic1, &njc1, (int32_t *)zc2, &nic2, &njc2, &lclstep);
 
   for (j=1; j <= njc1; j++)
     {
@@ -377,9 +377,9 @@ void c_fstunzip_sample(unsigned short *fld, unsigned int *zfld, int ni, int nj, 
   start = 0;
   unpackTokensSample(zc1, idiffs1, zfld, nic1, njc1, nic, njc, nbits, step, header, start);
 
-  f77name(fill_coarse_nodes)(zc, &nic, &njc, zc1, &nic1, &njc1, &lclstep);
-  f77name(ibicubic_int4)(zc,&nic,&njc,&lclstep,&ajus_x1, &ajus_y1);
-  f77name(fill_coarse_nodes)(zc, &nic, &njc, zc1, &nic1, &njc1, &lclstep);
+  f77name(fill_coarse_nodes)((int32_t *)zc, &nic, &njc, (int32_t *)zc1, &nic1, &njc1, &lclstep);
+  f77name(ibicubic_int4)((int32_t *)zc,&nic,&njc,&lclstep,&ajus_x1, &ajus_y1);
+  f77name(fill_coarse_nodes)((int32_t *)zc, &nic, &njc, (int32_t *)zc1, &nic1, &njc1, &lclstep);
 
   for (j=1; j <= njc; j++)
     {
@@ -398,7 +398,7 @@ void c_fstunzip_sample(unsigned short *fld, unsigned int *zfld, int ni, int nj, 
   start = 0;
   unpackTokensSample(zc, idiffs, zfld, nic, njc, ni, nj, nbits, step, header, start);
 
-  f77name(fill_coarse_nodes)(predfld, &ni, &nj, zc, &nic, &njc, &lclstep);
+  f77name(fill_coarse_nodes)(predfld, &ni, &nj, (int32_t *)zc, &nic, &njc, &lclstep);
   f77name(ibicubic_int4)(predfld,&ni,&nj,&lclstep,&ajus_x, &ajus_y);
 
   for (j=1; j <= nj; j++)
@@ -412,7 +412,7 @@ void c_fstunzip_sample(unsigned short *fld, unsigned int *zfld, int ni, int nj, 
     }
 
 
-  f77name(fill_coarse_nodes)(predfld, &ni, &nj, zc, &nic, &njc, &lclstep);
+  f77name(fill_coarse_nodes)(predfld, &ni, &nj, (int32_t *)zc, &nic, &njc, &lclstep);
 
   for (j=1; j <= nj; j++)
     {
@@ -760,7 +760,7 @@ static void packTokensParallelogram(
                     for (int n = 0; n <= lcl_n; n++) {
                         for (int m = 0; m <= lcl_m; m++) {
                             k = FTN2C(i + m, j + n, ni);
-                            token = (unsigned int) (ufld_dst[k] & ~((-1) << 17));
+                            token = (unsigned int) (ufld_dst[k] & ~((-1u) << 17));
                             stuff(token, cur, 32, 17, lastWordShifted, spaceInLastWord);
                         }
                     }
@@ -771,7 +771,7 @@ static void packTokensParallelogram(
                     for (int n = 0; n <= lcl_n; n++) {
                         for (int m = 0; m <= lcl_m; m++) {
                             k = FTN2C(i + m, j + n, ni);
-                            token = (unsigned int) (ufld_dst[k] & ~((-1) << nbits2));
+                            token = (unsigned int) (ufld_dst[k] & ~((-1u) << nbits2));
                             stuff(token, cur, 32, nbits2, lastWordShifted, spaceInLastWord);
                         }
                     }
@@ -1078,7 +1078,7 @@ void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoar
             if (!(m == 0 && n == 0))
               {
               k = FTN2C(i+m,j+n,ni);
-              token = (unsigned int) (diffs[k] & ~((-1) << 17));
+              token = (unsigned int) (diffs[k] & ~((-1u) << 17));
               stuff(token, cur, 32, 17, lastWordShifted, spaceInLastWord);
               }
             }
@@ -1094,7 +1094,7 @@ void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoar
             if (!(m == 0 && n == 0))
               {
               k = FTN2C(i+m,j+n,ni);
-              token = (unsigned int) (diffs[k] & ~((-1) << nbits2));
+              token = (unsigned int) (diffs[k] & ~((-1u) << nbits2));
               stuff(token, cur, 32, nbits2, lastWordShifted, spaceInLastWord);
               }
             }

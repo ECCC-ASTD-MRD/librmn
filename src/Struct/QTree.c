@@ -335,7 +335,7 @@ void QTree_Neighbors(TQTree* Node,TQTree** Neighbors,int Nb) {
    double  dx,dy;
    int     d=0;;
    
-   if (Nb!=4 || Nb!=8) {
+   if (Nb!=4 || Nb!=8) { // TODO this is always true. Remove the condition?
       for(int n=0;n<Nb;n++) Neighbors[n]=NULL;
    }
    

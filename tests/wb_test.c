@@ -2,35 +2,35 @@
 
 //! @todo Should these really be macros?  Wouldn't it be better to call functions that the compiler can inline?
 
-#define WB_PUT_C(WB,name,value,strglen,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_CHAR,strglen,(unsigned char *)value,0,options,strlen(name))
-#define WB_GET_C(WB,name,value,strglen) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_CHAR,strglen,(unsigned char *)value,0,strlen(name))
-#define WB_PUT_CV(WB,name,value,strglen,size,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_CHAR,strglen,(unsigned char *)value,size,options,strlen(name))
-#define WB_GET_CV(WB,name,value,strglen,size) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_CHAR,strglen,(unsigned char *)value,size,strlen(name))
+#define WB_PUT_C(WB,name,value,strglen,options) c_wb_put(WB,(char *)name,WB_FORTRAN_CHAR,strglen,(unsigned char *)value,0,options,strlen(name))
+#define WB_GET_C(WB,name,value,strglen) c_wb_get(WB,(char *)name,WB_FORTRAN_CHAR,strglen,(unsigned char *)value,0,strlen(name))
+#define WB_PUT_CV(WB,name,value,strglen,size,options) c_wb_put(WB,(char *)name,WB_FORTRAN_CHAR,strglen,(unsigned char *)value,size,options,strlen(name))
+#define WB_GET_CV(WB,name,value,strglen,size) c_wb_get(WB,(char *)name,WB_FORTRAN_CHAR,strglen,(unsigned char *)value,size,strlen(name))
 
-#define WB_PUT_L1(WB,name,value,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_BOOL,1,(unsigned char *)value,0,options,strlen(name))
-#define WB_GET_L1(WB,name,value) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_BOOL,1,(unsigned char *)value,0,strlen(name))
-#define WB_PUT_L1V(WB,name,value,size,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_BOOL,1,(unsigned char *)value,size,options,strlen(name))
-#define WB_GET_L1V(WB,name,value,size) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_BOOL,1,(unsigned char *)value,size,strlen(name))
+#define WB_PUT_L1(WB,name,value,options) c_wb_put(WB,(char *)name,WB_FORTRAN_BOOL,1,(unsigned char *)value,0,options,strlen(name))
+#define WB_GET_L1(WB,name,value) c_wb_get(WB,(char *)name,WB_FORTRAN_BOOL,1,(unsigned char *)value,0,strlen(name))
+#define WB_PUT_L1V(WB,name,value,size,options) c_wb_put(WB,(char *)name,WB_FORTRAN_BOOL,1,(unsigned char *)value,size,options,strlen(name))
+#define WB_GET_L1V(WB,name,value,size) c_wb_get(WB,(char *)name,WB_FORTRAN_BOOL,1,(unsigned char *)value,size,strlen(name))
 
-#define WB_PUT_I4(WB,name,value,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_INT,4,(unsigned char *)value,0,options,strlen(name))
-#define WB_GET_I4(WB,name,value) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_INT,4,(unsigned char *)value,0,strlen(name))
-#define WB_PUT_I4V(WB,name,value,size,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_INT,4,(unsigned char *)value,size,options,strlen(name))
-#define WB_GET_I4V(WB,name,value,size) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_INT,4,(unsigned char *)value,size,strlen(name))
+#define WB_PUT_I4(WB,name,value,options) c_wb_put(WB,(char *)name,WB_FORTRAN_INT,4,(unsigned char *)value,0,options,strlen(name))
+#define WB_GET_I4(WB,name,value) c_wb_get(WB,(char *)name,WB_FORTRAN_INT,4,(unsigned char *)value,0,strlen(name))
+#define WB_PUT_I4V(WB,name,value,size,options) c_wb_put(WB,(char *)name,WB_FORTRAN_INT,4,(unsigned char *)value,size,options,strlen(name))
+#define WB_GET_I4V(WB,name,value,size) c_wb_get(WB,(char *)name,WB_FORTRAN_INT,4,(unsigned char *)value,size,strlen(name))
 
-#define WB_PUT_I8(WB,name,value,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_INT,8,(unsigned char *)value,0,options,strlen(name))
-#define WB_GET_I8(WB,name,value) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_INT,8,(unsigned char *)value,0,strlen(name))
-#define WB_PUT_I8V(WB,name,value,size,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_INT,8,(unsigned char *)value,size,options,strlen(name))
-#define WB_GET_I8V(WB,name,value,size) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_INT,8,(unsigned char *)value,size,strlen(name))
+#define WB_PUT_I8(WB,name,value,options) c_wb_put(WB,(char *)name,WB_FORTRAN_INT,8,(unsigned char *)value,0,options,strlen(name))
+#define WB_GET_I8(WB,name,value) c_wb_get(WB,(char *)name,WB_FORTRAN_INT,8,(unsigned char *)value,0,strlen(name))
+#define WB_PUT_I8V(WB,name,value,size,options) c_wb_put(WB,(char *)name,WB_FORTRAN_INT,8,(unsigned char *)value,size,options,strlen(name))
+#define WB_GET_I8V(WB,name,value,size) c_wb_get(WB,(char *)name,WB_FORTRAN_INT,8,(unsigned char *)value,size,strlen(name))
 
-#define WB_PUT_R4(WB,name,value,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_REAL,4,(unsigned char *)value,0,options,strlen(name))
-#define WB_GET_R4(WB,name,value) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_REAL,4,(unsigned char *)value,0,strlen(name))
-#define WB_PUT_R4V(WB,name,value,size,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_REAL,4,(unsigned char *)value,size,options,strlen(name))
-#define WB_GET_R4V(WB,name,value,size) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_REAL,4,(unsigned char *)value,size,strlen(name))
+#define WB_PUT_R4(WB,name,value,options) c_wb_put(WB,(char *)name,WB_FORTRAN_REAL,4,(unsigned char *)value,0,options,strlen(name))
+#define WB_GET_R4(WB,name,value) c_wb_get(WB,(char *)name,WB_FORTRAN_REAL,4,(unsigned char *)value,0,strlen(name))
+#define WB_PUT_R4V(WB,name,value,size,options) c_wb_put(WB,(char *)name,WB_FORTRAN_REAL,4,(unsigned char *)value,size,options,strlen(name))
+#define WB_GET_R4V(WB,name,value,size) c_wb_get(WB,(char *)name,WB_FORTRAN_REAL,4,(unsigned char *)value,size,strlen(name))
 
-#define WB_PUT_R8(WB,name,value,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_REAL,8,(unsigned char *)value,0,options,strlen(name))
-#define WB_GET_R8(WB,name,value) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_REAL,8,(unsigned char *)value,0,strlen(name))
-#define WB_PUT_R8V(WB,name,value,size,options) c_wb_put(WB,(unsigned char *)name,WB_FORTRAN_REAL,8,(unsigned char *)value,size,options,strlen(name))
-#define WB_GET_R8V(WB,name,value,size) c_wb_get(WB,(unsigned char *)name,WB_FORTRAN_REAL,8,(unsigned char *)value,size,strlen(name))
+#define WB_PUT_R8(WB,name,value,options) c_wb_put(WB,(char *)name,WB_FORTRAN_REAL,8,(unsigned char *)value,0,options,strlen(name))
+#define WB_GET_R8(WB,name,value) c_wb_get(WB,(char *)name,WB_FORTRAN_REAL,8,(unsigned char *)value,0,strlen(name))
+#define WB_PUT_R8V(WB,name,value,size,options) c_wb_put(WB,(char *)name,WB_FORTRAN_REAL,8,(unsigned char *)value,size,options,strlen(name))
+#define WB_GET_R8V(WB,name,value,size) c_wb_get(WB,(char *)name,WB_FORTRAN_REAL,8,(unsigned char *)value,size,strlen(name))
 
 
 
@@ -173,7 +173,7 @@ printf("======== This should fail\n");
    printf("status=%d, integer_array2[4]=%d\n",status,integer_array2[4]);
    code+=(status>=0);
 
-   status=c_wb_check(WB,(unsigned char *)"", -1, 0, 1, NULL,NULL);
+   status=c_wb_check(WB,"", -1, 0, 1, NULL,NULL);
    printf("c_wb_check printed %d entries\n",status);
    code+=(status<0);
 
@@ -191,12 +191,12 @@ printf("========\n");
    code+=(status<0);
 
 printf("==== Locking Test ====\n");
-   status=c_wb_check(WB,(unsigned char *)"V", -1, 1, 1, Action1,NULL);
+   status=c_wb_check(WB,"V", -1, 1, 1, Action1,NULL);
    printf("c_wb_check printed %d entries\n",status);
    code+=(status<0);
 
    c_wb_lock(WB,"V",1);
-   status=c_wb_check(WB,(unsigned char *)"V", -1, 1, 1, Action1,NULL);
+   status=c_wb_check(WB,"V", -1, 1, 1, Action1,NULL);
    printf("c_wb_check printed %d entries\n",status);
    code+=(status<0);
 

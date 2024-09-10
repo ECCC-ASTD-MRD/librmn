@@ -389,7 +389,7 @@ void f77_name(f_wb_error_handler)(
 //! Copy a possibly non null terminated string to the extra error buffer
 static void set_extra_error_message(
     //! [in] String of the extra error message
-    const char const *message,
+    const char * const message,
     //! [in] Length of the extra error message for Fortran style strings.  Provide -1 for null terminated string.
     int length
 ) {
@@ -1817,7 +1817,7 @@ static int wb_ungetc(
     //! [in] Character to push back
     int lastchar
 ) {
-    if (current_char == NULL || linebuffer == NULL) {
+    if (current_char == NULL) {
         return WB_ERROR;
     }
     if (current_char > linebuffer) {
@@ -1916,7 +1916,7 @@ static char wb_get_nonblank(
 static void wb_read_error()
 {
     int temp;
-    if (current_char == NULL || linebuffer == NULL) {
+    if (current_char == NULL) {
         return;
     }
     temp = *current_char;
