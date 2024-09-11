@@ -319,7 +319,7 @@ contains
     !> \return .true. if we found a record, .false. if not or if error
     function fst_query_find_next(this, record) result(found)
         implicit none
-        class(fst_query), intent(in) :: this                !< Query we are using for the search
+        class(fst_query), intent(inout) :: this             !< Query we are using for the search
         type(fst_record), intent(inout), optional :: record !< Information of the record found. Left unchanged if nothing found
         type(C_PTR) :: c_record
         logical :: found
@@ -387,7 +387,7 @@ contains
     !> \return .true. if we read a record, .false. if none found or if error
     function fst_query_read_next(this, record) result(found)
         implicit none
-        class(fst_query), intent(in)    :: this     !< Query used for the search
+        class(fst_query), intent(inout) :: this     !< Query used for the search
         type(fst_record), intent(inout) :: record   !< Record that was read (left unchanged if nothing was found)
         logical :: found
 
@@ -484,7 +484,21 @@ contains
         c_status = fst24_print_summary(this % file_ptr, c_loc(fields))
     end subroutine fst24_file_print_summary
 
-    !> Link the given files so that they can be searched and read as one.
+    !> Link the given list of files together, so that they are treated as one for the purpose
+    !> of searching and reading. Once linked, the user can use the first file in the list
+    !> as a replacement for all the given files.
+    !>
+    !> Thread safety: This function may be called concurrently on two sets of fst_file objects *if and only if* the
+    !> two sets do not overlap. It is OK if two different fst_file objects refer to the same file on disk (i.e. the file
+    !> has been opened more than once).
+    !>
+    !> *Note*: Some librmn functions and some tools may still make use of the `iun` from the fst98 interface. In order to
+    !> be backward-compatible with these functions and tools, we also perform a link of the files with that interface.
+    !> That old fstlnk itself is *not* thread-safe and may not work if there are several sets of linked files. This
+    !> means that if you concurrently create several lists of linked files, they might not work as intended if these
+    !> lists are accessed through the first file's iun.
+    !>
+    !> *Note*: The `intent(in)` is slightly lying. The array itself will not be modified, but the linked files will.
     !> \return Whether the linking was successful
     function fst24_link(files) result(success)
         implicit none
