@@ -59,6 +59,19 @@ class TestRMNPackage(unittest.TestCase):
         rec.data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk)).astype('f')
         return rec
 
+    def test_record_data_types(self):
+        rec = self.create_record()
+        data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk)).astype('f')
+        rec.data_type = 1
+        rec.data = data
+
+        rec.data_type = 5
+        rec.data = data
+
+        rec.data_type = 6
+        rec.data = data
+
+
     def test_create_file(self):
         filename = f'{self.tmpdir}/new_file.std'
         with rmn.fst24_file(filename=filename, options='R/W') as f:

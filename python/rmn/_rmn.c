@@ -1104,6 +1104,7 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
         switch(self->rec.data_type & (~FST_TYPE_TURBOPACK)){
             case FST_TYPE_REAL:
             case FST_TYPE_REAL_IEEE:
+            case FST_TYPE_REAL_OLD_QUANT:
                 break;
             default:
                 PyErr_Format(PyExc_NotImplementedError, "%s() Cannot get data for record that is of other type than FST_TYPE_REAL or FST_TYPE_REAL_IEEE: %d", __func__, self->rec.data_type);
@@ -1195,6 +1196,7 @@ static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assig
     switch(self->rec.data_type & (~FST_TYPE_TURBOPACK)){
         case FST_TYPE_REAL:
         case FST_TYPE_REAL_IEEE:
+        case FST_TYPE_REAL_OLD_QUANT:
             break;
         default:
             PyErr_Format(PyExc_NotImplementedError, "%s() Cannot set data for record that is of other type than FST_TYPE_REAL or FST_TYPE_REAL_IEEE: %d", __func__, self->rec.data_type);
