@@ -59,7 +59,7 @@ RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
    App_TimerStart(&t);
 
    // Open all files in parallel
-   #pragma omp parallel for ordered default(none) private(i,n,q,result) shared(filenames,nb_files,f,nb,lraw)
+   #pragma omp parallel for ordered default(none) private(i,n,q,result) shared(filenames,nb_files,f,nb,lraw,default_fst_record)
    for(i = 0; i < nb_files; i++){
       f[i] = fst24_open(filenames[i],"RND+R/O");
       if(!f[i]) {
