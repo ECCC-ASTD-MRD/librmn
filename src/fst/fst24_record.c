@@ -730,7 +730,7 @@ void fill_with_search_meta(fst_record* record, const search_metadata* meta, cons
         record->nk = fst98_meta->nk;
         record->data_type = fst98_meta->datyp;
         record->data_bits = fst98_meta->dasiz;
-        if (record->data_bits == 0) record->data_bits = 32;
+        if (record->data_bits == 0) record->data_bits = fst98_meta->nbits>32?fst98_meta->nbits:32;
         record->pack_bits = fst98_meta->nbits;
 
         record->deet = fst98_meta->deet;
