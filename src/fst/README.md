@@ -1407,7 +1407,7 @@ end function get_name
 !> Thread safety: Always safe to open files concurrently (from a threading perspective).
 !>
 function open(this, filename, options) result(could_open)
-    class(fst_file),intent(inout)        :: this     !< fst_file instance. Must not be an already-open file
+    class(fst_file),  intent(inout)        :: this     !< fst_file instance. Must not be an already-open file
     character(len=*), intent(in)           :: filename !< Name of the file we want to open
     character(len=*), intent(in), optional :: options  !< Additional options to pass
 
@@ -1575,10 +1575,11 @@ end subroutine print_summary
 !> means that if you concurrently create several lists of linked files, they might not work as intended if these
 !> lists are accessed through the first file's iun.
 !>
+!> *Note*: The `intent(in)` is slightly lying. The array itself will not be modified, but the linked files will.
 !> Return Whether the linking was successful
 function fst24_link(files) result(success)
     implicit none
-    type(fst_file), dimension(:), intent(inout) :: files
+    type(fst_file), dimension(:), intent(in) :: files
     logical :: success
 end function fst24_link
 
@@ -1636,7 +1637,7 @@ end function rwd
 !> Return .true. if we found a record, .false. if not or if error
 function find_next(this, record) result(found)
     implicit none
-    class(fst_query), intent(in) :: this                !< Query we are using for the search
+    class(fst_query), intent(inout) :: this             !< Query we are using for the search
     type(fst_record), intent(inout), optional :: record !< Information of the record found. Left unchanged if nothing found
     type(C_PTR) :: c_record
     logical :: found
@@ -1651,7 +1652,7 @@ end function find_next
 !> Return Number of records found, up to size(records)
 function find_all(this, records) result(num_found)
     implicit none
-    class(fst_query), intent(in) :: this     !< Query used for the search
+    class(fst_query), intent(inout) :: this     !< Query used for the search
     !> [in,out] Array where the records found will be put.
     !> We stop searching after we found enough records to fill it.
     type(fst_record), dimension(:), intent(inout) :: records
@@ -1668,7 +1669,7 @@ end function find_all
 !> Return .true. if we read a record, .false. if none found or if error
 function read_next(this, record) result(found)
     implicit none
-    class(fst_query), intent(in) :: this        !< Query used for the search
+    class(fst_query), intent(inout) :: this     !< Query used for the search
     type(fst_record), intent(inout) :: record   !< Record that was read (left unchanged if nothing was found)
     logical :: found
 end function read_next
