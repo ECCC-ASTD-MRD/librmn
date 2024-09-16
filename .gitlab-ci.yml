@@ -52,6 +52,7 @@ test:rhel-8-icelake-64_inteloneapi-2024.2.0:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -71,6 +72,7 @@ package:rhel-8-icelake-64_inteloneapi-2024.2.0:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -96,6 +98,7 @@ build:rhel-8-icelake-64_inteloneapi-2022.1.2:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -115,6 +118,7 @@ test:rhel-8-icelake-64_inteloneapi-2022.1.2:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -133,6 +137,7 @@ package:rhel-8-icelake-64_inteloneapi-2022.1.2:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -157,6 +162,7 @@ build:rhel-8-icelake-64_inteloneapi-2021.4.0:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -176,6 +182,7 @@ test:rhel-8-icelake-64_inteloneapi-2021.4.0:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -194,6 +201,7 @@ package:rhel-8-icelake-64_inteloneapi-2021.4.0:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -218,6 +226,7 @@ build:rhel-8-amd64_inteloneapi-2022.1.2:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -237,6 +246,7 @@ test:rhel-8-amd64_inteloneapi-2022.1.2:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev_.*/
@@ -255,6 +265,7 @@ package:rhel-8-amd64_inteloneapi-2022.1.2:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -279,6 +290,7 @@ build:rhel-8-amd64_gnu-9.3.0:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -298,6 +310,7 @@ test:rhel-8-amd64_gnu-9.3.0:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -316,6 +329,7 @@ package:rhel-8-amd64_gnu-9.3.0:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -340,6 +354,7 @@ build:rhel-8-amd64_gnu-14.1.0:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -363,6 +378,7 @@ test:rhel-8-amd64_gnu-14.1.0:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -385,6 +401,7 @@ package:rhel-8-amd64_gnu-14.1.0:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -415,6 +432,7 @@ build:rhel-8-amd64_aocc-4.1.1:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -437,6 +455,7 @@ test:rhel-8-amd64_aocc-4.1.1:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -462,6 +481,7 @@ build:rhel-8-amd64_nvhpc_23.7.0:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -486,6 +506,7 @@ test:rhel-8-amd64_nvhpc_23.7.0:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -508,6 +529,7 @@ package:rhel-8-amd64_nvhpc_23.7.0:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -541,6 +563,7 @@ build:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -565,6 +588,7 @@ test:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -588,6 +612,7 @@ package:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -616,6 +641,7 @@ build:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -640,6 +666,7 @@ test:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -663,6 +690,7 @@ package:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -691,6 +719,7 @@ build:ubuntu-22.04-amd64_gnu-11.4.0:
    tags:
       - concurrent
    only:
+     - exp_ci_pipelines
      - master
      - alpha
      - /^dev.*$/
@@ -715,6 +744,7 @@ test:ubuntu-22.04-amd64_gnu-11.4.0:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -738,6 +768,7 @@ package:ubuntu-22.04-amd64_gnu-11.4.0:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
@@ -760,6 +791,7 @@ deploy:staging:
    tags:
       - concurrent
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - tags
@@ -771,6 +803,7 @@ deploy:staging:
 trigger:
    stage: trigger
    only:
+      - exp_ci_pipelines
       - master
       - alpha
       - /^dev.*$/
