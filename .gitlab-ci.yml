@@ -42,7 +42,7 @@ build:rhel-8-icelake-64_inteloneapi-2024.2.0:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.2.0
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.2.0
-      - cmake ${SRC_DIR}
+      - cmake ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
    allow_failure: true
 
@@ -106,7 +106,7 @@ build:rhel-8-icelake-64_inteloneapi-2022.1.2:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2022.1.2
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2022.1.2
-      - cmake ${SRC_DIR}
+      - cmake ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
 
 test:rhel-8-icelake-64_inteloneapi-2022.1.2:
@@ -167,7 +167,7 @@ build:rhel-8-icelake-64_inteloneapi-2021.4.0:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2021.4.0
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2021.4.0
-      - cmake ${SRC_DIR}
+      - cmake ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
 
 test:rhel-8-icelake-64_inteloneapi-2021.4.0:
@@ -228,7 +228,7 @@ build:rhel-8-amd64_inteloneapi-2022.1.2:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_inteloneapi-2022.1.2
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_inteloneapi-2022.1.2
-      - cmake ${SRC_DIR}
+      - cmake ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
 
 test:rhel-8-amd64_inteloneapi-2022.1.2:
@@ -289,7 +289,7 @@ build:rhel-8-amd64_gnu-9.3.0:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-9.3.0
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-9.3.0
-      - cmake ${SRC_DIR}
+      - cmake ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
 
 test:rhel-8-amd64_gnu-9.3.0:
@@ -354,7 +354,7 @@ build:rhel-8-amd64_gnu-14.1.0:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_gnu-14.1.0
-      - cmake ${SRC_DIR}
+      - cmake ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
 
 test:rhel-8-amd64_gnu-14.1.0:
@@ -427,7 +427,7 @@ build:rhel-8-amd64_aocc-4.1.1:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_aocc-4.1.1
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_aocc-4.1.1
-      - cmake -DCOMPILER_SUITE=aocc ${SRC_DIR}
+      - cmake -DCOMPILER_SUITE=aocc ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
    allow_failure: true
 
@@ -476,7 +476,7 @@ build:rhel-8-amd64_nvhpc_23.7.0:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
-      - cmake -DCOMPILER_SUITE=nvhpc ${SRC_DIR}
+      - cmake -DCOMPILER_SUITE=nvhpc ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
    allow_failure: true
 
@@ -552,7 +552,7 @@ build:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_inteloneapi-2022.1.2
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_inteloneapi-2022.1.2
-      - cmake ${SRC_DIR}
+      - cmake ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
 
 test:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
@@ -627,7 +627,7 @@ build:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_inteloneapi-2023.2.0
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_inteloneapi-2023.2.0
-      - cmake ${SRC_DIR}
+      - cmake ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
 
 test:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
@@ -702,7 +702,7 @@ build:ubuntu-22.04-amd64_gnu-11.4.0:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_gnu-11.4.0
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_gnu-11.4.0
-      - cmake ${SRC_DIR}
+      - cmake ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
 
 test:ubuntu-22.04-amd64_gnu-11.4.0:
