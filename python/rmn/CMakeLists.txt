@@ -1,12 +1,12 @@
+find_package(Python 3 REQUIRED COMPONENTS Development NumPy Interpreter)
+
 list( APPEND CMAKE_INSTALL_RPATH "\$ORIGIN/../.." )
 Python_add_library(_rmn MODULE _rmn.c indexing.c)
 
-#
 # For the version of the 'rmn' python package that is in the build directory
 # it is more convenient for it to contain links to the python files in the source
 # otherwise we would have to re-run CMake everytime we change them.  At install
 # time of course, we copy the python files.
-#
 file(GLOB python_files *.py)
 set(python_files
     __init__.py
@@ -16,8 +16,7 @@ foreach(f IN LISTS python_files)
 endforeach()
 install(FILES ${python_files} DESTINATION lib/python/rmn)
 
-target_link_libraries(_rmn PRIVATE rmn::rmn ${PYTHON_LIBRARIES})
-target_include_directories(_rmn PRIVATE ${PYTHON_INCLUDE_DIRS})
+target_link_libraries(_rmn PRIVATE rmn::rmn Python::Module Python::NumPy)
 
 install(TARGETS _rmn LIBRARY DESTINATION lib/python/rmn)
 
