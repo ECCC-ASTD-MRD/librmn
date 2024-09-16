@@ -35,6 +35,7 @@ build:rhel-8-icelake-64_inteloneapi-2024.2.0:
       - alpha
       - /^dev.*$/
       - tags
+      - exp_ci_pipelines
    script:
       - set +e
       - source ${ECCI_ENV}/latest/rhel-8-icelake-64/inteloneapi-2024.2.0.sh
@@ -55,7 +56,7 @@ test:rhel-8-icelake-64_inteloneapi-2024.2.0:
      - alpha
      - /^dev.*$/
      - tags
-   dependencies:
+   needs:
      - build:rhel-8-icelake-64_inteloneapi-2024.2.0
    script:
       - set +e
@@ -75,8 +76,8 @@ package:rhel-8-icelake-64_inteloneapi-2024.2.0:
       - /^dev.*$/
       - tags
       - schedules
-   dependencies:
-      - build:rhel-8-icelake-64_inteloneapi-2024.2.0
+   needs:
+      - test:rhel-8-icelake-64_inteloneapi-2024.2.0
    environment:
       name: testing
    script:
@@ -118,7 +119,7 @@ test:rhel-8-icelake-64_inteloneapi-2022.1.2:
      - alpha
      - /^dev.*$/
      - tags
-   dependencies:
+   needs:
      - build:rhel-8-icelake-64_inteloneapi-2022.1.2
    script:
       - set +e
@@ -137,8 +138,8 @@ package:rhel-8-icelake-64_inteloneapi-2022.1.2:
       - /^dev.*$/
       - tags
       - schedules
-   dependencies:
-      - build:rhel-8-icelake-64_inteloneapi-2022.1.2
+   needs:
+      - test:rhel-8-icelake-64_inteloneapi-2022.1.2
    environment:
       name: testing
    script:
@@ -179,7 +180,7 @@ test:rhel-8-icelake-64_inteloneapi-2021.4.0:
      - alpha
      - /^dev.*$/
      - tags
-   dependencies:
+   needs:
      - build:rhel-8-icelake-64_inteloneapi-2021.4.0
    script:
       - set +e
@@ -198,8 +199,8 @@ package:rhel-8-icelake-64_inteloneapi-2021.4.0:
       - /^dev.*$/
       - tags
       - schedules
-   dependencies:
-      - build:rhel-8-icelake-64_inteloneapi-2021.4.0
+   needs:
+      - test:rhel-8-icelake-64_inteloneapi-2021.4.0
    environment:
       name: testing
    script:
@@ -240,7 +241,7 @@ test:rhel-8-amd64_inteloneapi-2022.1.2:
      - alpha
      - /^dev_.*/
      - tags
-   dependencies:
+   needs:
      - build:rhel-8-amd64_inteloneapi-2022.1.2
    script:
       - set +e
@@ -259,8 +260,8 @@ package:rhel-8-amd64_inteloneapi-2022.1.2:
       - /^dev.*$/
       - tags
       - schedules
-   dependencies:
-      - build:rhel-8-amd64_inteloneapi-2022.1.2
+   needs:
+      - test:rhel-8-amd64_inteloneapi-2022.1.2
    environment:
       name: testing
    script:
@@ -301,7 +302,7 @@ test:rhel-8-amd64_gnu-9.3.0:
      - alpha
      - /^dev.*$/
      - tags
-   dependencies:
+   needs:
      - build:rhel-8-amd64_gnu-9.3.0
    script:
       - set +e
@@ -320,8 +321,8 @@ package:rhel-8-amd64_gnu-9.3.0:
       - /^dev.*$/
       - tags
       - schedules
-   dependencies:
-      - build:rhel-8-amd64_gnu-9.3.0
+   needs:
+      - test:rhel-8-amd64_gnu-9.3.0
    environment:
       name: testing
    script:
@@ -366,7 +367,7 @@ test:rhel-8-amd64_gnu-14.1.0:
      - alpha
      - /^dev.*$/
      - tags
-   dependencies:
+   needs:
      - build:rhel-8-amd64_gnu-14.1.0
    script:
       - set +e
@@ -389,8 +390,8 @@ package:rhel-8-amd64_gnu-14.1.0:
       - /^dev.*$/
       - tags
       - schedules
-   dependencies:
-      - build:rhel-8-amd64_gnu-14.1.0
+   needs:
+      - test:rhel-8-amd64_gnu-14.1.0
    environment:
       name: testing
    script:
@@ -440,7 +441,7 @@ test:rhel-8-amd64_aocc-4.1.1:
      - alpha
      - /^dev.*$/
      - tags
-   dependencies:
+   needs:
      - build:rhel-8-amd64_aocc-4.1.1
    script:
       - set +e
@@ -489,7 +490,7 @@ test:rhel-8-amd64_nvhpc_23.7.0:
      - alpha
      - /^dev.*$/
      - tags
-   dependencies:
+   needs:
      - build:rhel-8-amd64_nvhpc_23.7.0
    script:
       - set +e
@@ -512,8 +513,8 @@ package:rhel-8-amd64_nvhpc_23.7.0:
       - /^dev.*$/
       - tags
       - schedules
-   dependencies:
-      - build:rhel-8-amd64_nvhpc_23.7.0
+   needs:
+      - test:rhel-8-amd64_nvhpc_23.7.0
    environment:
       name: testing
    script:
@@ -568,7 +569,7 @@ test:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - alpha
       - /^dev.*$/
       - tags
-   dependencies:
+   needs:
       - build:ubuntu-22.04-amd64_inteloneapi-2022.1.2
    script:
       - set +e
@@ -592,8 +593,8 @@ package:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - /^dev.*$/
       - tags
       - schedules
-   dependencies:
-      - build:ubuntu-22.04-amd64_inteloneapi-2022.1.2
+   needs:
+      - test:ubuntu-22.04-amd64_inteloneapi-2022.1.2
    environment:
       name: testing
    script:
@@ -643,7 +644,7 @@ test:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
       - alpha
       - /^dev.*$/
       - tags
-   dependencies:
+   needs:
       - build:ubuntu-22.04-amd64_inteloneapi-2023.2.0
    script:
       - set +e
@@ -667,8 +668,8 @@ package:ubuntu-22.04-amd64_inteloneapi-2023.2.0:
       - /^dev.*$/
       - tags
       - schedules
-   dependencies:
-      - build:ubuntu-22.04-amd64_inteloneapi-2023.2.0
+   needs:
+      - test:ubuntu-22.04-amd64_inteloneapi-2023.2.0
    environment:
       name: testing
    script:
@@ -718,7 +719,7 @@ test:ubuntu-22.04-amd64_gnu-11.4.0:
       - alpha
       - /^dev.*$/
       - tags
-   dependencies:
+   needs:
       - build:ubuntu-22.04-amd64_gnu-11.4.0
    script:
       - set +e
@@ -742,8 +743,8 @@ package:ubuntu-22.04-amd64_gnu-11.4.0:
       - /^dev.*$/
       - tags
       - schedules
-   dependencies:
-      - build:ubuntu-22.04-amd64_gnu-11.4.0
+   needs:
+      - test:ubuntu-22.04-amd64_gnu-11.4.0
    environment:
       name: testing
    script:
