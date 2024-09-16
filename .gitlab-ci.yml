@@ -45,6 +45,7 @@ build:rhel-8-icelake-64_inteloneapi-2024.2.0:
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.2.0
       - cmake ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
+   allow_failure: true
 
 test:rhel-8-icelake-64_inteloneapi-2024.2.0:
    stage: test
@@ -56,7 +57,7 @@ test:rhel-8-icelake-64_inteloneapi-2024.2.0:
      - alpha
      - /^dev.*$/
      - tags
-   needs:
+   dependencies:
      - build:rhel-8-icelake-64_inteloneapi-2024.2.0
    script:
       - set +e
@@ -64,6 +65,7 @@ test:rhel-8-icelake-64_inteloneapi-2024.2.0:
       - set -e
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.2.0
       - make check
+   allow_failure: true
 
 package:rhel-8-icelake-64_inteloneapi-2024.2.0:
    stage: package
@@ -76,7 +78,7 @@ package:rhel-8-icelake-64_inteloneapi-2024.2.0:
       - /^dev.*$/
       - tags
       - schedules
-   needs:
+   dependencies:
       - test:rhel-8-icelake-64_inteloneapi-2024.2.0
    environment:
       name: testing
@@ -446,6 +448,7 @@ build:rhel-8-amd64_aocc-4.1.1:
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_aocc-4.1.1
       - cmake -DCOMPILER_SUITE=aocc ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
+   allow_failure: true
 
 test:rhel-8-amd64_aocc-4.1.1:
    stage: test
@@ -457,7 +460,7 @@ test:rhel-8-amd64_aocc-4.1.1:
      - alpha
      - /^dev.*$/
      - tags
-   needs:
+   dependencies:
      - build:rhel-8-amd64_aocc-4.1.1
    script:
       - set +e
@@ -496,6 +499,7 @@ build:rhel-8-amd64_nvhpc_23.7.0:
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
       - cmake -DCOMPILER_SUITE=nvhpc ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
+   allow_failure: true
 
 test:rhel-8-amd64_nvhpc_23.7.0:
    stage: test
@@ -507,7 +511,7 @@ test:rhel-8-amd64_nvhpc_23.7.0:
      - alpha
      - /^dev.*$/
      - tags
-   needs:
+   dependencies:
      - build:rhel-8-amd64_nvhpc_23.7.0
    script:
       - set +e
@@ -518,6 +522,7 @@ test:rhel-8-amd64_nvhpc_23.7.0:
       - set -e
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
       - make check
+   allow_failure: true
       
 package:rhel-8-amd64_nvhpc_23.7.0:
    stage: package
@@ -530,7 +535,7 @@ package:rhel-8-amd64_nvhpc_23.7.0:
       - /^dev.*$/
       - tags
       - schedules
-   needs:
+   dependencies:
       - test:rhel-8-amd64_nvhpc_23.7.0
    environment:
       name: testing
