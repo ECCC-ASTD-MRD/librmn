@@ -45,7 +45,6 @@ build:rhel-8-icelake-64_inteloneapi-2024.2.0:
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.2.0
       - cmake ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
-   allow_failure: true
 
 test:rhel-8-icelake-64_inteloneapi-2024.2.0:
    stage: test
@@ -65,7 +64,6 @@ test:rhel-8-icelake-64_inteloneapi-2024.2.0:
       - set -e
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-icelake-64_inteloneapi-2024.2.0
       - make check
-   allow_failure: true
 
 package:rhel-8-icelake-64_inteloneapi-2024.2.0:
    stage: package
@@ -448,7 +446,6 @@ build:rhel-8-amd64_aocc-4.1.1:
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_aocc-4.1.1
       - cmake -DCOMPILER_SUITE=aocc ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
-   allow_failure: true
 
 test:rhel-8-amd64_aocc-4.1.1:
    stage: test
@@ -499,7 +496,6 @@ build:rhel-8-amd64_nvhpc_23.7.0:
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
       - cmake -DCOMPILER_SUITE=nvhpc ${SRC_DIR} -DBUILD_PYTHON=ON
       - time make -j $NCPUS
-   allow_failure: true
 
 test:rhel-8-amd64_nvhpc_23.7.0:
    stage: test
@@ -522,7 +518,6 @@ test:rhel-8-amd64_nvhpc_23.7.0:
       - set -e
       - cd ${PIPELINE_SUBDIR}/build_rhel-8-amd64_nvhpc_23.7.0
       - make check
-   allow_failure: true
       
 package:rhel-8-amd64_nvhpc_23.7.0:
    stage: package
