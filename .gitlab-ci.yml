@@ -16,6 +16,7 @@ before_script:
    - source ~/ci-admin/env/init.sh
    - export PIPELINE_SUBDIR=${ECCI_BUILD_DIR}/precaution/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}/${CI_PIPELINE_ID}
    - export CTEST_OUTPUT_ON_FAILURE=1
+   - export PYTHONFAULTHANDLER=1
 
 # ----- TODO : cleanup builds more than 7-day old
 # cleanup:u2:

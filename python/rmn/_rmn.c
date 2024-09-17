@@ -1,7 +1,7 @@
+#include <Python.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdio.h>
-#include <Python.h>
 #include <string.h>
 // Protect ourselves against using deprecated API functions from earlier versions
 #define NPY_NO_DEPRECATED_API NPY_1_9_API_VERSION
@@ -593,7 +593,6 @@ static PyObject *py_fst24_file_close(struct py_fst24_file *self, PyObject *Py_UN
 
 
 int init_fst_record_from_args_and_keywords(fst_record *rec, PyObject *args, PyObject *kwds){
-
     *rec = default_fst_record;
 
     static char *kwlist[] = {"dateo", "datev", "data_type", "data_bits", "pack_bits", // iiiii
@@ -612,6 +611,9 @@ int init_fst_record_from_args_and_keywords(fst_record *rec, PyObject *args, PyOb
     char *typvar = NULL;
     char *etiket = NULL;
     struct py_fst_record *py_record_arg = NULL;
+
+    printf("Before crash\n");
+    fflush(NULL);
     // PyArg_ParseTupleAndKeywords will set nomvar to point to the buffer of a
     // of some python object, which means it is tied to the lifetime of that
     // object.  Therefore we can't do what what we do with ip3.  Same for all
@@ -628,7 +630,8 @@ int init_fst_record_from_args_and_keywords(fst_record *rec, PyObject *args, PyOb
         Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): ERROR Parsing arguments", __func__);
         return 1;
     }
-
+    printf("After crash\n");
+    fflush(NULL);
     /*
      * Something seems inelegant about this.  If people use this function with
      * file.new_query(record=some_rec, ip1=8), the ip1=8 will have no effec and
@@ -660,7 +663,6 @@ int init_fst_record_from_args_and_keywords(fst_record *rec, PyObject *args, PyOb
         *rec = py_record_arg->rec;
         return 0;
     }
-
 
     if(typvar != NULL){
         strncpy(rec->typvar, typvar, sizeof(rec->typvar));
