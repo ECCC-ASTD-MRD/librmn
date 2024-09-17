@@ -9,7 +9,7 @@
    "x-build-commit": "@GIT_COMMIT@",
    "x-build-commit-timestamp": "@GIT_COMMIT_TIMESTAMP@",
    "x-build-platform": "@EC_PLAT@",
-   "x-build-user": @EC_USER@,
-   "x-build-host": @OS_HOSTNAME@,
+   "x-build-user": "@EC_USER@",
+   "x-build-host": "@OS_HOSTNAME@",
    "x-build-uname": f"('@OS_HOSTNAME@', '@OS_FQDN@', '@OS_RELEASE@', '@OS_VERSION@', '@OS_PLATFORM@')"
 }
