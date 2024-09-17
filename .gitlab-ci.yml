@@ -576,7 +576,7 @@ build:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
       - mkdir -pv ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_inteloneapi-2022.1.2
       - SRC_DIR=$(pwd)
       - cd ${PIPELINE_SUBDIR}/build_ubuntu-22.04-amd64_inteloneapi-2022.1.2
-      - cmake ${SRC_DIR} -DBUILD_PYTHON=ON
+      - cmake ${SRC_DIR}
       - time make -j $NCPUS
 
 test:ubuntu-22.04-amd64_inteloneapi-2022.1.2:
