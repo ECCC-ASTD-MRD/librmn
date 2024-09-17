@@ -11,5 +11,5 @@
    "x-build-platform": "@EC_PLAT@",
    "x-build-user": "@EC_USER@",
    "x-build-host": "@OS_HOSTNAME@",
-   "x-build-uname": f"('@OS_HOSTNAME@', '@OS_FQDN@', '@OS_RELEASE@', '@OS_VERSION@', '@OS_PLATFORM@')"
+   "x-build-uname": "('@OS_HOSTNAME@', '@OS_FQDN@', '@OS_RELEASE@', '@OS_VERSION@', '@OS_PLATFORM@')"
 }
