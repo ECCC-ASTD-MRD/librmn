@@ -1,5 +1,3 @@
-find_package(Python 3 REQUIRED COMPONENTS Development NumPy Interpreter)
-
 list( APPEND CMAKE_INSTALL_RPATH "\$ORIGIN/../.." )
 Python_add_library(_rmn MODULE _rmn.c indexing.c)
 
@@ -16,7 +14,8 @@ foreach(f IN LISTS python_files)
 endforeach()
 install(FILES ${python_files} DESTINATION lib/python/rmn)
 
-target_link_libraries(_rmn PRIVATE rmn::rmn Python::Module Python::NumPy)
+target_link_libraries(_rmn PRIVATE rmn::rmn Python::Module)
+target_link_libraries(_rmn PUBLIC Python::NumPy)
 
 install(TARGETS _rmn LIBRARY DESTINATION lib/python/rmn)
 
@@ -27,12 +26,12 @@ add_custom_target(test_py
     # which is helpful for printf debugging
     COMMAND bash -c "PYTHONPATH=${CMAKE_BINARY_DIR}/python ${Python_EXECUTABLE} -u test_rmn.py"
 )
-add_dependencies(test_py _rmn)
+add_dependencies(test_py _rmn Python::NumPy)
 
 configure_file(setup.in.sh setup.sh @ONLY)
 
-add_executable(test_indexing_ori indexing_ori.c test_indexing.c)
-target_link_libraries(test_indexing_ori PRIVATE rmn::rmn-shared pthread)
+# add_executable(test_indexing_ori indexing_ori.c test_indexing.c)
+# target_link_libraries(test_indexing_ori PRIVATE rmn::rmn-shared pthread)
 
-add_executable(test_indexing indexing.c test_indexing.c)
-target_link_libraries(test_indexing PRIVATE rmn::rmn-ompi-shared OpenMP::OpenMP_C OpenMP::OpenMP_Fortran)
+# add_executable(test_indexing indexing.c test_indexing.c)
+# target_link_libraries(test_indexing PRIVATE rmn::rmn-ompi-shared OpenMP::OpenMP_C OpenMP::OpenMP_Fortran)

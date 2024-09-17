@@ -389,6 +389,7 @@ install(
 add_subdirectory(utils)
 if(BUILD_PYTHON)
     message(STATUS "(EC) Python interface will be built")
+    find_package(Python 3 REQUIRED COMPONENTS Development NumPy Interpreter)
     add_subdirectory(python/rmn)
 else()
     message(STATUS "(EC) Python interface will NOT be built")
