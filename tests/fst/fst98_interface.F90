@@ -25,7 +25,8 @@ subroutine test_fst98_interface(is_rsf)
 
     integer, parameter :: DATE = 0, TIMESTEP_SIZE = 0, TIMESTEP_NUM = 0
     integer, parameter :: DATATYPE = 4 ! 4 = integer
-    integer, parameter :: REWRITE = 0
+    integer, parameter :: REWRITE_i = 0
+    logical, parameter :: REWRITE_l = .false.
 
     integer :: old_num_records, new_num_records, expected_num_records, num_records
     integer :: record_key
@@ -70,16 +71,26 @@ subroutine test_fst98_interface(is_rsf)
     new_num_records = old_num_records + 6
 
     ! --- fstecr ---
-    do j = 1, 2
-        do i = 1, 3
-            status = fstecr_fn(data_array(:, i), work_array, -32, iun, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,     &
-                                    NUM_DATA, 1, 1,                                                            &
-                                    i, j, 0,                                                                   &
-                                    'XX', 'YYYY', 'ETIKET', 'X',                                               &
-                                    0, 0, 0, 0,                                                                &
-                                    DATATYPE,  REWRITE)
-            call check_status(status, expected = 0, fail_message = 'ecr')
-        end do
+    j = 1
+    do i = 1, 3
+        status = fstecr(data_array(:, i), work_array, -32, iun, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,         &
+                                NUM_DATA, 1, 1,                                                            &
+                                i, j, 0,                                                                   &
+                                'XX', 'YYYY', 'ETIKET', 'X',                                               &
+                                0, 0, 0, 0,                                                                &
+                                DATATYPE,  REWRITE_i)
+        call check_status(status, expected = 0, fail_message = 'ecr')
+    end do
+
+    j = 2
+    do i = 1, 3
+        status = fstecr(data_array(:, i), work_array, -32, iun, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,         &
+                                NUM_DATA, 1, 1,                                                            &
+                                i, j, 0,                                                                   &
+                                'XX', 'YYYY', 'ETIKET', 'X',                                               &
+                                0, 0, 0, 0,                                                                &
+                                DATATYPE,  REWRITE_l)
+        call check_status(status, expected = 0, fail_message = 'ecr')
     end do
 
     ! ----- fstnbr -----

@@ -650,12 +650,22 @@ contains
 !  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
 !  *                                                                           * 
 !  *****************************************************************************/
-  module procedure fstecr
+  module procedure fstecr_i
     implicit none
     status = fstecr_fn(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                 ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
                 ig1, ig2, ig3, ig4, datyp, rewrite)
-  end procedure
+  end procedure fstecr_i
+
+  module procedure fstecr_l
+    implicit none
+    integer :: rewrite_i
+    rewrite_i = FST_NO
+    if (rewrite) rewrite_i = FST_YES
+    status = fstecr_i(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+              ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
+              ig1, ig2, ig3, ig4, datyp, rewrite_i)
+  end procedure fstecr_l
 
   module procedure fstecr_fn
     implicit none
