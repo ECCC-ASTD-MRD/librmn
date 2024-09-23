@@ -692,12 +692,14 @@ static int64_t RSF_Write_vdir(RSF_File * const fp){
     disk_vdir * const vdir = (disk_vdir *) p;
     end_of_record * const eorp = (end_of_record *) (p + dir_rec_size - sizeof(end_of_record));  // point to eor at end of record
 
+    vdir->sor = (start_of_record)SOR;                 // Initialize to default (to avoid uninitialized memory)
     vdir->sor.rt = RT_VDIR;                           // adjust start of record
     vdir->sor.rlm = 1;                                // indicates variable length metadata
     RSF_64_to_32(vdir->sor.rl, dir_rec_size);         // record length
     vdir->sor.zr = ZR_SOR;                            // SOR marker
     vdir->entries = fp->vdir_used - fp->dir_read;     // number of directory entries in record
 
+    *eorp = (end_of_record)EOR;                       // Initialize to default (to avoid uninitialized memory)
     eorp->rt = RT_VDIR;                               // adjust end or record
     eorp->rlm = 1;                                    // indicates variable length metadata
     RSF_64_to_32(eorp->rl, dir_rec_size);             // record length
