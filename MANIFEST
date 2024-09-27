@@ -1,7 +1,6 @@
 NAME       : rmn
-VERSION    : 
-BUILD      : 
-STATE      : 
+VERSION    :
+BUILD      :
 DESCRIPTION: ECCC-MRD Collection of routines for numerical weather prediction 
 SUMMARY    : Library of numerical weather prediction functions
 MAINTAINER : Samuel Gilbert - Samuel.Gilbert@ec.gc.ca

@@ -14,8 +14,8 @@ if (NOT CMAKE_MODULE_PATH)
 endif()
 
 include(ec_init)           # Initialise compilers and ec specific functions
-ec_git_version()           # Get version from git state
 ec_parse_manifest()        # Parse MANIFEST file
+ec_git_version()           # Get version from git state
 
 project(${NAME} DESCRIPTION "${DESCRIPTION}" LANGUAGES C Fortran)
 set(PROJECT_VERSION ${VERSION}${STATE})
