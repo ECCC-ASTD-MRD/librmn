@@ -409,34 +409,46 @@ json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char 
    }
 
    if (StandardName) {
-      json_pointer_get(Obj,"/standard_name",&objval);
-      json_object_set_string(objval,StandardName);
+      if (!json_pointer_get(Obj,"/standard_name",&objval)) {
+         json_object_set_string(objval,StandardName);
+      } else {
+         json_object_object_add(Obj,"standard_name",json_object_new_string(StandardName));
+      }
    }
    if (RPNName) {
-      json_pointer_get(Obj,"/rpn_name",&objval);
-      json_object_set_string(objval,RPNName);
+      if (!json_pointer_get(Obj,"/rpn_name",&objval)) {
+         json_object_set_string(objval,RPNName);
+      } else {
+         json_object_object_add(Obj,"rpn_name",json_object_new_string(RPNName));
+      }
    }
    if (LongName) {
-      json_pointer_get(Obj,"/long_name",&objval);
-      json_object_set_string(objval,LongName);
+      if (!json_pointer_get(Obj,"/long_name",&objval)) {
+         json_object_set_string(objval,LongName);
+      } else {
+         json_object_object_add(Obj,"long_name",json_object_new_string(LongName));
+      }
    }
    if (Description) {
-      json_pointer_get(Obj,"/description",&objval);
-      json_object_set_string(objval,Description);
+      if (!json_pointer_get(Obj,"/description",&objval)) {
+         json_object_set_string(objval,Description);
+      } else {
+         json_object_object_add(Obj,"description",json_object_new_string(Description));
+      }
    }
 
    if (Unit) {
-      json_pointer_get(Obj,"/unit",&objval);
 #ifdef HAVE_UDUNITS2
-      if (MetaValidate && !(unit=ut_get_unit_by_name(MetaProfileUnit,Unit))) {
-         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Specified unit not defined in udunits: %s",__func__,Unit);
-         return(NULL);
-      } else {
-         json_object_set_string(objval,Unit);
-      }
-#else
-      json_object_set_string(objval,Unit);
+         if (MetaValidate && !(unit=ut_get_unit_by_name(MetaProfileUnit,Unit))) {
+            Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Specified unit not defined in udunits: %s",__func__,Unit);
+            return(NULL);
+         }
 #endif
+      if (!json_pointer_get(Obj,"/unit",&objval)) {
+         json_object_set_string(objval,Unit);
+      } else {
+         json_object_object_add(Obj,"unit",json_object_new_string(Unit));
+      }
    }
 
    return(Obj);
@@ -588,21 +600,34 @@ json_object *Meta_DefForecastTime(json_object *Obj,time_t TS,int32_t Step,double
    if (!Obj) {
       return(NULL);
    }
-
+ 
    if (TS>0) {  
       ts=Meta_Stamp2Seconds(TS); 
       gmtime_r(&ts,&t0);
       strftime(timestr,32,"%FT%TZ",&t0);
-      json_pointer_get(Obj,"/forecast_reference_datetime",&objval);
-      json_object_set_string(objval,timestr);
+      if (!json_pointer_get(Obj,"/forecast_reference_datetime",&objval)) {
+         json_object_set_string(objval,timestr);
+      } else {
+         json_object_object_add(Obj,"forecast_reference_datetime",json_object_new_string(timestr));
+      }
+   }
+
+   if (json_pointer_get(Obj,"/forecast_period",&obj)) {
+      json_object_object_add(Obj,"forecast_period",obj=json_object_new_object());
    }
    if (Step>0) {   
-      json_pointer_get(Obj,"/forecast_period/step",&objval);
-      json_object_set_int(objval,Step);
+      if (!json_pointer_get(obj,"/step",&objval)) {
+         json_object_set_int(objval,Step);
+      } else {
+         json_object_object_add(obj,"step",json_object_new_int(Step));
+      }
    }
    if (Duration>0) {   
-      json_pointer_get(Obj,"/forecast_period/value",&objval);
-      json_object_set_double(objval,Duration);
+      if (!json_pointer_get(obj,"/value",&objval)) {
+         json_object_set_double(objval,Duration);
+      } else {
+         json_object_object_add(obj,"value",json_object_new_double(Duration));
+      }
    }
 
    if (Unit) {
@@ -632,10 +657,11 @@ json_object *Meta_DefForecastTime(json_object *Obj,time_t TS,int32_t Step,double
          return(NULL);
       }
 
-      json_pointer_get(Obj,"/forecast_period/unit",&objval);
-      json_object_set_string(objval,Unit);
-      
-      json_pointer_get(Obj,"/forecast_datetime",&objval);
+      if (!json_pointer_get(obj,"unit",&objval)) {
+         json_object_set_string(objval,Unit);
+      } else {
+         json_object_object_add(obj,"unit",json_object_new_string(Unit));
+      }
 
       ts=timegm(&t0);
       strftime(timestr,32,"%FT%T",&t0);
@@ -644,7 +670,11 @@ json_object *Meta_DefForecastTime(json_object *Obj,time_t TS,int32_t Step,double
       } else {
          snprintf(timemil,32,"%sZ",timestr);
       }
-      json_object_set_string(objval,timemil);
+      if (!json_pointer_get(Obj,"/forecast_datetime",&objval)) {
+         json_object_set_string(objval,timemil);
+      } else {
+         json_object_object_add(Obj,"forecast_datetime",json_object_new_string(timemil));
+      }
    }
    return(Obj);
 }
@@ -844,9 +874,10 @@ json_object *Meta_DefVerticalRef(json_object *Obj,char* Identifier,double *Value
       return(NULL);
    }
 
-   if (json_pointer_get(Obj,"/vertical_level",&obj)!=0) {
-      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find object: %s\n",__func__,"/vertical_level");
-      return(NULL);
+   if (json_pointer_get(Obj,"/vertical_level",&obj)) {
+      json_object_object_add(Obj,"vertical_level",obj=json_object_new_object());
+      json_object_object_add(obj,"vertical_reference",Copy?json_object_new_object():json_object_new_string(""));
+      json_object_object_add(obj,"value",json_object_new_array());
    }
 
    // Do we copy the reference or just define the Identifier
@@ -863,6 +894,7 @@ json_object *Meta_DefVerticalRef(json_object *Obj,char* Identifier,double *Value
       json_object_set_string(objval,Identifier);
    }
    json_pointer_get(obj,"/value",&objval);
+   json_object_array_del_idx(objval,0,json_object_array_length(objval));
    for(l=0;l<Nb;l++){
        json_object_array_add(objval,json_object_new_double(Value[l]));
    }
@@ -965,8 +997,11 @@ json_object *Meta_DefHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
 
       json_object_object_add(Obj,"horizontal_reference",objref);
    } else {
-      json_pointer_get(Obj,"/horizontal_reference",&objval);
-      json_object_set_string(objval,Identifier);
+      if (!json_pointer_get(Obj,"/horizontal_reference",&objval)) {
+         json_object_set_string(objval,Identifier);
+      } else {
+         json_object_object_add(Obj,"horizontal_reference",json_object_new_string(Identifier));
+      }
    }
    return(Obj);
 }
@@ -1027,11 +1062,10 @@ json_object *Meta_AddCellMethod(json_object *Obj,char *Method) {
       }
    }
 
-   json_pointer_get(Obj,"/cell_methods",&objval);
-   if (!objval) {
-      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Undefined objet array: cell_methods\n",__func__);
-      return(NULL);
+   if (json_pointer_get(Obj,"/cell_methods",&objval)) {
+      json_object_object_add(Obj,"cell_methods",objval=json_object_new_array());
    }
+
    json_object_array_add(objval,json_object_new_string(Method));
   
    return(Obj);
@@ -1124,10 +1158,8 @@ json_object *Meta_AddQualifier(json_object *Obj,char *Qualifier) {
       return(NULL);
    }
 
-   json_pointer_get(Obj,"/qualifiers",&objval);
-   if (!objval) {
-      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Undefined objet array: qualifiers\n",__func__);
-      return(NULL);
+   if (json_pointer_get(Obj,"/qualifiers",&objval)) {
+      json_object_object_add(Obj,"qualifiers",objval=json_object_new_array());
    }
    json_object_array_add(objval,json_object_new_string(Qualifier));
   
@@ -1319,8 +1351,20 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
       return(NULL);
    }
   
-   json_pointer_get(Obj,"/data",&obj);
-   if (obj) {
+   if (json_pointer_get(Obj,"/data",&obj)) {
+      json_object_object_add(Obj,"data",obj=json_object_new_object());
+      json_object_object_add(obj,"type",json_object_new_string(Type));
+      json_object_object_add(obj,"compression",json_object_new_string(Compression));
+      json_object_object_add(obj,"pack",json_object_new_int(Pack));
+      json_object_object_add(obj,"bits",json_object_new_int(Bit));
+      json_object_object_add(obj,"size",objval=json_object_new_array());
+      json_object_array_add(objval,json_object_new_int(NI));
+      json_object_array_add(objval,json_object_new_int(NJ));
+      json_object_array_add(objval,json_object_new_int(NK));
+      json_object_object_add(obj,"bounds",objval=json_object_new_object());
+      json_object_object_add(objval,"min",json_object_new_double(Min));
+      json_object_object_add(objval,"max",json_object_new_double(Max));
+   } else {
       json_pointer_get(obj,"/type",&objval);
       json_object_set_string(objval,Type);
       json_pointer_get(obj,"/compression",&objval);
@@ -1332,6 +1376,7 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
 
       json_object_object_add(Obj,"size",json_object_new_array());
       json_pointer_get(Obj,"/size",&objval);
+
       json_object_array_add(objval,json_object_new_int(NI));
       json_object_array_add(objval,json_object_new_int(NJ));
       json_object_array_add(objval,json_object_new_int(NK));
@@ -1688,6 +1733,8 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
                         regfree(&re);
                         return(FALSE);
                      }
+                  } else {
+                     return(FALSE);
                   }
                }
             }
@@ -1904,9 +1951,9 @@ time_t Meta_DateTime2Seconds(int YYYY,int MM,int DD,int hh,int mm,int ss,int GMT
 json_object* Meta_DefFromTypVar(json_object *Obj,const char* TypVar)	{
 
    switch(TypVar[0]) {
-         case 'C': Meta_AddQualifier(Obj,"climatology");                                                
+         case 'C': Meta_AddQualifier(Obj,"climatology"); break;                                                
          case 'D': Meta_AddQualifier(Obj,"station"); break;  //   Données brutes aux stations                                
-         case 'A': Meta_AddQualifier(Obj,"analysis");                                                   
+         case 'A': Meta_AddQualifier(Obj,"analysis"); break;                                                 
          case 'E': Meta_AddQualifier(Obj,"error"); break;  //    Erreur mensuelle                                            
          case 'K': Meta_AddQualifier(Obj,"constant"); break;   // Constantes variées                                         
          case 'M': Meta_AddQualifier(Obj,"verification"); break;  //    Matrice de vérification (table contingente)                

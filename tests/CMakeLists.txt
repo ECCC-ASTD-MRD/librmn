@@ -139,6 +139,12 @@ if (EC_INIT_DONE LESS 2)
         add_dependencies(check fst24_meta_f90)
         set_property(TEST fst24_meta_f90 PROPERTY ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
 
+        add_executable(fst24_meta_find fst/fst24_meta_find.c)
+        target_link_libraries(fst24_meta_find rmn::rmn)
+        add_test(NAME fst24_meta_find COMMAND $<TARGET_FILE:fst24_meta_find>)
+        add_dependencies(check fst24_meta_find)
+        set_property(TEST fst24_meta_find PROPERTY ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
+
         if (TARGET rmn::rmn-ompi)
             add_executable(fst_parallel_write fst/fst_parallel_write.c)
             target_link_libraries(fst_parallel_write rmn::rmn-ompi)
