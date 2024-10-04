@@ -82,7 +82,7 @@
             {                                                            \
              while ( i-- )                                               \
               {                                                          \
-               *arrayPtr = *arrayOfUnpacked + positiveMask;              \
+               *arrayPtr = (uint32_t)*arrayOfUnpacked + (uint32_t)positiveMask; \
                arrayPtr++;                                               \
                arrayOfUnpacked+=stride;                                  \
               };                                                         \
@@ -250,7 +250,7 @@
     bitPackInFirstWord =  wordSize - ( firstPackBit % wordSize );                         \
     currentSlot = ( firstPackBit / wordSize );                                            \
     currentWord = arrayOfPacked[currentSlot] << ( wordSize - bitPackInFirstWord );        \
-    positiveMask = -positiveMask;                                                         \
+    positiveMask = (positiveMask == 0x80000000) ? positiveMask : -positiveMask;           \
                                                                                           \
     if ( tokenSize > wordSize )                                                           \
       {                                                                                   \
@@ -356,7 +356,6 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     int bitRequiredForRange, shiftRequired = 0;
 
 
-
     /****************************************
      *                                      *
      *     variables used by the packer     *
@@ -385,16 +384,12 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
      *   handle abnormal condition  *
      *                              *
      ********************************/
-    /* token size is 0 */
-    if ( bitSizeOfPackedToken == 0 )
-      {
+    if (bitSizeOfPackedToken != 8 && bitSizeOfPackedToken != 16 && bitSizeOfPackedToken != 32) {
+        Lib_Log(APP_LIBRMN, APP_ERROR,
+                "%s: Can only (un)compact integers with size 8, 16 or 32 bits (bitSizeOfPackedToken = %d)\n",
+                __func__, bitSizeOfPackedToken);
         return 0;
-      };
-
-
-
-
-
+    }
 
     /********************************************************
      *                                                      *
