@@ -29,9 +29,12 @@ typedef struct {
    json_object *CellMethods;        ///< 
    json_object *CellProcesses;      ///< 
    json_object *Reasons;            ///< 
+
+   json_object *BaseDef;            ///< Pointer to the base definitions object so that it can be released at the end
 } TMetaProfile;
 
-static TMetaProfile MetaProfiles[64];
+#define MAX_PROFILES 64
+static TMetaProfile MetaProfiles[MAX_PROFILES];
 static int MetaProfileNb;
 
 static char *MetaVersion=NULL;       ///< Metadata version
@@ -220,6 +223,12 @@ int32_t Meta_LoadProfile(char *Version) {
       return(FALSE);
    }
 
+   if (MetaProfileNb >= MAX_PROFILES) {
+      Lib_Log(APP_LIBMETA, APP_ERROR, "%s: We have reached the maximum number of loaded profiles, can't load a new one.\n",
+              __func__);
+      return(FALSE);
+   }
+
    for(i=0;i<2;i++) {
 
       if (!MetaPaths[i]) {
@@ -286,6 +295,8 @@ int32_t Meta_LoadProfile(char *Version) {
       json_pointer_get(obja,"/cell_methods",&prof->CellMethods);
       json_pointer_get(obja,"/cell_processes",&prof->CellProcesses);
       json_pointer_get(obja,"/reasons",&prof->Reasons);
+
+      prof->BaseDef = obja;
    
       prof->Version=strdup(Version);
       MetaProfileNb++;
@@ -1808,6 +1819,9 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
                return(FALSE);
             }
             break;
+
+         case json_type_null:
+            break;
       }
    }
    return(TRUE);
@@ -2234,14 +2248,16 @@ int Meta_ReadFile(fst_file *file,json_object **Obj) {
    fst_query* query = fst24_new_query(file, &rec, NULL);
    if (fst24_find_next(query,&rec)) {
       fst24_read_metadata(&rec);
-      *Obj=rec.metadata;
+      *Obj=json_object_get(rec.metadata);
    } else {
       Lib_Log(APP_LIBMETA,APP_ERROR,"Unable to find file metadata record\n",__func__);
       fst24_query_free(query);
+      fst24_record_free(&rec);
       return(FALSE);
    }
 
    fst24_query_free(query);
+   fst24_record_free(&rec);
    return(TRUE);
 }
 

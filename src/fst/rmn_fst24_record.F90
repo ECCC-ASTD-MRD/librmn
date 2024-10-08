@@ -203,7 +203,14 @@ contains
         implicit none
         class(fst_record), intent(inout) :: this
 
-        this % c_self % data     = this % data
+        integer :: status
+
+        this % c_self % data = this % data
+
+        ! Free old c_self metadata before overwriting
+        if (.not. c_associated(this % c_self % metadata, this % metadata % json_obj)) then
+            status = meta_free(this % c_self % metadata)
+        end if
         this % c_self % metadata = this % metadata % json_obj
 
         this % c_self % file_index = this % file_index

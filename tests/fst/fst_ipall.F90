@@ -134,6 +134,10 @@ subroutine create_files(is_rsf)
     success = files(2) % open(filenames(2), '')
     success = files(1) % open(filenames(1), '') .and. success
     if (.not. success) error stop 1
+
+    success = files(1) % close()
+    success = files(2) % close() .and. success
+    if (.not. success) error stop 1
 end subroutine create_files
 
 subroutine look_fst98()
@@ -416,6 +420,7 @@ subroutine look_fst24()
     end if
 
     call query % free()
+    call record % free()
 
     success = file1 % close()
     success = file2 % close() .and. success

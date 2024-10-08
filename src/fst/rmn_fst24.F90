@@ -539,16 +539,25 @@ contains
         logical :: success
 
         type(C_PTR), dimension(size(files)), target :: c_files
-        integer(C_INT32_T) :: num_files
+        integer(C_INT32_T) :: num_files, max_num_files
         integer(C_INT32_T) :: c_status
         integer :: i
 
         success = .false.
 
-        num_files = size(files)
-        do i = 1, num_files
-            c_files(i) = files(i) % file_ptr
+        max_num_files = size(files)
+        num_files = 0
+        do i = 1, max_num_files
+            if (files(i) % is_open()) then
+                num_files = num_files + 1
+                c_files(num_files) = files(i) % file_ptr
+            end if
         end do
+
+        if (num_files == 0) then
+            call Lib_Log(APP_LIBFST, APP_ERROR, 'Not enough open files to be able to link')
+            return
+        end if
 
         c_status = fst24_link_c(c_loc(c_files(1)), num_files)
         if (c_status > 0) success = .true.
@@ -626,7 +635,7 @@ contains
     subroutine fst_query_free(this)
         implicit none
         class(fst_query), intent(inout) :: this
-        if (this % is_valid()) then
+        if (c_associated(this % query_ptr)) then
             call fst24_query_free(this % query_ptr)
             this % query_ptr = c_null_ptr
         end if

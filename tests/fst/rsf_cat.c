@@ -97,6 +97,10 @@ int main(void) {
             App_Log(APP_ERROR, "Not the correct record!\n");
             return -1;
         }
+
+        fst24_query_free(q);
+        fst24_record_free(&read_rec);
+        fst24_close(f);
     }
 
     return 0;

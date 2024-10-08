@@ -179,24 +179,27 @@ int32_t fst24_close(fst_file* const file) {
     return TRUE;
 }
 
+//! Open a list of files and link them together
+//! \return The first file in the linked list
 fst_file* fst24_open_link(
    const char** const filePaths,  //!< List of file path to open
-   int32_t            fileNb      //!< Number of files in list
+   const int32_t      fileNb      //!< Number of files in list
 ) {
-   fst_file **files;
-   int n=0,nerr=0;
+   fst_file** files = (fst_file**)calloc(fileNb, sizeof(fst_file*));
 
-   files=(fst_file**)calloc(fileNb,sizeof(fst_file*));
-
-   for(n=0;n<fileNb;n++) {
-       if (!(files[n-nerr]=fst24_open(filePaths[n],"RND+R/O"))) {
-          Lib_Log(APP_LIBFST,APP_ERROR, "%s: Unable to link file (%s)\n",__func__,filePaths[n]);
+   int n = 0;
+   int nerr = 0;
+   for(n = 0; n < fileNb; n++) {
+       if ((files[n-nerr] = fst24_open(filePaths[n],"RND+R/O")) == NULL) {
+          Lib_Log(APP_LIBFST,APP_ERROR, "%s: Unable to open file (%s)\n", __func__, filePaths[n]);
           nerr++;
        }
    }
 
-   n=fst24_link(files,fileNb-nerr);
-   return(files[0]);
+   n = fst24_link(files, fileNb - nerr);
+   fst_file* first = files[0];
+   free(files);
+   return(first);
 }
 
 int32_t fst24_close_unlink(
@@ -209,11 +212,11 @@ int32_t fst24_close_unlink(
       return FALSE;
    }
 
-   current=file; 
-   while (current->next) {
-      tmp=current;
-      current=current->next;
-      tmp->next=NULL; 
+   current = file; 
+   while (current != NULL) {
+      tmp = current;
+      current = current->next;
+      tmp->next = NULL; 
       fst24_close(tmp);
    }
 
@@ -321,6 +324,8 @@ int32_t fst24_print_summary(
         num_records++;
         total_data_size += fst24_record_data_size(&rec);
     }
+
+    fst24_query_free(query);
 
     Lib_Log(APP_LIBFST, APP_VERBATIM,
             "\n%d records in RPN standard file(s). Total data size %ld bytes (%.1f MB).\n",
@@ -1080,11 +1085,12 @@ int32_t fst24_write(
 
     if (rewrite == FST_SKIP) {
         fst_query* q = fst24_new_query(file, &crit, &rewrite_options);
-        if (fst24_find_next(q,NULL)) {
+        const int32_t found = fst24_find_next(q,NULL);
+        fst24_query_free(q);
+        if (found) {
             Lib_Log(APP_LIBFST, APP_INFO, "%s: Skipping already existing record\n", __func__);
             return(TRUE);
         }
-        fst24_query_free(q);
     } 
 
     if (file->type == FST_RSF) {
@@ -1098,7 +1104,7 @@ int32_t fst24_write(
     }
     else {
         if (record->metadata != NULL) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Trying to write a record that contains extra metadata in an XDF file."
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Trying to write a record that contains extended metadata in an XDF file."
                     " This is not supported, we will ignore that metadata. (file %s)\n", __func__, file->path);
         }
 
@@ -1551,6 +1557,8 @@ int32_t fst24_find_next(
         if (record != NULL) fst_record_copy_info(record, &tmp_record);
         query->search_index = key;
 
+        fst24_record_free(&tmp_record);
+
         return TRUE;
     }
 
@@ -1884,7 +1892,8 @@ int32_t fst24_read_record_rsf(
     fill_with_search_meta(record_fst, (search_metadata*)record_rsf->meta, FST_RSF);
     record_fst->do_not_touch.stored_data_size = (record_rsf->data_size + 3) / 4;
 
-    // Extract metadata from record if present
+    // Extract metadata from record if present. Free existing metadata if needed
+    Meta_Free(record_fst->metadata);
     record_fst->metadata = NULL;
     if (record_fst->do_not_touch.extended_meta_size > 0) {
         // Located after the search keys
@@ -2211,7 +2220,9 @@ void fst24_query_free(fst_query* const query) {
         query->next = NULL;
 
         if (query->file != NULL) {
-            query->file = NULL; // Make the query invalid, in case someone tries to use the pointer after this
+            // Make the query invalid, in case someone tries to use the pointer after this. This would be undefined
+            // behavior in any case...
+            query->file = NULL;
             free(query);
         }
     }

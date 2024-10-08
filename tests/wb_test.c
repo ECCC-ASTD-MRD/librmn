@@ -36,7 +36,7 @@
 
 //! Dummy callback function for c_wb_check
 static int Action1(wb_line *line, void *blinddata) {
-    fprintf(stderr, "Action1 has been called, key=%s\n", &(line->meta.name.carr));
+    fprintf(stderr, "Action1 has been called, key=%*s\n", WB_MAXNAMELENGTH, line->meta.name.carr);
     return 0;
 }
 

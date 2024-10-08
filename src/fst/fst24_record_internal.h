@@ -11,19 +11,7 @@ void make_search_criteria(const fst_record* record, fst_query* const query);
 void fill_with_search_meta(fst_record* record, const search_metadata* meta, const fst_file_type type);
 void print_non_wildcards(const fst_record* const record);
 void print_search_meta(const search_metadata* const meta, const fst_file_type type);
-
-//! Copy record information (including metadata *pointer*) into destination, while preserving
-//! the data pointer and the allocation flag and status;
-//! Does not free any memory!
-static inline void fst_record_copy_info(fst_record* const dest, const fst_record* const src) {
-    const int64_t flags = dest->do_not_touch.flags;
-    const int64_t alloc = dest->do_not_touch.alloc;
-    void* const data  = dest->data;
-    *dest = *src;
-    dest->do_not_touch.flags = flags;
-    dest->do_not_touch.alloc = alloc;
-    dest->data  = data;
-}
+void fst_record_copy_info(fst_record* const dest, const fst_record* const src);
 
 //! Set most members of the given fst_record struct to their default value, while preserving
 //! the data pointer and the allocation flag and status;

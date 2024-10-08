@@ -332,6 +332,14 @@ subroutine run_test(is_rsf)
         call record1 % print_short()
         error stop 1
     end if
+
+    call rec % free()
+
+    success = test_file % close()
+    if (.not. success) then
+        call App_Log(APP_ERROR, 'Error while closing file')
+        error stop 1
+    end if
 end subroutine run_test
 
 end module fst24_search_params_module

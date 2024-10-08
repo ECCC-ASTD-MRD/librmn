@@ -346,6 +346,8 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
+    fst24_query_free(query);
+
     //////////////////
     // is_same
     {
@@ -511,6 +513,7 @@ int test_fst24_interface(const int is_rsf) {
         }
 
         fst24_record_free(&result);
+        fst24_record_free(&result2);
     }
 
     if (!fst24_unlink(test_file)) {
@@ -523,46 +526,55 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    App_Log(APP_INFO, "A few calls that should fail\n");
-    if (fst24_read_record(&record) > 0) {
-        App_Log(APP_ERROR, "Should not be able to read record data when file is closed\n");
-        return -1;
-    }
+    // App_Log(APP_INFO, "A few calls that should fail\n");
 
-    if (fst24_link(file_list, 3)) {
-        App_Log(APP_ERROR, "Should not be able to link closed files\n");
-        return -1;
-    }
+    // Should not try to access a file (through a found record) after closing
+    // if (fst24_read_record(&record) > 0) {
+    //     App_Log(APP_ERROR, "Should not be able to read record data when file is closed\n");
+    //     return -1;
+    // }
 
-    if (fst24_unlink(test_file)) {
-        App_Log(APP_ERROR, "Should not be able to unlink closed file\n");
-        return -1;
-    }
+    // Should not try to manipulate files after closing
+    // if (fst24_link(file_list, 3)) {
+    //     App_Log(APP_ERROR, "Should not be able to link closed files\n");
+    //     return -1;
+    // }
 
-    if (fst24_find_next(query, &record) > 0) {
-        App_Log(APP_ERROR, "Should not be able to search a closed file\n");
-        return -1;
-    }
+    // Should not try to manipulate files after closing
+    // if (fst24_unlink(test_file)) {
+    //     App_Log(APP_ERROR, "Should not be able to unlink closed file\n");
+    //     return -1;
+    // }
 
-    if (fst24_read_next(query, &record) > 0) {
-        App_Log(APP_ERROR, "Should not be able to search a closed file\n");
-        return -1;
-    }
+    // Should not try to access a file (through a query) after closing
+    // if (fst24_find_next(query, &record) > 0) {
+    //     App_Log(APP_ERROR, "Should not be able to search a closed file\n");
+    //     return -1;
+    // }
 
-    if (fst24_new_query(test_file, &record, NULL) != NULL) {
-        App_Log(APP_ERROR, "Should not be able to set search criteria on a closed file\n");
-        return -1;
-    }
+    // Should not try to access a file (through a query) after closing
+    // if (fst24_read_next(query, &record) > 0) {
+    //     App_Log(APP_ERROR, "Should not be able to search a closed file\n");
+    //     return -1;
+    // }
 
-    if (fst24_close(test_file) == 0) {
-        App_Log(APP_ERROR, "Should not be able to close closed file\n");
-        return -1;
-    }
+    // Should not try to access files after closing
+    // if (fst24_new_query(test_file, &record, NULL) != NULL) {
+    //     App_Log(APP_ERROR, "Should not be able to set search criteria on a closed file\n");
+    //     return -1;
+    // }
 
-    if (fst24_get_num_records(test_file) > 0) {
-        App_Log(APP_ERROR, "Should not be able to get num records of closed file\n");
-        return -1;
-    }
+    // Should not try to manipulate files after closing
+    // if (fst24_close(test_file) == 0) {
+    //     App_Log(APP_ERROR, "Should not be able to close closed file\n");
+    //     return -1;
+    // }
+
+    // Should not try to access a file  after closing
+    // if (fst24_get_num_records(test_file) > 0) {
+    //     App_Log(APP_ERROR, "Should not be able to get num records of closed file\n");
+    //     return -1;
+    // }
 
     fst24_record_free(&record);
     fst24_query_free(query);

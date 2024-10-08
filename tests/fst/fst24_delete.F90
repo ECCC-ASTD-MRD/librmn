@@ -120,6 +120,7 @@ contains
 
         call file % print_summary()
 
+        call query % free()
         success = file % close()
         if (.not. success) error stop 1
 

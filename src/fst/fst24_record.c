@@ -82,13 +82,15 @@ int32_t fst24_record_free(
     fst_record* record      //!< [in] record pointer
 ) {
 
-   if ((record->data != NULL) && (record->do_not_touch.alloc > 0)) {
-      record->do_not_touch.alloc = 0;
-      if (!(record->do_not_touch.flags & FST_REC_ASSIGNED))
-         free(record->data);
-      record->data = NULL; 
-   }
-   return(TRUE);
+    if ((record->data != NULL) && (record->do_not_touch.alloc > 0)) {
+        record->do_not_touch.alloc = 0;
+        if (!(record->do_not_touch.flags & FST_REC_ASSIGNED))
+            free(record->data);
+        record->data = NULL; 
+    }
+    Meta_Free(record->metadata);
+    record->metadata = NULL;
+    return(TRUE);
 }
 
 //! Print all members of the given record struct
@@ -994,4 +996,19 @@ void print_search_meta(const search_metadata* const keys, const fst_file_type ty
     fst_record r;
     fill_with_search_meta(&r, keys, type);
     print_non_wildcards(&r);
+}
+
+//! Copy record information (including metadata *pointer*) into destination, while preserving
+//! the data pointer and the allocation flag and status;
+//! Does not free any memory!
+void fst_record_copy_info(fst_record* const dest, const fst_record* const src) {
+    Meta_Free(dest->metadata);
+    const int64_t flags = dest->do_not_touch.flags;
+    const int64_t alloc = dest->do_not_touch.alloc;
+    void* const data  = dest->data;
+    *dest = *src;
+    dest->do_not_touch.flags = flags;
+    dest->do_not_touch.alloc = alloc;
+    dest->data  = data;
+    dest->metadata = json_object_get(src->metadata); // This increments its reference count
 }

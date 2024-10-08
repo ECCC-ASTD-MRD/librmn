@@ -126,6 +126,9 @@ int test_fst24_meta(void) {
          App_Log(APP_ERROR, "Unable to write record to new file %s\n", test_file_name);
          return -1;
       }
+
+      fst24_record_free(record);
+      free(record);
    }
 
    // Close the new file
@@ -156,6 +159,8 @@ int test_fst24_meta(void) {
          return -1;    
       }
 
+      Meta_Free(meta);
+
       // Test search on all keys
       search_extra.ig1=68839;
       search_extra.ni=1024;
@@ -179,7 +184,7 @@ int test_fst24_meta(void) {
       fst24_query_free(query);
       query = fst24_new_query(test_file, &search_criteria, NULL);
       while(fst24_find_next(query, &record_find) > 0) {
-//         fst24_read_metadata(&record_find);
+         // fst24_read_metadata(&record_find);
       
          if (!record_find.metadata)  {
             App_Log(APP_ERROR, "Metadata not found in file %s\n", test_file_name);
@@ -200,6 +205,8 @@ int test_fst24_meta(void) {
       Meta_From89(meta,&record_find);
       fprintf(stderr,"JSON: %s\n",Meta_Stringify(meta,JSON_C_TO_STRING_PRETTY));
       fst24_query_free(query);
+      fst24_record_free(&record);
+      fst24_record_free(&record_find);
    }
  
    if (fst24_close(test_file) < 0) {

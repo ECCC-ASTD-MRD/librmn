@@ -2293,13 +2293,13 @@ int c_fstinl_xdf(
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n",
             __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
 
+    int handle = c_fstinfx_xdf(-2, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
 
     if (handle < 0) {
         *infon = 0;
         return 0;
     }
 
-    int handle = c_fstinfx_xdf(-2, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
     int nijkmax = (*ni) * (*nj) * (*nk);
     int nimax = *ni;
     int njmax = *nj;

@@ -655,7 +655,7 @@ function test_fst24_interface(is_rsf) result(success)
             return
         end if
 
-        success = test_file % close() .and. file_list(2) % close() .and. file_list(3) % close()
+        success = file_list(1) % close() .and. file_list(2) % close() .and. file_list(3) % close()
         if (.not. success) then
             call app_log(APP_ERROR, 'Unable to close files')
             return
@@ -666,33 +666,42 @@ function test_fst24_interface(is_rsf) result(success)
             call app_log(APP_ERROR, 'Should not be able to link closed files')
             return
         end if
+
+        test_file = file_list(1) ! Copy the closed file back into test_file, to make the rest of testing easier
+
+        call result2 % free()
+        call record % free()
     end block
 
     call app_log(APP_INFO, 'A few calls that should fail')
 
-    success = .not. record % read()
-    if (.not. success) then
-        call App_Log(APP_ERROR, 'Should not be able to read record data after file is closed')
-        return
-    end if
+    ! Should NOT try to read a record whose file has been closed
+    ! success = .not. record % read()
+    ! if (.not. success) then
+    !     call App_Log(APP_ERROR, 'Should not be able to read record data after file is closed')
+    !     return
+    ! end if
 
+    ! Should DEFINITELY not try to use test_file anymore, since it was closed through a copy of the object
     success = .not. test_file % unlink()
     if (.not. success) then
         call App_Log(APP_ERROR, 'Should not be able to unlink closed file')
         return
     end if
     
-    success = .not. query % find_next(record)    
-    if (.not. success) then
-        call App_Log(APP_ERROR, 'Should not be able to search a closed file')
-        return
-    end if
+    ! Should NOT try to use a query whose file has been closed
+    ! success = .not. query % find_next(record)    
+    ! if (.not. success) then
+    !     call App_Log(APP_ERROR, 'Should not be able to search a closed file')
+    !     return
+    ! end if
 
-    success = .not. query % read_next(record)    
-    if (.not. success) then
-        call App_Log(APP_ERROR, 'Should not be able to search a closed file')
-        return
-    end if
+    ! Should NOT try to use a query whose file has been closed
+    ! success = .not. query % read_next(record)    
+    ! if (.not. success) then
+    !     call App_Log(APP_ERROR, 'Should not be able to search a closed file')
+    !     return
+    ! end if
 
     call query % free()
     query = test_file % new_query()
@@ -714,6 +723,7 @@ function test_fst24_interface(is_rsf) result(success)
         return
     end if
 
+    ! call record % free()
     success = .true.
 end function test_fst24_interface
 
