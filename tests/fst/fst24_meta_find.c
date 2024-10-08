@@ -7,11 +7,13 @@
 #include <rmn.h>
 
 const char* test_file_name = "test_fst24_meta_find.fst";
-const int NBLEVEL=10;
-const int NBVAR  =10;
+
+#define NBLEVEL 10
+#define NBVAR   10
 const int NBSTEP =100;
-double levels[NBLEVEL]= { 1000.0,900.0,800.0,700.0,600.0,500.0,400.0,300.0,200.0,100.0 };
-char*  vars[NBVAR] = { "TT","UU","VV","WW","GZ","HU","HR","ME","LA","LO" };
+
+static double levels[NBLEVEL]= { 1000.0,900.0,800.0,700.0,600.0,500.0,400.0,300.0,200.0,100.0 };
+static char*  vars[NBVAR] = { "TT","UU","VV","WW","GZ","HU","HR","ME","LA","LO" };
 json_object *prof_file,*prof_fld,*meta=NULL,*search_meta=NULL;
 
 int test_fst24_create(int size) {
