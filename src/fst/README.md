@@ -1121,6 +1121,19 @@ int32_t fst24_link(
 //! \return TRUE (1) if unlinking was successful, FALSE (0) or a negative number otherwise
 int32_t fst24_unlink(fst_file* const file);
 
+//! Open a list of files and link them together
+//! \return The first file in the linked list
+fst_file* fst24_open_link(
+   const char** const filePaths,  //!< List of file path to open
+   const int32_t      fileNb      //!< Number of files in list
+);
+
+//! Close a list of files that were opened with fst24_open_link
+//! \return TRUE (1) if we were able to close all of them, FALSE (0) otherwise
+int32_t fst24_close_unlink(
+   fst_file* const file   //!< first file of link
+);
+
 //! Move to the end of the given sequential file
 //!
 //! Thread safety: This function may always be called concurrently.
@@ -1140,10 +1153,10 @@ int32_t fst24_eof(const fst_file* const file);
 //! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
 int32_t fst24_find_next(
     fst_query* const query, //!< [in] Query used for the search. Must be for an open file.
-    //!> [in,out] Will contain record information if found and, optionally, metadata (if included in the search query).
-    //!> If NULL, we will only check for the existence of a match to the query, without extracting any information from
-    //!> that match. If not NULL, must be a valid, initialized record.
-    fst_record* record
+    //!> [in,out] Will contain record information if found and, optionally, metadata (if included in search).
+    //!> If NULL, we will only check for the existence of a match to the query, without extracting any data from that
+    //!> match. If not NULL, must be a valid, initialized record.
+    fst_record * const record
 );
 
 //! Read the next record (data and all) that corresponds to the given query criteria.

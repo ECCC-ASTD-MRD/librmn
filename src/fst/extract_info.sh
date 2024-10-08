@@ -41,6 +41,8 @@ function_fnames="
    fst24_new_query
    fst24_link
    fst24_unlink
+   fst24_open_link
+   fst24_close_unlink
    fst24_eof
 "
 

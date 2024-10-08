@@ -185,42 +185,46 @@ fst_file* fst24_open_link(
    const char** const filePaths,  //!< List of file path to open
    const int32_t      fileNb      //!< Number of files in list
 ) {
-   fst_file** files = (fst_file**)calloc(fileNb, sizeof(fst_file*));
+    fst_file** files = (fst_file**)calloc(fileNb, sizeof(fst_file*));
 
-   int n = 0;
-   int nerr = 0;
-   for(n = 0; n < fileNb; n++) {
-       if ((files[n-nerr] = fst24_open(filePaths[n],"RND+R/O")) == NULL) {
-          Lib_Log(APP_LIBFST,APP_ERROR, "%s: Unable to open file (%s)\n", __func__, filePaths[n]);
-          nerr++;
-       }
-   }
+    int n = 0;
+    int nerr = 0;
+    for(n = 0; n < fileNb; n++) {
+        if ((files[n-nerr] = fst24_open(filePaths[n],"RND+R/O")) == NULL) {
+            Lib_Log(APP_LIBFST,APP_ERROR, "%s: Unable to open file (%s)\n", __func__, filePaths[n]);
+            nerr++;
+        }
+    }
 
-   n = fst24_link(files, fileNb - nerr);
-   fst_file* first = files[0];
-   free(files);
-   return(first);
+    n = fst24_link(files, fileNb - nerr);
+    fst_file* first = files[0];
+    free(files);
+    return(first);
 }
 
+//! Close a list of files that were opened with fst24_open_link
+//! \return TRUE (1) if we were able to close all of them, FALSE (0) otherwise
 int32_t fst24_close_unlink(
    fst_file* const file   //!< first file of link
 ) {
-   fst_file* current,*tmp;
+    fst_file* current,*tmp;
 
-   if (!fst24_is_open(file)) {
-      Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n", __func__, file ? file->path : "(nil)");
-      return FALSE;
-   }
+    if (!fst24_is_open(file)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n", __func__);
+        return FALSE;
+    }
 
-   current = file; 
-   while (current != NULL) {
-      tmp = current;
-      current = current->next;
-      tmp->next = NULL; 
-      fst24_close(tmp);
-   }
+    current = file; 
 
-   return TRUE;
+    int32_t all_good = TRUE;
+    while (current != NULL) {
+        tmp = current;
+        current = current->next;
+        tmp->next = NULL; 
+        all_good &= fst24_close(tmp);
+    }
+
+    return all_good;
 }
 
 //! Commit data and metadata to disk if the file has changed in memory
