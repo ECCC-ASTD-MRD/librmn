@@ -234,10 +234,10 @@ contains
         integer(C_INT32_T), intent(in), optional :: dateo, datev
         integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
         integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
-        character(len=2),  intent(in), optional :: typvar
-        character(len=1),  intent(in), optional :: grtyp
-        character(len=4),  intent(in), optional :: nomvar
-        character(len=12), intent(in), optional :: etiket
+        character(len=*),   intent(in), optional :: typvar
+        character(len=*),   intent(in), optional :: grtyp
+        character(len=*),   intent(in), optional :: nomvar
+        character(len=*),   intent(in), optional :: etiket
         logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
         logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
         logical, intent(in), optional :: skip_filter !< Whether to bypass the global file filter (excdes)
@@ -290,10 +290,10 @@ contains
         integer(C_INT32_T), intent(in), optional :: dateo, datev
         integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
         integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
-        character(len=2),  intent(in), optional :: typvar
-        character(len=1),  intent(in), optional :: grtyp
-        character(len=4),  intent(in), optional :: nomvar
-        character(len=12), intent(in), optional :: etiket
+        character(len=*),   intent(in), optional :: typvar
+        character(len=*),   intent(in), optional :: grtyp
+        character(len=*),   intent(in), optional :: nomvar
+        character(len=*),   intent(in), optional :: etiket
         logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
         logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
         logical, intent(in), optional :: skip_filter !< Whether to bypass the global file filter (excdes)
