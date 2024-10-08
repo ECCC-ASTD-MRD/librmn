@@ -1546,6 +1546,7 @@ int32_t fst24_find_next(
         if (fst24_get_record_from_key(query->file, key, &tmp_record) != TRUE) {
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to retrieve record info after having found it in %s.\n",
                     __func__, query->file->path);
+            fst24_record_free(&tmp_record);
             return -1;
         }
 
@@ -1561,6 +1562,7 @@ int32_t fst24_find_next(
 
         return TRUE;
     }
+    fst24_record_free(&tmp_record);
 
     // We haven't found anything in this file
     query->search_done = 1;

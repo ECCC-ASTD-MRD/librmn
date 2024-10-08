@@ -105,6 +105,9 @@ int test_fst24_create(int size) {
       }
    }
 
+   fst24_record_free(record);
+   free(record);
+
    // Close the new file
    if (fst24_close(test_file) < 0) {
       App_Log(APP_ERROR, "Unable to close new file %s\n", test_file_name);
@@ -132,45 +135,48 @@ int test_fst24_search(void) {
    }
 
    
-      fst_record search_legacy = default_fst_record;
-      fst_record search_new = default_fst_record;
-      fst_record record_find = default_fst_record;
-      fst_query* query =NULL;
+   fst_record search_legacy = default_fst_record;
+   fst_record search_new = default_fst_record;
+   fst_record record_find = default_fst_record;
+   fst_query* query =NULL;
 
-      // Test find on legacy metadata
-      fprintf(stdout,"\nfinding legacy:\n");
-      int num_legacy = 0;
-      strcpy(search_legacy.nomvar,"TT");
-      strcpy(search_legacy.typvar,"P");
-      search_legacy.ip1=(int)level;
-      query = fst24_new_query(test_file, &search_legacy, NULL);
+   // Test find on legacy metadata
+   fprintf(stdout,"\nfinding legacy:\n");
+   int num_legacy = 0;
+   strcpy(search_legacy.nomvar,"TT");
+   strcpy(search_legacy.typvar,"P");
+   search_legacy.ip1=(int)level;
+   query = fst24_new_query(test_file, &search_legacy, NULL);
 
-      TApp_Timer * const legacy_timer = App_TimerCreate();
-      App_TimerStart(legacy_timer);
+   TApp_Timer * const legacy_timer = App_TimerCreate();
+   App_TimerStart(legacy_timer);
 
-      while(fst24_find_next(query, &record_find) > 0) {
-         num_legacy++;
-      }
-      App_TimerStop(legacy_timer);
-      fprintf(stderr,"Legacy search time (%i): %.3f ms\n",num_legacy,App_TimerLatestTime_ms(legacy_timer));
-      fst24_query_free(query);
-   
-      // Test find on new metadata
-      fprintf(stdout,"\nfinding new:\n");
-      int num_new = 0;
-      search_new.metadata=search_meta;
-      query = fst24_new_query(test_file, &search_new, NULL);
+   while(fst24_find_next(query, &record_find) > 0) {
+      num_legacy++;
+   }
+   App_TimerStop(legacy_timer);
+   fprintf(stderr,"Legacy search time (%i): %.3f ms\n",num_legacy,App_TimerLatestTime_ms(legacy_timer));
+   fst24_query_free(query);
+   free(legacy_timer);
 
-      TApp_Timer * const new_timer = App_TimerCreate();
-      App_TimerStart(new_timer);
+   // Test find on new metadata
+   fprintf(stdout,"\nfinding new:\n");
+   int num_new = 0;
+   search_new.metadata=search_meta;
+   query = fst24_new_query(test_file, &search_new, NULL);
 
-      while(fst24_find_next(query, &record_find) > 0) {
-           num_new++;
-      }
-      App_TimerStop(new_timer);
-      fprintf(stderr,"Legacy search time (%i): %.3f ms\n",num_new,App_TimerLatestTime_ms(new_timer));
-      fst24_query_free(query);
+   TApp_Timer * const new_timer = App_TimerCreate();
+   App_TimerStart(new_timer);
 
+   while(fst24_find_next(query, &record_find) > 0) {
+         num_new++;
+   }
+   App_TimerStop(new_timer);
+   fprintf(stderr,"Legacy search time (%i): %.3f ms\n",num_new,App_TimerLatestTime_ms(new_timer));
+   fst24_query_free(query);
+
+   fst24_record_free(&record_find);
+   free(new_timer);
  
    if (fst24_close(test_file) < 0) {
       App_Log(APP_ERROR, "Unable to close file %s\n", test_file_name);
