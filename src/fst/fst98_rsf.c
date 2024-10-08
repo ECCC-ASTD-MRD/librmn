@@ -315,6 +315,9 @@ int c_fstinfx_rsf(
 
         // We have a match!
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, iun, lhandle);
+        if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) {
+            fst24_record_print(&rec);
+        }
 
         *ni = rec.ni;
         *nj = rec.nj;
@@ -548,6 +551,11 @@ int c_fstinl_rsf(
             __func__, iun, datev, etiket, ip1, ip2, ip3, typvar, nomvar);
 
     int handle = c_fstinfx_rsf(-2, iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, 0);
+    
+    if (handle < 0) {
+        *infon = 0;
+        return 0;
+    }
 
     int nijkmax = (*ni) * (*nj) * (*nk);
     int nimax = *ni;
