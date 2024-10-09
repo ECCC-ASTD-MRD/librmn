@@ -28,6 +28,7 @@ module rmn_fst24
         procedure, pass   :: get_num_records => fst24_file_get_num_records !< fst24_file_get_num_records 
         procedure, pass   :: get_unit => fst24_file_get_unit    !< \copydoc fst24_file_get_unit
         procedure, pass   :: is_rsf   => fst24_file_is_rsf      !< \copydoc fst24_file_is_rsf
+        procedure, pass   :: get_c_ptr => fst24_file_get_c_ptr  !< \private \copydoc fst24_file_get_c_ptr
 
         procedure, pass :: new_query => fst24_file_new_query !< \copydoc fst24_file_new_query
         procedure, pass :: read => fst24_file_read !< \copydoc fst24_file_read
@@ -70,6 +71,14 @@ module rmn_fst24
 
 
 contains
+
+    !> Retrieve the C_PTR to c_self
+    pure function fst24_file_get_c_ptr(this) result(ptr)
+        implicit none
+        class(fst_file), intent(in), target :: this
+        type(C_PTR) :: ptr
+        ptr = c_loc(this % file_ptr)
+    end function fst24_file_get_c_ptr
 
     !> Check whether the file at the given path is a valid standard file
     !> \return .true. if the given path is a valid standard file, .false. otherwise
