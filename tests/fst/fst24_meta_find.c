@@ -18,7 +18,6 @@ json_object *prof_file,*prof_fld,*meta=NULL,*search_meta=NULL;
 
 int test_fst24_create(int size) {
 
-
    // Create some arbitrary data field
    float data[size][size];
    for (int i = 0; i < size; i++) {
@@ -120,13 +119,6 @@ int test_fst24_search(void) {
 
    double level=100.0;
 
-   search_meta=Meta_NewObject();
-   Meta_DefVar(search_meta,NULL,"TT",NULL,NULL,NULL);
-   Meta_DefFromTypVar(search_meta,"P");
-   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean(interval 5 minute)",NULL });
-   Meta_DefVerticalRef(search_meta,"PRESSURE",&level,1,FALSE);
-   fprintf(stderr,"Search JSON: %s\n",Meta_Stringify(search_meta,JSON_C_TO_STRING_PRETTY));
-
    // Open existing file
    fst_file* test_file = fst24_open(test_file_name, "RND+R/O");
    if (test_file == NULL) {
@@ -134,7 +126,10 @@ int test_fst24_search(void) {
       return -1;
    }
 
+<<<<<<< HEAD
    
+=======
+>>>>>>> a1a0071... [fst] Lowered metadata find test file size
    fst_record search_legacy = default_fst_record;
    fst_record search_new = default_fst_record;
    fst_record record_find = default_fst_record;
@@ -142,42 +137,76 @@ int test_fst24_search(void) {
 
    // Test find on legacy metadata
    fprintf(stdout,"\nfinding legacy:\n");
+<<<<<<< HEAD
    int num_legacy = 0;
    strcpy(search_legacy.nomvar,"TT");
    strcpy(search_legacy.typvar,"P");
+=======
+
+   strcpy(search_legacy.nomvar,"TT");
+   strcpy(search_legacy.typvar,"P");
+
+>>>>>>> a1a0071... [fst] Lowered metadata find test file size
    search_legacy.ip1=(int)level;
    query = fst24_new_query(test_file, &search_legacy, NULL);
 
    TApp_Timer * const legacy_timer = App_TimerCreate();
    App_TimerStart(legacy_timer);
 
+<<<<<<< HEAD
+=======
+   int num_legacy = 0;
+>>>>>>> a1a0071... [fst] Lowered metadata find test file size
    while(fst24_find_next(query, &record_find) > 0) {
       num_legacy++;
    }
    App_TimerStop(legacy_timer);
    fprintf(stderr,"Legacy search time (%i): %.3f ms\n",num_legacy,App_TimerLatestTime_ms(legacy_timer));
    fst24_query_free(query);
+<<<<<<< HEAD
    free(legacy_timer);
 
    // Test find on new metadata
    fprintf(stdout,"\nfinding new:\n");
    int num_new = 0;
+=======
+
+   // Test find on new metadata
+   fprintf(stdout,"\nfinding new:\n");
+
+   search_meta=Meta_NewObject();
+   Meta_DefVar(search_meta,NULL,"TT",NULL,NULL,NULL);
+   Meta_DefFromTypVar(search_meta,"P");
+//   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean(interval 5 minute)",NULL });
+   Meta_DefVerticalRef(search_meta,"PRESSURE",&level,1,FALSE);
+   fprintf(stderr,"Search JSON: %s\n",Meta_Stringify(search_meta,JSON_C_TO_STRING_PRETTY));
+
+>>>>>>> a1a0071... [fst] Lowered metadata find test file size
    search_new.metadata=search_meta;
    query = fst24_new_query(test_file, &search_new, NULL);
 
    TApp_Timer * const new_timer = App_TimerCreate();
    App_TimerStart(new_timer);
 
+<<<<<<< HEAD
    while(fst24_find_next(query, &record_find) > 0) {
          num_new++;
+=======
+   int num_new = 0;
+   while(fst24_find_next(query, &record_find) > 0) {
+      num_new++;
+>>>>>>> a1a0071... [fst] Lowered metadata find test file size
    }
    App_TimerStop(new_timer);
    fprintf(stderr,"Legacy search time (%i): %.3f ms\n",num_new,App_TimerLatestTime_ms(new_timer));
    fst24_query_free(query);
 
+<<<<<<< HEAD
    fst24_record_free(&record_find);
    free(new_timer);
  
+=======
+>>>>>>> a1a0071... [fst] Lowered metadata find test file size
    if (fst24_close(test_file) < 0) {
       App_Log(APP_ERROR, "Unable to close file %s\n", test_file_name);
       return -1;
@@ -189,7 +218,7 @@ int test_fst24_search(void) {
 int main(void) {
 
    App_Log(APP_INFO, "Testing meta search\n");
-   if (test_fst24_create(10) != 0) return -1;
+   if (test_fst24_create(100) != 0) return -1;
    if (test_fst24_search() != 0) return -1;
 
    App_Log(APP_INFO, "Tests successful\n");
