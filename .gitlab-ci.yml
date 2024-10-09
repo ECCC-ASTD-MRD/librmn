@@ -347,7 +347,7 @@ build:rhel-8-amd64_gnu-14.1.0:
      - tags
    script:
       - source ${ECCI_ENV}/latest/profile.sh
-      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
+      - . r.load.dot /fs/ssm/main/opt/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load gcc14
       - export EC_ARCH=Linux_x86-64/gnu-14.1.0
@@ -373,7 +373,7 @@ test:rhel-8-amd64_gnu-14.1.0:
    script:
       - set +e
       - source ${ECCI_ENV}/latest/profile.sh
-      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
+      - . r.load.dot /fs/ssm/main/opt/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load gcc14
       - export EC_ARCH=Linux_x86-64/gnu-14.1.0
@@ -398,7 +398,7 @@ package:rhel-8-amd64_gnu-14.1.0:
    script:
       - set +e
       - source ${ECCI_ENV}/latest/profile.sh
-      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
+      - . r.load.dot /fs/ssm/main/opt/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load gcc14
       - export EC_ARCH=Linux_x86-64/gnu-14.1.0
@@ -422,7 +422,7 @@ build:rhel-8-amd64_aocc-4.1.1:
      - tags
    script:
       - source ${ECCI_ENV}/latest/profile.sh
-      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
+      - . r.load.dot /fs/ssm/main/opt/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load aocc-4.1.1
       - export EC_ARCH=Linux_x86-64/aocc
@@ -447,7 +447,7 @@ test:rhel-8-amd64_aocc-4.1.1:
    script:
       - set +e
       - source ${ECCI_ENV}/latest/profile.sh
-      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
+      - . r.load.dot /fs/ssm/main/opt/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load aocc-4.1.1
       - export EC_ARCH=Linux_x86-64/aocc
@@ -469,7 +469,7 @@ build:rhel-8-amd64_nvhpc_23.7.0:
      - tags
    script:
       - source ${ECCI_ENV}/latest/profile.sh
-      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
+      - . r.load.dot /fs/ssm/main/opt/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load nvhpc_23.7
       - export EC_ARCH=Linux_x86-64/nvhpc
@@ -496,7 +496,7 @@ test:rhel-8-amd64_nvhpc_23.7.0:
    script:
       - set +e
       - source ${ECCI_ENV}/latest/profile.sh
-      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
+      - . r.load.dot /fs/ssm/main/opt/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load nvhpc_23.7
       - set -e
@@ -520,7 +520,7 @@ package:rhel-8-amd64_nvhpc_23.7.0:
       name: testing
    script:
       - source ${ECCI_ENV}/latest/profile.sh
-      - . r.load.dot /fs/ssm/hpco/exp/cmake/cmake-3.30.0
+      - . r.load.dot /fs/ssm/main/opt/cmake/cmake-3.30.0
       - export MODULEPATH=~sidr000/modules:$MODULEPATH
       - module load nvhpc_23.7
       - export EC_ARCH=Linux_x86-64/nvhpc
