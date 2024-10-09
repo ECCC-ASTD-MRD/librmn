@@ -68,7 +68,7 @@ subroutine test_fst98_interface(is_rsf)
     call check_status(status, expected_min = 0, fail_message = 'ouv')
 
     old_num_records = status
-    new_num_records = old_num_records + 6
+    new_num_records = old_num_records + 7
 
     ! --- fstecr ---
     j = 1
@@ -92,6 +92,16 @@ subroutine test_fst98_interface(is_rsf)
                                 DATATYPE,  REWRITE_l)
         call check_status(status, expected = 0, fail_message = 'ecr')
     end do
+
+    ! ----- fstecr with npak > 0 -----
+    status = fstecr(data_array(:, i), work_array, 2, iun, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,           &
+                            NUM_DATA, 1, 1,                                                            &
+                            111, 222, 333,                                                             &
+                            'XX', 'YYYY', 'ETIKET', 'X',                                               &
+                            0, 0, 0, 0,                                                                &
+                            DATATYPE,  .false.)
+    call check_status(status, expected = 0, fail_message = 'ecr with npak > 0')
+
 
     ! ----- fstnbr -----
     num_records = fstnbr(iun)
@@ -287,6 +297,7 @@ subroutine test_fst98_interface(is_rsf)
     ! ----- fstvoi -----
     status = fstvoi(iun, ' ')
     call check_status(status, expected = 0, fail_message = 'fstvoi')
+
 
     ! ----- fsteff -----
     status = fsteff(record_key)

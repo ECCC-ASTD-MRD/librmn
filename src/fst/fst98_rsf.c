@@ -91,14 +91,32 @@ int c_fstecr_rsf(
 
     RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
 
+    fst_record rec = default_fst_record;
+
+    // Set number of data bits (based on global variables short/byte/double)
+    rec.data_bits = 32;
+    if (xdf_double) rec.data_bits = 64;
+    else if (xdf_short) rec.data_bits = 16;
+    else if (xdf_byte) rec.data_bits = 8;
+
+    xdf_double = 0;
+    xdf_short = 0;
+    xdf_byte = 0;
+
+    // Set number of packed bits (based on npak, unless it's positive, in which case it's the same as data bits)
+    rec.pack_bits = -npak;
     if (npak >= 0) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Must specify number of bits (npak < 0) for RSF files\n", __func__);
-        return ERR_OUT_RANGE;
+        // Warn once
+        static int npak_pos_warning = 1;
+        if (npak_pos_warning == 1) {
+            npak_pos_warning = 0;
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Must specify number of bits (npak < 0) for RSF files\n", __func__);
+        }
+
+        rec.pack_bits = rec.data_bits;
     }
 
-    fst_record rec = default_fst_record;
     rec.data  = field_in;
-    rec.pack_bits = -npak;
     rec.dateo = date;
     rec.deet  = deet;
     rec.npas  = npas;
@@ -117,15 +135,6 @@ int c_fstecr_rsf(
     strncpy(rec.nomvar, in_nomvar, FST_NOMVAR_LEN);
     strncpy(rec.etiket, in_etiket, FST_ETIKET_LEN);
     strncpy(rec.grtyp,  in_grtyp,  FST_GTYP_LEN);
-
-    rec.data_bits = 32;
-    if (xdf_double) rec.data_bits = 64;
-    else if (xdf_short) rec.data_bits = 16;
-    else if (xdf_byte) rec.data_bits = 8;
-
-    xdf_double = 0;
-    xdf_short = 0;
-    xdf_byte = 0;
 
     if (rewrit != FST_NO) {
         // Find handle for rewrite operation
