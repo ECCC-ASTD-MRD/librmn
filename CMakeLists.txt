@@ -1,6 +1,8 @@
 # The minimum version can not be 3.16 because of the LINK_LANGUAGE generator expression in Config.cmake.in
 cmake_minimum_required(VERSION 3.20)
 
+message(STATUS "(EC) Generating librmn Makefiles")
+
 # Append EC specific module path
 foreach(DIR_PATH ${CMAKE_SOURCE_DIR}/cmake_rpn/modules $ENV{EC_CMAKE_MODULE_PATH})
     if (EXISTS ${DIR_PATH} AND IS_DIRECTORY ${DIR_PATH})
