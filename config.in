@@ -18,6 +18,7 @@ libs=CMAKE_LIBS
 version=@PROJECT_VERSION@
 env=@EC_CI_ENV@
 arch=@EC_ARCH@
+date=@BUILD_TIMESTAMP@
 
 usage()
 {
@@ -27,6 +28,7 @@ Usage: @NAME@-config [OPTION]
 Available values for OPTION include:
 
   --help         display this help message and exit
+  --build-date   build timestamp [${date}]
   --cc           C compiler [${cc}]
   --fc           FORTRAN compiler [${fc}]
   --cflags       C compiler flags [${cflags}]
@@ -60,6 +62,10 @@ while test $# -gt 0; do
 
     --help)
         usage 0
+        ;;
+
+    --build_date)
+        echo ${date}
         ;;
 
     --cc)
