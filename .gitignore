@@ -8,6 +8,6 @@
 *.code-workspace
 
 #----- build directory at the root path
-/build**/*
+/build*/*
 /.vscode/
 /*.code-workspace
