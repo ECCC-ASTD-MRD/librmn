@@ -126,7 +126,6 @@ int test_fst24_search(void) {
       return -1;
    }
 
-   
    fst_record search_legacy = default_fst_record;
    fst_record search_new = default_fst_record;
    fst_record record_find = default_fst_record;
@@ -154,6 +153,14 @@ int test_fst24_search(void) {
    // Test find on new metadata
    fprintf(stdout,"\nfinding new:\n");
    int num_new = 0;
+
+   search_meta=Meta_NewObject();
+   Meta_DefVar(search_meta,NULL,"TT",NULL,NULL,NULL);
+   Meta_DefFromTypVar(search_meta,"P");
+   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean(interval 5 minute)",NULL });
+   Meta_DefVerticalRef(search_meta,"PRESSURE",&level,1,FALSE);
+   fprintf(stderr,"Search JSON: %s\n",Meta_Stringify(search_meta,JSON_C_TO_STRING_PRETTY));
+   
    search_new.metadata=search_meta;
    query = fst24_new_query(test_file, &search_new, NULL);
 

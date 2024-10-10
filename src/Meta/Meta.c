@@ -199,8 +199,9 @@ int32_t Meta_Init(){
 #endif
 
    // Will not load again if already loaded
-   Dict_Load(DICT_UTF8);
-
+   if (MetaPaths[0]) {
+      Dict_Load(DICT_UTF8);
+   }
    return(TRUE);
 }
 
