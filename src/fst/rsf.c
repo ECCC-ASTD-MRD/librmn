@@ -11,25 +11,50 @@ static pthread_mutex_t rsf_global_mutex = PTHREAD_MUTEX_INITIALIZER;
 static RSF_File ** rsf_files = NULL;      //!< Global table of pointers to RSF files (slot table)
 static size_t max_rsf_files_open = 0;  //!< Size of the list of open RSF files
 
-//! Allocate global table of pointers (slot table) to rsf files if not already done
+static void RSF_Finalize(void);
+
+//! Initialize the RSF library:
+//!  - Allocate global table of pointers (slot table) to rsf files if not already done
+//!  - Assign a function to run at program exit (to clean up the table and close any open file)
 //! Uses the RSF global mutex
 //! \return table address if successful, NULL if table cannot be allocated
-static void *RSF_Slot_table_allocate() {
+static void* RSF_Initialize(void) {
     if (rsf_files != NULL) return rsf_files;                    // slot table already allocated
 
     // --- START critical region ---
     pthread_mutex_lock(&rsf_global_mutex);
 
+    if (atexit(RSF_Finalize) != 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to register function with atexit()\n", __func__);
+        goto unlock;
+    }
+
     if (rsf_files == NULL) { // Check again after locking
         max_rsf_files_open = get_max_open_files();
         max_rsf_files_open = (max_rsf_files_open <= 131072) ? max_rsf_files_open : 131072; // never more than 128K files
-        rsf_files = calloc(max_rsf_files_open, sizeof(RSF_File *));       // allocate zro filled table for max number of allowed files
+        rsf_files = calloc(max_rsf_files_open, sizeof(RSF_File *));       // allocate zero filled table for max number of allowed files
     }
 
+unlock:
     pthread_mutex_unlock(&rsf_global_mutex);
     // --- END critical region ---
 
     return rsf_files;
+}
+
+//! Look through list of files to find any that has been left open, and close them.
+static void RSF_Finalize(void) {
+    if (rsf_files != NULL) {
+        for (int i = 0; i < max_rsf_files_open; i++) {
+            if (rsf_files[i] != NULL) {
+                RSF_File* fp = rsf_files[i];
+                Lib_Log(APP_LIBFST, APP_WARNING, "%s: File \"%s\" is still open, so we will close it now to avoid "
+                        "corruption. You should really close your files before the end of the program.\n",
+                        __func__, fp->name);
+                RSF_Close_file((RSF_handle){.p = fp});
+            }
+        }
+    }
 }
 
 //! Find slot matching p in global slot table. Assumes p points to a (somewhat) valid RSF_File struct
@@ -37,7 +62,7 @@ static void *RSF_Slot_table_allocate() {
 static int32_t RSF_Find_file_slot(
     const RSF_File * const fp //!< pointer to RSF_file structure
 ) {
-    if (rsf_files == NULL) rsf_files = RSF_Slot_table_allocate();  // first time around, allocate table
+    if (rsf_files == NULL) rsf_files = RSF_Initialize();  // first time around, allocate table
     if (rsf_files == NULL) return -1;
 
     if (fp == NULL) return -1;
@@ -60,7 +85,7 @@ static int32_t RSF_Find_file_slot(
 static int32_t RSF_Set_file_slot(
     RSF_File * const fp //!< [in] Pointer to an RSF_file structure
 ) {
-    if (rsf_files == NULL) rsf_files = RSF_Slot_table_allocate();  // first time around, allocate table
+    if (rsf_files == NULL) rsf_files = RSF_Initialize();  // first time around, allocate table
     if (rsf_files == NULL) return -1;
 
     for (int i = 0; i < max_rsf_files_open; i++) {

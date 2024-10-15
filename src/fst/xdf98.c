@@ -62,10 +62,12 @@ int32_t c_xdf_handle_in_file(const int32_t handle) {
     return ((file_table[index] != NULL) && (file_table[index]->iun >= 0));
 }
 
+static void finalize_xdf(void);
+
 //! Initialize the XDF API
 //! Uses the xdf_mutex
 //! \return 
-int initialize_xdf() {
+static int initialize_xdf(void) {
     
     if (MAX_XDF_FILES > 0) return MAX_XDF_FILES; // xdf already initialized
     if (MAX_FNOM_FILES <= 0) {
@@ -77,6 +79,11 @@ int initialize_xdf() {
     pthread_mutex_lock(&xdf_mutex);
 
     if (MAX_XDF_FILES > 0) goto unlock; // Check again after locking, in case someone else was initializing
+
+    if (atexit(finalize_xdf) != 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to register function to be executed at exit\n", __func__);
+        goto unlock;
+    }
 
     const int num_files = MAX_FNOM_FILES > ABSOLUTE_MAX_XDF_FILES ? ABSOLUTE_MAX_XDF_FILES : MAX_FNOM_FILES;
     file_table = (file_table_entry_ptr*) calloc(num_files, sizeof(file_table_entry_ptr));
@@ -97,6 +104,22 @@ unlock:
     // --- END critical region ---
 
     return MAX_XDF_FILES;
+}
+
+//! Look though the list of files to find any that has been left open, and close them.
+static void finalize_xdf(void) {
+    for (int i = 0; i < MAX_XDF_FILES; i++) {
+        if (file_table[i] != NULL && file_table[i]->iun > 0) {
+            const int index_fnom = get_fnom_index(file_table[i]->iun);
+            if (index_fnom >= 0 && index_fnom < MAX_FNOM_FILES) {
+                Lib_Log(APP_LIBFST, APP_WARNING,
+                        "%s: File \"%s\" is still open, so we will close it to avoid corruption. "
+                        "You really should close all files before the end of the program\n",
+                        __func__, FGFDT[index_fnom].file_name);
+                c_xdfcls(file_table[i]->iun);
+            }
+        }
+    }
 }
 
 //! Check XDF file for corruption
@@ -3044,7 +3067,6 @@ static int get_free_index()
     } else {
         nlimite = MAX_XDF_FILES;
     }
-
 
     for (int i = 0; i < nlimite; i++) {
         file_table_entry* entry = file_table[i];

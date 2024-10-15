@@ -319,11 +319,13 @@ static int find_file_entry(
     return -1;
 }
 
+static void finalize_fnom(void); // forward declare
+
 //! Initialize structures and variables based on environment, if it has not been done yet.
 //! If fnom is already initialized, do nothing.
 //! *Uses the fnom mutex*
 //! \return Max number of files that can be managed by fnom. 0 if there was an error.
-static int initialize_fnom() {
+static int initialize_fnom(void) {
     if (MAX_FNOM_FILES > 0) return MAX_FNOM_FILES; // Already initialized
 
     // --- START critical region ---
@@ -365,6 +367,11 @@ static int initialize_fnom() {
         used_units_bitmap[NUM_BITMAP_ENTRIES - 1] = 0xffffffff & ~off;
     }
 
+    if (atexit(finalize_fnom) != 0) {
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Unable to register function with atexit()\n", __func__);
+        goto unlock;
+    }
+
     MAX_FNOM_FILES = max_open_files; // Signal initialization is complete
 
 unlock:
@@ -372,6 +379,16 @@ unlock:
     // --- END critical region ---
 
     return MAX_FNOM_FILES;
+}
+
+//! Look through the list to signal any file that has been left open at program exit.
+static void finalize_fnom(void) {
+    for (int i = 0; i < MAX_FNOM_FILES; i++) {
+        if (FGFDT[i].open_flag) {
+            Lib_Log(APP_LIBRMN, APP_WARNING, "%s: You forgot to close file %s. You really should close it.\n",
+                    __func__, FGFDT[i].file_name);
+        }
+    }
 }
 
 //! Open a file and make the connection with a unit number and process record file attributes

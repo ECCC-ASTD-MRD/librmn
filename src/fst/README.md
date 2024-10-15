@@ -151,7 +151,12 @@ released automatically.
 * **Note**:
 In C, accessing the pointer to a `fst_file` after it has been closed is undefined behavior and should always be avoided. This means that calling
 almost any `fst24` C API function on an `fst_file` that has been closed will result in undefined behavior.
-This does not need to be considered when using the Fortran API, since we can verify whether the file has been closed.
+
+In Fortran, this problem occurs indirectly. For example, it is an error to use a query
+whose file has been closed because it will result in undefined behavior. It is also an error to try to read a record
+found in a certain file after that file has been closed.  
+Calling most functions directly on an `fst_file` object is "safe" in the sense that the library will be able to check
+for it and emit a message. However, this check is meaningless if you are using a copy of the object.
 
 #### `fst_query`
 
