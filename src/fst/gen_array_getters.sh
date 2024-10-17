@@ -31,14 +31,19 @@ for RI in I R ; do
             [[ $D == 1 ]] && SHAPE='this % ni * this % nj * this % nk'
             cat << EOT
 
-    subroutine fst24_record_get_data_array_${RI}${L}_${D}D(this, array)
+    subroutine fst24_record_get_data_array_${RI}${L}_${D}D(this, array, in_check_type)
         implicit none
         class(fst_record), intent(in) :: this
         $TYPE($KIND), dimension($DIMENSION), pointer, intent(out) :: array
+        logical, intent(in), optional :: in_check_type
         
         integer :: num_dims
+        logical :: check_type
 
         nullify(array)
+        check_type = .true.
+
+        if (present(in_check_type)) check_type = in_check_type
 
         num_dims = 1
         if (this % nj > 1) num_dims = 2
@@ -49,7 +54,7 @@ for RI in I R ; do
             call lib_log(APP_LIBFST, APP_WARNING, app_msg)
         end if
 
-        if (.not. (${TYPE_CONDITION})) then
+        if (check_type .and. .not. (${TYPE_CONDITION})) then
             write(app_msg, '(A, A, A, A)') 'Record has type ', trim(FST_TYPE_NAMES(base_fst_type(this % data_type))),       &
                     ' but this pointer can only take ', '${ACCEPTED_TYPES}'
             call lib_log(APP_LIBFST, APP_WARNING, app_msg)
