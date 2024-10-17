@@ -384,9 +384,9 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
      *   handle abnormal condition  *
      *                              *
      ********************************/
-    if (bitSizeOfPackedToken != 8 && bitSizeOfPackedToken != 16 && bitSizeOfPackedToken != 32) {
+    if (bitSizeOfPackedToken < 1 || bitSizeOfPackedToken > 32) {
         Lib_Log(APP_LIBRMN, APP_ERROR,
-                "%s: Can only (un)compact integers with size 8, 16 or 32 bits (bitSizeOfPackedToken = %d)\n",
+                "%s: Can only (un)compact integers with size <= 32 bits (bitSizeOfPackedToken = %d)\n",
                 __func__, bitSizeOfPackedToken);
         return 0;
     }
