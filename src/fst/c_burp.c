@@ -6,6 +6,7 @@
 
 #include <rmn/rpnmacros.h>
 #include "burp98_f/burp98_f.h"
+#include "FC_string.h"
 
 //! Convert a list of of 6 digit decimal BUFR coded element names to 16-bit
 int c_mrbcol(int liste[], int cliste[], int nele)
@@ -102,7 +103,7 @@ int c_mrbini(
     int liun, ltemps, lflgs, lidtp, llati, llongi, lelev, ldrcv, ldate, loars;
     int ldx, ldy;
     int lrunn, lnsup, lnxaux;
-    F2Cl l1 = strlen(stnid);
+    F2Cl l1 = rmn_strnlen(stnid, 9); // Max length seems to be 9, according to mrbini
     ltemps = temps; lflgs = flgs; lidtp = idtp; llati = lati; llongi = longi;
     ldx = dx; ldy = dy;
     lelev = elev; ldrcv = drcv; ldate = date; loars = oars; lrunn = runn;
@@ -211,7 +212,7 @@ int c_mrbupd(
     int liun,ltemps,lflgs,lidtp,llati,llongi,lelev,ldrcv,ldate,loars;
     int ldx, ldy;
     int lrunn,lnsup,lnxaux;
-    F2Cl l1 = strlen(stnid);
+    F2Cl l1 = rmn_strnlen(stnid, 9); // stnid seems to have a max length of 9, according to mrbupd
     ltemps = temps; lflgs = flgs; lidtp = idtp; llati = lati; llongi = longi;
     ldx = dx; ldy = dy;
     lelev = elev; ldrcv = drcv; ldate = date; loars = oars; lrunn = runn;
@@ -274,7 +275,7 @@ int c_mrfloc(
     int sup[],
     int nsup
 ) {
-    F2Cl l1 = strlen(stnid);
+    F2Cl l1 = rmn_strnlen(stnid, 9); // Max length seems to be 9, according to mrfloc
     return f77name(mrfloc)(&iun, &handle, stnid, &idtyp, &lat, &lon, &date,
                     &temps, sup, &nsup, l1);
 }
@@ -344,7 +345,7 @@ int c_mrfprm(
     int nsup,
     int *lng
 ) {
-    F2Cl l1 = strlen(stnid);
+    F2Cl l1 = rmn_strnlen(stnid, 9);
     int iii = f77name(mrfprm)(&handle, stnid, idtyp, lat, lon, dx, dy, date, temps, flgs,
                     sup, &nsup, lng, l1);
     stnid[9] = '\0';

@@ -115,3 +115,11 @@ void f77name(cs_to_fs)(char *fstring, int *nc)
 
     free(cstring);
 }
+
+//! Determine the length of the given string. If a terminating NULL character is not
+//! found after max_len characters, return that max_len value.
+size_t rmn_strnlen(const char* str, const size_t max_len) {
+    const char* found = memchr(str, '\0', max_len);
+    if (found == NULL) return max_len;
+    return found - str;
+}

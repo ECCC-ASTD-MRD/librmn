@@ -515,9 +515,9 @@ int c_mrbadd(
         entete.nt = nt;
         entete.nele = nele;
         entete.nval = nval;
-        entete.elem1 = lstele[0];
-        entete.elem2 = lstele[1];
-        entete.elem3 = lstele[2];
+        if (nele > 0) entete.elem1 = lstele[0];
+        if (nele > 1) entete.elem2 = lstele[1];
+        if (nele > 2) entete.elem3 = lstele[2];
         done = 3;
     }
     indx = (buf->nbits) / (8 * sizeof(uint32_t));
