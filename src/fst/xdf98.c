@@ -47,6 +47,8 @@ static uint32_t next_match(int file_index);
 static void build_gen_prim_keys(uint32_t *buf, uint32_t *keys, uint32_t *mask,
                                 uint32_t *mskkeys, int index, int mode);
 static void build_gen_info_keys(uint32_t * const buf, uint32_t * const keys, const int index, const int mode);
+static void finalize_xdf(void);
+static void release_xdf_index(const int index);
 
 const int ABSOLUTE_MAX_XDF_FILES = 1024;
 file_table_entry_ptr* file_table = NULL;
@@ -61,8 +63,6 @@ int32_t c_xdf_handle_in_file(const int32_t handle) {
     const int32_t index = INDEX_FROM_HANDLE(handle);
     return ((file_table[index] != NULL) && (file_table[index]->iun >= 0));
 }
-
-static void finalize_xdf(void);
 
 //! Initialize the XDF API
 //! Uses the xdf_mutex
@@ -1778,7 +1778,7 @@ int c_xdfopn(
         return(ERR_FILE_OPN);
     }
 
-    int index = get_free_index();
+    const int index = get_free_index();
     if (index < 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to assign slot for opening XDF file with iun %d\n", __func__, iun);
         return index;
@@ -1791,6 +1791,7 @@ int c_xdfopn(
     int index_fnom = get_fnom_index(iun);
     if (index_fnom < 0) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file (unit=%d) is not connected with fnom\n",__func__,iun);
+        release_xdf_index(index);
         return(ERR_NO_FNOM);
     }
 
@@ -1800,12 +1801,14 @@ int c_xdfopn(
     if (fte->cur_info->file_type == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file type is NULL. iun = %d, index_fnom = %d, index = %d\n",
                 __func__, iun, index_fnom, index);
+        release_xdf_index(index);
         return -1;
     }
 
     if (! fte->cur_info->attr.rnd) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file must be random\n file in error: %s\n",__func__,FGFDT[index_fnom].file_name);
-        return(-1);
+        release_xdf_index(index);
+        return -1;
     }
 
     if (strstr(appl, "BRP0")) fte->cur_info->attr.burp = 1;
@@ -1831,6 +1834,7 @@ int c_xdfopn(
         STDSEQ_opened = 1;
         if (index > 127) {
             Lib_Log(APP_LIBFST,APP_ERROR,"%s: while opening std/seq file, limit of 128 opened file reached\n",__func__);
+            release_xdf_index(index);
             return(-1);
         }
     }
@@ -1874,6 +1878,7 @@ int c_xdfopn(
         if (header64.data[0] == 'XDF0' || header64.data[0] == 'xdf0') {
             if ((fte->header = calloc(1,header64.lng * 8)) == NULL) {
                 Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
+                release_xdf_index(index);
                 return(ERR_MEM_FULL);
             }
 
@@ -1888,6 +1893,7 @@ int c_xdfopn(
             if (fte->cur_info->attr.std) {
                 if ((fte->header->sign != STDR_sign) && (fte->header->sign != STDS_sign)) {
                     Lib_Log(APP_LIBFST,APP_FATAL,"%s: %s is not a standard file\n",__func__,FGFDT[index_fnom].file_name);
+                    release_xdf_index(index);
                     return(ERR_WRONG_FTYPE);
                 }
             }
@@ -1896,6 +1902,7 @@ int c_xdfopn(
             } else {
                 if (fte->header->rwflg != RDMODE) {
                     Lib_Log(APP_LIBFST,APP_FATAL,"%s: file (unit=%d) currently used by another application in write mode\n",__func__,iun);
+                    release_xdf_index(index);
                     return(ERR_STILL_OPN);
                 }
 
@@ -1911,6 +1918,7 @@ int c_xdfopn(
             if (fte->header->nbd == 0) {
                 if ( (fte->cur_info->attr.std) && (header64.data[1] == 'STDR' || header64.data[1] == 'stdr') ) {
                     Lib_Log(APP_LIBFST,APP_ERROR,"%s: File probably damaged\n file in error %s\n",__func__,FGFDT[index_fnom].file_name);
+                    release_xdf_index(index);
                     return( ERR_BAD_DIR);
                 } else {
                     fte->xdf_seq = 1;
@@ -1942,6 +1950,7 @@ int c_xdfopn(
                     wdaddress = W64TOWD(curpage->nxt_addr - 1) +1;
                     if (((wdaddress == 0) && (i != fte->header->nbd-1)) || (wdaddress > FGFDT[index_fnom].file_size)) {
                         Lib_Log(APP_LIBFST,APP_ERROR,"%s: number of directory pages is incorrect\n file in error %s\n",__func__,FGFDT[index_fnom].file_name);
+                        release_xdf_index(index);
                         return(ERR_BAD_DIR);
                     }
                     nrec += curpage->nent;
@@ -1965,6 +1974,7 @@ int c_xdfopn(
                 wdaddress += lng;
                 if ((directory = calloc(header_rnd.nutil, sizeof(uint32_t) * sizeof(rnd_dir_keys))) == NULL) {
                     Lib_Log(APP_LIBFST,APP_FATAL,"%s: memory is full\n",__func__);
+                    release_xdf_index(index);
                     return(ERR_MEM_FULL);
                 }
                 lng = header_rnd.nutil * sizeof(rnd_dir_keys) / sizeof(uint32_t);
@@ -2064,6 +2074,7 @@ int c_xdfopn(
                     return 0;
                 } else {
                     Lib_Log(APP_LIBFST,APP_FATAL,"%s: file is not XDF type or old standard random type\n",__func__);
+                    release_xdf_index(index);
                     return(ERR_NOT_XDF);
                 }
             }
@@ -2608,7 +2619,10 @@ int c_xdfsta(
                      (fh->keys[nn].tcle << 8) | (fh->keys[nn].reserved);
     }
 
-    if (! wasopen) c_waclos(iun);
+    if (!wasopen) {
+        c_waclos(iun);
+        free(fh);
+    }
     return 0;
 }
 
@@ -3075,6 +3089,7 @@ static int get_free_index()
                 entry = (file_table_entry*) malloc(sizeof(file_table_entry));
                 if (entry == NULL) {
                     Lib_Log(APP_LIBFST, APP_FATAL, "%s: can't allocate file_table_entry\n", __func__);
+                    file_table[i] = NULL;
                     return(ERR_MEM_FULL);
                 }
 
@@ -3097,6 +3112,11 @@ static int get_free_index()
     return(ERR_FTAB_FULL);
 }
 
+static void release_xdf_index(const int index) {
+    if (index > 0 && index < MAX_XDF_FILES && file_table[index] != NULL) {
+        init_file(file_table[index], index);
+    }
+}
 
 //! Initialize a file table entry.
 static void init_file(
