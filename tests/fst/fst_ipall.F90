@@ -6,14 +6,17 @@ module fst98_ipall_module
 
     character(len=*), dimension(2), parameter :: filenames = ['ip1.fst', 'ip2.fst']
 
-    real, dimension(3), parameter :: p = [ 0.1, 0.2, 0.3 ]
-    integer, parameter :: ip_kind = 2
+    real, dimension(3) :: p = [ 0.1, 0.2, 0.3 ]
+    integer :: ip_kind = 2
     character(len=1) :: dummy
 
 contains
 
 subroutine create_files(is_rsf)
     implicit none
+
+    include 'rmn/convert_ip123.inc'
+
     logical, dimension(2), intent(in) :: is_rsf
 
     type(fst_file), dimension(2) :: files

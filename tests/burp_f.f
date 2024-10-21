@@ -18,65 +18,65 @@
 * * Boston, MA 02111-1307, USA.
 * */
 
-*
+
 *  MACRO ICHAMP(MOT,FIN,LG)   EXTRAIT UN CHAMP D'UN MOT
-*
+
 *   MOT   MOT QUI CONTIENT LE CHAMP
 *   FIN   NUMERO DU DERNIER BIT (A DROITE) DU CHAMP, EN NUMEROTATION
 *         GAUCHE > DROITE (LE BIT 0 EST A DROITE DU MOT).
 *   LG    LONGUEUR, EN BITS, DU CHAMP
-*
 
-*
+
+
 *  MACRO IUNPAK(BASE, BITPOS, LG)  OBTENIR UN CHAMP D'UN TABLEAU
-*
+
 *  BASE    TABLEAU CONTENANT LE CHAMP A EXTRAIRE
 *  BITPOS  POSITION DU BIT DE DROITE DU CHAMP A EXTRAIRE
 *          LE BIT 0 EST LE BIT SIGNE DU PREMIER MOT DU TABLEAU.
 *  LG      EST LE NOMBRE DE BITS QU'OCCUPE LE CHAMP. (MAX 32 BITS)
-*
 
-*
-*
+
+
+
 *  MACRO GETBIT(BASE, BITPOS, LG)  OBTENIR UN CHAMP D'UN TABLEAU
-*
+
 *  BASE    TABLEAU CONTENANT LE CHAMP A EXTRAIRE
 *  BITPOS  POSITION DU BIT DE DROITE DU CHAMP A EXTRAIRE
 *          LE BIT 0 EST LE BIT SIGNE DU PREMIER MOT DU TABLEAU.
 *  LG      EST LE NOMBRE DE BITS QU'OCCUPE LE CHAMP. (MAX 32 BITS)
-*
 
-*
-*
+
+
+
 *  MACRO INSERT(TABL,KWA,BITPOS,LONG)  INSERER UN CHAMP DANS UN TABLEAU
-*
+
 *  TABL    TABLEAU QUI CONTIENDRA LE CHAMP APRES INSERTION
 *  KWA     MOT QUI CONTIENT LE CHAMP A INSERER JUSTIFIE A DROITE
 *  BITPOS  POSITION DU DERNIER BIT (A DROITE) DU CHAMP A INSERER
 *          LE BIT 0 EST LE BIT SIGNE DU PREMIER MOT DU TABLEAU
 *  LONG    LONGUEUR EN BIT DU CHAMP A INSERER (PAS PLUS DE 32 BITS)
-*
 
-*
+
+
 *  MACRO PUTBIT(TABL,KWA,BITPOS,LONG)  INSERER UN CHAMP DANS UN TABLEAU
-*
+
 *  TABL    TABLEAU QUI CONTIENDRA LE CHAMP APRES INSERTION
 *  KWA     MOT QUI CONTIENT LE CHAMP A INSERER JUSTIFIE A DROITE
 *  BITPOS  POSITION DU DERNIER BIT (A DROITE) DU CHAMP A INSERER
 *          LE BIT 0 EST LE BIT SIGNE DU PREMIER MOT DU TABLEAU
 *  LONG    LONGUEUR EN BIT DU CHAMP A INSERER (PAS PLUS DE 32 BITS)
-*
 
-*
+
+
 *  MACRO CLRBIT(TABL,BITPOS,LONG)  METTRE A ZERO UN CHAMP DANS UN TABLEAU
-*
+
 *  TABL    TABLEAU
 *  BITPOS  POSITION DU DERNIER BIT (A DROITE) DU CHAMP A NETTOYER
 *          LE BIT 0 EST LE BIT SIGNE DU PREMIER MOT DU TABLEAU
 *  LONG    LONGUEUR EN BIT DU CHAMP A NETTOYER (PAS PLUS DE 32 BITS)
-*
 
-*
+
+
 *  MACRO PUTBITC(TABL,KWA,BITPOS,LONG)  INSERER UN CHAMP DANS UN TABLEAU
 *                                       AVEC NETTOYAGE PRELIMINAIRE
 *  TABL    TABLEAU QUI CONTIENDRA LE CHAMP APRES INSERTION
@@ -84,20 +84,20 @@
 *  BITPOS  POSITION DU DERNIER BIT (A DROITE) DU CHAMP A INSERER
 *          LE BIT 0 EST LE BIT SIGNE DU PREMIER MOT DU TABLEAU
 *  LONG    LONGUEUR EN BIT DU CHAMP A INSERER (PAS PLUS DE 32 BITS)
-*
+
 
 ***PROGRAM TESTBRP
-*
+
       PROGRAM TESTBRP
           use rmn_common
       IMPLICIT NONE
 
-*
+
 *AUTEURS     M. LEPINE & J. CAVEEN  -  OCTOBRE 1990
-*
+
 *OBJET(TESTBRP)
 *     PROGRAMME POUR TESTER LE PROGICIEL DES FICHIERS BURP
-*
+
 *MODULES
       INTEGER FNOM,MRFCLS,MRFGET,MRFLOC,MRFOPN,MRFPRM,MRFPUT,MRBCVT
       INTEGER MRBADD,MRBDEL,MRBHDR,MRBINI,MRBLEN,MRBLOC,MRBPRM
@@ -147,12 +147,12 @@
       INTEGER USRTBL(10), CUSRTBL(3,10), RELEM
       INTEGER TBLBURP(4,20)
       INTEGER TBLPRM(10,30)
+      INTEGER ZERO
 
-        integer rien1, rien2
       DATA LISTE /'L','IMFICHE','IMFICHE2','CHRONO','QUICK'/
       DATA DEF1 /'OUTPUT','BRPFIL1','BRPFIL2','OUI','OUI'/
       DATA DEF2 /'OUTPUT','BRPFIL1','BRPFIL2','NUL','NUL'/
-*
+
 
       DATA LSTELEA /2,1001,2121,2122,2129,4031,6011,10002,10061,
      %20009/
@@ -161,8 +161,8 @@
       DATA LSTELEE /1001,128*2121,2122/
       DATA USRTBL /63000, 63010, 63123, 63124, 63125,63200, 63201,
      % 63222, 63234, 63255 /
-*
 
+      ZERO = 0
       IPOS = -1
       CALL CCARD(LISTE,DEF1,DEF2,5,IPOS)
       IER = FNOM(6,DEF2(1),'SEQ+FTN+FMT',0)
@@ -194,43 +194,41 @@
       BUFE(1) = 20000
       WRITE(6,333) 2.0,'MRBINI POUR 3 RAPPORTS'
       IER1 = MRBINI(10,BUFA,1129,ishft(-1,-(32-(8))),'STATION#1',2,
-     %1800,3600,0,0,975,42,910222,65535,1,SUP,0,XAUX,0)
+     %1800,3600,0,0,975,42,910222,65535,1,SUP,ZERO,XAUX,ZERO)
       IER2 = MRBINI(10,BUFB,0222,ishft(-1,-(32-(5))),'STATION#2',3,
-     %900,1200,1500,1200,240,30,910223,60,1,SUP,0,XAUX,0)
+     %900,1200,1500,1200,240,30,910223,60,1,SUP,ZERO,XAUX,ZERO)
       IER3 = MRBINI(10,BUFC,0333,ishft(-1,-(32-(3))),'STATION#3',4,
-     %450,600,0,0,100,68,910224,90,1,SUP,0,XAUX,0)
+     %450,600,0,0,100,68,910224,90,1,SUP,ZERO,XAUX,ZERO)
       CALL TESTIT(IER1+IER2+IER3)
       WRITE(6,333) 2.0,'MRBADD (20 FOIS) POUR RAPPORT BUFA'
       IER = 0
-      DO 23000 I = 1,20
+      DO I = 1,20
          CALL REMPLI(TBLVAL,10,5,7)
          IER1 = MRBADD(BUFA,BLKNO,10,5,7,5,12,I,12,BIT0,2,LSTELEA,
      %   TBLVAL)
          IER = IER + IER1
          PRINT *,' *** INFO BLKNO, BIT0 = ',BLKNO,BIT0
-23000 CONTINUE 
+      END DO
       CALL TESTIT(IER)
       WRITE(6,333) 2.1,'MRBADD (10 FOIS) POUR RAPPORT BUFB'
-      DO 23002 I = 1,10
+      DO I = 1,10
          CALL REMPLI(TBLVAL,4,5,7)
          IER1 = MRBADD(BUFB,BLKNO,4,5,7,773,0,I,3,BIT0,2,LSTELEB,
      %   TBLVAL)
          IER = IER + IER1
          PRINT *,' *** INFO BLKNO, BIT0 = ',BLKNO,BIT0
-23002 CONTINUE 
+      END DO
       CALL TESTIT(IER)
       WRITE(6,333) 2.2,'MRBADD (12 FOIS) POUR RAPPORT BUFC'
-      DO 23004 I = 1,12
-
-*        CALL REMPLI(TBLVAL,3,5,7)
-         DO 23006 IER = 1,3
+      DO I = 1,12
+         DO  IER = 1,3
             TBLVAL(IER) = I
-23006    CONTINUE 
+         END DO
          IER1 = MRBADD(BUFC,BLKNO,3,1,1,5,12,I,32,BIT0,2,LSTELEC,
      %   TBLVAL)
          IER = IER + IER1
          PRINT *,' *** INFO BLKNO, BIT0 = ',BLKNO,BIT0
-23004 CONTINUE 
+      END DO
       CALL TESTIT(IER)
       WRITE(6,333) 3.0,'MRBLEN POUR RAPPORTS BUFA BUFB ET BUFC'
       IER1 = MRBLEN(BUFA,LBITS,LEFT)
@@ -514,7 +512,7 @@
       IER2 = 0
       DO 23064 I =4,6
 
-*
+
 *         I+48 EGAL VALEUR ASCII DE I
 
 *         WRITE(STNID(9:9),'(A1)') HLJUST(I+48,1)
@@ -537,7 +535,7 @@
       IER = MRFOPN(10,'READ')
       CALL TESTIT(IER)
       WRITE(6,333) 16.0,'MRFLOC STATIO#6,DATE=901029,IDTYP=3'
-      IER1 = MRFLOC(10,0,'STATION#6',3,4523,26300,901029,1118,SUP,0)
+      IER1 = MRFLOC(10,0,'STATION#6',3,4523,26300,901029,1118,SUP,ZERO)
       WRITE(6,*)' HANDLE = ',IER1
       CALL TESTIT(IER1)
       WRITE(6,333) 17.0,'MRFGET DU RAPPORT A POSITION HANDLE'
@@ -570,7 +568,7 @@
       WRITE(6,333) 19.0,
      %'MRFLOC PROCHAIN STATIO#6,DATE=901029,IDTYP=3'
       IER1 = MRFLOC(10,IER1,'STATION#6',3,4523,26300,901029,1143,SUP
-     %,0)
+     %,ZERO)
       WRITE(6,*)' HANDLE = ',IER1
       CALL TESTIT(IER1)
       WRITE(6,333) 20.0,'MRFGET DU RAPPORT A POSITION HANDLE'
@@ -612,13 +610,13 @@
             WRITE(6,*)'   DATE       HANDLE        CHRONO'
             DO 23084 I=100,8000,100
                DO 23086 J = 1,50
-                  IER = MRFLOC(20,0,'STATION#9',4,-1,-1,I,-1,SUP,0)
+                  IER = MRFLOC(20,0,'STATION#9',4,-1,-1,I,-1,SUP,ZERO)
 23086          CONTINUE 
                WRITE(6,1202)I,IER
 23084       CONTINUE 
          ELSE 
             I = 8000
-            IER = MRFLOC(20,0,'STATION#9',4,-1,-1,I,-1,SUP,0)
+            IER = MRFLOC(20,0,'STATION#9',4,-1,-1,I,-1,SUP,ZERO)
          ENDIF 
       ELSE 
          WRITE(6,333) 23.0,'MRBUPD-MRFPUT BUFB DATE = 1 A 200'
@@ -635,14 +633,14 @@
             WRITE(6,*)'   DATE       HANDLE        CHRONO'
             DO 23092 I=100,200,100
                DO 23094 J = 1,50
-                  IER = MRFLOC(20,0,'STATION#9',4,-1,-1,I,-1,SUP,0)
+                  IER = MRFLOC(20,0,'STATION#9',4,-1,-1,I,-1,SUP,ZERO)
 23094          CONTINUE 
                CHRONO = (T2-T1)/50.0
                WRITE(6,1202)I,IER
 23092       CONTINUE 
          ELSE 
             I = 200
-            IER = MRFLOC(20,0,'STATION#9',4,-1,-1,I,-1,SUP,0)
+            IER = MRFLOC(20,0,'STATION#9',4,-1,-1,I,-1,SUP,ZERO)
          ENDIF 
       ENDIF 
       WRITE(6,333) 24.1,' MRFOPC - MSGLVL MIS INFORMATIF'
@@ -728,7 +726,7 @@
       CALL TESTIT(IER)
       WRITE(6,333) 30.0,'MRBINI BUFE'
       IER3 = MRBINI(10,BUFE,0333,ishft(-1,-(32-(3))),'STATION#3',4,
-     %450,600,0,0,100,68,910224,90,1,SUP,0,XAUX,0)
+     %450,600,0,0,100,68,910224,90,1,SUP,ZERO,XAUX,ZERO)
       WRITE(6,333) 30.1,
      %'MRBADD (3 FOIS) POUR RAPPORT BUFE DIM en 16 BITS'
       IER= 0
@@ -900,7 +898,7 @@
          BUFA(I) = 0
 23124 CONTINUE 
       IER1 = MRBINI(10,BUFA,1129,ishft(-1,-(32-(8))),'STATION12',2,
-     %1800,3600,0,0,975,42,920108,65535,1,SUP,0,XAUX,0)
+     %1800,3600,0,0,975,42,920108,65535,1,SUP,ZERO,XAUX,ZERO)
       IER = MRBHDR(BUFA,TEMPS,FLGS,STNID,IDTYP,LATI,LONG,DX,DY,ELEV,
      %DRCV,DATE,OARS,RUN,NBLK,SUP,NSUP,XAUX,NXAUX)
       WRITE(6,*)' TEMPS = ',TEMPS
@@ -918,7 +916,7 @@
       WRITE(6,*)' RUN   = ',RUN
       WRITE(6,*)' NBLK  = ',NBLK
       IER = MRFPUT(10,0,BUFA)
-      IER = MRFLOC(10,0,'S*A*I**12',-1,-1,-1,920108,-1,SUP,0)
+      IER = MRFLOC(10,0,'S*A*I**12',-1,-1,-1,920108,-1,SUP,ZERO)
       WRITE(6,*)' HANDLE DE L''ENREGISTREMENT AVEC ZERO BLOCS:',IER
       CALL TESTIT(IER)
       DO 23126 I= 2, 8000
@@ -1019,17 +1017,17 @@
          IER = -1
       ENDIF 
       CALL TESTIT(IER)
-*
+
 *     section pour tester les datyp 6,7,8 et 9
-*
+
 *reel
-*
+
       IER = MRFOPC('MSGLVL','TRIVIAL')
 
 
       WRITE(6,333) 50.0,' MRBADD datyp = 6'
       IER1 = MRBINI(10,BUFA,1129,ishft(-1,-(32-(8))),'DATYP6789',2,
-     %1800,3600,0,0,975,42,920108,65535,1,SUP,0,XAUX,0)
+     %1800,3600,0,0,975,42,920108,65535,1,SUP,ZERO,XAUX,ZERO)
 
       do i = 1,10
          rtablo(i) = float(i)
@@ -1062,9 +1060,9 @@
       call testit(ier)
 
 
-*
+
 *real*8
-*
+
       WRITE(6,333) 50.1,' MRBADD datyp = 7'
       do i = 1,10
          rtablo8(i) = float(i)
@@ -1114,9 +1112,9 @@
       call testit(ier)
 
 
-*
+
 *complex
-*
+
       WRITE(6,333) 50.2,' MRBADD datyp = 8'
 
       do i = 1,10
@@ -1167,9 +1165,9 @@
       call testit(ier)
 
 
-*
+
 *complex*16
-*
+
       WRITE(6,333) 50.2,' MRBADD datyp = 9'
 
       do i = 1,10
@@ -1243,7 +1241,7 @@
 
       WRITE(6,333) 50.3,' MRFPUT MRFLOC MRFGET datyp = 6789'
       IER = MRFPUT(10,0,BUFA)
-      IER1 = MRFLOC(10,0,'DATYP6789',-1,-1,-1,-1,-1,SUP,0)
+      IER1 = MRFLOC(10,0,'DATYP6789',-1,-1,-1,-1,-1,SUP,ZERO)
       if(ier1 .lt. 0) then
          ier = ier -1
       else
@@ -1275,7 +1273,7 @@
       WRITE(6,777) NELE,NVAL,NT,BFAM,BDESC,BTYP,NBIT, BIT0,DATYP
       call testit(ier)
       
-*
+
       WRITE(6,333) 50.5,' MRBXTR datyp = 6'
 
       do i = 1,10
@@ -1303,9 +1301,9 @@
       call testit(ier)
 
 
-*
+
 *real*8
-*
+
       WRITE(6,333) 50.6,' MRBXTR datyp = 7'
       do i = 1,10
          rtablo8(i) = float(i)
@@ -1343,9 +1341,9 @@
       call testit(ier)
 
 
-*
+
 *complex
-*
+
       WRITE(6,333) 50.7,' MRBXTR datyp = 8'
 
       do i = 1,10
@@ -1384,9 +1382,9 @@
       call testit(ier)
 
 
-*
+
 *complex*16
-*
+
       WRITE(6,333) 50.8,' MRBXTR datyp = 9'
 
       do i = 1,10
@@ -1440,7 +1438,7 @@
 
       call testit(ier)
 
-*
+
       WRITE(6,333) 51.0,' MRBREP datyp = 6'
 
       do i = 1,10
@@ -1468,9 +1466,9 @@
 
       call testit(ier)
 
-*
+
 *real*8
-*
+
       WRITE(6,333) 51.1,' MRBREP datyp = 7'
       do i = 1,10
          rtablo8(i) = float(i) * 2.0
@@ -1509,9 +1507,9 @@
       call testit(ier)
 
 
-*
+
 *complex
-*
+
       WRITE(6,333) 51.2,' MRBREP datyp = 8'
 
       do i = 1,10
@@ -1550,9 +1548,9 @@
 
       call testit(ier)
 
-*
+
 *complex*16
-*
+
       WRITE(6,333) 51.3,' MRBREP datyp = 9'
 
       do i = 1,10
@@ -1633,9 +1631,9 @@
 23148 CONTINUE 
       CALL TESTIT (IER)
 
-*
+
 *       tester l'allocation de bits
-*
+
       WRITE(6,333) 70.0, 'qrbnbdt datyp=2,sans manquants'
       do i = 1, 7
          bufa(i) = i
@@ -1735,12 +1733,12 @@
       SUBROUTINE REMPLI(TABLEAU,NI,NJ,NK)
       INTEGER NI,NJ,NK
       INTEGER TABLEAU(NI*NJ*NK)
-*
+
 
       INTEGER IJK, SEED
       SAVE SEED
       DATA SEED /1/
-*
+
 
       DO 23000 IJK = 1,NI*NJ*NK
          TABLEAU(IJK) = IJK * SEED
