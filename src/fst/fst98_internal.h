@@ -58,6 +58,7 @@ static inline void swap_words(void* array, const int32_t num_elem64) {
 
 typedef struct {
     fst_query query;
+    int32_t is_open;
     int32_t next_file;
     int32_t search_done;
     struct {

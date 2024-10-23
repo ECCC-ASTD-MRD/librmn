@@ -1766,7 +1766,7 @@ int c_xdfopn(
 
     if (initialize_xdf() <= 0) return -1; // Error message will already be printed
 
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opening file with iun %d\n", __func__, iun);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opening file with iun %d, mode = %s\n", __func__, iun, mode);
 
     if ((iun <= 0) || (iun >= MAX_FNOM_FILES)) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid unit number=%d\n",__func__,iun);

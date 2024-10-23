@@ -81,6 +81,8 @@ static pthread_mutex_t fst98_mutex = PTHREAD_MUTEX_INITIALIZER;
 fstd_usage_info* fst98_open_files = NULL; //!< Information about all currently open FST files
 int MAX_FST98_FILES = 0; //!< How many FST98 files can be open simultaneously
 
+static int initialize_fst98(void);
+
 // Callable from Fortran
 int32_t is_type_real_f(const int32_t type_flag) { return is_type_real(type_flag); }
 int32_t is_type_complex_f(const int32_t type_flag) { return is_type_complex(type_flag); }
@@ -178,6 +180,7 @@ static void init_open_file(fstd_usage_info* info) {
     info->query = new_fst_query(NULL);
     info->query.num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
     info->next_file = -1;
+    info->is_open = 1;
 }
 
 
@@ -1940,6 +1943,8 @@ int c_fstfrm(
         return ERR_NO_FNOM;
     }
 
+    fst98_open_files[index_fnom].is_open = 0;
+
     if (rsf_status == 1) {
         return c_fstfrm_rsf(iun, index_fnom);
     }
@@ -3190,12 +3195,7 @@ int c_fstnbr_xdf(
     int index;
     file_table_entry *fte;
     if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
-        c_fstouv(iun, "RND");
-        index = file_index_xdf(iun);
-        fte = file_table[index];
-        int nrec = fte->nrecords;
-        c_fstfrm(iun);
-        return nrec;
+        return index;
     }
 
     fte = file_table[index];
@@ -3213,12 +3213,22 @@ int c_fstnbr(
         return ERR_NO_FNOM;
     }
 
+    if (initialize_fst98() <= 0) return -1; // Error message should already be printed
+
     int status = -1;
     int total_num_records = 0;
     while (index_fnom >= 0) {
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
-                __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
-        if (FGFDT[index_fnom].attr.rsf == 1) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (%s, iun %d), possible type %s (open = %d), next %d\n",
+                __func__, index_fnom, FGFDT[index_fnom].file_name, FGFDT[index_fnom].iun,
+                FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF",
+                fst98_open_files[index_fnom].is_open, fst98_open_files[index_fnom].next_file);
+
+        if (fst98_open_files[index_fnom].is_open == 0) {
+            status = c_fstouv(iun, "RND+R/O");
+            if (status < 0) return status;
+            c_fstfrm(iun);
+        }
+        else if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstnbr_rsf(index_fnom);
         }
         else {
@@ -3501,7 +3511,7 @@ int c_fstcheck(
 //! Initialize global fst98 structures and variables.
 //! Uses the fst98 mutex.
 //! \return The maximum number of FST98 files that can be open simultaneously, or 0 if there is an error
-int initialize_fst98() {
+static int initialize_fst98(void) {
     if (MAX_FST98_FILES > 0) return MAX_FST98_FILES; // fst98 already initialized
     if (MAX_FNOM_FILES <= 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot initialize fst (98) if fnom has never been called/initialized\n", __func__);
@@ -3513,7 +3523,7 @@ int initialize_fst98() {
 
     if (MAX_FST98_FILES > 0) goto unlock; // Check again after locking, in case someone else was initializing
 
-    fst98_open_files = (fstd_usage_info*) malloc(MAX_FNOM_FILES * sizeof(fstd_usage_info));
+    fst98_open_files = (fstd_usage_info*) calloc(MAX_FNOM_FILES, sizeof(fstd_usage_info));
     if (fst98_open_files == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate fst98 open files table (%d files)\n",
                 __func__, MAX_FNOM_FILES);
@@ -3572,6 +3582,17 @@ int c_fstouv(
     if (strcasestr(options, "R/W")) {
         read_only = 0;
     }
+
+    // Update file attribute, in case we just contradicted it
+    if (read_only == 0) {
+        FGFDT[i].attr.read_only = 0;
+        FGFDT[i].attr.write_mode = 1;
+    }
+    else {
+        FGFDT[i].attr.read_only = 1;
+        FGFDT[i].attr.write_mode = 0;
+    }
+
     // Look for attribute volatile (file will be erased on process end)
     if (strcasestr(options, "VOLATILE")) {
         FGFDT[i].attr.volatil = 1;
@@ -3627,7 +3648,7 @@ int c_fstouv(
                 ier = ERR_NO_FILE;
             }
             else if (is_rsf) {
-               ier = c_fstouv_rsf(i, RSF_RW, seg_size);
+                ier = c_fstouv_rsf(i, RSF_RW, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
@@ -3636,25 +3657,19 @@ int c_fstouv(
             if (iwko == WKF_STDRSF) {
                 ier = c_fstouv_rsf(i, open_mode, seg_size);
             }
-            else {
+            else if (iwko == WKF_SEQUENTIEL98 || iwko == WKF_RANDOM98 || iwko == WKF_SEQUENTIEL89 || iwko == WKF_RANDOM89) {
                 ier = c_xdfopn(iun, read_only?"READ":"R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+            }
+            else {
+                ier = ERR_WRONG_FTYPE;
             }
         }
     }
 
-    // Update file attribute, in case we just contradicted it
-    if (read_only == 0) {
-        FGFDT[i].attr.read_only = 0;
-        FGFDT[i].attr.write_mode = 1;
-    }
-    else {
-        FGFDT[i].attr.read_only = 1;
-        FGFDT[i].attr.write_mode = 0;
-    }
+    if (ier < 0) return ier;
 
     init_open_file(&fst98_open_files[i]);
 
-    if (ier < 0) return ier;
     int nrec = c_fstnbr(iun);
     return nrec;
 }
