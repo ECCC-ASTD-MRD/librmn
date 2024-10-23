@@ -443,7 +443,14 @@ static int py_fst_record_init(struct py_fst_record *self, PyObject *args, PyObje
 static void py_fst_record_dealloc(struct py_fst_record *self);
 static PyObject * py_fst_record_str(struct py_fst_record *self);
 static PyObject *py_fst_record_richcompare(struct py_fst_record *self, PyObject *other, int op);
+static PyObject *py_fst_record_to_dict(struct py_fst_record *self);
 static PyMethodDef py_fst_record_method_defs[] = {
+    {
+        .ml_name = "to_dict",
+        .ml_meth = (PyCFunction)py_fst_record_to_dict,
+        .ml_doc = "Return a dictionnary formed from the record's attributes",
+        .ml_flags = METH_NOARGS
+    },
     {NULL, NULL, 0, NULL},
 };
 
@@ -1254,6 +1261,29 @@ static PyObject *py_fst_record_richcompare(struct py_fst_record *self, PyObject 
         Py_RETURN_FALSE;
     }
 }
+
+static PyObject *py_fst_record_to_dict(struct py_fst_record *self){
+    PyObject *d = PyDict_New();
+    PyDict_SetItemString(d, "nomvar", py_fst_record_get_nomvar(self));
+    PyDict_SetItemString(d, "typvar", py_fst_record_get_typvar(self));
+    PyDict_SetItemString(d, "grtyp", py_fst_record_get_grtyp(self));
+    PyDict_SetItemString(d, "etiket", py_fst_record_get_etiket(self));
+    PyDict_SetItemString(d, "ni", PyLong_FromLong(self->rec.ni));
+    PyDict_SetItemString(d, "nj", PyLong_FromLong(self->rec.nj));
+    PyDict_SetItemString(d, "nk", PyLong_FromLong(self->rec.nk));
+    PyDict_SetItemString(d, "ip1", PyLong_FromLong(self->rec.ip1));
+    PyDict_SetItemString(d, "ip2", PyLong_FromLong(self->rec.ip2));
+    PyDict_SetItemString(d, "ip3", PyLong_FromLong(self->rec.ip3));
+    PyDict_SetItemString(d, "ig1", PyLong_FromLong(self->rec.ig1));
+    PyDict_SetItemString(d, "ig2", PyLong_FromLong(self->rec.ig2));
+    PyDict_SetItemString(d, "ig3", PyLong_FromLong(self->rec.ig3));
+    PyDict_SetItemString(d, "ig4", PyLong_FromLong(self->rec.ig4));
+    PyDict_SetItemString(d, "data_type", PyLong_FromLong(self->rec.data_type));
+    PyDict_SetItemString(d, "data_bits", PyLong_FromLong(self->rec.data_bits));
+    PyDict_SetItemString(d, "file_index", PyLong_FromLong(self->rec.file_index));
+    return d;
+}
+
 static PyObject *rmn_get_test_record(PyObject *self, PyObject * Py_UNUSED(args))
 {
     struct py_fst_record *obj = (struct py_fst_record*)py_fst_record_type.tp_alloc(&py_fst_record_type, 0);
