@@ -240,7 +240,9 @@ module f_c_strings_mod
         character(len=:), pointer, intent(OUT) :: fstrptr
         integer, intent(IN) :: nchars
         integer(C_SIZE_T) :: nc
+#if defined(__INTEL_LLVM_COMPILER) && !defined(FORTRAN_202X_SUPPORTED)
         character(len=:), pointer :: fptr
+#endif
         nc = c_strlen(cstrptr)
         nc = min(nc, int(nchars, kind=C_SIZE_T))
 #if defined(__INTEL_LLVM_COMPILER) && !defined(FORTRAN_202X_SUPPORTED)

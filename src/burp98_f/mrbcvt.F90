@@ -19,252 +19,234 @@
 ! */
 !.S MRBCVT
 module mrb_cvt_sct_tbl
-      use rmn_burp_defi
-      use rmn_burpopt
+    use rmn_burp_defi
+    use rmn_burpopt
 #include <rmn/codes.cdk>
 #include <ftnmacros.hf>
-      LOGICAL PREMIER
-      INTEGER TABLEAU(3,MAXNELE), NELELU
-      DATA    PREMIER /.TRUE./
-      SAVE    TABLEAU, NELELU, PREMIER
+    LOGICAL PREMIER
+    INTEGER TABLEAU(3,MAXNELE), NELELU
+    DATA    PREMIER /.TRUE./
+    SAVE    TABLEAU, NELELU, PREMIER
 end module
 
-!**S/PMRBCVT - FAIRE UNE CONVERSION D'UNITES
-      integer FUNCTION MRBCVT( LISTE,  TBLVAL, RVAL, NELE, NVAL, NT, MODE)
-      use app
-      use mrb_cvt_sct_tbl
-      IMPLICIT NONE
-      INTEGER  NELE, NVAL, NT, MODE,  &
-     &         LISTE(NELE), TBLVAL(NELE, NVAL, NT), NSLOTS
-      REAL     RVAL(NELE, NVAL, NT)
-!
-!AUTEUR: J. CAVEEN   JANVIER 1991
-!REV 001 Y. BOURASSA MARS    1995 RATFOR @ FTN77
-!
-!OBJET( MRBCVT )
-!     SOUS-PROGRAMME SERVANT A LA CONVERSION D'UNITES DE REEL A ENTIER
-!     POSITIF OU L'INVERSE, SELON LA VALEUR DE MODE.  LA CONVERSION
-!     SE FAIT EN CONSULTANT UN TABLEAU DUQUEL ON EXTRAIT UN FACTEUR
-!     D'ECHELLE ET UNE VALEUR DE REFERENCE QUI SONT APPLIQUES A LA 
-!     VARIABLE A CONVERTIR.
-!     LE TABLEAU DE REFERENCE EST INITIALISE PAR LE SOUS-PROGRAMME
-!     MRBSCT QUI EST APPELE LORS DE LA PREMIERE EXECUTION DE MRBCVT
-!
-!ARGUMENTS
-!     LISTE    ENTREE    LISTE DES ELEMENTS A CONVERTIR
-!     NELE       "       NOMBRE D'ELEMENTS (LONGUEUR DE LISTE)
-!     NVAL       "       NOMBRE DE VALEURS PAR ELEMENT
-!     NT         "       NOMBRE D'ENSEMBLES NELE*NVAL
-!     MODE       "       MODE DE CONVERSION
-!                        MODE = 0 DE TBLVAL(CODE BUFR) A RVAL
-!                        MODE = 1 DE RVAL A TBLVAL(CODE BUFR)
-!     TBLVAL   ENT/SRT   TABLEAU DE VALEURS EN CODE BUFR
-!     RVAL               TABLEAU DE VALEURS REELLES
-!
-!IMPLICITES 
-!
-!MODULES
-      EXTERNAL QRBSCT, BUFRCHR, QBRPTRI 
-      INTEGER  QRBSCT, BUFRCHR
+!> Faire une conversion d'unites
+integer FUNCTION MRBCVT( LISTE,  TBLVAL, RVAL, NELE, NVAL, NT, MODE)
+    use app
+    use mrb_cvt_sct_tbl
+    IMPLICIT NONE
+    INTEGER  NELE, NVAL, NT, MODE, LISTE(NELE), TBLVAL(NELE, NVAL, NT)
+    REAL     RVAL(NELE, NVAL, NT)
 
+    !     SOUS-PROGRAMME SERVANT A LA CONVERSION D'UNITES DE REEL A ENTIER
+    !     POSITIF OU L'INVERSE, SELON LA VALEUR DE MODE.  LA CONVERSION
+    !     SE FAIT EN CONSULTANT UN TABLEAU DUQUEL ON EXTRAIT UN FACTEUR
+    !     D'ECHELLE ET UNE VALEUR DE REFERENCE QUI SONT APPLIQUES A LA 
+    !     VARIABLE A CONVERTIR.
+    !     LE TABLEAU DE REFERENCE EST INITIALISE PAR LE SOUS-PROGRAMME
+    !     MRBSCT QUI EST APPELE LORS DE LA PREMIERE EXECUTION DE MRBCVT
 
-!******************************************************************************
-!       LA MATRICE TABLEAU CONTIENT:
-!          TABLEAU(1,I) - CODE DE L'ELEMENT I
-!          TABLEAU(2,I) - FACTEUR A APPLIQUER A L'ELEMENT I
-!          TABLEAU(3,I) - VALEUR DE REFERENCE A AJOUTER A L'ELEMENT I
-!       LA VARIABLE NELELU INDIQUE LE NOMBRE D'ELEMENTS PRESENT DANS LE
-!       FICHIER BUFR
-!
-!       POUR CODER LA VALEUR D'UN ELEMENT AVANT UN APPEL A MRFPUT, ON FAIT 
-!       L'OPERATION SUIVANTE: 
-!       ELEMENT(I)_CODE = ELEMENT(I) * TABLEAU(2,I) - TABLEAU(3,I)
-!
-!       ON NE FAIT AUCUNE CONVERSION LORSQUE QU'UN ELEMENT EST DEJA CODE
-!       COMME PAR EXEMPLE POUR LES DIFFERENTS MARQUEURS.
-!
-!       POUR DECODER UN ELEMENT ON FAIT L'OPERATION INVERSE.  DANS LE CAS 
-!       DES ELEMENTS NE REQUERANT AUCUN DECODAGE (E.G. MARQUEURS), ON INSERE
-!       DANS LE TABLEAU RVAL LA VALEUR -1.1E30 CE QUI INDIQUE A L'USAGER 
-!       QU'IL DOIT CONSULTER LE TABLEAU TBLVAL POUR OBTENIR CET ELEMEMT
-!
-!
-!*****************************************************************************
-      INTEGER I, J, K, L, REFEREN, ZEROCPL
-      REAL    ECHELE
+    !ARGUMENTS
+    !     LISTE    ENTREE    LISTE DES ELEMENTS A CONVERTIR
+    !     NELE       "       NOMBRE D'ELEMENTS (LONGUEUR DE LISTE)
+    !     NVAL       "       NOMBRE DE VALEURS PAR ELEMENT
+    !     NT         "       NOMBRE D'ENSEMBLES NELE*NVAL
+    !     MODE       "       MODE DE CONVERSION
+    !                        MODE = 0 DE TBLVAL(CODE BUFR) A RVAL
+    !                        MODE = 1 DE RVAL A TBLVAL(CODE BUFR)
+    !     TBLVAL   ENT/SRT   TABLEAU DE VALEURS EN CODE BUFR
+    !     RVAL               TABLEAU DE VALEURS REELLES
 
-      MRBCVT = -1
-      IF( PREMIER ) THEN
-          MRBCVT = QRBSCT(TABLEAU,MAXNELE,NELELU)
-          IF(MRBCVT .EQ. -ERBTAB) RETURN
+    EXTERNAL QRBSCT, BUFRCHR, QBRPTRI 
+    INTEGER  QRBSCT, BUFRCHR
 
-!         TRIER LE TABLEAU PAR ELEMENT EN ORDRE CROISSANT
-!         (NECESSAIRE POUR LA RECHERCHE BINAIRE QUE L'ON FAIT PLUS TARD)
-          CALL QBRPTRI(TABLEAU, 3, NELELU)
-          PREMIER = .FALSE.
-      ENDIF
+    !******************************************************************************
+    !       LA MATRICE TABLEAU CONTIENT:
+    !          TABLEAU(1,I) - CODE DE L'ELEMENT I
+    !          TABLEAU(2,I) - FACTEUR A APPLIQUER A L'ELEMENT I
+    !          TABLEAU(3,I) - VALEUR DE REFERENCE A AJOUTER A L'ELEMENT I
+    !       LA VARIABLE NELELU INDIQUE LE NOMBRE D'ELEMENTS PRESENT DANS LE
+    !       FICHIER BUFR
+    !
+    !       POUR CODER LA VALEUR D'UN ELEMENT AVANT UN APPEL A MRFPUT, ON FAIT 
+    !       L'OPERATION SUIVANTE: 
+    !       ELEMENT(I)_CODE = ELEMENT(I) * TABLEAU(2,I) - TABLEAU(3,I)
+    !
+    !       ON NE FAIT AUCUNE CONVERSION LORSQUE QU'UN ELEMENT EST DEJA CODE
+    !       COMME PAR EXEMPLE POUR LES DIFFERENTS MARQUEURS.
+    !
+    !       POUR DECODER UN ELEMENT ON FAIT L'OPERATION INVERSE.  DANS LE CAS 
+    !       DES ELEMENTS NE REQUERANT AUCUN DECODAGE (E.G. MARQUEURS), ON INSERE
+    !       DANS LE TABLEAU RVAL LA VALEUR -1.1E30 CE QUI INDIQUE A L'USAGER 
+    !       QU'IL DOIT CONSULTER LE TABLEAU TBLVAL POUR OBTENIR CET ELEMEMT
+    !*****************************************************************************
 
-      ZEROCPL = NOT( 0 )
+    INTEGER I, J, K, L, REFEREN, ZEROCPL
+    REAL    ECHELE
 
-      DO 50 I = 1, NELE
-!        TROUVER L'INDEX J POINTANT A L'ELEMENT DANS TABLEAU
-         ECHELE  = 1.0
-         REFEREN = 0
-         J       = BUFRCHR(LISTE(I), TABLEAU, NELELU)
-         IF(J .GT. 0) THEN
+    MRBCVT = -1
+    IF( PREMIER ) THEN
+        MRBCVT = QRBSCT(TABLEAU,MAXNELE,NELELU)
+        IF(MRBCVT .EQ. -ERBTAB) RETURN
+
+        ! TRIER LE TABLEAU PAR ELEMENT EN ORDRE CROISSANT
+        ! (NECESSAIRE POUR LA RECHERCHE BINAIRE QUE L'ON FAIT PLUS TARD)
+        CALL QBRPTRI(TABLEAU, 3, NELELU)
+        PREMIER = .FALSE.
+    ENDIF
+
+    ZEROCPL = NOT( 0 )
+
+    DO I = 1, NELE
+        ! TROUVER L'INDEX J POINTANT A L'ELEMENT DANS TABLEAU
+        ECHELE  = 1.0
+        REFEREN = 0
+        J = BUFRCHR(LISTE(I), TABLEAU, NELELU)
+        IF(J .GT. 0) THEN
             ECHELE  = 10.0 ** TABLEAU(2,J)
             REFEREN = TABLEAU(3,J)
-!            print *,'Debug+ ECHELE=',ECHELE,' TABLEAU(2,J)=',TABLEAU(2,J)
-!            print *,'Debug+ REFEREN=',REFEREN
+            ! print *,'Debug+ ECHELE=',ECHELE,' TABLEAU(2,J)=',TABLEAU(2,J)
+            ! print *,'Debug+ REFEREN=',REFEREN
 
-!           CONVERSION DE CODE BUFR A UNITES CMC
+            ! CONVERSION DE CODE BUFR A UNITES CMC
             IF(MODE .EQ. 0) THEN
-               DO 20 L = 1, NT
-                  DO 10 K = 1, NVAL
-                     IF(TBLVAL(I,K,L) .EQ. ZEROCPL) THEN
-                        RVAL(I,K,L) = MANQUE
-                     ELSE
-                        IF(TBLVAL(I,K,L) .LT. 0) TBLVAL(I,K,L) = TBLVAL(I,K,L) + 1
-                        RVAL(I,K,L) = FLOAT(TBLVAL(I,K,L) + REFEREN)/ECHELE
-                     ENDIF
-10                   CONTINUE
-20                CONTINUE 
+                DO L = 1, NT
+                    DO K = 1, NVAL
+                        IF(TBLVAL(I,K,L) .EQ. ZEROCPL) THEN
+                            RVAL(I,K,L) = MANQUE
+                        ELSE
+                            IF(TBLVAL(I,K,L) .LT. 0) TBLVAL(I,K,L) = TBLVAL(I,K,L) + 1
+                            RVAL(I,K,L) = FLOAT(TBLVAL(I,K,L) + REFEREN)/ECHELE
+                        ENDIF
+                    ENDDO
+                ENDDO
             ELSE
-!              CODAGE BUFR
-               DO 40 L = 1, NT
-                  DO 30 K = 1, NVAL
-                     IF(RVAL(I,K,L) .EQ. MANQUE) THEN
-                        TBLVAL(I,K,L) = ZEROCPL
-                     ELSE
-                        TBLVAL(I,K,L) = NINT(RVAL(I,K,L) * ECHELE) - REFEREN
-                        IF(TBLVAL(I,K,L) .LT. 0) TBLVAL(I,K,L) = TBLVAL(I,K,L) - 1
-                     ENDIF
-30                  CONTINUE
-40               CONTINUE
+                ! CODAGE BUFR
+                DO L = 1, NT
+                    DO K = 1, NVAL
+                        IF(RVAL(I,K,L) .EQ. MANQUE) THEN
+                            TBLVAL(I,K,L) = ZEROCPL
+                        ELSE
+                            TBLVAL(I,K,L) = NINT(RVAL(I,K,L) * ECHELE) - REFEREN
+                            IF(TBLVAL(I,K,L) .LT. 0) TBLVAL(I,K,L) = TBLVAL(I,K,L) - 1
+                        ENDIF
+                    ENDDO
+                ENDDO
             ENDIF
-         ENDIF
-50       CONTINUE
+        ENDIF
+    ENDDO
+    MRBCVT = 0
+end
 
-      MRBCVT = 0
-      RETURN
-      end
 
-!**S/P - MRBSCT - INITIALISER LE TABLEAU DE CONVERSION DE L'USAGER
-      integer FUNCTION MRBSCT (TBLUSR, NELEUSR)
-      use app
-      use mrb_cvt_sct_tbl
-      IMPLICIT NONE
-      INTEGER NELEUSR, TBLUSR(3, NELEUSR)
-!
-!OBJET( MRBSCT ) 
-!     SOUS-PROGRAMME SERVANT A AJOUTER AU TABLEAU DE
-!     CONVERSION STANDARD, UNE LISTE D'ELEMENTS QUE
-!     L'USAGER A DEFINIE LUI-MEME.
-!     SI LE TABLEAU STANDARD N'A PAS ETE INITIALISE,
-!     ON APPELLE QRBSCT POUR EN FAIRE L'INITIALISATION.
-!     ON AJOUTE LE TABLEAU DE L'USAGER A LA FIN.
-!
-      EXTERNAL QRBSCT, BUFRCHR, QBRPTRI 
-      INTEGER  QRBSCT, BUFRCHR
-      integer :: i, j
+!> Initialiser le tableau de conversion de l'usager
+integer FUNCTION MRBSCT (TBLUSR, NELEUSR)
+    use app
+    use mrb_cvt_sct_tbl
+    IMPLICIT NONE
+    INTEGER NELEUSR, TBLUSR(3, NELEUSR)
 
-      MRBSCT = -1
-      IF( PREMIER ) THEN
-          MRBSCT = QRBSCT(TABLEAU,MAXNELE,NELELU)
-          IF (MRBSCT .EQ. -ERBTAB) RETURN
+    ! SOUS-PROGRAMME SERVANT A AJOUTER AU TABLEAU DE
+    ! CONVERSION STANDARD, UNE LISTE D'ELEMENTS QUE
+    ! L'USAGER A DEFINIE LUI-MEME.
+    ! SI LE TABLEAU STANDARD N'A PAS ETE INITIALISE,
+    ! ON APPELLE QRBSCT POUR EN FAIRE L'INITIALISATION.
+    ! ON AJOUTE LE TABLEAU DE L'USAGER A LA FIN.
 
-!         TRIER LE TABLEAU PAR ELEMENT EN ORDRE CROISSANT
-!         (NECESSAIRE POUR LA RECHERCHE BINAIRE QUE L'ON FAIT PLUS TARD)
-          CALL QBRPTRI(TABLEAU, 3, NELELU)
-          PREMIER = .FALSE.
-      ENDIF
+    EXTERNAL QRBSCT, BUFRCHR, QBRPTRI 
+    INTEGER  QRBSCT, BUFRCHR
+    integer :: i, j
 
-!     AJOUTER LE TABLEAU DE L'USAGER A LA FIN DU TABLEAU STANDARD
-!     APRES L'AVOIR TRIE
-      CALL QBRPTRI(TBLUSR, 3, NELEUSR)
+    MRBSCT = -1
+    IF( PREMIER ) THEN
+        MRBSCT = QRBSCT(TABLEAU,MAXNELE,NELELU)
+        IF (MRBSCT .EQ. -ERBTAB) RETURN
 
-      DO 70 J = 1, NELEUSR
-         NELELU = NELELU + 1
-         DO 60 I = 1, 3
-             TABLEAU(I,NELELU) = TBLUSR(I,J)
-60           CONTINUE
-70       CONTINUE
-      MRBSCT = 0
+    ! TRIER LE TABLEAU PAR ELEMENT EN ORDRE CROISSANT
+    ! (NECESSAIRE POUR LA RECHERCHE BINAIRE QUE L'ON FAIT PLUS TARD)
+        CALL QBRPTRI(TABLEAU, 3, NELELU)
+        PREMIER = .FALSE.
+    ENDIF
 
-      RETURN
-      end
+    ! AJOUTER LE TABLEAU DE L'USAGER A LA FIN DU TABLEAU STANDARD
+    ! APRES L'AVOIR TRIE
+    CALL QBRPTRI(TBLUSR, 3, NELEUSR)
 
-!**S/P - MRBTBL - REMPLIR UN TABLEAU A PARTIR DE TABLEBURP
-      integer FUNCTION MRBTBL(TBLBURP, NSLOTS, NELE)
-      use app
-      use mrb_cvt_sct_tbl
-      IMPLICIT NONE
-      INTEGER  NELE, NSLOTS,TBLBURP(NSLOTS, NELE)
-!
-!OBJET( MRBTBL )
-!     SOUS-PROGRAMME SERVANT A REMPLIR LE TABLEAU TBLBURP
-!     A PARTIR DES DESCRIPTIONS D'ELEMENTS TROUVEES DANS
-!     LE FICHIER TABLEBURP.  POUR CHAQUE ELEMENT, 
-!     ON RETOURNE:
-!        - FACTEUR D'ECHELLE
-!        - VALEUR DE REFERENCE
-!        - SI L'ELEMENT EST CONVERTISSABLE OU NON
-!          0 - non convertissable
-!          1 - convertissable
-!
-!ARGUMENTS:
-!     NELE      ENTREE        - NOMBRE D'ELEMENTS A TRAITER
-!     TBLBURP   ENTREE CONTIENT LES CODES D'ELEMENTS
-!        "      SORTIE CONTIENT LES PARAMETRES DE CHAQUE ELEMENT
-!
-!     ARANGEMENT DE TBLBURP:
-!
-!     ----------------------------------------------------------
-!     | code elem 16 bits | echelle | reference | convertissable |
-!     |                   |         |           |                |
-!              .               .          .             .
-!              .               .          .             .
-!              .               .          .             .
-!
-!*
-      EXTERNAL QRBSCT, BUFRCHR
-      INTEGER  QRBSCT, BUFRCHR
-      integer :: i, j
+    DO J = 1, NELEUSR
+        NELELU = NELELU + 1
+        DO I = 1, 3
+            TABLEAU(I,NELELU) = TBLUSR(I,J)
+        ENDDO
+    ENDDO
+    MRBSCT = 0
+end
 
-      MRBTBL = -1
 
-!     S'ASSURER QUE LA VALEUR DE NSLOTS EST BONNE 
-      IF(NSLOTS .NE. NCELLMAX) THEN
-         write(app_msg,*) 'MRBTBL: Dimension NCELL incorrecte'
-         call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
-         MRBTBL = ERRCELL
-         RETURN
-      ENDIF
+!> Remplir un tableau a partir de tableburp
+integer FUNCTION MRBTBL(TBLBURP, NSLOTS, NELE)
+    use app
+    use mrb_cvt_sct_tbl
+    IMPLICIT NONE
+    INTEGER  NELE, NSLOTS,TBLBURP(NSLOTS, NELE)
 
-      IF( PREMIER ) THEN
-          MRBTBL = QRBSCT(TABLEAU,MAXNELE,NELELU)
-          IF (MRBTBL .EQ. -ERBTAB) RETURN
+    !     SOUS-PROGRAMME SERVANT A REMPLIR LE TABLEAU TBLBURP
+    !     A PARTIR DES DESCRIPTIONS D'ELEMENTS TROUVEES DANS
+    !     LE FICHIER TABLEBURP.  POUR CHAQUE ELEMENT, 
+    !     ON RETOURNE:
+    !        - FACTEUR D'ECHELLE
+    !        - VALEUR DE REFERENCE
+    !        - SI L'ELEMENT EST CONVERTISSABLE OU NON
+    !          0 - non convertissable
+    !          1 - convertissable
+    !
+    !ARGUMENTS:
+    !     NELE      ENTREE        - NOMBRE D'ELEMENTS A TRAITER
+    !     TBLBURP   ENTREE CONTIENT LES CODES D'ELEMENTS
+    !        "      SORTIE CONTIENT LES PARAMETRES DE CHAQUE ELEMENT
+    !
+    !     ARANGEMENT DE TBLBURP:
+    !
+    !     ----------------------------------------------------------
+    !     | code elem 16 bits | echelle | reference | convertissable |
+    !     |                   |         |           |                |
+    !              .               .          .             .
+    !              .               .          .             .
+    !              .               .          .             .
 
-!         TRIER LE TABLEAU PAR ELEMENT EN ORDRE CROISSANT
-!         (NECESSAIRE POUR LA RECHERCHE BINAIRE QUE L'ON FAIT PLUS TARD)
-          CALL QBRPTRI(TABLEAU, 3, NELELU)
-          PREMIER = .FALSE.
-      ENDIF
+    EXTERNAL QRBSCT, BUFRCHR
+    INTEGER  QRBSCT, BUFRCHR
+    integer :: i, j
 
-!     TRAITER CHAQUE ELEMENT DU TABLEAU TBLBURP
-      DO 80 I = 1, NELE
-!        TROUVER L'INDEX J POINTANT A L'ELEMENT DANS TABLEAU
-         J = BUFRCHR(TBLBURP(1,I), TABLEAU, NELELU)
-         IF(J .GT. 0) THEN
+    MRBTBL = -1
+
+    ! S'ASSURER QUE LA VALEUR DE NSLOTS EST BONNE 
+    IF(NSLOTS .NE. NCELLMAX) THEN
+        write(app_msg,*) 'MRBTBL: Dimension NCELL incorrecte'
+        call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
+        MRBTBL = ERRCELL
+        RETURN
+    ENDIF
+
+    IF( PREMIER ) THEN
+        MRBTBL = QRBSCT(TABLEAU,MAXNELE,NELELU)
+        IF (MRBTBL .EQ. -ERBTAB) RETURN
+
+    ! TRIER LE TABLEAU PAR ELEMENT EN ORDRE CROISSANT
+    ! (NECESSAIRE POUR LA RECHERCHE BINAIRE QUE L'ON FAIT PLUS TARD)
+        CALL QBRPTRI(TABLEAU, 3, NELELU)
+        PREMIER = .FALSE.
+    ENDIF
+
+    ! TRAITER CHAQUE ELEMENT DU TABLEAU TBLBURP
+    DO I = 1, NELE
+    ! TROUVER L'INDEX J POINTANT A L'ELEMENT DANS TABLEAU
+        J = BUFRCHR(TBLBURP(1,I), TABLEAU, NELELU)
+        IF(J .GT. 0) THEN
             TBLBURP(2,I) = TABLEAU(2,J)
             TBLBURP(3,I) = TABLEAU(3,J)
             TBLBURP(4,I) = 1
-         ELSE
+        ELSE
             TBLBURP(4,I) = 0
-         ENDIF
-80       CONTINUE
-
-      MRBTBL = 0
-
-      RETURN
-      END
+        ENDIF
+    ENDDO
+    MRBTBL = 0
+END

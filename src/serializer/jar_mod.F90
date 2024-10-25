@@ -139,8 +139,6 @@ module rmn_jar
         integer(JAR_ELEMENT), dimension(array_size_elem), target, intent(IN) :: array !> Input array
         logical :: ok                                                   !> .true. if O.K., .false. if error
 
-        type(C_PTR) :: temp
-
         ok = .false.
         if (C_ASSOCIATED(jar_instance%ptr)) return          ! error, there is already an allocated data container
 

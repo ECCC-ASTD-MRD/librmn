@@ -103,8 +103,6 @@ int32_t f77name(qqqf7op)(
 int32_t f77name(ftnclos)(const int32_t * const iun);
 
 static ENTETE_CMCARC cmcarc;
-static ENTETE_CMCARC_V5 cmcarc64;
-
 
 general_file_info* FGFDT = NULL;            //! Fnom General File Desc Table: list of fnom-associated files
 static int32_t* unit_entries = NULL;        //!< fnom entry that corresponds to each iun
@@ -238,7 +236,7 @@ static void reset_file_entry(
     if (FGFDT[idx].iun > 0 && FGFDT[idx].iun < MAX_FNOM_FILES) {
         const int iun = FGFDT[idx].iun;
         unit_entries[iun] = FNOM_ENTRY_AVAILABLE;
-        const uint32_t val = release_unit_number(iun);
+        release_unit_number(iun);
     }
 
     if (FGFDT[idx].file_name) free(FGFDT[idx].file_name);
@@ -2606,9 +2604,11 @@ static void qqcwawr(
         if (nc != 0) {
             Lib_Log(APP_LIBRMN,APP_ERROR,"%s: socket wrote only %i bytes to server\n",__func__,nc);
         }
-        int nelm = write_stream(FGFDT[indf].fd, (const char *)buf, nwords * sizeof(int));
 #if defined (DEBUG)
+        int nelm = write_stream(FGFDT[indf].fd, (const char *)buf, nwords * sizeof(int));
         if (nelm == 0) Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: socket wrote %d bytes\n",__func__,nwords*sizeof(int));
+#else
+        write_stream(FGFDT[indf].fd, (const char *)buf, nwords * sizeof(int));
 #endif
         if (ladr + nwords - 1 > FGFDT[indf].file_size) {
             FGFDT[indf].file_size = ladr + nwords - 1;
@@ -2708,9 +2708,11 @@ static void qqcward(
         if (nc != 0) {
             Lib_Log(APP_LIBRMN,APP_ERROR,"%s: socket wrote only %d bytes to server\n",__func__,nc);
         }
-        int nelm = read_stream(FGFDT[indf].fd, (char *)buf, lnmots * sizeof(int));
 #       if defined (DEBUG)
+            int nelm = read_stream(FGFDT[indf].fd, (char *)buf, lnmots * sizeof(int));
             Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: read %d bytes\n",__func__,nelm);
+#       else
+            read_stream(FGFDT[indf].fd, (char *)buf, lnmots * sizeof(int));
 #       endif
     } else {
         if (ladr != 0) {
@@ -2764,7 +2766,6 @@ static int fnom_rem_connect(
     listen(fserver, 5);
     Lib_Log(APP_LIBRMN,APP_INFO,"%s: bound to #%s#\n",__func__,cbuf);
 
-    char pbuf[1024];
     Lib_Log(APP_LIBRMN,APP_INFO,"%s: echo wa_server %s %s @%s | ssh %s 'bash --login 1>/dev/null 2>/dev/null'\n",__func__,FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1)?"R/O":"R/W",cbuf,remote_host);
 
     char remote_command[1024];

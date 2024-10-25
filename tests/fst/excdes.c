@@ -191,8 +191,6 @@ int test_excdes_98(const int is_rsf) {
     if (validate_num_found(status, 0) != 0) return -1;
     if (validate_num_found(num_items, 50) != 0) return -1;
 
-    void* q = NULL;
-
     // Combination of range request on ip1 OR a specific ip2
     ips[0] = 200001;
     Xc_Select_ip2(1, 1, ips, 1);

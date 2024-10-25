@@ -547,8 +547,6 @@ F77_INTEGER CLIB_F77NAME(clib_isdir)(
     //! [in] Maximum length of the path
     F2Cl path_length
 ) {
-    F77_INTEGER status;
-
     // Translate to C strings
     char path_c[MAXPATHLEN];
     if (FTN2C_FSTR2CSTR(path, path_c, path_length, MAXPATHLEN) < 0){

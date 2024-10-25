@@ -206,11 +206,10 @@ int Copy_items_r2l(void *src, uint32_t srclen, void *dst, uint32_t dstlen, uint3
 // left to right fill/extract to/from larger item
 int Copy_items_l2r(void *src, uint32_t srclen, void *dst, uint32_t dstlen, uint32_t ns){
   uint32_t nd ;
-  uint8_t  *s8  = (uint8_t  *)src, *d8  = (uint8_t  *)dst, t8 ;
-  uint16_t *s16 = (uint16_t *)src, *d16 = (uint16_t *)dst, t16 ;
-  uint32_t *s32 = (uint32_t *)src, *d32 = (uint32_t *)dst, t32 ;
-  uint64_t *s64 = (uint64_t *)src, *d64 = (uint64_t *)dst, t64 ;
-  int i, j ;
+  uint8_t  *s8  = (uint8_t  *)src;
+  uint16_t *s16 = (uint16_t *)src, *d16 = (uint16_t *)dst;
+  uint32_t *s32 = (uint32_t *)src, *d32 = (uint32_t *)dst;
+  uint64_t *s64 = (uint64_t *)src, *d64 = (uint64_t *)dst;
 
   if( (srclen > 8) || (dstlen > 8) ) return -1 ;                       // src/dst length > 8
   if( (1 & (magic >> srclen)) || (1 & (magic >> dstlen)) ) return 1 ;  // src/dst length not 1/2/4/8

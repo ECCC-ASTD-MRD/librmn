@@ -569,8 +569,6 @@ int32_t f77name (mgi_read) (
             }
         }
     } else if (*dtype == 'R') {
-        struct rusage mydata;
-
         buffer = (float *)read_record(chn[chan].gchannel, (float *)buffer, &nelem, nelem, sizeof(int));
 
         if (buffer != NULL) {

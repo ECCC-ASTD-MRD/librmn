@@ -33,11 +33,7 @@ contains
     SUBROUTINE SUB1(A, B, C, D)
         implicit none
         INTEGER, target :: A(*), B(*), C(*), D(*)
-        INTEGER :: argdims,argdope,ND
-        INTEGER LISTE(5)
-        integer(C_INT64_T) dummy_addr
-        integer :: i
-        character(len=50) :: fmt1
+        INTEGER :: argdims
 
         call App_Log(APP_INFO, ' PASSE PAR SUB1')
         write(app_msg, '(A, I5)') ' NB D ARGUMENTS =',NSUB1

@@ -351,7 +351,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     uint32_t *arrayOfUnsignedUnpacked;
     int  *arrayOfSignedUnpacked;
     uint32_t *arrayOfPacked;
-    int i, k;
+    int i;
     int intCount;
     int bitRequiredForRange, shiftRequired = 0;
 
@@ -374,7 +374,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     uint32_t currentWord, packInt;
     int significantBit, inSignificantBit;
     uint32_t *arrayPtr;
-    int tokenSize, ShiftIntended, elementCountFromHeader;
+    int tokenSize, ShiftIntended;
     int  minSigned;
     uint32_t minUnsigned;
     integer_header *theHeader;
@@ -603,7 +603,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
 
     int wordSize;
     uint32_t cleanupMask;
-    int minSignedInteger=0, maxSignedInteger=0;
+    int minSignedInteger=0;
     uint32_t minUnsignedInteger=0, maxUnsignedInteger=0;
     uint32_t maxRange;
     uint32_t maxSpan;
@@ -612,7 +612,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     int positiveMask;
     unsigned short *arrayOfUnsignedShort;
     uint32_t *arrayOfPacked;
-    int i, k;
+    int i;
     int intCount;
     int bitRequiredForRange, shiftRequired = 0;
 
@@ -636,7 +636,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     uint32_t currentWord, packInt;
     int significantBit, inSignificantBit;
     uint32_t *arrayPtr;
-    int tokenSize, ShiftIntended, elementCountFromHeader;
+    int tokenSize, ShiftIntended;
     int  minSigned;
     uint32_t minUnsigned;
     integer_header *theHeader;
@@ -841,7 +841,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
 
     int wordSize;
     uint32_t cleanupMask;
-    int minSignedInteger=0, maxSignedInteger=0;
+    int minSignedInteger=0;
     uint32_t minUnsignedInteger=0, maxUnsignedInteger=0;
     uint32_t maxRange;
     uint32_t maxSpan;
@@ -850,7 +850,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     int positiveMask;
     unsigned char *arrayOfUnsignedChar;
     uint32_t *arrayOfPacked;
-    int i, k;
+    int i;
     int intCount;
     int bitRequiredForRange, shiftRequired = 0;
 
@@ -874,7 +874,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     uint32_t currentWord, packInt;
     int significantBit, inSignificantBit;
     uint32_t *arrayPtr;
-    int tokenSize, ShiftIntended, elementCountFromHeader;
+    int tokenSize, ShiftIntended;
     int  minSigned;
     uint32_t minUnsigned;
     integer_header *theHeader;

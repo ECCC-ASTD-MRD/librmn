@@ -624,7 +624,6 @@ error:
  *****************************************************************************/
 int Xc_Select_suppl(int set_nb, int des_exc, int ni, int nj, int nk, int ig1, int ig2, int ig3, int ig4, char gtyp)
 {
-  int i;
   int valid;
 
   valid = ValidateRequestForSet(set_nb, des_exc, 1, 1, "suppl");
@@ -1068,7 +1067,6 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
     if (Requests[set_nb].exdes == DESIRE) nb_desire++;
     desire_exclure = (Requests[set_nb].exdes == DESIRE)  ? "desire" : "exclure";
     Lib_Log(APP_LIBFST, APP_EXTRA, "%s: matching request set %d (%s)\n", __func__, set_nb, desire_exclure);
-    Supplements:
       if (Requests[set_nb].in_use_supp) {   /* les criteres supplementires sont globaux */
         if( (Requests[set_nb].ig1s != ig1 && Requests[set_nb].ig1s != -1)
         ||  (Requests[set_nb].ig2s != ig2 && Requests[set_nb].ig2s != -1)
@@ -1080,7 +1078,6 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
         ||  (Requests[set_nb].grdtyps  !=  grtyp[0] && Requests[set_nb].grdtyps != ' ') ) continue;  /* requete non satisfaite pour criteres supplementaires */
       }
       amatch = 1;   /* requete satisfaite jusqu'ici si criteres supplementaires actifs et OK */
-    Etiquettes:
       if (Requests[set_nb].etiquettes.in_use) {
         amatch = 0;
         if(Requests[set_nb].etiquettes.pdata[0][0] == ' ') amatch = 1;
@@ -1095,7 +1092,6 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
         if (amatch == 0) continue;  /* requete non satisfaite pour etiquettes */
       }
 
-    Nomvars:
       if (Requests[set_nb].nomvars.in_use) {
         amatch = 0;
         if(Requests[set_nb].nomvars.pdata[0][0] == ' ') amatch = 1;
@@ -1123,7 +1119,6 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
         if (amatch == 0) continue;  /* requete non satisfaite pour typvars */
       }
 
-    Dates:
       if (Requests[set_nb].dates.in_use) {
           amatch = 0;
           switch (Requests[set_nb].dates.in_use) {
@@ -1197,7 +1192,6 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
           } /* end switch */
       }
 
-    Ip1s:
       if (Requests[set_nb].ip1s.in_use) {
         amatch = (Requests[set_nb].ip1s.data[0] == -1) ? 1 : 0 ;
         Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie ip1s set_nb=%d\n", __func__, set_nb);
@@ -1207,7 +1201,6 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
         if(amatch == 0) continue ;  /* requete non satisfaite pour ip1 */
       }
 
-    Ip2s:
       if (Requests[set_nb].ip2s.in_use) {
         amatch = (Requests[set_nb].ip2s.data[0] == -1) ? 1 : 0 ;
         Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie ip2s set_nb=%d\n", __func__, set_nb);
@@ -1217,7 +1210,6 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
         if(amatch == 0) continue ;  /* requete non satisfaite pour ip2 */
       }
 
-    Ip3s:
       if (Requests[set_nb].ip3s.in_use) {
         amatch = (Requests[set_nb].ip3s.data[0] == -1) ? 1 : 0 ;
         Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie ip3s set_nb=%d\n", __func__, set_nb);
@@ -1230,7 +1222,6 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
         }
       }
 
-    Fin:
       if (amatch == 1) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req fin requete %s satisfaite, handle=%d \n", __func__, desire_exclure, handle);
         Requests[set_nb].hit++ ;                                    /* add one to this request's hit count */

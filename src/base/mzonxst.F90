@@ -271,7 +271,6 @@ Subroutine mzonopr ( OPR, VAL )
 
     Integer :: OPR
     Integer :: VAL
-    Integer :: NIV
 
     ! Nom/propiete/position des variables a traiter.
     Integer, dimension(MaxVarP3) :: var
@@ -1231,7 +1230,7 @@ subroutine MVZNXST ( X,Y,XNOM,YNOM,J,NDIM,FACF3D,ORD,tttt )
     Real          X(NDIM,*),Y(NDIM,*)
     Character     variab*4
     integer :: DIFP
-    Real :: echantX,echantY,poids
+    Real :: echantX,echantY
     Integer :: ii, j0, jj, jj0, nic, nil, numeroX, numeroY, niv
     Integer :: placeX, placeY, tranche, val11X, val11Y
     integer, external :: exfin

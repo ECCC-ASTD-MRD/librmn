@@ -21,14 +21,6 @@ typedef struct {
     int32_t skip_filter; //!< A filter can be specified with the "excdes" mechanism. Enabling this option disables the filter this query.
 } fst_query_options;
 
-static fst_query_options default_query_options = (fst_query_options) {
-    .ip1_all = 0,
-    .ip2_all = 0,
-    .ip3_all = 0,
-    .stamp_norun = 0,
-    .skip_filter = 0,
-};
-
 //! @defgroup public_fst Public FST C API
 //! @{
 int32_t     fst24_is_valid(const char* const filePath);

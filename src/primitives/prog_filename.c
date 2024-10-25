@@ -93,7 +93,7 @@ int32_t f77name(prog_filename)(char *f_nom, unsigned char *f_prefix,
 
 {
 
- int i,len,err,numlen,c1,c2;
+ int i,len,numlen,c1,c2;
  char format[20], units[2], fname[FNAME_LEN];
  unsigned char prefix[3];
  char *s;

@@ -28,9 +28,8 @@ subroutine test_fst98_interface(is_rsf)
     integer, parameter :: REWRITE_i = 0
     logical, parameter :: REWRITE_l = .false.
 
-    integer :: old_num_records, new_num_records, expected_num_records, num_records
+    integer :: old_num_records, new_num_records, num_records
     integer :: record_key
-    integer :: expected
     integer :: iun
 
     if (is_rsf) then

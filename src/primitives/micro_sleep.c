@@ -24,18 +24,13 @@
 #include <sys/time.h>
 #include <sys/select.h>
 
-#include <math.h>
-
 #include <rmn/rpnmacros.h>
 
 
-void f77name(micro_sleep) (double *secs)
-{
-    int sec = *secs / 1;
-    int usec = fmod(*secs, 1.0) * 1000000;
-
-    struct timeval timeout;
-    timeout.tv_sec = *secs / 1;
-    timeout.tv_usec = fmod(*secs, 1.0) * 1000000;
+void f77name(micro_sleep) (const double * const secs) {
+    struct timeval timeout = {
+        .tv_sec = *secs,
+        .tv_usec = *secs * 1000000
+    };
     select(0, NULL, NULL, NULL, &timeout);
 }

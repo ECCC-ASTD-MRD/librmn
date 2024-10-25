@@ -89,7 +89,6 @@ void *compact_FLOAT_TYPE(
     uint32_t lastWordShifted;
     unsigned int tempInt;
     ALL_FLOAT minFloatTemplate;
-    uint32_t tempFloat;
     uint32_t tempMantisa1, tempMantisa2;
     uint32_t *arrayPtr;
     int  headerStyle;

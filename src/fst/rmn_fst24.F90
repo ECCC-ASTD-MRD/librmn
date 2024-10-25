@@ -393,7 +393,7 @@ contains
         type(fst_record), dimension(:), intent(inout), optional :: records
         integer(C_INT32_T) :: num_found
 
-        integer(C_INT32_T) :: max_num_records, c_status
+        integer(C_INT32_T) :: max_num_records
         integer :: i
 
         num_found = 0

@@ -342,9 +342,8 @@ inline static int IPEncode(float Level,int Kind,int New) {
 */
 void Dict_SetSearch(int SearchMode,int SearchState,char *SearchOrigin,int SearchIP1,int SearchIP2,int SearchIP3,char *SearchETIKET) {
 
-   int    mode=-1,flag=0,type;
+   int    type;
    float  level=0.0;
-   char   format;
 
    DictSearch.State=SearchState;
    DictSearch.Mode=SearchMode;
@@ -394,10 +393,8 @@ int Dict_Parse(char *Filename,TDict_Encoding Encoding) {
    xmlDocPtr    doc;
    xmlNsPtr     ns;
    xmlNodePtr   node;
-   xmlDtdPtr    dtd ;
-   xmlValidCtxt ctxt;
    xmlChar     *tmpc;
-   char        *c,ok,dtdfile[256];
+   char        ok;
 
    xmlDoValidityCheckingDefaultValue=1;
    LIBXML_TEST_VERSION
@@ -710,7 +707,7 @@ static int Dict_ParseVar(xmlDocPtr Doc,xmlNsPtr NS,xmlNodePtr Node,TDict_Encodin
 static int Dict_ParseType(xmlDocPtr Doc, xmlNsPtr NS, xmlNodePtr Node,TDict_Encoding Encoding) {
 
    TDictType *type;
-   xmlNodePtr trotteur,trotteur1;
+   xmlNodePtr trotteur1;
    xmlChar   *tmpc;
    int       y,m,d;
 
@@ -1363,7 +1360,6 @@ void Dict_PrintTypes(char *Type,int Format,TApp_Lang Lang) {
 */
 void Dict_PrintType(TDictType *DType,int Format,TApp_Lang Lang) {
 
-   int        i,lang;
    struct tm *tm;
 
    if (DType) {

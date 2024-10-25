@@ -163,8 +163,6 @@ int check_xdf(const int num_files) {
         char filename[100];
         get_filename(filename, thread_id);
 
-        const int num_threads = omp_get_num_threads();
-
         // Open a lot (more than max), one at a time
         #pragma omp for
         for (int i = 0; i < num_files * 5; i++) {

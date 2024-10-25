@@ -1329,7 +1329,7 @@ int write_ft_nonblocking_socket(int fd, const char *ptr, int n)  /*   %ENTRY%   
   int written;
   fd_set wfds;
   struct timeval tv;
-  int ierw, iers;
+  int iers;
   int iter, total;
 
  // write_ft_nonblocking_socket returns a value 0 (success) or -1 (error)

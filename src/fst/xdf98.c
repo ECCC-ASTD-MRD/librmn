@@ -32,8 +32,6 @@ static pthread_mutex_t xdf_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static int endian_int = 1;
 static char *little_endian = (char *)&endian_int;
-static int req_no = 0;
-static int init_package_done = 0;
 
 // prototypes declarations
 static int get_free_index();
@@ -139,7 +137,7 @@ int c_xdfcheck(
     }
 
     // Read the header
-    int num_records = fread(buf_ptr, sizeof(header), 1, fd);
+    fread(buf_ptr, sizeof(header), 1, fd);
 
     // Get file size
     fseek(fd, 0L, SEEK_END);
@@ -290,7 +288,6 @@ void build_fstd_prim_keys(
     int mode
 ) {
     file_header *fh;
-    int i, wi, sc, rmask, key, wfirst, wlast;
 
     // Skip first 64 bit header
     buf += W64TOWD(1);
@@ -306,12 +303,12 @@ void build_fstd_prim_keys(
 
     if (mode == WMODE) {
         // Write keys to buffer
-        for (i = 0; i < W64TOWD(fh->lprm -1); i++) {
+        for (int i = 0; i < W64TOWD(fh->lprm -1); i++) {
             buf[i] = keys[i];
             mask[i] = mskkeys[i];
         }
     } else {
-        for (i = 0; i < W64TOWD(fh->lprm -1); i++) {
+        for (int i = 0; i < W64TOWD(fh->lprm -1); i++) {
             keys[i] = buf[i];
         }
     }
@@ -2544,7 +2541,7 @@ int c_xdfsta(
     //! [out] Application signature
     char *appl
 ) {
-    int index, index_fnom, ier, wasopen = 0, i, nn;
+    int index, index_fnom, wasopen = 0, i, nn;
     file_header *fh;
     file_record header64;
 
@@ -2890,7 +2887,7 @@ int c_xdfxtr(
     //! [in] Data type
     int datyp
 ) {
-    int nbwords, index_word, last_ind, i, mode;
+    int nbwords, index_word, i, mode;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
     int ier;
 
@@ -3227,7 +3224,7 @@ static uint32_t next_match(
     //! [in] index of file in the file table
     int file_index
 ) {
-    int record_in_page, page_no, match;
+    int match;
     int end_of_file, nw, addr_match;
     uint32_t *entry, *search, *mask, handle;
     stdf_dir_keys *stds, *stdm, *stde;
@@ -3442,9 +3439,7 @@ static uint32_t next_match(
 
 int32_t  f77name(qdfdiag)(int32_t *f_iun)
 {
-    int iun = *f_iun, ier;
-
-    return (int32_t) c_qdfdiag(iun);
+    return (int32_t) c_qdfdiag(*f_iun);
 }
 
 
@@ -3633,8 +3628,6 @@ int32_t f77name(xdfimp)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
 {
     int iun = *fiun, nstat = *fnstat;
     char c_vers[257], c_appl[257];
-    word_2 primk[MAX_KEYS], infok[MAX_KEYS];
-    uint32_t lstat[12];
 
     int lng = (l1 <= 256) ? l1 : 256;
     strncpy(c_vers, vers, lng);

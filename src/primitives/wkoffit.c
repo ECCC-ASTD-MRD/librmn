@@ -303,9 +303,9 @@ int32_t c_wkoffit(
     const int l1
 ) {
     FILE *pf;
-    char nom2[4096], nom3[4096], *pn2, *pn3;
+    char nom2[4096];
     char cbuf[1024];
-    int buffer[1024], *ptbuf, lowc=0;
+    int buffer[1024], *ptbuf;
     int32_t pos, lngf;
     int longnom;
 
@@ -496,7 +496,7 @@ static int isps(
 ) {
     FILE *fp;
     char buffer[256];
-    int  i, j, ps_i;
+    int  i, j;
 
     if ( (fp = fopen( path, "rb")) == NULL ) return FALSE;
 
@@ -783,7 +783,6 @@ static int ispcl(
     char    in_sequence = FALSE;
     char    pass_seq;
     char    plus_sign;              /* for relative values */
-    char    strip_seq = FALSE;
     int32_t flen;
     char    buffer[256];
 

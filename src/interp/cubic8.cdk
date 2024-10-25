@@ -1,4 +1,3 @@
-      
       pure function cubic(z1, z2, z3, z4, dx) result(z_out)
           implicit none
           real(kind = real64), parameter :: sixth = 1.0_real64 / 6.0_real64
@@ -7,4 +6,3 @@
           real(kind = real64) :: z_out
           z_out = ((((z4 - z1) * sixth + 0.5 * (z2 - z3)) * dx + 0.5 * (z1 + z3) - z2) * dx + z3 - sixth * z4 - 0.5 * z2 - third*z1) * dx + z2
       end function cubic
-

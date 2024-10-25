@@ -23,12 +23,12 @@ typedef struct {
    json_object *Z;                  ///< Vertical references
    json_object *XY;                 ///< Horizontal references (grid)
    json_object *Defs;               ///< Valid token definitions
-   json_object *Types;              ///< 
-   json_object *Compressions;       ///< 
-   json_object *Qualifiers;         ///< 
-   json_object *CellMethods;        ///< 
-   json_object *CellProcesses;      ///< 
-   json_object *Reasons;            ///< 
+   json_object *Types;              ///<
+   json_object *Compressions;       ///<
+   json_object *Qualifiers;         ///<
+   json_object *CellMethods;        ///<
+   json_object *CellProcesses;      ///<
+   json_object *Reasons;            ///<
 
    json_object *BaseDef;            ///< Pointer to the base definitions object so that it can be released at the end
 } TMetaProfile;
@@ -41,14 +41,13 @@ static char *MetaVersion=NULL;       ///< Metadata version
 static char  MetaValidate=FALSE;     ///< Enable token validation
 static char  MetaRegExp=FALSE;       ///< Force regexp matching in json metadata comparisons
 static char *MetaPaths[2];           ///< Profile definition path
-static char *MetaQualifiers=NULL;    ///< Force adding of env defined qualifiers
 
 static char* MetaTimeUnits[] = { "millisecond","second","minute","hour","day","month","year","decade","centenary","millenia" };
 
 //TODO: static cf_system   *MetaProfileVar=NULL;   ///< CF convention variable references
 
 /**----------------------------------------------------------------------------
- * @brief  Get the length of the token without extension 
+ * @brief  Get the length of the token without extension
  *         Token delimiter is anything not a [0-1],[a-z],[A-Z]
 
  * @date   July 2023
@@ -69,7 +68,7 @@ inline static int32_t Meta_TokenEnd(char* Token,int32_t *IsSplit) {
       e++;
     }
     *IsSplit=(*e)?TRUE:FALSE;
-    
+
     return ((int)(e-Token));
 }
 
@@ -86,7 +85,7 @@ json_object *Meta_NewObject() {
 }
 
 /**----------------------------------------------------------------------------
- * @brief  Check if object is a valid JSON metadata object 
+ * @brief  Check if object is a valid JSON metadata object
 
  * @date   July 2023
  *    @param[in]   Obj     Profile json object
@@ -150,22 +149,17 @@ static inline TMetaProfile *Meta_GetProfile(char *Version) {
  *    @return              Error code (1=ok)
 */
 int32_t Meta_Init(){
-
-   char   path[APP_BUFMAX];
    char  *c;
-   glob_t globs;
-   int32_t    j;
-   json_object *obj=NULL,*obja=NULL;
 
    MetaProfileNb=0;
    MetaValidate=FALSE;
    MetaRegExp=FALSE;
 
-   // Check the log parameters in the environment 
+   // Check the log parameters in the environment
    if ((c=getenv("META_VALIDATE"))) {
       MetaValidate=TRUE;
    }
-   // Check the log parameters in the environment 
+   // Check the log parameters in the environment
    if ((c=getenv("META_MATCH"))) {
       if (strncmp(c,"REGEXP",6)==0) {
          MetaRegExp=TRUE;
@@ -180,7 +174,7 @@ int32_t Meta_Init(){
       if (!MetaPaths[1]) {
          Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unable to initialize profiles, CMCCONST and META_PROFPATH variable not defined\n",__func__);
       } else {
-         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to initialize standard profiles, CMCCONST variable not defined\n",__func__);     
+         Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to initialize standard profiles, CMCCONST variable not defined\n",__func__);
       }
    }
 
@@ -247,7 +241,7 @@ int32_t Meta_LoadProfile(char *Version) {
       if (!(prof->File=json_object_from_file(path))) {
          Lib_Log(APP_LIBMETA,APP_WARNING,"%s: Unable to load file profile %s\n",__func__,path);
          continue;
-      } 
+      }
 
       // Load vertical reference definitions
       snprintf(path,APP_BUFMAX,"%s/rpn/json/%s/vertical/*.json",MetaPaths[i],Version);
@@ -298,7 +292,7 @@ int32_t Meta_LoadProfile(char *Version) {
       json_pointer_get(obja,"/reasons",&prof->Reasons);
 
       prof->BaseDef = obja;
-   
+
       prof->Version=strdup(Version);
       MetaProfileNb++;
    }
@@ -328,14 +322,14 @@ int32_t Meta_Free(json_object *Obj) {
  *    @return              json object
 */
 json_object *Meta_New(int Type,char *Version) {
-   
+
    TMetaProfile *prof=NULL;;
    json_object  *obj=NULL;
 
    if (!(prof=Meta_GetProfile(Version))) {
       return(NULL);
    }
-   
+
    obj=(Type==META_TYPE_RECORD?prof->Field:prof->File);
    return(Meta_Copy(obj));
 }
@@ -350,14 +344,14 @@ json_object *Meta_New(int Type,char *Version) {
  *    @return              json object
 */
 json_object *Meta_Load(char *Path) {
-   
+
    json_object *obj=NULL;
 
    if (!(obj=json_object_from_file(Path))) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unabled to load json file %s\n",__func__,Path);
       return(NULL);
    }
-  
+
    return(obj);
 }
 
@@ -369,7 +363,7 @@ json_object *Meta_Load(char *Path) {
  *
  *    @return               Pointer on last token char, or NULL if non valid token
 */
-inline static char* Meta_ValidateToken(json_object *TokenList,char *Token) { 
+inline static char* Meta_ValidateToken(json_object *TokenList,char *Token) {
 
    int32_t          n=0,m=0,t=0;
    json_object *obj=NULL;
@@ -493,10 +487,10 @@ json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName) {
    if ((var=Dict_GetVar(RPNName))) {
       json_pointer_get(Obj,"/standard_name",&objval);
       json_object_set_string(objval,var->Short[1]);
-   
+
       json_pointer_get(Obj,"/long_name",&objval);
       json_object_set_string(objval,var->Long[1]);
-   
+
       // json_pointer_get(Obj,"/description",&objval);
       // json_object_set_string(objval,Description);
 
@@ -602,7 +596,7 @@ double Meta_DurationToSeconds(char *Unit) {
  *    @return                   json_object pointer (NULL if error)
 */
 json_object *Meta_DefForecastTime(json_object *Obj,time_t TS,int32_t Step,double Duration,char *Unit) {
- 
+
    json_object *obj=NULL,*objval=NULL;
    struct tm t0;
    time_t    ts;
@@ -612,9 +606,9 @@ json_object *Meta_DefForecastTime(json_object *Obj,time_t TS,int32_t Step,double
    if (!Obj) {
       return(NULL);
    }
- 
-   if (TS>0) {  
-      ts=Meta_Stamp2Seconds(TS); 
+
+   if (TS>0) {
+      ts=Meta_Stamp2Seconds(TS);
       gmtime_r(&ts,&t0);
       strftime(timestr,32,"%FT%TZ",&t0);
       if (!json_pointer_get(Obj,"/forecast_reference_datetime",&objval)) {
@@ -627,14 +621,14 @@ json_object *Meta_DefForecastTime(json_object *Obj,time_t TS,int32_t Step,double
    if (json_pointer_get(Obj,"/forecast_period",&obj)) {
       json_object_object_add(Obj,"forecast_period",obj=json_object_new_object());
    }
-   if (Step>0) {   
+   if (Step>0) {
       if (!json_pointer_get(obj,"/step",&objval)) {
          json_object_set_int(objval,Step);
       } else {
          json_object_object_add(obj,"step",json_object_new_int(Step));
       }
    }
-   if (Duration>0) {   
+   if (Duration>0) {
       if (!json_pointer_get(obj,"/value",&objval)) {
          json_object_set_double(objval,Duration);
       } else {
@@ -704,8 +698,8 @@ json_object *Meta_DefForecastTime(json_object *Obj,time_t TS,int32_t Step,double
  *    @return                    json_object pointer (NULL if error)
 */
 json_object *Meta_GetForecastTime(json_object *Obj,time_t *T0,int32_t *Step,double *Duration,char **Unit) {
- 
-   json_object *obj=NULL,*objval=NULL;
+
+   json_object *objval=NULL;
    struct tm t0;
    char *timestr;
 
@@ -751,7 +745,7 @@ json_object *Meta_Resolve(json_object *Obj,json_object *ObjMaster) {
    if (!Obj) {
       return(NULL);
    }
-   
+
    json_pointer_get(Obj,"/horizontal_reference",&obj);
    if (obj) {
       id=(char*)json_object_get_string(obj);
@@ -770,7 +764,7 @@ json_object *Meta_Resolve(json_object *Obj,json_object *ObjMaster) {
       json_pointer_get(Obj,"/vertical_level",&obj);
       json_object_object_add(obj,"vertical_reference",json_object_get(objref));
    }
-   
+
    return(Obj);
 }
 
@@ -841,12 +835,12 @@ json_object *Meta_FindHorizontalObj(char* Identifier,json_object *ObjMaster) {
 */
 json_object *Meta_AddVerticalRef(json_object *Obj,char* Identifier,int Copy) {
 
-   json_object *obj=NULL,*objval=NULL,*objref=NULL;
+   json_object *objval=NULL,*objref=NULL;
 
    if (!Obj) {
       return(NULL);
    }
-   
+
    if (json_pointer_get(Obj,"/vertical_references",&objval)!=0) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find object: %s\n",__func__,"/vertical_references");
       return(NULL);
@@ -933,7 +927,7 @@ json_object *Meta_GetVerticalRef(json_object *Obj,int32_t Index,char **Identifie
    if (!Obj) {
       return(NULL);
    }
-   
+
    if (Identifier) {
       json_pointer_get(Obj,"/vertical_level/vertical_reference",&objval);
       *Identifier=(char*)json_object_get_string(objval);
@@ -956,12 +950,12 @@ json_object *Meta_GetVerticalRef(json_object *Obj,int32_t Index,char **Identifie
 */
 json_object *Meta_AddHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
 
-   json_object *obj=NULL,*objval=NULL,*objref=NULL;
+   json_object *objval=NULL,*objref=NULL;
 
    if (!Obj) {
       return(NULL);
    }
-   
+
    if (json_pointer_get(Obj,"/horizontal_references",&objval)!=0) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find object: %s\n",__func__,"/horizontal_references");
       return(NULL);
@@ -993,12 +987,12 @@ json_object *Meta_AddHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
 */
 json_object *Meta_DefHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
 
-   json_object *obj=NULL,*objval=NULL,*objref=NULL;
+   json_object *objval=NULL,*objref=NULL;
 
    if (!Obj) {
       return(NULL);
    }
-   
+
    // Do we copy the reference or just define the Identifier
    if (Copy) {
       // Find the vertical reference
@@ -1033,7 +1027,7 @@ json_object *Meta_GetHorizontalRef(json_object *Obj,char **Identifier) {
    if (!Obj) {
       return(NULL);
    }
-   
+
    if (Identifier) {
       json_pointer_get(Obj,"/horizontal_reference",&objval);
       *Identifier=(char*)json_object_get_string(objval);
@@ -1058,7 +1052,7 @@ json_object *Meta_AddCellMethod(json_object *Obj,char *Method) {
    if (!Obj) {
       return(NULL);
    }
-   
+
    if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
       return(NULL);
    }
@@ -1079,12 +1073,12 @@ json_object *Meta_AddCellMethod(json_object *Obj,char *Method) {
    }
 
    json_object_array_add(objval,json_object_new_string(Method));
-  
+
    return(Obj);
 }
 
 /**----------------------------------------------------------------------------
- * @brief  Set methods from a list 
+ * @brief  Set methods from a list
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  Qualifiers    Qualifiers (NULL terminated list)
@@ -1101,7 +1095,7 @@ json_object *Meta_SetCellMethods(json_object *Obj,char *Methods[]) {
    if (!Obj) {
       return(NULL);
    }
-   
+
    if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
       return(NULL);
    }
@@ -1123,7 +1117,7 @@ json_object *Meta_SetCellMethods(json_object *Obj,char *Methods[]) {
 
       json_object_array_add(objval,json_object_new_string(method));
    }
-  
+
    return(Obj);
 }
 
@@ -1140,7 +1134,7 @@ json_object *Meta_ClearCellMethods(json_object *Obj) {
       return(NULL);
    }
    json_object_object_add(Obj,"cell_methods",json_object_new_array());
-  
+
    return(Obj);
 }
 
@@ -1156,11 +1150,11 @@ json_object *Meta_AddQualifier(json_object *Obj,char *Qualifier) {
 
    TMetaProfile *prof=NULL;
    json_object *objval=NULL;
-   
+
    if (!Obj) {
       return(NULL);
    }
-   
+
    if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
       return(NULL);
    }
@@ -1174,7 +1168,7 @@ json_object *Meta_AddQualifier(json_object *Obj,char *Qualifier) {
       json_object_object_add(Obj,"qualifiers",objval=json_object_new_array());
    }
    json_object_array_add(objval,json_object_new_string(Qualifier));
-  
+
    return(Obj);
 }
 
@@ -1212,7 +1206,7 @@ json_object *Meta_SetQualifiers(json_object *Obj,char **Qualifiers) {
 
       json_object_array_add(objval,json_object_new_string(qualifier));
    }
-  
+
    return(Obj);
 }
 
@@ -1228,9 +1222,9 @@ json_object *Meta_ClearQualifiers(json_object *Obj) {
    if (!Obj) {
       return(NULL);
    }
-   
+
    json_object_object_add(Obj,"qualifiers",json_object_new_array());
-  
+
    return(Obj);
 }
 
@@ -1251,7 +1245,7 @@ json_object *Meta_AddMissingValue(json_object *Obj,char *Reason,double Value) {
    if (!Obj) {
       return(NULL);
    }
-   
+
    if (!(prof=Meta_GetProfile(Meta_Version(Obj)))) {
       return(NULL);
    }
@@ -1260,7 +1254,7 @@ json_object *Meta_AddMissingValue(json_object *Obj,char *Reason,double Value) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid reason: %s\n",__func__,Reason);
       return(NULL);
    }
-   
+
    json_pointer_get(Obj,"/missing_values",&objval);
    if (!objval) {
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Undefined objet array: missing_values\n",__func__);
@@ -1270,7 +1264,7 @@ json_object *Meta_AddMissingValue(json_object *Obj,char *Reason,double Value) {
    json_object_object_add(objmis,"reason",json_object_new_string(Reason));
    json_object_object_add(objmis,"value",json_object_new_double(Value));
    json_object_array_add(objval,objmis);
-  
+
    return(Obj);
 }
 
@@ -1303,7 +1297,7 @@ json_object *Meta_GetMissingValue(json_object *Obj,int32_t Idx,char **Reason,dou
       json_pointer_get(objmis,"/value",&objval);
       *Value=json_object_get_double(objval);
    }
-  
+
    return(Obj);
 }
 
@@ -1320,7 +1314,7 @@ json_object *Meta_ClearMissingValues(json_object *Obj) {
       return(NULL);
    }
    json_object_object_add(Obj,"missing_values",json_object_new_array());
-  
+
    return(Obj);
 }
 
@@ -1344,7 +1338,6 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
 
    TMetaProfile *prof=NULL;
    json_object *obj=NULL,*objval=NULL;
-   int32_t i;
 
    if (!Obj) {
       return(NULL);
@@ -1362,7 +1355,7 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Invalid data type: %s\n",__func__,Type);
       return(NULL);
    }
-  
+
    if (json_pointer_get(Obj,"/data",&obj)) {
       json_object_object_add(Obj,"data",obj=json_object_new_object());
       json_object_object_add(obj,"type",json_object_new_string(Type));
@@ -1458,7 +1451,7 @@ json_object *Meta_GetData(json_object *Obj,int32_t *NI,int32_t *NJ,int32_t *NK,c
    }
    return(Obj);
 }
- 
+
 /**----------------------------------------------------------------------------
  * @brief  Define File level metadata
  * @date   July 2023
@@ -1554,7 +1547,7 @@ json_object *Meta_GetFile(json_object *Obj,char **Institution,char **Discipline,
  * @date   July 2023
  *    @param[in]   Obj           json object
  *    @param[in]   Format        format (JSON_C_TO_STRING_PLAIN,JSON_C_TO_STRING_PRETTY,JSON_C_TO_STRING_SPACED)
- * 
+ *
  *    @return                    formatted string
 */
 char *Meta_Stringify(json_object *Obj,int Format) {
@@ -1712,25 +1705,25 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
       Meta_Init();
    }
 
-   json_object_object_foreach(Obj1, key, obj1) { 
+   json_object_object_foreach(Obj1, key, obj1) {
       if (!(obj2=json_object_object_get(Obj2,key))) {
          return(FALSE);
       }
 
       switch (json_object_get_type(obj1)) {
          // For numbers, we compare value to value
-         case json_type_boolean: 
-         case json_type_double: 
-         case json_type_int: 
+         case json_type_boolean:
+         case json_type_double:
+         case json_type_int:
             val1=json_object_get_double(obj1);
             val2=json_object_get_double(obj2);
             if (val1!=-1 && val1==val1 && val1!=val2) {
                return(FALSE);
             }
-            break; 
+            break;
 
          // For strings, do a string compare and if not, try a regexp
-         case json_type_string: 
+         case json_type_string:
             str1=json_object_get_string(obj1);
             str2=json_object_get_string(obj2);
 
@@ -1750,17 +1743,17 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
                   }
                }
             }
-            break; 
+            break;
 
          // Recurse on objects
-         case json_type_object: 
+         case json_type_object:
             if (!Meta_Match(obj1,obj2,RegExp)) {
                return(FALSE);
             }
             break;
 
          // For array, we make sure each of array1 values is included within array2 values
-         case json_type_array: 
+         case json_type_array:
             found=0;
             regi=FALSE;
             l1=json_object_array_length(obj1);
@@ -1791,18 +1784,18 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
                l2=json_object_array_length(obj2);
                for(int32_t i2=0;i2<l2;i2++) {
                   objval2=json_object_array_get_idx(obj2,i2);
-                   
-                  if (json_object_get_type(objval2)==json_type_string) {      
+
+                  if (json_object_get_type(objval2)==json_type_string) {
                      if ((str2=json_object_get_string(objval2)) != NULL) {
                         if (RegExp) {
                            if (regexec(&re,str2,(size_t)0,NULL,0)==0) {
                               found++;
-                              break;  
+                              break;
                            }
                         } else {
                            if (strncmp(str1,str2,strlen(str1))==0) {
                               found++;
-                              break;  
+                              break;
                            }
                         }
                      }
@@ -1888,7 +1881,7 @@ time_t Meta_Stamp2Seconds(int32_t Stamp) {
    if (!Stamp) {
       return(0);
    }
-   
+
    Meta_StampDecode(Stamp,&yyyy,&mm,&dd,&hh,&nn,&ss);
 
    tdate.tm_sec=ss;           /*seconds apres la minute [0,61]*/
@@ -1929,7 +1922,7 @@ int32_t Meta_Seconds2Stamp(time_t Sec) {
  *    @param[in]   mm           Minute
  *    @param[in]   ss           Second
  *    @param[in]   GMT          GMT (GMT or local time)
- *   
+ *
  *    @return                   System seconds
 */
 time_t Meta_DateTime2Seconds(int YYYY,int MM,int DD,int hh,int mm,int ss,int GMT) {
@@ -1960,35 +1953,35 @@ time_t Meta_DateTime2Seconds(int YYYY,int MM,int DD,int hh,int mm,int ss,int GMT
  * @date   July 2023
  *    @param[in]   Obj           Profile json object
  *    @param[in]   Var           Variable name
- *    
+ *
  *    @return                    Status (TRUE or FALSE)
 */
 json_object* Meta_DefFromTypVar(json_object *Obj,const char* TypVar)	{
 
    switch(TypVar[0]) {
-         case 'C': Meta_AddQualifier(Obj,"climatology"); break;                                                
-         case 'D': Meta_AddQualifier(Obj,"station"); break;  //   Données brutes aux stations                                
-         case 'A': Meta_AddQualifier(Obj,"analysis"); break;                                                 
-         case 'E': Meta_AddQualifier(Obj,"error"); break;  //    Erreur mensuelle                                            
-         case 'K': Meta_AddQualifier(Obj,"constant"); break;   // Constantes variées                                         
-         case 'M': Meta_AddQualifier(Obj,"verification"); break;  //    Matrice de vérification (table contingente)                
-   //      case 'N': Meta_AddCellMethod(Obj,"member:"); break;  //  N@ Nombre de membres utilisés pour le calcul du champ         
-         case 'O': Meta_AddQualifier(Obj,"observation");  break;                                                
-         case 'P': Meta_AddQualifier(Obj,"prognosis");  break;                                                  
-         case 'Q': Meta_AddQualifier(Obj,"diagnostic");  break;                                            
-         case 'R': Meta_AddQualifier(Obj,"increment"); break;                                        
-         case 'S': Meta_AddQualifier(Obj,"score"); break;                                            
-         case 'T': Meta_AddQualifier(Obj,"timeserie"); break;                                          
-   //      case 'X': Meta_AddQualifier(Obj,""); break;    // Divers  
+         case 'C': Meta_AddQualifier(Obj,"climatology"); break;
+         case 'D': Meta_AddQualifier(Obj,"station"); break;  //   Données brutes aux stations
+         case 'A': Meta_AddQualifier(Obj,"analysis"); break;
+         case 'E': Meta_AddQualifier(Obj,"error"); break;  //    Erreur mensuelle
+         case 'K': Meta_AddQualifier(Obj,"constant"); break;   // Constantes variées
+         case 'M': Meta_AddQualifier(Obj,"verification"); break;  //    Matrice de vérification (table contingente)
+   //      case 'N': Meta_AddCellMethod(Obj,"member:"); break;  //  N@ Nombre de membres utilisés pour le calcul du champ
+         case 'O': Meta_AddQualifier(Obj,"observation");  break;
+         case 'P': Meta_AddQualifier(Obj,"prognosis");  break;
+         case 'Q': Meta_AddQualifier(Obj,"diagnostic");  break;
+         case 'R': Meta_AddQualifier(Obj,"increment"); break;
+         case 'S': Meta_AddQualifier(Obj,"score"); break;
+         case 'T': Meta_AddQualifier(Obj,"timeserie"); break;
+   //      case 'X': Meta_AddQualifier(Obj,""); break;    // Divers
    }
 
-   switch(TypVar[1]) {                                                    
-      case 'B': Meta_AddCellMethod(Obj,"clamped"); break; //  Borné                                                      
-      case 'F': Meta_AddCellMethod(Obj,"filter:"); break; //  Filtré                                                     
-   //      case 'H': Meta_AddQualifier(Obj,""); break; //   Données manquantes                                         
-      case 'I': Meta_AddCellMethod(Obj,"interpolation:"); break; //Interpolé                                                 
-   //      case 'M': Meta_AddCellMethod(Obj,""); break; //   Modifications multiples                                     
-   //      case 'U': Meta_AddCellMethod(Obj,""); break; //   Unités converties                                          
+   switch(TypVar[1]) {
+      case 'B': Meta_AddCellMethod(Obj,"clamped"); break; //  Borné
+      case 'F': Meta_AddCellMethod(Obj,"filter:"); break; //  Filtré
+   //      case 'H': Meta_AddQualifier(Obj,""); break; //   Données manquantes
+      case 'I': Meta_AddCellMethod(Obj,"interpolation:"); break; //Interpolé
+   //      case 'M': Meta_AddCellMethod(Obj,""); break; //   Modifications multiples
+   //      case 'U': Meta_AddCellMethod(Obj,""); break; //   Unités converties
    //      case 'Z': Meta_AddCellMethod(Obj,""); break; //   Zappé
    }
 
@@ -2006,8 +1999,6 @@ json_object* Meta_DefFromEtiket(json_object *Obj,const char* Etiket)	{
 }
 
 int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
-
-   char tmp[FST_ETIKET_LEN+4],*c=NULL;
    char nomvar[FST_NOMVAR_LEN];
 
    if (!Obj) {
@@ -2015,7 +2006,7 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
    }
 
    strncpy(nomvar,Rec->nomvar,FST_NOMVAR_LEN);
-  
+
    strtrim(nomvar,' ');
 
    // NOMVAR
@@ -2032,7 +2023,7 @@ int32_t Meta_From89(json_object *Obj,const fst_record* const Rec)	{
 
   // NPACK,DATYP,DASIZ will be done internally at write
 //   Meta_DefData(Obj,Rec->ni,Rec->nj,Rec->nk,FST_TYPE_NAMES[Rec->data_type],"",Rec->pack_bits,Rec->data_bits,0,0);
- 
+
 //TODO:
    // IP1,IP2,IP3
 //   Meta_DefVerticalRef(prof_fld,"LEVEL_PRESSURE",1000.0,false);
@@ -2116,16 +2107,16 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
          }
       };
 
-   //   switch(TYPVAR[1]) {                                                    
-   //      case 'H': Meta_AddQualifier(Obj,""); break; //   Données manquantes                                         
-   //      case 'M': Meta_AddCellMethod(Obj,""); break; //   Modifications multiples                                     
-   //      case 'U': Meta_AddCellMethod(Obj,""); break; //   Unités converties                                          
-   //      case 'Z': Meta_AddCellMethod(Obj,""); break; //   Zappé                                                      
+   //   switch(TYPVAR[1]) {
+   //      case 'H': Meta_AddQualifier(Obj,""); break; //   Données manquantes
+   //      case 'M': Meta_AddCellMethod(Obj,""); break; //   Modifications multiples
+   //      case 'U': Meta_AddCellMethod(Obj,""); break; //   Unités converties
+   //      case 'Z': Meta_AddCellMethod(Obj,""); break; //   Zappé
    //      case '!@  Masque du champ dont la variable est modifiée par son 'ETIKET'
    //   }
    }
 
-   //  NI,NJ,NK,NPACK,DATYP,DASIZ 
+   //  NI,NJ,NK,NPACK,DATYP,DASIZ
    Meta_GetData(Obj,&Rec->ni,&Rec->nj,&Rec->nk,&c1,NULL,&Rec->pack_bits,&Rec->data_bits,NULL,NULL);
 
    // TODO: define data_type
@@ -2178,7 +2169,7 @@ int32_t Meta_To89(json_object *Obj,fst_record *Rec)	{
  * @date   July 2023
  *    @param[in]   File          FST file
  *    @param[in]   Obj           Profile json object
- *    
+ *
  *    @return                    Status (TRUE or FALSE)
 */
 #include "Meta_Flag.h"
@@ -2232,7 +2223,7 @@ int Meta_WriteFile(fst_file *File,json_object *Obj) {
  * @date   July 2023
  *    @param[in]   File          FST file
  *    @param[out]  Obj           Profile json object
- *    
+ *
  *    @return                    Status (TRUE or FALSE)
 */
 int Meta_ReadFile(fst_file *file,json_object **Obj) {
@@ -2246,7 +2237,7 @@ int Meta_ReadFile(fst_file *file,json_object **Obj) {
    strcpy(rec.typvar, "X ");
    strcpy(rec.nomvar, "META");
    strcpy(rec.etiket, "FILE_JSON   ");
- 
+
    fst_query* query = fst24_new_query(file, &rec, NULL);
    if (fst24_find_next(query,&rec)) {
       fst24_read_metadata(&rec);

@@ -985,7 +985,6 @@ void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoar
   int local_max;
   unsigned int nbits_req_container, local_bins[24];
   int lcl, nbits_needed, nbits2,lsum;
-  unsigned char debug;
   unsigned int token, gt16;
 
 

@@ -67,18 +67,6 @@ extern "C" {
 //!> Complex number (32 or 64 bits)
 #define FST_TYPE_COMPLEX 8
 
-static char* FST_TYPE_NAMES[] = {
-    "FST_TYPE_BINARY",
-    "FST_TYPE_OLD_QUANT",
-    "FST_TYPE_UNSIGNED",
-    "FST_TYPE_CHAR",
-    "FST_TYPE_SIGNED",
-    "FST_TYPE_REAL_IEEE",
-    "FST_TYPE_REAL",
-    "FST_TYPE_STRING",
-    "FST_TYPE_COMPLEX"
-};
-
 static inline int32_t base_fst_type(const int32_t type_flag) {
     return type_flag & 0x3f;
 }

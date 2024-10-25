@@ -15,6 +15,16 @@
 #include "rmn/Meta.h"
 #include "xdf98.h"
 
+const fst_query_options default_query_options = {
+    .ip1_all = 0,
+    .ip2_all = 0,
+    .ip3_all = 0,
+    .stamp_norun = 0,
+    .skip_filter = 0,
+};
+
+extern const char * const FST_TYPE_NAMES[];
+
 static pthread_mutex_t fst24_xdf_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static const char * fst_file_type_name[] = {

@@ -304,7 +304,6 @@ char* add_grid_info(
     const int32_t ig4,
     const size_t length //!< Width of the text we are adding. Will pad with spaces if necessary
 ) {
-    F2Cl lc1 = 1, lc2 = 7, lc3 = 7, lc4 = 8, lc5 = 8;
     char pg1[7], pg2[7], pg3[8], pg4[8];
     igapg_c(grtyp, pg1, pg2, pg3, pg4, &ig1, &ig2, &ig3, &ig4);
     pg1[6] = '\0'; pg2[6] = '\0'; pg3[7] = '\0'; pg4[7] = '\0';

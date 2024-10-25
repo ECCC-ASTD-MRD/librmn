@@ -63,7 +63,7 @@ contains
     integer, external :: fnom, get_missing_value_flags, encode_missing_value
     external :: set_missing_value_flags
 
-    integer :: junk, status, st, i, s
+    integer :: status, st, i, s
     integer, parameter :: ASIZE=16             ! ASIZE should be kept even because of complex tests
     integer, dimension(ASIZE) :: ia, ia2, work
     integer, dimension(ASIZE) :: uia, uia2
@@ -72,9 +72,9 @@ contains
     integer (2), dimension(ASIZE) :: usa, usa2
     integer (1), dimension(ASIZE) :: uba, uba2
     real (4), dimension(ASIZE) :: fa, fa2, fa3
-    real (4), dimension(ASIZE) :: ca, ca2, ca3   ! used for 32 bit complex data
+    real (4), dimension(ASIZE) :: ca, ca3   ! used for 32 bit complex data
     real (8), dimension(ASIZE) :: da, da2, da3
-    real (8), dimension(ASIZE) :: za, za2, za3   ! used for 64 bit complex data
+    real (8), dimension(ASIZE) :: za, za3   ! used for 64 bit complex data
     integer :: im, uim
     integer (2) :: sm, usm
     integer (1) :: bm, ubm
@@ -85,7 +85,6 @@ contains
 
     character(len=*), parameter :: test_file_name = 'missing.fst'
     character(len=2000) :: cmd
-    logical, parameter :: verbose = .false.
 
     if (is_rsf) call App_Log(APP_INFO, 'Testing RSF')
     if (.not. is_rsf) call App_Log(APP_INFO, 'Testing XDF')

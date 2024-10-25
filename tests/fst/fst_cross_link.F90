@@ -83,7 +83,6 @@ contains
         logical :: success
         integer :: handle
         integer :: ni, nj, nk
-        integer :: iun, status
 
         call create_files(is_rsf1, is_rsf2)
 

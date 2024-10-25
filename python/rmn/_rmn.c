@@ -1175,7 +1175,6 @@ static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assig
     }
 
     if(self->data_array != NULL){
-        PyObject *tmp = self->data_array;
         self->data_array = NULL;
         Py_XDECREF(self->data_array);
     }
@@ -1352,7 +1351,6 @@ static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args){
      */
     Lib_Log(APP_LIBRMN, APP_DEBUG, "Creating numpy arrays and assigning them as keys in a dictionnary\n");
     PyObject *columns = PyDict_New();
-    npy_intp dims[] = {raw_columns->nb_records};
 
     if(make_1d_string_array_and_add_to_dict(columns, "nomvar", raw_columns->nb_records, FST_NOMVAR_LEN, raw_columns->nomvar)){goto error;}
     if(make_1d_string_array_and_add_to_dict(columns, "typvar", raw_columns->nb_records, FST_TYPVAR_LEN, raw_columns->typvar)){goto error;}

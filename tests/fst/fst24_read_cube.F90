@@ -77,8 +77,6 @@ subroutine check_result(read_data)
     implicit none
     integer, dimension(NUM_X, NUM_Y, NUM_Z), intent(in) :: read_data
 
-    integer :: i, j, k
-
     if (.not. all(read_data == initial_data)) then
         call App_Log(APP_ERROR, 'Data is not the same!')
         error stop 1

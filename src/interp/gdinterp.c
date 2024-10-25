@@ -94,10 +94,8 @@ int c_gd_isgridrotated(int gdid) {
 
 
 int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, int32_t npts) {
-    int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, cur_gdin, idx_gdin;
+    int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
     int gdout, ier, un, j;
-    static int32_t found = -1;
-    static int32_t ncalls = 0;
     float *gdst_lats, tmp, real_un, real_j;
     char option[32], value[32];
 

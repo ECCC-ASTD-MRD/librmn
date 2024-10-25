@@ -32,7 +32,6 @@ void f77name(resetenv)()
 {
   FILE *stream;
   char *var = line;
-  char *newvar;
   int lng;
   int lng_in=0;  /* number of characters already in buffer */
 

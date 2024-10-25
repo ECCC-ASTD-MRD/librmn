@@ -202,7 +202,6 @@ function test_fst24_interface(is_rsf) result(success)
     logical :: success
 
     type(fst_file) :: test_file
-    type(fst_record_fields) :: fields
     type(fst_record) :: expected, record, record_by_index
     type(fst_query) :: query
     integer :: num_found
@@ -211,7 +210,6 @@ function test_fst24_interface(is_rsf) result(success)
     real(kind = real64), dimension(:, :), pointer :: bad_size_64
     real(kind = real32), dimension(:), pointer :: bad_dim
     real(kind = real32), dimension(:, :, :), pointer :: ok_dim
-    integer(C_INT32_T) :: status
 
     success = .false.
 
@@ -471,7 +469,6 @@ function test_fst24_interface(is_rsf) result(success)
     ! // Everything again, with linked files
     block
         type(fst_file), dimension(3) :: file_list
-        type(fst_file) :: file_link
         type(fst_record), dimension(10) :: results
         integer(C_INT64_T) :: num_records
         type(fst_record) :: result2

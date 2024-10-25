@@ -5,7 +5,6 @@
 #include <rmn/rpnmacros.h>
 
 int32_t f77name(get_max_rss)() {
-    struct rlimit limits;
     struct rusage mydata;
 
     getrusage(RUSAGE_SELF, &mydata);

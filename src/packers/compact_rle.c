@@ -66,7 +66,7 @@ int  compact_rle(
     int wordSize;
     uint32_t *arrayOfUnpacked;
     uint32_t *arrayOfPacked;
-    int i, k;
+    int i;
     int intCount;
 
     // Variables used by the packer
@@ -77,7 +77,7 @@ int  compact_rle(
     uint32_t maxRange;
     uint32_t currentToken, previousToken;
 
-    int previousTokenCount, currentTokenCount;
+    int previousTokenCount;
 
     int currentPosition, totalPackedElementCount, maxRepeatPerToken;
     uint32_t *packHeader;
@@ -88,9 +88,8 @@ int  compact_rle(
 
     // Variables used by the unpacker
     int firstPackBit, bitPackInFirstWord, currentSlot;
-    uint32_t currentWord, packInt;
-    int significantBit, inSignificantBit;
-    uint32_t *tempPackedArray;
+    uint32_t currentWord;
+    int significantBit;
     rle_header *theHeader;
     int repeatCount;
 

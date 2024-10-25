@@ -17,47 +17,37 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-      subroutine ez_iaxint(zo,px,npts,ax,z,ni, i1,i2,ordint)
-      implicit none
-!*******
-!Auteur: Y.Chartier, drpn
-!        Fevrier 1991
-!
-!Objet:  Interpolation bi-cubique de points a partir
-!        d'une grille source irreguliere.
-!*******
 
-      integer npts,ni,i1,i2,ordint
-      real zo(npts),px(npts)
-      real ax(i1:i2)
-      real z(ni)
-!
-!  npts   : nombre de points a interpoler
-!  i1:i2  : dimension de la grille source selon x
-!  zo     : vecteur de sortie contenant les valeurs interpolees
-!  px     : vecteur contenant la position x des points que l'on
-!           veut interpoler
-!  ax     : vecteur contenant la pos. des points sur l'axe des X.
-!  cx     : vecteur contenant une table de differences selon X.
-!  z      : valeurs de la grille source.
-!
-!***************************************************************************
-!
-!  *   *   *   *
-!
-!  *   *   *   *
-!        #        .eq.>   pt (x,y)
-!  *  (=)  *   *  .eq.> = pt (i, j)
-!
-!  *   *   *   *
-!
-!
-!
 
-!  structure identique pour cy(j,1..6)
+!> Interpolation bi-cubique de points a partir d'une grille source irreguliere.
+subroutine ez_iaxint(zo,px,npts,ax,z,ni, i1,i2,ordint)
+    implicit none
+
+    integer npts,ni,i1,i2,ordint
+    real zo(npts),px(npts)
+    real ax(i1:i2)
+    real z(ni)
+
+    !  npts   : nombre de points a interpoler
+    !  i1:i2  : dimension de la grille source selon x
+    !  zo     : vecteur de sortie contenant les valeurs interpolees
+    !  px     : vecteur contenant la position x des points que l'on
+    !           veut interpoler
+    !  ax     : vecteur contenant la pos. des points sur l'axe des X.
+    !  cx     : vecteur contenant une table de differences selon X.
+    !  z      : valeurs de la grille source.
+
+    !  *   *   *   *
+    !
+    !  *   *   *   *
+    !        #        .eq.>   pt (x,y)
+    !  *  (=)  *   *  .eq.> = pt (i, j)
+    !
+    !  *   *   *   *
+
+    !  structure identique pour cy(j,1..6)
 
       real a11,a12,a13,a14
-      real x1,x2,x3
       integer i, n
 
       real x, dx

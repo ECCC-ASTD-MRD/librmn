@@ -59,7 +59,6 @@ typedef struct{
 /*   buffer used to process input file 1024 + 128 */
 #define MAXBUFFER 1152
 static unsigned char buffer[MAXBUFFER];
-static unsigned char *buffer_start=buffer;
 static unsigned char *buffer_end=buffer+MAXBUFFER-1;
 static unsigned char *buffer_in=buffer+1024;
 static unsigned char *buffer_out=buffer+1024;
@@ -228,7 +227,7 @@ static void init_char_table(){
 
 /* collect an argument for a command ,return token and length */
 static int Argument(char *token){
- int len=0; char tmp_char;
+ int len=0;
 
  /* Skip blanks, even through a newline */
  Skip_Blanks(0); Current_Char(); Skip_Blanks(0);
@@ -318,7 +317,7 @@ return(0);
 /* process directives from file */
 int process_c_callback(char *filename){
 int oo, errors=0;
-int i, nrange, start_of_list=0;
+int nrange, start_of_list=0;
 int status;
 int32_t wstatus;
 int cmd_end = ')'; unsigned char cmd_strt;

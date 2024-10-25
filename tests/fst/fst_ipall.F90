@@ -21,11 +21,9 @@ subroutine create_files(is_rsf)
 
     type(fst_file), dimension(2) :: files
     character(len=2000) :: cmd
-    integer :: i, j
+    integer :: i
     real, dimension(1), target :: work
     logical :: success
-
-    integer :: ip
 
     type(fst_record) :: record
 

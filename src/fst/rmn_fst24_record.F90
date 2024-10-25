@@ -309,7 +309,6 @@ contains
         implicit none
         class(fst_record), intent(inout), target :: this
         integer(C_INT32_T) :: c_status
-        logical :: success
 
         c_status = fst24_record_free_c(c_loc(this%c_self))
      end subroutine

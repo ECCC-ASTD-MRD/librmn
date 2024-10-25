@@ -24,7 +24,7 @@
 !Auteur: Y.Chartier, drpn
 !        Fevrier 1991
 !
-!Objet:  Interpolation bi-cubique de points a partir 
+!Objet:  Interpolation bi-cubique de points a partir
 !        d'une grille gaussienne.
 !*******
 
@@ -48,7 +48,7 @@
 !**********************************************************************
 !
 !  *   *   *   *
-!  
+!
 !  *   *   *   *
 !        #        .eq.>   pt (x,y)
 !  *  (=)  *   *  .eq.> = pt (i, j)
@@ -56,7 +56,7 @@
 !  *   *   *   *
 !
 !
-!     
+!
 !  cy(i,1) = 1.0 / (x2-x1)
 !  cy(i,2) = 1.0 / (x3-x1)
 !  cy(i,3) = 1.0 / (x3-x2)
@@ -68,19 +68,18 @@
 
       integer             :: i, j, n
       integer             :: imoins1, iplus1, iplus2
-      real(kind = real64) :: x, x1, x2, x3
       real(kind = real64) :: y,y1,y2,y3,y4
       real(kind = real64) :: y11, y12, y13, y14
       real(kind = real64) :: ay1, ay2, ay3, ay4
       real(kind = real64) :: dx
-      
+
 #include "ez_qqqxtrp.cdk"
 
          do n=1,npts
             limite = ni +2 -wrap
             i = min(ni-2+wrap,max(1,max(2-wrap,ifix(px(n)))))
             j = min(j2-2,max(j1,ifix(py(n))))
-            
+
             imoins1 = i-1
             iplus1 = i+1
             iplus2 = i+2
@@ -89,12 +88,12 @@
                imoins1 = mod(limite+i-1,limite)
                iplus1  = mod(limite+i+1,limite)
                iplus2  = mod(limite+i+2,limite)
-               
+
                if (imoins1.eq.0) imoins1 = ni
                if (i.eq.0) i = ni
                if (iplus1.eq.0) iplus1 = ni
                if (iplus2.eq.0) iplus2 = ni
-               
+
                if (wrap.eq.1) then
                   if (iplus2.eq.ni) iplus2 = 2
                   if (imoins1.eq.ni) imoins1=ni-1
@@ -102,28 +101,28 @@
             endif
 
             dx = px(n) - i
-            
+
             y1=cubic(dble(z(imoins1,j-1)),dble(z(i,j-1)),dble(z(iplus1,j-1)),dble(z(iplus2,j-1)),dx)
             y2=cubic(dble(z(imoins1,j  )),dble(z(i,j  )),dble(z(iplus1,j  )),dble(z(iplus2,j  )),dx)
             y3=cubic(dble(z(imoins1,j+1)),dble(z(i,j+1)),dble(z(iplus1,j+1)),dble(z(iplus2,j+1)),dx)
             y4=cubic(dble(z(imoins1,j+2)),dble(z(i,j+2)),dble(z(iplus1,j+2)),dble(z(iplus2,j+2)),dx)
-            
+
             y = ay(j) + (ay(j+1)-ay(j))*(py(n)-j)
-            
+
 !     interpolation finale selon y
-            
+
             ay1=ay(j-1)
             ay2=ay(j)
             ay3=ay(j+1)
             ay4=ay(j+2)
-            
+
             cy(1) = 1.0 / (ay2 - ay1)
             cy(2) = 1.0 / (ay3 - ay1)
             cy(3) = 1.0 / (ay3 - ay2)
             cy(4) = 1.0 / (ay4 - ay1)
             cy(5) = 1.0 / (ay4 - ay2)
             cy(6) = 1.0 / (ay4 - ay3)
-            
+
             y11 = y1
             y12 = fa2(dble(cy(1)),y1,y2)
             y13 = fa3(dble(cy(1)),dble(cy(2)),dble(cy(3)),y1,y2,y3)
@@ -135,4 +134,4 @@
 #include "cubic8.cdk"
 #include "fa8.cdk"
       end
-      
+

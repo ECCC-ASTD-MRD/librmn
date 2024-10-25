@@ -30,6 +30,18 @@
 #define Max_Ipvals 50
 
 
+const char * const FST_TYPE_NAMES[] = {
+    "FST_TYPE_BINARY",
+    "FST_TYPE_OLD_QUANT",
+    "FST_TYPE_UNSIGNED",
+    "FST_TYPE_CHAR",
+    "FST_TYPE_SIGNED",
+    "FST_TYPE_REAL_IEEE",
+    "FST_TYPE_REAL",
+    "FST_TYPE_STRING",
+    "FST_TYPE_COMPLEX"
+};
+
 static int ip_nb[3] = {0, 0, 0};
 int ip1s_flag = 0;
 int ip2s_flag = 0;

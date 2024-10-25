@@ -65,7 +65,7 @@ void *compact_IEEEblock_FLOAT_TYPE(
     int   wordSize;
     FLOAT_TYPE *arrayOfFloat;
     int32_t *packHeader, *arrayOfInt;
-    int   i, k;
+    int   i;
     int32_t  floatCount;
     float maxFloat;
     ALL_FLOAT maxFloatTemplate, floatTemplate;
@@ -74,9 +74,8 @@ void *compact_IEEEblock_FLOAT_TYPE(
     int   expoDifference;
     int   lastPackBit, spaceInLastWord, lastSlot;
     int32_t  lastWordShifted, tempInt;
-    int32_t *arrayPtr, *arrayOfUnpacked;
+    int32_t *arrayPtr;
     FLOAT_TYPE *arrayOfTempFloat;
-    float tempFloat;
 
     // Variables used by the unpacker
     IEEEblock_struct_data *theHeader;
