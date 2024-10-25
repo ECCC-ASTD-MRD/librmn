@@ -1935,7 +1935,7 @@ int c_fstfrm(
     //! [in] Unit number associated to the file
     int iun
 ) {
-    int index_fnom;
+    int index_fnom = -1;
     const int rsf_status = is_rsf(iun, &index_fnom);
 
     if (index_fnom == -1) {

@@ -19,6 +19,8 @@ int32_t is_rsf(
     //! [out] (Optional) The index given to this file by fnom
     int32_t* out_index_fnom
 ) {
+    if (out_index_fnom != NULL) *out_index_fnom = -1;
+
     const int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
