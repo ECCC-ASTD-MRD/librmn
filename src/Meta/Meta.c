@@ -338,19 +338,34 @@ json_object *Meta_New(int Type,char *Version) {
  * @brief  Load a user json file
 
  * @date   July 2023
- *    @param[in]  Name     Profile name
- *    @param[in]  Version  Profile version (if NULL, use env defined)
+ *    @param[in]  Path     JSON file path
  *
  *    @return              json object
 */
 json_object *Meta_Load(char *Path) {
 
    json_object *obj=NULL;
+   char         path[APP_BUFMAX];
+   int32_t      i;
 
    if (!(obj=json_object_from_file(Path))) {
-      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unabled to load json file %s\n",__func__,Path);
-      return(NULL);
+      for(i=0;i<2;i++) {
+
+         if (!MetaPaths[i]) {
+            continue;
+         }
+         snprintf(path,APP_BUFMAX,"%s/rpn/json/%s/%s",MetaPaths[i],MetaVersion,Path);
+         if ((obj=json_object_from_file(path))) {
+            break;
+         }
+      }
    }
+<<<<<<< HEAD
+=======
+  
+   if (!obj)
+      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unabled to load json file %s\n",__func__,Path);
+>>>>>>> be65ac5 ([META] Added horizontal and vertical reference creation functions)
 
    return(obj);
 }
@@ -866,7 +881,8 @@ json_object *Meta_AddVerticalRef(json_object *Obj,char* Identifier,int Copy) {
  * @date   July 2023
  *    @param[in]  Obj           Profile json object
  *    @param[in]  Identifier    Identifier of the vertical reference
- *    @param[in]  Value         Vertical level value
+ *    @param[in]  Value         Vertical levels value array
+ *    @param[in]  Nb            Number of vertical level
  *    @param[in]  Copy          Add complete definition or only identifier
  *
  *    @return                    json_object pointer (NULL if error)
@@ -995,7 +1011,7 @@ json_object *Meta_DefHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
 
    // Do we copy the reference or just define the Identifier
    if (Copy) {
-      // Find the vertical reference
+      // Find the horizontal reference
       if (!(objref=Meta_FindHorizontalObj(Identifier,NULL))) {
          Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find horizontal reference %s\n",__func__,Identifier);
          return(NULL);
@@ -1010,6 +1026,201 @@ json_object *Meta_DefHorizontalRef(json_object *Obj,char* Identifier,int Copy) {
       }
    }
    return(Obj);
+}
+
+/**----------------------------------------------------------------------------
+ * @brief  Define variable information
+ * @date   July 2023
+ *    @param[in]  Identifier    Identifier
+ *    @param[in]  StandardName  Standard name
+ *    @param[in]  RPNName       RPN nomvar
+ *    @param[in]  LongName      Long name
+ *    @param[in]  IG1-4         Grid parameters
+ *    @param[in]  IGREF1-4      Reference grid parameters
+ *
+ *    @return                   json_object pointer (NULL if error)
+*/
+json_object *Meta_CreateHorizontalRef(char *Identifier,char *StandardName,char* RPNName,char *LongName,int32_t IG1,int32_t IG2,int32_t IG3,int32_t IG4,int32_t IG1REF,int32_t IG2REF,int32_t IG3REF,int32_t IG4REF) {
+
+   json_object  *obj,*objval=NULL;
+   TMetaProfile *prof=NULL;
+
+   obj=json_object_new_object();
+
+   if (MetaProfileNb && (prof=&MetaProfiles[MetaProfileNb-1])) {;
+      if (json_pointer_get(prof->XY,"/horizontal_references",&objval)!=0) {
+         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find object: %s\n",__func__,"/horizontal_references");
+         return(NULL);
+      }
+      json_object_array_add(objval,obj);
+   } else {
+      Lib_Log(APP_LIBMETA,APP_WARNING,"%s: No profile loaded, not adding reference to known profiles\n",__func__);     
+   }
+
+   if (Identifier) {
+      if (!json_pointer_get(obj,"/identifier",&objval)) {
+         json_object_set_string(objval,Identifier);
+      } else {
+         json_object_object_add(obj,"identifier",json_object_new_string(Identifier));
+      }
+   }
+   if (StandardName) {
+      if (!json_pointer_get(obj,"/standard_name",&objval)) {
+         json_object_set_string(objval,StandardName);
+      } else {
+         json_object_object_add(obj,"standard_name",json_object_new_string(StandardName));
+      }
+   }
+   if (RPNName) {
+      if (!json_pointer_get(obj,"/rpn_name",&objval)) {
+         json_object_set_string(objval,RPNName);
+      } else {
+         json_object_object_add(obj,"rpn_name",json_object_new_string(RPNName));
+      }
+   }
+   if (LongName) {
+      if (!json_pointer_get(obj,"/long_name",&objval)) {
+         json_object_set_string(objval,LongName);
+      } else {
+         json_object_object_add(obj,"long_name",json_object_new_string(LongName));
+      }
+   }
+
+   if (!json_pointer_get(obj,"/IG1",&objval)) {
+      json_object_set_int(objval,IG1);
+   } else {
+      json_object_object_add(obj,"IG1",json_object_new_int(IG1));
+   }
+   if (!json_pointer_get(obj,"/IG2",&objval)) {
+      json_object_set_int(objval,IG2);
+   } else {
+      json_object_object_add(obj,"IG2",json_object_new_int(IG2));
+   }
+   if (!json_pointer_get(obj,"/IG3",&objval)) {
+      json_object_set_int(objval,IG3);
+   } else {
+      json_object_object_add(obj,"IG3",json_object_new_int(IG3));
+   }
+   if (!json_pointer_get(obj,"/IG4",&objval)) {
+      json_object_set_int(objval,IG4);
+   } else {
+      json_object_object_add(obj,"IG4",json_object_new_int(IG4));
+   }
+   if (!json_pointer_get(obj,"/IG1REF",&objval)) {
+      json_object_set_int(objval,IG1REF);
+   } else {
+      json_object_object_add(obj,"IG1REF",json_object_new_int(IG1REF));
+   }
+   if (!json_pointer_get(obj,"/IG2REF",&objval)) {
+      json_object_set_int(objval,IG2REF);
+   } else {
+      json_object_object_add(obj,"IG2REF",json_object_new_int(IG2REF));
+   }
+   if (!json_pointer_get(obj,"/IG3REF",&objval)) {
+      json_object_set_int(objval,IG3REF);
+   } else {
+      json_object_object_add(obj,"IG3REF",json_object_new_int(IG3REF));
+   }
+   if (!json_pointer_get(obj,"/IG4REF",&objval)) {
+      json_object_set_int(objval,IG4REF);
+   } else {
+      json_object_object_add(obj,"IG4REF",json_object_new_int(IG4REF));
+   }
+
+   return(obj);
+}
+
+/**----------------------------------------------------------------------------
+ * @brief  Define variable information
+ * @date   July 2023
+ *    @param[in]  Identifier    Identifier
+ *    @param[in]  StandardName  Standard name
+ *    @param[in]  RPNName       RPN nomvar
+ *    @param[in]  LongName      Long name
+ *    @param[in]  IG1-4         Grid parameters
+ *    @param[in]  IGREF1-4      Reference grid parameters
+ *
+ *    @return                   json_object pointer (NULL if error)
+*/
+json_object *Meta_CreateVerticalRef(char *Identifier,char *StandardName,char* RPNName,char *LongName,char* Description,char* Positive,char *Unit,char* FormulaTerms,int32_t Kind, int32_t VCode) {
+
+   json_object  *obj,*objval=NULL;
+   TMetaProfile *prof=NULL;
+
+   obj=json_object_new_object();
+
+   if (MetaProfileNb && (prof=&MetaProfiles[MetaProfileNb-1])) {;
+      if (json_pointer_get(prof->XY,"/vertical_references",&objval)!=0) {
+         Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Could not find object: %s\n",__func__,"/vertical_references");
+         return(NULL);
+      }
+      json_object_array_add(objval,obj);
+   } else {
+      Lib_Log(APP_LIBMETA,APP_WARNING,"%s: No profile loaded, not adding reference to known profiles\n",__func__);     
+   }
+
+   if (Identifier) {
+      if (!json_pointer_get(obj,"/identifier",&objval)) {
+         json_object_set_string(objval,Identifier);
+      } else {
+         json_object_object_add(obj,"identifier",json_object_new_string(Identifier));
+      }
+   }
+   if (StandardName) {
+      if (!json_pointer_get(obj,"/standard_name",&objval)) {
+         json_object_set_string(objval,StandardName);
+      } else {
+         json_object_object_add(obj,"standard_name",json_object_new_string(StandardName));
+      }
+   }
+   if (RPNName) {
+      if (!json_pointer_get(obj,"/rpn_name",&objval)) {
+         json_object_set_string(objval,RPNName);
+      } else {
+         json_object_object_add(obj,"rpn_name",json_object_new_string(RPNName));
+      }
+   }
+   if (LongName) {
+      if (!json_pointer_get(obj,"/long_name",&objval)) {
+         json_object_set_string(objval,LongName);
+      } else {
+         json_object_object_add(obj,"long_name",json_object_new_string(LongName));
+      }
+   }
+   if (Description) {
+      if (!json_pointer_get(obj,"/description",&objval)) {
+         json_object_set_string(objval,LongName);
+      } else {
+         json_object_object_add(obj,"description",json_object_new_string(LongName));
+      }
+   }
+   if (Positive) {
+      if (!json_pointer_get(obj,"/positive",&objval)) {
+         json_object_set_string(objval,Positive);
+      } else {
+         json_object_object_add(obj,"positive",json_object_new_string(Positive));
+      }
+   }
+   if (Positive) {
+      if (!json_pointer_get(obj,"/formula_terms",&objval)) {
+         json_object_set_string(objval,FormulaTerms);
+      } else {
+         json_object_object_add(obj,"formula_terms",json_object_new_string(FormulaTerms));
+      }
+   }
+
+   if (!json_pointer_get(obj,"/rpn_kind",&objval)) {
+      json_object_set_int(objval,Kind);
+   } else {
+      json_object_object_add(obj,"rpn_kind",json_object_new_int(Kind));
+   }
+   if (!json_pointer_get(obj,"/vcode",&objval)) {
+      json_object_set_int(objval,VCode);
+   } else {
+      json_object_object_add(obj,"vcode",json_object_new_int(VCode));
+   }
+
+   return(obj);
 }
 
 /**----------------------------------------------------------------------------

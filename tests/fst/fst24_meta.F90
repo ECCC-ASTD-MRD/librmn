@@ -6,13 +6,16 @@ program test_meta_fortran
 
     type(meta) :: meta_fld, meta_file, meta_tmp
     type(fst_record) :: record
-    type(C_PTR) obj
+    type(C_PTR) obj,grid
     real(kind=REAL64), dimension(1) :: levels = [ 1.0 ]
     integer(kind=INT32) :: ok
  
 !   Load metadata template
     ok=meta_fld%init(META_TYPE_RECORD,C_NULL_CHAR)
     ok=meta_file%init(META_TYPE_FILE,C_NULL_CHAR)
+
+    grid=meta_createhorizontalref("RPN_GDPS_TEST","YinYang","U","Two-patch overset grid",62154,75538,1,0,1,0,0,0);
+    obj=meta_file%addhorizontalref("RPN_GDPS_TEST",.true.);
 
     obj=meta_file%DefFile("CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational")
     obj=meta_file%AddHorizontalRef("RPN_GDPS_2020_25KM",.true.)
@@ -23,7 +26,7 @@ program test_meta_fortran
 !    obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius")
     obj=meta_fld%DefVarFromDict("TT")
     obj=meta_fld%DefForecastTime(1672556400_C_LONG,2,60.0d0,"minutes")
-    obj=meta_fld%DefHorizontalRef("RPN_GDPS_2020_25KM",.false.)
+    obj=meta_fld%DefHorizontalRef("RPN_GDPS_TEST",.false.)
     obj=meta_fld%DefVerticalRef("PRESSURE",levels,1,.false.)
     obj=meta_fld%DefData(100,100,1,"float","lorenzo",16,32,-60.0d0,50.0d0)
 
