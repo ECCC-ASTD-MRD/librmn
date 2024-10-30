@@ -292,6 +292,10 @@ endforeach()
 
 # Compilation options for specific files
 set_source_files_properties(src/fst/xdf98.c            PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar> $<$<COMPILE_LANG_AND_ID:C,PGI,NVHPC>:-Mnovect>")
+if(COMPILER_SUITE MATCHES "intel" AND CMAKE_C_COMPILER_VERSION MATCHES "2025.0.0")
+#   message(STATUS "(ICX) C_COMPILER_VERSION = ${CMAKE_C_COMPILER_VERSION}")
+  set_source_files_properties(src/fst/fst98.c            PROPERTIES COMPILE_FLAGS "-O1")
+endif()
 if(COMPILER_SUITE MATCHES "aocc" AND CMAKE_C_COMPILER_VERSION MATCHES "17")
 #   message(STATUS "(AOCC) C_COMPILER_VERSION = ${CMAKE_C_COMPILER_VERSION}")
   set_source_files_properties(src/fst/excdes_new.c     PROPERTIES COMPILE_FLAGS "-O0")
