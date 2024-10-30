@@ -67,6 +67,7 @@ module rmn_fst24
         integer(C_INT32_T) :: ip3_all = 0
         integer(C_INT32_T) :: stamp_norun = 0
         integer(C_INT32_T) :: skip_filter = 0
+        integer(C_INT32_T) :: skip_grid_descriptors = 0
     end type fst_query_options_c
 
 
@@ -293,7 +294,7 @@ contains
     function fst24_file_new_query(this,                                                                             & 
             dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
-            ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter) result(query)
+            ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors) result(query)
         implicit none
         class(fst_file), intent(in) :: this
         integer(C_INT32_T), intent(in), optional :: dateo, datev
@@ -306,6 +307,7 @@ contains
         logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
         logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
         logical, intent(in), optional :: skip_filter !< Whether to bypass the global file filter (excdes)
+        logical, intent(in), optional :: skip_grid_descriptors !< Whether to ignore grid descriptor records
         type(meta), intent(in), optional :: metadata
         type(fst_query) :: query
 
@@ -351,6 +353,9 @@ contains
         end if
         if (present(skip_filter)) then
             if (skip_filter) options % skip_filter = 1
+        end if
+        if (present(skip_grid_descriptors)) then
+            if (skip_grid_descriptors) options % skip_grid_descriptors = 1
         end if
 
         query % query_ptr = fst24_new_query(this % file_ptr, c_loc(criteria), c_loc(options))
