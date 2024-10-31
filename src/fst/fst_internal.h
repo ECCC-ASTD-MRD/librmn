@@ -8,8 +8,6 @@
 #include "rmn/fst24_file.h"
 #include "rmn/fst24_record.h"
 
-extern const fst_query_options default_query_options;
-
 typedef struct fst24_file_ fst_file;  // Forward declare the fst_file type
 
 //! Number of 32-bit elements in the search metadata that are reserved for
