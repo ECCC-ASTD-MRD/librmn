@@ -20,6 +20,8 @@ ec_git_version()           # Get version from git
 ec_parse_manifest()        # Parse MANIFEST file
 
 project(${NAME} DESCRIPTION "${DESCRIPTION}" LANGUAGES C Fortran)
+# The project command sets the PROJECT_VERSION variable, but it doesn't accept anything that isn't of the form
+# <major>[.<minor>[.<patch>[.<tweak>]]]], so we set it again afterwards
 set(PROJECT_VERSION ${VERSION}${STATE})
 set(rmn_VERSION ${PROJECT_VERSION} CACHE INTERNAL "rmn version" FORCE) # Needed for cascaded version identification
 message(STATUS "(EC) ${PROJECT_NAME} version = ${PROJECT_VERSION}")
