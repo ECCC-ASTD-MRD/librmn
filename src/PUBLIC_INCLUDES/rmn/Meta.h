@@ -51,7 +51,7 @@ json_object* Meta_DefHorizontalRef(json_object *Obj,char *Identifier,int Copy);
 json_object* Meta_GetHorizontalRef(json_object *Obj,char **Identifier);
 json_object* Meta_FindHorizontalObj(char* Identifier,json_object *ObjMaster);
 
-json_object* Meta_DefData(json_object *Node,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Bit,double Min,double Max);
+json_object* Meta_DefData(json_object *Node,int32_t NI,int32_t NJ,int32_t NK, const char * const Type, const char * const Compression,int32_t Pack,int32_t Bit,double Min,double Max);
 json_object* Meta_GetData(json_object *Node,int32_t *NI,int32_t *NJ,int32_t *NK,char **Type,char **Compression,int32_t *Pack,int32_t *Bit,double *Min,double *Max);
 
 json_object* Meta_ClearCellMethods(json_object *Obj);
