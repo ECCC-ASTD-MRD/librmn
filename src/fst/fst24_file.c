@@ -326,6 +326,12 @@ int32_t fst24_print_summary(
 
     fst_query* query = fst24_new_query(file, NULL, NULL); // Look for every (non-deleted) record
 
+    if (query == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to create a query to look through the file! (%s)\n", __func__,
+                file->path);
+        return -1;
+    }
+
     fst_record rec = default_fst_record;
     int64_t num_records = 0;
     size_t total_data_size = 0;
@@ -341,6 +347,7 @@ int32_t fst24_print_summary(
         total_data_size += fst24_record_data_size(&rec);
     }
 
+    fst24_record_free(&rec);
     fst24_query_free(query);
 
     Lib_Log(APP_LIBFST, APP_VERBATIM,
@@ -693,7 +700,7 @@ int32_t fst24_write_rsf(
     record->do_not_touch.stored_data_size = num_word32;
 
     record->num_meta_bytes = rec_metadata_size * sizeof(uint32_t);
-    RSF_record* new_record = RSF_New_record(rsf_file, rec_metadata_size, dir_metadata_size, RT_DATA, num_data_bytes, NULL, 0);
+    RSF_record* new_record = RSF_New_record(rsf_file, rec_metadata_size, rec_metadata_size, RT_DATA, num_data_bytes, NULL, 0);
     if (new_record == NULL) {
         Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to create new new_record with %ld bytes\n", __func__, num_data_bytes);
         return(ERR_MEM_FULL);
@@ -718,7 +725,7 @@ int32_t fst24_write_rsf(
     // Insert json metadata
     if (metastr) {
         // Copy metadata into RSF record struct, just after directory metadata
-        memcpy((char *)(meta + 1), metastr, metalen);
+        memcpy((char *)(meta->extended_meta), metastr, metalen);
     }
 
     // RSF reserved metadata
@@ -728,7 +735,6 @@ int32_t fst24_write_rsf(
     
     // FST reserved metadata
     meta->fst24_reserved[0] = fst24_reserved_0(ext_metadata_size);
-    meta->fst24_reserved[1] = 0; // Datamap size
 
     // fst98 metadata 
     {
@@ -1624,8 +1630,8 @@ int32_t fst24_find_all(
 
     for (int i = 0; i < max; i++) {
         if (results) {
-           results[i] = default_fst_record;
-           if (!fst24_find_next(query, &(results[i]))) return i;
+            if (!fst24_record_is_valid(&results[i])) results[i] = default_fst_record;
+            if (!fst24_find_next(query, &(results[i]))) return i;
         } else {
            if (!fst24_find_next(query, NULL)) return i;
         }
@@ -1652,6 +1658,8 @@ int32_t fst24_find_count(
     while (fst24_find_next(query, &record)) {
         count++;
     }
+
+    fst24_record_free(&record);
     return count;
 }
 
@@ -1914,12 +1922,10 @@ int32_t fst24_read_record_rsf(
         return ERR_BAD_HNDL;
     }
 
-    fill_with_search_meta(record_fst, (search_metadata*)record_rsf->meta, FST_RSF);
+    fill_with_search_meta(record_fst, (search_metadata*)record_rsf->meta, FST_RSF); // frees old meta, if applicable
     record_fst->do_not_touch.stored_data_size = (record_rsf->data_size + 3) / 4;
 
-    // Extract metadata from record if present. Free existing metadata if needed
-    Meta_Free(record_fst->metadata);
-    record_fst->metadata = NULL;
+    // Extract metadata from record if present
     if (record_fst->do_not_touch.extended_meta_size > 0) {
         // Located after the search keys
         record_fst->metadata = Meta_Parse((char*)((uint32_t*)record_rsf->meta + record_fst->do_not_touch.num_search_keys));
@@ -2004,11 +2010,18 @@ void* fst24_read_metadata(
     }
 
     if (!fst24_is_open(record->file)) {
-       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open (%s)\n",__func__, record->file ? record->file->path : "(nil)");
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n",__func__);
        return NULL;
     }
 
     if (record->file->type == FST_RSF) {
+        if (record->metadata != NULL) return record->metadata;
+
+        if (record->do_not_touch.fst_version > 0) {
+            record->metadata = Meta_Parse((const char*)(record->do_not_touch.stringified_meta));
+            return record->metadata; // If version > 0, we already have it.
+        }
+
         if (fst24_read_record_rsf(record->file->rsf_handle, record, 0, 1) != 0) {
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read meta from RSF file %s\n", __func__, record->file->path);
             return NULL;

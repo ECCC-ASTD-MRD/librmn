@@ -61,8 +61,15 @@ DT_08 ... DT_64  : length of data elements in record (for endianness management)
 
 //! Number of 32-bit elements at the beginning of the search metadata of
 //! every record.
+//! - Starting from version 0
 //! The first one is used to hold RSF version, record type and record class
-#define RSF_META_RESERVED 1
+//! - Starting from version 1
+//! The second one is used to hold datamap size
+#define RSF_META_RESERVED 2
+
+// Previous values of RSF_META_RESERVED
+//! RSF_META_RESERVED value at version 0
+#define RSF_META_RESERVED_V0 1
 
 //! Opening modes
 typedef enum {

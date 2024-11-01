@@ -264,6 +264,8 @@ int test_fst24_interface(const int is_rsf) {
         }
     }
 
+    fst24_record_free(&record_by_index);
+
     if (num_found != 3) {
         App_Log(APP_ERROR, "Found only %d of the 3 records we wrote!\n", num_found);
         return -1;
@@ -338,6 +340,10 @@ int test_fst24_interface(const int is_rsf) {
         }
     }
 
+    for (int i = 0; i < num_found; i++) {
+        fst24_record_free(&all_records[i]);
+    }
+
     /////////////////////////////////////////
     // Find count
     num_found = fst24_find_count(query);
@@ -368,6 +374,7 @@ int test_fst24_interface(const int is_rsf) {
             return -1;
         }
 
+        fst24_record_free(&other);
         fst24_query_free(query);
     }
 
@@ -498,6 +505,10 @@ int test_fst24_interface(const int is_rsf) {
         if (fst24_find_all(query, results, 10) != 6) {
             App_Log(APP_ERROR, "Find all should have found 6\n");
             return -1;
+        }
+
+        for (int i = 0; i < 6; i++) {
+            fst24_record_free(&results[i]);
         }
 
         App_Log(APP_INFO, "Read all, one by one\n");

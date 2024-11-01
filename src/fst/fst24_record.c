@@ -6,6 +6,7 @@
 #include <App.h>
 #include "rmn/Meta.h"
 #include "rmn/convert_ip.h"
+#include "rsf_internal.h"
 
 //! List of field/grid descriptor records
 static const char *FST_DESCRIPTOR[]={ ">>","^^","^>","!!","##","#>>#","#^^#","####","HY","PROJ","MTRX",NULL };
@@ -448,12 +449,12 @@ void fst24_record_print_short(
 //! Check whether the given record struct is valid (does not check its content, just its version token)
 int32_t fst24_record_is_valid(const fst_record* record) {
     if (record == NULL) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Record pointer is NULL\n", __func__);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Record pointer is NULL\n", __func__);
         return 0;
     }
     
     if (record->do_not_touch.version != default_fst_record.do_not_touch.version) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Version number (%ld) is wrong (should be %ld)! This means that either:\n"
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Version number (%ld) is wrong (should be %ld)! This means that either:\n"
                 "  - The given address does not point to an initialized fst_record struct\n"
                 "  - Your program was not compiled with the same version it is linked to\n",
                 __func__, record->do_not_touch.version, default_fst_record.do_not_touch.version);
@@ -699,27 +700,44 @@ void make_search_criteria(
 
 void fill_with_search_meta(fst_record* record, const search_metadata* meta, const fst_file_type type) {
 
-    // Check version first
-    uint8_t version = 0;
-    uint8_t num_criteria = sizeof(stdf_dir_keys) / sizeof(uint32_t);
-    uint16_t extended_meta_size = 0; // 32-bit units
+    record->do_not_touch.fst_version = default_fst_record.do_not_touch.fst_version;
+    record->do_not_touch.num_search_keys = sizeof(stdf_dir_keys) / sizeof(uint32_t); // Default for XDF
+    record->do_not_touch.extended_meta_size = 0;
+
+    const stdf_dir_keys* fst98_meta = &(meta->fst98_meta); // Default for XDF
 
     if (type != FST_XDF) {
-        decode_fst24_reserved_0(meta->fst24_reserved[0], &version, &num_criteria, &extended_meta_size);
+        uint8_t rsf_version;
+        rsf_rec_class dummy_rc;
+        rsf_rec_type dummy_rt;
+        extract_meta0(meta->rsf_reserved[0], &rsf_version, &dummy_rc, &dummy_rt);
+
+        uint32_t reserved0 = meta->fst24_reserved[0];
+
+        if (rsf_version == 0) {
+            // RSF version 0 record structure (FST version can only be 0, in that case)
+            search_metadata_version_0_0* meta_old = (search_metadata_version_0_0*)meta;
+            reserved0 = meta_old->fst24_reserved[0];
+            fst98_meta = &(meta_old->fst98_meta);
+        }
+
+        decode_fst24_reserved_0(reserved0,
+                                &record->do_not_touch.fst_version,
+                                &record->do_not_touch.num_search_keys,
+                                &record->do_not_touch.extended_meta_size);
     }
 
-    if (version > FST24_VERSION_COUNT) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Interpreting search metadata with a library from an earlier FST version (%d)"
+    if (record->do_not_touch.fst_version > FST24_VERSION_COUNT) {
+        Lib_Log(APP_LIBFST, APP_FATAL, "%s: Interpreting search metadata with a library from an earlier FST version (%d)"
                 " than the one used to write the record (%d). We might run into issues (or not).\n",
-                __func__, FST24_VERSION_COUNT, version);
-    }
+                __func__, FST24_VERSION_COUNT, record->do_not_touch.fst_version);
 
-    record->do_not_touch.num_search_keys = num_criteria;
-    record->do_not_touch.extended_meta_size = extended_meta_size;
+        fst_record_copy_info(record, NULL);
+        return;
+    }
 
     // fst98 metadata
     {
-        const stdf_dir_keys* fst98_meta = &(meta->fst98_meta);
         stdf_special_parms cracked;
         crack_std_parms(fst98_meta, &cracked);
 
@@ -753,6 +771,23 @@ void fill_with_search_meta(fst_record* record, const search_metadata* meta, cons
     } // fst98 metadata
 
     // Here, we implement reading content for next-generation FST (anything that goes beyond the stdf_dir_keys struct)
+
+    Meta_Free(record->metadata);
+    record->metadata = NULL;
+    record->do_not_touch.stringified_meta = NULL;
+
+    if (record->do_not_touch.fst_version <= 0) {
+        // Nothing in particular
+    }
+    else if (record->do_not_touch.fst_version <= 1) {
+        if (record->do_not_touch.extended_meta_size > 0) {
+            record->do_not_touch.stringified_meta = meta->extended_meta;
+        }
+    }
+    else {
+        Lib_Log(APP_LIBFST, APP_FATAL, "%s: Gotta decide what to do with new metadata in FST version number %d\n",
+                __func__, record->do_not_touch.fst_version);
+    }
 }
 
 //! Copy the legacy metadata and extended metadata
@@ -1001,13 +1036,14 @@ void print_search_meta(const search_metadata* const keys, const fst_file_type ty
 //! the data pointer and the allocation flag and status;
 //! Does not free any memory!
 void fst_record_copy_info(fst_record* const dest, const fst_record* const src) {
+    const fst_record* actual_src = src ? src : &default_fst_record;
     Meta_Free(dest->metadata);
     const int64_t flags = dest->do_not_touch.flags;
     const int64_t alloc = dest->do_not_touch.alloc;
     void* const data  = dest->data;
-    *dest = *src;
+    *dest = *actual_src;
     dest->do_not_touch.flags = flags;
     dest->do_not_touch.alloc = alloc;
     dest->data  = data;
-    dest->metadata = json_object_get(src->metadata); // This increments its reference count
+    dest->metadata = json_object_get(actual_src->metadata); // This increments its reference count
 }

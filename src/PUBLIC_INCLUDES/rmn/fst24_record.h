@@ -10,7 +10,7 @@
 //! It has to take at most 8 bits, so its maximum value is 255
 #endif
 
-#define FST24_VERSION_COUNT  0
+#define FST24_VERSION_COUNT  1
 
 #define FST24_VERSION_OFFSET_C 1010101000u
 #define FST24_VERSION_OFFSET_F 1010101000_int32
@@ -51,9 +51,11 @@ typedef struct {
         int64_t handle;   //!< Handle to specific record (if stored in a file)
         int64_t alloc;    //!< Size of allocated memody for data
         int32_t flags;    //!< Record status flags
-        uint16_t num_search_keys;    //!< Number of directory search keys (32 bits)
+        uint8_t fst_version;         //!< Version of FST used to write the record (when reading old files)
+        uint8_t num_search_keys;     //!< Number of directory search keys (32-bit units)
         uint16_t extended_meta_size; //!< Size of extended metadata (32-bit units)
         size_t stored_data_size;     //!< Size of the data on disk (32-bit units)
+        const void* stringified_meta; //!< Direct pointer to the extended metadata in the directory
     } do_not_touch;
 
     // 64-bit elements first
@@ -109,9 +111,11 @@ static const fst_record default_fst_record = (fst_record){
                          .handle   = -1,
                          .alloc    = 0,
                          .flags    = 0x0,
+                         .fst_version = 0,
                          .num_search_keys = 0,
                          .extended_meta_size = 0,
                          .stored_data_size = 0,
+                         .stringified_meta = NULL,
                         },
 
         .file     = NULL,
@@ -236,6 +240,7 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         integer(C_INT16_T) :: num_search_keys = 0
         integer(C_INT16_T) :: extended_meta_size = 0
         integer(C_SIZE_T)  :: stored_data_size = 0
+        integer(C_INTPTR_T):: stringified_meta = 0
 
         type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR

@@ -339,6 +339,8 @@ function test_fst24_interface(is_rsf) result(success)
         return
     end if
 
+    call record_by_index % free()
+
     ! ////////////////////////////////////////////////////////////
     ! // Read next
     call query % rewind()
@@ -427,6 +429,10 @@ function test_fst24_interface(is_rsf) result(success)
                 return
             end if
         end do
+
+        do i = 1, num_found
+            call all_records(i) % free()
+        end do
     end block
 
     ! /////////////////////////////////////////
@@ -461,6 +467,9 @@ function test_fst24_interface(is_rsf) result(success)
             call app_log(APP_ERROR, 'Records should be the same!')
             return
         end if
+
+        call a % free()
+        call b % free()
     end block
 
     call query % free()
@@ -472,6 +481,7 @@ function test_fst24_interface(is_rsf) result(success)
         type(fst_record), dimension(10) :: results
         integer(C_INT64_T) :: num_records
         type(fst_record) :: result2
+        integer :: i
 
         file_list(1) = test_file
 
@@ -629,6 +639,10 @@ function test_fst24_interface(is_rsf) result(success)
             call app_log(APP_ERROR, app_msg)
             return
         end if
+
+        do i = 1, num_found
+            call results(i) % free()
+        end do
 
         call app_log(APP_INFO, 'Read all, one by one')
         call query % free()
