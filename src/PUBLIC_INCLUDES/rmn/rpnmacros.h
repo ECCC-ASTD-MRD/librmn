@@ -51,7 +51,11 @@ according to the compiler
 
 
 #ifdef __aarch64__
-#       error "Unknown arch/compiler combo!  Please edit rpnmacros.h to add the appropriate definitions!"
+#   ifdef __PGI
+        typedef const int64_t F2Cl;
+#   else
+        typedef const int32_t F2Cl;
+#   endif
 #endif
 
 
