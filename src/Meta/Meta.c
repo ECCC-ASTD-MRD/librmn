@@ -56,9 +56,9 @@ static char* MetaTimeUnits[] = { "millisecond","second","minute","hour","day","m
  *
  *    @return              Length of token part or 0 if not a split token
 */
-inline static int32_t Meta_TokenEnd(char* Token,int32_t *IsSplit) {
+inline static int32_t Meta_TokenEnd(const char* const Token,int32_t *IsSplit) {
 
-   char *e = Token;
+   const char *e = Token;
 
    while(*e) {
       // Check if it is not a number, a lowercase, an uppercase or an underscore
@@ -363,7 +363,7 @@ json_object *Meta_Load(char *Path) {
  *
  *    @return               Pointer on last token char, or NULL if non valid token
 */
-inline static char* Meta_ValidateToken(json_object *TokenList,char *Token) {
+inline static const char* Meta_ValidateToken(json_object *TokenList, const char * const Token) {
 
    int32_t          n=0,m=0,t=0;
    json_object *obj=NULL;
@@ -1047,7 +1047,7 @@ json_object *Meta_AddCellMethod(json_object *Obj,char *Method) {
 
    TMetaProfile *prof=NULL;
    json_object *objval=NULL;
-   char *c;
+   const char *c;
 
    if (!Obj) {
       return(NULL);
@@ -1090,7 +1090,8 @@ json_object *Meta_SetCellMethods(json_object *Obj,char *Methods[]) {
    TMetaProfile *prof=NULL;
    json_object *objval=NULL;
    int   nb=0;
-   char *c,*method=NULL;
+   const char *c;
+   const char *method=NULL;
 
    if (!Obj) {
       return(NULL);
@@ -1334,7 +1335,7 @@ json_object *Meta_ClearMissingValues(json_object *Obj) {
  *
  *    @return                   json_object pointer (NULL if error)
 */
-json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,char *Type,char *Compression,int32_t Pack,int32_t Bit,double Min,double Max) {
+json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,const char * const Type,const char * const Compression,int32_t Pack,int32_t Bit,double Min,double Max) {
 
    TMetaProfile *prof=NULL;
    json_object *obj=NULL,*objval=NULL;

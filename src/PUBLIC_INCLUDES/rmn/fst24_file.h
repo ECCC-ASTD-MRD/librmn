@@ -19,7 +19,10 @@ typedef struct {
     int32_t ip3_all; //!< When trying to match a certain IP3, match all encodings that result in the same encoded value
     int32_t stamp_norun; //!< Datestamp contains a run in the first 3 bits that must not be checked (used in older files)
     int32_t skip_filter; //!< A filter can be specified with the "excdes" mechanism. Enabling this option disables the filter this query.
+    int32_t skip_grid_descriptors; //!< When searching, ignore grid descriptor records
 } fst_query_options;
+
+extern const fst_query_options default_query_options;
 
 //! @defgroup public_fst Public FST C API
 //! @{

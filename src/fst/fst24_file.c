@@ -21,6 +21,7 @@ const fst_query_options default_query_options = {
     .ip3_all = 0,
     .stamp_norun = 0,
     .skip_filter = 0,
+    .skip_grid_descriptors = 0,
 };
 
 extern const char * const FST_TYPE_NAMES[];
@@ -171,8 +172,8 @@ fst_file* fst24_open(
 //! file is also an error. The user is responsible to make sure that other calls on a certain
 //! file are finished before closing that file.
 //!
-//! \todo What happens if closing a linked file?
 //! \return TRUE (1) if no error, FALSE (0) or a negative number otherwise
+//! \todo What happens if closing a linked file?
 int32_t fst24_close(fst_file* const file) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
@@ -1487,6 +1488,13 @@ int32_t is_actual_match(fst_record* const record, const fst_query* const query) 
         !C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
         record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
         return FALSE;
+    }
+
+    if (query->options.skip_grid_descriptors > 0) {
+        const char** descriptor_names = fst24_record_get_descriptors();
+        for (int i = 0; descriptor_names[i] != NULL; i++) {
+            if (is_same_record_string(record->nomvar, descriptor_names[i], FST_NOMVAR_LEN - 1)) return FALSE;
+        }
     }
 
     // If search on all IP encodings is requested

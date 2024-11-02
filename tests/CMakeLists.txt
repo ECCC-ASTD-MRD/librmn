@@ -258,6 +258,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fstouv COMMAND $<TARGET_FILE:fstouv>)
         add_dependencies(check fstouv)
 
+        add_executable(fst24_skip_descriptors fst/fst24_skip_descriptors.c)
+        target_link_libraries(fst24_skip_descriptors rmn::rmn)
+        add_test(NAME fst24_skip_descriptors COMMAND $<TARGET_FILE:fst24_skip_descriptors>)
+        add_dependencies(check fst24_skip_descriptors)
+
         # FST samples
         add_executable(fst24_open_close_f fst/samples/fst24_open_close.F90)
         target_link_libraries(fst24_open_close_f rmn::rmn)
