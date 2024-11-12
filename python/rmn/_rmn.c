@@ -103,6 +103,12 @@ static PyObject *py_fst24_file_get_record_by_index(struct py_fst24_file *self, P
 
 static PyMemberDef py_fst24_file_member_def[] = {
     {
+        .name = "_c_ref",
+        .type = T_LONG,
+        .offset = offsetof(struct py_fst24_file, ref),
+        .doc = "C address of fst24 file",
+    },
+    {
         .name = "filename",
         .type = T_OBJECT_EX,
         .offset = offsetof(struct py_fst24_file, filename),
