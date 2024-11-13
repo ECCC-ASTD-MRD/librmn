@@ -1363,7 +1363,7 @@ json_object *Meta_DefData(json_object *Obj,int32_t NI,int32_t NJ,int32_t NK,cons
       json_object_object_add(obj,"compression",json_object_new_string(Compression));
       json_object_object_add(obj,"pack",json_object_new_int(Pack));
       json_object_object_add(obj,"bits",json_object_new_int(Bit));
-      json_object_object_add(obj,"size",objval=json_object_new_array());
+      json_object_object_add(Obj,"size",objval=json_object_new_array());
       json_object_array_add(objval,json_object_new_int(NI));
       json_object_array_add(objval,json_object_new_int(NJ));
       json_object_array_add(objval,json_object_new_int(NK));

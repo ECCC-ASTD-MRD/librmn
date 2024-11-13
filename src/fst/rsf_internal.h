@@ -1,3 +1,6 @@
+#ifndef FST_RSF_INTERNAL_H__
+#define FST_RSF_INTERNAL_H__
+
 #include "rmn/rsf.h"
 
 #include <unistd.h>
@@ -5,7 +8,7 @@
 #include <App.h>
 #include "qstdir.h"
 
-static const uint8_t RSF_VERSION_COUNT = 0; //!< Version number that increments at every new version
+static const uint8_t RSF_VERSION_COUNT = 1; //!< Version number that increments at every new version
 #define RSF_VERSION_STRING "1.0.0"
 
 static const uint32_t RSF_VERSION = 0x12312300 | RSF_VERSION_COUNT;
@@ -157,13 +160,13 @@ int32_t RSF_Switch_sparse_segment(RSF_handle h, int64_t min_size) ;
 #define NEW_SEGMENT_OVERHEAD (ARBITRARY_OVERHEAD + 2 * sizeof(start_of_segment) + sizeof(end_of_segment))
 
 // Markers
-const int      RSF_EXCLUSIVE_WRITE  = 0xFFFF;     //!< Mark a file as locked for writing
-const uint32_t RSF_SOS_SIGNATURE    = 0xDEADBEEF; //!< Marker to indicate a start of segment
-const uint32_t RSF_EOS_HI_SIGNATURE = 0xCAFEFADE; //!< Marker to indicate the high part of an end of segment 
-const uint32_t RSF_EOS_LO_SIGNATURE = 0xBEBEFADA; //!< Marker to indicate the low part of an end of segment
+static const int      RSF_EXCLUSIVE_WRITE  = 0xFFFF;     //!< Mark a file as locked for writing
+static const uint32_t RSF_SOS_SIGNATURE    = 0xDEADBEEF; //!< Marker to indicate a start of segment
+static const uint32_t RSF_EOS_HI_SIGNATURE = 0xCAFEFADE; //!< Marker to indicate the high part of an end of segment 
+static const uint32_t RSF_EOS_LO_SIGNATURE = 0xBEBEFADA; //!< Marker to indicate the low part of an end of segment
 
-const rsf_rec_type DEFAULT_RECORD_TYPE = RT_DATA;  //!< Type assigned to a record if none is specified
-const rsf_rec_class DEFAULT_RECORD_CLASS = RC_DATA; //!< Class assigned to a record if none is specified
+static const rsf_rec_type DEFAULT_RECORD_TYPE = RT_DATA;  //!< Type assigned to a record if none is specified
+static const rsf_rec_class DEFAULT_RECORD_CLASS = RC_DATA; //!< Class assigned to a record if none is specified
 
 //! Convert a pair of unsigned 32 bit elements into an unsigned 64 bit element
 static inline uint64_t RSF_32_to_64(const uint32_t u32[2]) {
@@ -566,3 +569,5 @@ void print_start_of_segment(start_of_segment* sos);
 void print_start_of_record(start_of_record* sor);
 
 static rsf_rec_type RSF_Read_record(RSF_File* fp, const uint64_t address, void* dest, const size_t num_bytes);
+
+#endif

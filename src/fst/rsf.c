@@ -1413,6 +1413,7 @@ int64_t RSF_Put_bytes(
 
     if (record != NULL) meta = record->meta;
     meta[0] = make_meta0(record->rec_class, record->rec_type);
+    meta[1] = 0; // Datamap size
 
     if (record != NULL && ((start_of_record *) record->sor)->dul == 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Uninitialized data element size\n");
@@ -3133,8 +3134,9 @@ void RSF_Dump(char *name, int verbose){
         extract_meta0(data[0], &version, &rec_class, &rec_type);
         fprintf(stderr,"  %s %2d %2x %6d*%d, %2d [", buffer, version, rec_class, ndata, sor.dul, sor.rlm);
         num_meta = sor.rlm <= max_num_meta ? sor.rlm : max_num_meta - 1;
+        const int first = version == 0 ? RSF_META_RESERVED_V0 : RSF_META_RESERVED;
         for (int i=0; i < num_meta; i++) {
-          fprintf(stderr," %8.8x", data[i + 1]);
+          fprintf(stderr," %8.8x", data[i + first]);
         }
         if (num_meta < sor.rlm) {
           fprintf(stderr,"   ...   ");
@@ -3272,7 +3274,8 @@ void RSF_Dump(char *name, int verbose){
           fprintf(stderr," %2d %2.2x %2.2x", version, rec_class, rec_type);
           if (rec_class != RC_FILE) {
             const int num_meta = ml <= max_num_meta ? ml : max_num_meta - 1;
-            for(int j=1; j<num_meta; j++) {
+            const int first = version == 0 ? RSF_META_RESERVED_V0 : RSF_META_RESERVED;
+            for(int j=first; j<num_meta; j++) {
               fprintf(stderr," %8.8x", meta[j]);
             }
             if (num_meta < ml) fprintf(stderr, "   ...   ");

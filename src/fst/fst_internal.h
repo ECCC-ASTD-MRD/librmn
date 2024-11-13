@@ -12,17 +12,17 @@ typedef struct fst24_file_ fst_file;  // Forward declare the fst_file type
 
 //! Number of 32-bit elements in the search metadata that are reserved for
 //! the fst24 implementation. See \ref search_metadata
-#define FST_META_RESERVED 2
+//! In VERSION 0: 2 reserved spots
+//! In VERSION 1: 1 reserved spot  (the other one was transferred to the RSF layer)
+#define FST_META_RESERVED 1
 
 //! Object that encodes the criteria for a search into an FST file
 //! It is meant to be compatible with both RSF and XDF files, and to remain backward-compatible
 //! when the criteria change (they can only be added)
 //! Reserved 0: Contains version, number of search keys, size of extended metadata (see \ref fst24_reserved_0)
-//! Reserved 1: Contains size of datamap
 //! The metadata structure for an FST record is as follows:
 //! - Search (directory) metadata, including fst24 reserved keys and RSF reserved keys
 //! - Extended (JSON) metadata
-//! - Datamap for reading/writing by chunks
 typedef struct {
     union {
         struct {
@@ -42,7 +42,28 @@ typedef struct {
     };
     // From this point, any additional search criteria (keys) will only be available in RSF files
     // Every time criteria are added to the search_metadata struct, FST24_ME
+
+    uint8_t extended_meta[];
 } search_metadata;
+
+//! Search metadata struct as it was at RSF VERSION 0 and FST VERSION 0 (they were both incremented to 1 at the same time)
+//! We keep this one so that we can still interpret records written with that old version combination
+typedef struct {
+    #define tmp_RSF_RESERVED_0 1
+    #define tmp_FST_RESERVED_0 2
+    union {
+        struct {
+            uint32_t rsf_reserved[tmp_RSF_RESERVED_0];
+            uint32_t fst24_reserved[tmp_FST_RESERVED_0];
+        };
+        struct {
+            uint32_t fst98_reserved[tmp_RSF_RESERVED_0 + tmp_FST_RESERVED_0 - 2];
+            stdf_dir_keys fst98_meta;
+        };
+    };
+    #undef tmp_RSF_RESERVED_0
+    #undef tmp_FST_RESERVED_0
+} search_metadata_version_0_0;
 
 //! The first reserved 32-bit word contains the version, number of search keys (32-bit elements)
 //! and size of extended metadata in 32-bit elements
