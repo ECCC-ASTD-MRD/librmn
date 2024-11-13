@@ -153,7 +153,7 @@ uint32_t get_valid_date32(
     if (delta_seconds > 0) {
         int32_t f_datev = origin_date;
         double nhours = ((double) delta_seconds) / 3600.0;
-        f77name(incdatr)(&f_datev, &f_datev, &nhours);
+        incdatr_c(&f_datev, &f_datev, &nhours);
         return f_datev;
     }
 
@@ -328,7 +328,7 @@ void crack_std_parms(
     int32_t ftn_date = (int32_t) datexx;
     if ((stdf_entry->deet * stdf_entry->npas) != 0) {
         // compute origin date
-        f77name(incdatr)(&ftn_date, &ftn_date, &r8_diff);
+        incdatr_c(&ftn_date, &ftn_date, &r8_diff);
         cracked_parms->date_stamp = (int) ftn_date;
     }
 
@@ -520,7 +520,7 @@ void print_std_parms(
     }
 
     if (strstr(option, "DATEO")) {
-        f77name(newdate)(&cracked.date_stamp, &dat2, &dat3, &minus3);
+        newdate_c(&cracked.date_stamp, &dat2, &dat3, &minus3);
         snprintf(v_dateo, sizeof(v_dateo), "%08d %06d", dat2, dat3/100);
     } else {
         v_dateo[0] = '\0';
@@ -533,7 +533,7 @@ void print_std_parms(
     }
 
     if (strstr(option, "DATEV")) {
-        f77name(newdate)(&cracked.date_valid, &dat2, &dat3, &minus3);
+        newdate_c(&cracked.date_valid, &dat2, &dat3, &minus3);
         if (cracked.date_valid < -1) {
             snprintf(v_datev, sizeof(v_datev), "%08d %06d %10d", dat2, dat3/100, cracked.date_valid);
         } else {
@@ -4323,7 +4323,7 @@ int c_fstvoi_xdf(
                     long long i_nhours = (deetnpas - ((deetnpas+1800)/3600)*3600);
                     double nhours = i_nhours;
                     nhours = (nhours / 3600.0);
-                    f77name(incdatr)(&f_datev, &f_datev, &nhours);
+                    incdatr_c(&f_datev, &f_datev, &nhours);
                     datexx = (unsigned int) f_datev;
                     // re-octalise the date_stamp
                     stdf_entry->date_stamp = 8 * (datexx/10) + (datexx % 10);

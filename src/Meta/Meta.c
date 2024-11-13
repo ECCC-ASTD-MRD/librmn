@@ -1840,7 +1840,7 @@ void Meta_StampDecode(int32_t Stamp,int32_t *YYYY,int32_t *MM,int32_t *DD,int32_
 
    int32_t op=-3,date,time;
 
-   f77name(newdate)(&Stamp,&date,&time,&op);
+   newdate_c(&Stamp,&date,&time,&op);
 
    *YYYY=date/10000;
    *DD=date-((*YYYY)*10000);
@@ -1860,7 +1860,7 @@ void Meta_StampEncode(int32_t *Stamp,int32_t YYYY,int32_t MM,int32_t DD,int32_t 
 
    date=YYYY*10000+MM*100+DD;
    time=H*1000000+M*10000+S*100;
-   f77name(newdate)(Stamp,&date,&time,&op);
+   newdate_c(Stamp,&date,&time,&op);
 }
 
 
@@ -1909,7 +1909,7 @@ int32_t Meta_Seconds2Stamp(time_t Sec) {
    date=(tsec->tm_year+1900)*10000+(tsec->tm_mon+1)*100+tsec->tm_mday;
    time=tsec->tm_hour*1000000+tsec->tm_min*10000+tsec->tm_sec*100;
 
-   f77name(newdate)(&stamp,&date,&time,&op);
+   newdate_c(&stamp,&date,&time,&op);
    return(stamp);
 }
 

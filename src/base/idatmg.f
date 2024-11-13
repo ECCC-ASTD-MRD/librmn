@@ -18,6 +18,8 @@
 * * Boston, MA 02111-1307, USA.
 * */
       integer function idatmg(idate)
+      use rmn_date
+      implicit none
       integer idate(14), status
 C	call idatmg2(idate)
       status = idatmg2(idate)

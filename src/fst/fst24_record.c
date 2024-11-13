@@ -189,7 +189,7 @@ char* add_date(
     int32_t dat2, dat3;
     int32_t minus3 = -3;
     int32_t small_date = datestamp;
-    f77name(newdate)(&small_date, &dat2, &dat3, &minus3);
+    newdate_c(&small_date, &dat2, &dat3, &minus3);
 
     result = add_int(result, dat2, 8, 1);
     result = add_int(result, dat3 / 100, 6, 1);

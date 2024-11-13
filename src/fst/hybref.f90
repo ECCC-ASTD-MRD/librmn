@@ -1,6 +1,7 @@
 !> return pressure given a unit number and a list of fstkeys of the RPN standard file
 integer function hyb2pres(iun, fstkeys, NK, NI, NJ, PX, logPX_L)
     use app
+    use rmn_date
 
     implicit none
 
@@ -30,8 +31,6 @@ integer function hyb2pres(iun, fstkeys, NK, NI, NJ, PX, logPX_L)
     external  fstinf, fstprm, fstluk,                    &
                 read_decode_hyb, hyb_to_pres, eta_to_pres,  &
                 sigma_to_pres, etasef_to_pres
-
-    external :: incdatr
 
     include 'rmn/convert_ip123.inc'
 

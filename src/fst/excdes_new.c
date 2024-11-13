@@ -1146,8 +1146,8 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
             else
               fin = Requests[set_nb].dates.data[1];
             Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie dates debut=%d fin=%d set_nb=%d\n", __func__, debut, fin, set_nb);
-            f77name(difdatr)(&date, &debut, &diff_deb);
-            f77name(difdatr)(&date, &fin, &diff_fin);
+            difdatr_c(&date, &debut, &diff_deb);
+            difdatr_c(&date, &fin, &diff_fin);
             Lib_Log(APP_LIBFST, APP_EXTRA, "%s: diff_deb=%f diff_fin=%f\n", __func__, diff_deb, diff_fin);
             if ((diff_deb >= 0.) && (diff_fin <= 0.)) {
               amatch = 1;
@@ -1171,8 +1171,8 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
             delta8 = Requests[set_nb].dates.delta;
             delta8 /= 3600.0;  /* put delta in hours */
             Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie dates debut=%d fin=%d delta=%f\n", __func__, debut, fin, delta8);
-            f77name(difdatr)(&date, &debut, &diff_deb);
-            f77name(difdatr)(&date, &fin, &diff_fin);
+            difdatr_c(&date, &debut, &diff_deb);
+            difdatr_c(&date, &fin, &diff_fin);
             remainder = fmod(diff_deb, delta8);
             Lib_Log(APP_LIBFST, APP_EXTRA, "%s: diff_deb=%f diff_fin=%f modulo=%f\n", __func__, diff_deb, diff_fin, remainder);
             if ((diff_deb >= 0.) && (diff_fin <= 0.) && (remainder <= (5.0/3600.))) {
