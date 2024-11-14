@@ -22,13 +22,13 @@
 !> Helper functions that were previously defined inside individual functions (sometimes
 !> defined several times)
 module rmn_md_helpers
-   implicit none
+    implicit none
 
-   integer, parameter :: td1900 = -504904320 !< truedate of jan 1, 1900
-   integer, parameter :: td2235 = 1615714548 !< truedate of dec 31, 2235, 23h59
+    integer, parameter :: td1900 = -504904320 !< truedate of jan 1, 1900
+    integer, parameter :: td2235 = 1615714548 !< truedate of dec 31, 2235, 23h59
 
-   !> Number of days for each month of the year
-   integer , dimension(12), parameter :: mdays = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    !> Number of days for each month of the year
+    integer , dimension(12), parameter :: mdays = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
 contains
     !> Calculates julian calendar day
@@ -84,6 +84,10 @@ contains
     end function is_validtme
 end module rmn_md_helpers
 
+module rmn_date
+    implicit none
+    include 'rmn/rmn_date.inc'
+end module rmn_date
 
 !============================================================================
 !                       THREAD SAFE ROUTINES
@@ -240,6 +244,34 @@ end subroutine Get_LeapYear_Status
 !============================================================================
 !     END OF THREAD SAFE ROUTINES
 !============================================================================
+
+!==========================================
+!     C-callable functions/subroutines
+subroutine DIFDATr_c(idate1, idate2, nhours) bind(C, name = 'difdatr_c')
+    use rmn_common
+    IMPLICIT NONE
+    integer :: idate1, idate2
+    real(kind = real64) :: nhours
+    call DIFDATr(idate1, idate2, nhours)
+end subroutine DIFDATr_c
+
+subroutine INCDATr_c(idate1, idate2, nhours) bind(C, name = 'incdatr_c')
+    use rmn_common
+    IMPLICIT NONE
+    integer :: idate1, idate2
+    real(kind = real64) :: nhours
+    call INCDATr(idate1, idate2, nhours)
+end subroutine INCDATr_c
+
+INTEGER FUNCTION newdate_c(DAT1, DAT2, DAT3, MODE) bind(C, name = 'newdate_c')
+    use rmn_date
+    IMPLICIT NONE
+    integer :: DAT1, DAT2(*), DAT3, MODE
+    integer, external :: naetwed
+    newdate_c = newdate(DAT1, DAT2, DAT3, MODE)
+end function newdate_c
+
+
 !   the original names of the following routines have been altered because of
 !   the above mentioned thread safe routines
 !   internal calls use the mangled internal names

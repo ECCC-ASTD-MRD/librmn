@@ -1,10 +1,8 @@
 program test_module_date
     use app
     use rmn_common
+    use rmn_date
     implicit none
-
-    integer, external :: newdate
-    external :: DIFDATr, DIFDATi, INCDATr, INCDATi
 
     integer, parameter :: day1(1) = 20231211
     integer, parameter :: day2(1) = 20231225

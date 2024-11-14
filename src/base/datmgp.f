@@ -18,6 +18,8 @@
 * * Boston, MA 02111-1307, USA.
 * */
       subroutine datmgp(idate)
+      use rmn_date
+      implicit none
       integer idate(14)
       call datmgp2(idate)
       idate(4)=mod(idate(4),100)

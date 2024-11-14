@@ -23,6 +23,7 @@
 real function jjulien(DEET, NPAS, IDATE)
     ! use rmn_common
     use iso_fortran_env, only : real64
+    use rmn_date
     implicit none
 
     !> Taille du pas-de-temps en seconde
@@ -45,8 +46,7 @@ real function jjulien(DEET, NPAS, IDATE)
     real(kind = real64) :: heures
     integer :: dummy
 
-    external :: datmgp, incdatr, jdatec
-    integer, external :: newdate
+    external :: datmgp, jdatec
 
     ! Calculer le nombre d'heures depuis le debut de l'integration.
     If ( DEET <= 0 .or. NPAS <= 0 ) Then

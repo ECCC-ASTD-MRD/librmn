@@ -19,6 +19,7 @@
 
 subroutine incdat(id1, id2, nh)
     use iso_fortran_env
+    use rmn_date
     implicit none
 
     integer, intent(out) :: id1
@@ -34,6 +35,7 @@ end
 
 subroutine difdat(id1, id2, nh)
     use iso_fortran_env
+    use rmn_date
     implicit none
 
     integer, intent(in) :: id1

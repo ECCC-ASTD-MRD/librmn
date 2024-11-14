@@ -2046,7 +2046,7 @@ int c_xdfopn(
                             f_datev = (int32_t) datexx;
                             i_nhours = (deet*npas - ((deet*npas+1800)/3600)*3600);
                             nhours = (double) (i_nhours / 3600.0);
-                            f77name(incdatr)(&f_datev, &f_datev, &nhours);
+                            incdatr_c(&f_datev, &f_datev, &nhours);
                             datexx = (int) f_datev;
                             // re-octalise the date_stamp
                             stdf_entry->date_stamp = 8 * (datexx/10) + (datexx % 10);
@@ -3379,7 +3379,7 @@ static uint32_t next_match(
                     f_datev = (int32_t) datexx;
                     i_nhours = (deet*npas - ((deet*npas+1800)/3600)*3600);
                     nhours = (double) (i_nhours / 3600.0);
-                    f77name(incdatr)(&f_datev, &f_datev, &nhours);
+                    incdatr_c(&f_datev, &f_datev, &nhours);
                     // Re-octalise the date_stamp
                     datexx = (int) f_datev;
                     stde->date_stamp = 8 * (datexx/10) + (datexx % 10);

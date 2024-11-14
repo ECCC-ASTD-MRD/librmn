@@ -2,7 +2,7 @@
  *                        E X C D E S . C                                    *
  *                                                                           *
  *Auteur                                                                     *
- *   Mario Lépine  -  Mai 2004                                               *
+ *   Mario Lï¿½pine  -  Mai 2004                                               *
  *                                                                           *
  *Objet                                                                      *
  *   Definir pour le logiciel des fichiers standards des criteres            * 
@@ -737,8 +737,8 @@ int c_fst_match_req(int handle)
             else
               fin = Requetes[set_nb].dates.data.tab_elem[1];
             dbprint(stddebug,"Debug c_fst_match_req verifie dates debut=%d fin=%d set_nb=%d\n",debut,fin,set_nb);
-            f77name(difdatr)(&date,&debut,&diff_deb);
-            f77name(difdatr)(&date,&fin,&diff_fin);
+            difdatr_c(&date,&debut,&diff_deb);
+            difdatr_c(&date,&fin,&diff_fin);
             dbprint(stddebug,"Debug diff_deb=%f diff_fin=%f\n",diff_deb,diff_fin);
             if ((diff_deb >= 0.) && (diff_fin <= 0.))
               if (Requetes[set_nb].exdes == desire) {
@@ -768,8 +768,8 @@ int c_fst_match_req(int handle)
               fin = Requetes[set_nb].dates.data.tab_elem[1];
             delta8 = Requetes[set_nb].dates.delta;
             dbprint(stddebug,"Debug c_fst_match_req verifie dates debut=%d fin=%d delta=%f\n",debut,fin,delta8);
-            f77name(difdatr)(&date,&debut,&diff_deb);
-            f77name(difdatr)(&date,&fin,&diff_fin);
+            difdatr_c(&date,&debut,&diff_deb);
+            difdatr_c(&date,&fin,&diff_fin);
             remainder = fmod(diff_deb,delta8);
             dbprint(stddebug,"Debug diff_deb=%f diff_fin=%f modulo=%f\n",diff_deb,diff_fin,remainder);
             if ((diff_deb >= 0.) && (diff_fin <= 0.) && (remainder <= (5.0/3600.)))
@@ -1407,7 +1407,7 @@ int directive_datev(int argc , char **argv,char cmd_strt,  int *func(), char *Pr
       else { 
         yyyymmdd = atoi(argv[i+offset]);
         hhmmss =   atoi(argv[i+1+offset]);
-        f77name(newdate)(&stamp,&yyyymmdd,&hhmmss,&mode);
+        newdate_c(&stamp,&yyyymmdd,&hhmmss,&mode);
         list_entier[j] = stamp;
         printf("list_entier[%d]=%d\n",j,list_entier[j]);
         j++;
