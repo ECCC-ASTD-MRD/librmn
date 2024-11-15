@@ -1190,7 +1190,10 @@ int32_t fst24_find_all(
     //!> [in,out] Query used for the search. Will be rewinded before doing the search, but when the function returns,
     //!> it will be pointing to the end of its search.
     fst_query* query,
-    fst_record* results,          //!< [in,out] List of records found. The list must be already allocated
+    //!> [out] (Optional) List of records found. The list must be already allocated, but the records are considered uninitialized.
+    //!> This means they will be overwritten and if they contained any memory allocation, it will be lost.
+    //!> If NULL, it will just be ignored.
+    fst_record* results,
     const int32_t max_num_results //!< [in] Size of the given list of records. We will stop looking if we find that many
 );
 

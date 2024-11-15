@@ -1619,21 +1619,22 @@ int32_t fst24_find_all(
     //!> [in,out] Query used for the search. Will be rewinded before doing the search, but when the function returns,
     //!> it will be pointing to the end of its search.
     fst_query* query,
-    fst_record* results,          //!< [in,out] List of records found. The list must be already allocated
+    //!> [out] (Optional) List of records found. The list must be already allocated, but the records are considered uninitialized.
+    //!> This means they will be overwritten and if they contained any memory allocation, it will be lost.
+    //!> If NULL, it will just be ignored.
+    fst_record* results,
     const int32_t max_num_results //!< [in] Size of the given list of records. We will stop looking if we find that many
 ) {
-    int32_t max;
-
     if (fst24_rewind_search(query) != TRUE) return 0;
 
-    max = results ? max_num_results : INT_MAX;
+    const int32_t max = results ? max_num_results : INT_MAX;
 
     for (int i = 0; i < max; i++) {
-        if (results) {
-            if (!fst24_record_is_valid(&results[i])) results[i] = default_fst_record;
+        if (results != NULL) {
+            results[i] = default_fst_record;
             if (!fst24_find_next(query, &(results[i]))) return i;
         } else {
-           if (!fst24_find_next(query, NULL)) return i;
+            if (!fst24_find_next(query, NULL)) return i;
         }
     }
     return max_num_results;
@@ -1650,16 +1651,16 @@ int32_t fst24_find_count(
     //!> returns, it will point to the end of its search.
     fst_query * const query
 ) {
-    fst_record record = default_fst_record;
+    // fst_record record = default_fst_record;
 
     fst24_rewind_search(query);
 
     int32_t count = 0;
-    while (fst24_find_next(query, &record)) {
+    while (fst24_find_next(query, NULL)) {
         count++;
     }
 
-    fst24_record_free(&record);
+    // fst24_record_free(&record);
     return count;
 }
 
