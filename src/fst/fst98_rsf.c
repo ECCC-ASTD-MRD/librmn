@@ -921,6 +921,12 @@ int c_fstvoi_rsf(
     int64_t* const total_num_erasures,        //!< [in,out] Accumulate erasure count (for linked files)
     int64_t* const total_erased_size          //!< [in,out] Accumulate size of erased records (for linked files)
 ) {
+    // Unused parameters, this information is not exposed by RSF files
+    (void)total_num_rewrites;
+    (void)total_num_erasures;
+    (void)total_erased_size;
+
+
     RSF_handle file_handle = FGFDT[index_fnom].rsf_fh;
 
     if (file_handle.p == NULL) {

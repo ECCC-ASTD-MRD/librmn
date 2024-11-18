@@ -95,69 +95,69 @@ typedef struct {
 
     int32_t dummy; //!< Make the total size (up to here) a multiple of 64 bits
 
-    char typvar[ALIGN_TO_4(FST_TYPVAR_LEN + 1)]; //!< Type of field (forecast, analysis, climatology)
-    char grtyp [ALIGN_TO_4(FST_GTYP_LEN + 1)];   //!< Type of geographical projection
-    char nomvar[ALIGN_TO_4(FST_NOMVAR_LEN + 1)]; //!< Variable name
-    char etiket[ALIGN_TO_4(FST_ETIKET_LEN + 1)]; //!< Label
+    char typvar[ALIGN_TO_4(FST_TYPVAR_LEN)]; //!< Type of field (forecast, analysis, climatology)
+    char grtyp [ALIGN_TO_4(FST_GTYP_LEN)];   //!< Type of geographical projection
+    char nomvar[ALIGN_TO_4(FST_NOMVAR_LEN)]; //!< Variable name
+    char etiket[ALIGN_TO_4(FST_ETIKET_LEN)]; //!< Label
 
 } fst_record;
 
 
 //! Default values for all members of an fst_record.
 //! Values for searchable parameters correspond to their wildcard.
-static const fst_record default_fst_record = (fst_record){
-        .do_not_touch = {.version  = (FST24_VERSION_OFFSET_C + FST24_VERSION_COUNT),
-                         .deleted  = 0,
-                         .handle   = -1,
-                         .alloc    = 0,
-                         .flags    = 0x0,
-                         .fst_version = 0,
-                         .num_search_keys = 0,
-                         .extended_meta_size = 0,
-                         .stored_data_size = 0,
-                         .stringified_meta = NULL,
-                        },
-
-        .file     = NULL,
-        .data     = NULL,
-        .metadata = NULL,
-
-        .file_index = -1,
-
-        .dateo     = -1,
-        .datev     = -1,
-
-        .data_type = -1,
-        .data_bits = -1,
-        .pack_bits = -1,
-        .ni = -1,
-        .nj = -1,
-        .nk = -1,
-        .num_meta_bytes = 0,
-
-        .deet = -1,
-        .npas = -1,
-
-        .ip1 = -1,
-        .ip2 = -1,
-        .ip3 = -1,
-
-        .ig1 = -1,
-        .ig2 = -1,
-        .ig3 = -1,
-        .ig4 = -1,
-
-        .dummy = 0,
-
-        .typvar = {' ' , ' ' , '\0', '\0'},
-        .grtyp  = {' ' , '\0', '\0', '\0'},
-        .nomvar = {' ' , ' ' , ' ' , ' ',
-                   '\0', '\0', '\0', '\0'},
-        .etiket = {' ' , ' ' , ' ' , ' ',
-                   ' ' , ' ' , ' ' , ' ',
-                   ' ' , ' ' , ' ' , ' ',
-                   '\0', '\0', '\0', '\0'},
-    };
+#define default_fst_record ((fst_record) {                                                  \
+        .do_not_touch = {.version  = (FST24_VERSION_OFFSET_C + FST24_VERSION_COUNT),        \
+                         .deleted  = 0,                                                     \
+                         .handle   = -1,                                                    \
+                         .alloc    = 0,                                                     \
+                         .flags    = 0x0,                                                   \
+                         .fst_version = 0,                                                  \
+                         .num_search_keys = 0,                                              \
+                         .extended_meta_size = 0,                                           \
+                         .stored_data_size = 0,                                             \
+                         .stringified_meta = NULL,                                          \
+                        },                                                                  \
+                                                                                            \
+        .file     = NULL,                                                                   \
+        .data     = NULL,                                                                   \
+        .metadata = NULL,                                                                   \
+                                                                                            \
+        .file_index = -1,                                                                   \
+                                                                                            \
+        .dateo     = -1,                                                                    \
+        .datev     = -1,                                                                    \
+                                                                                            \
+        .data_type = -1,                                                                    \
+        .data_bits = -1,                                                                    \
+        .pack_bits = -1,                                                                    \
+        .ni = -1,                                                                           \
+        .nj = -1,                                                                           \
+        .nk = -1,                                                                           \
+        .num_meta_bytes = 0,                                                                \
+                                                                                            \
+        .deet = -1,                                                                         \
+        .npas = -1,                                                                         \
+                                                                                            \
+        .ip1 = -1,                                                                          \
+        .ip2 = -1,                                                                          \
+        .ip3 = -1,                                                                          \
+                                                                                            \
+        .ig1 = -1,                                                                          \
+        .ig2 = -1,                                                                          \
+        .ig3 = -1,                                                                          \
+        .ig4 = -1,                                                                          \
+                                                                                            \
+        .dummy = 0,                                                                         \
+                                                                                            \
+        .typvar = {' ' , ' ' , '\0', '\0'},                                                 \
+        .grtyp  = {' ' , '\0', '\0', '\0'},                                                 \
+        .nomvar = {' ' , ' ' , ' ' , ' ',                                                   \
+                   '\0', '\0', '\0', '\0'},                                                 \
+        .etiket = {' ' , ' ' , ' ' , ' ',                                                   \
+                   ' ' , ' ' , ' ' , ' ',                                                   \
+                   ' ' , ' ' , ' ' , ' ',                                                   \
+                   '\0', '\0', '\0', '\0'},                                                 \
+    })
 
 
 //! A set of (boolean) parameters to indicate which information to print or not.
@@ -174,32 +174,32 @@ typedef struct {
 } fst_record_fields;
 
 //! A set of default values for fst_record_fields
-static const fst_record_fields default_fields = (fst_record_fields) {
-    .dateo = 1,
-    .datev = 0,
-    .datestamps = 1,
-
-    .level = 0,
-    .data_type = 1,
-    .nijk = 1,
-
-    .deet = 0,
-    .npas = 0,
-
-    .ip1 = 1,
-    .ip2 = 1,
-    .ip3 = 1,
-    .decoded_ip = 0,
-
-    .grid_info = 0,
-    .ig1234 = 0,
-
-    .typvar = 1,
-    .nomvar = 1,
-    .etiket = 1,
-
-    .metadata = 0
-};
+#define default_fields ((fst_record_fields) {                       \
+    .dateo = 1,                                                     \
+    .datev = 0,                                                     \
+    .datestamps = 1,                                                \
+                                                                    \
+    .level = 0,                                                     \
+    .data_type = 1,                                                 \
+    .nijk = 1,                                                      \
+                                                                    \
+    .deet = 0,                                                      \
+    .npas = 0,                                                      \
+                                                                    \
+    .ip1 = 1,                                                       \
+    .ip2 = 1,                                                       \
+    .ip3 = 1,                                                       \
+    .decoded_ip = 0,                                                \
+                                                                    \
+    .grid_info = 0,                                                 \
+    .ig1234 = 0,                                                    \
+                                                                    \
+    .typvar = 1,                                                    \
+    .nomvar = 1,                                                    \
+    .etiket = 1,                                                    \
+                                                                    \
+    .metadata = 0                                                   \
+})
 
 //! \addtogroup public_fst
 //! \{
@@ -273,14 +273,14 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
 
         integer(C_INT32_T) :: dummy = 0
 
-        character(len=1), dimension(4)  :: typvar = [' ', ' ', c_null_char, c_null_char]
-        character(len=1), dimension(4)  :: grtyp  = [' ', c_null_char, c_null_char, c_null_char]
-        character(len=1), dimension(8)  :: nomvar = [' ', ' ', ' ', ' ',        &
-                                                     c_null_char, c_null_char, c_null_char, c_null_char]
-        character(len=1), dimension(16) :: etiket = [' ', ' ', ' ', ' ',        &
-                                                     ' ', ' ', ' ', ' ',        &
-                                                     ' ', ' ', ' ', ' ',        &
-                                                     c_null_char, c_null_char, c_null_char, c_null_char]
+        character(len=1, kind=C_CHAR), dimension(4)  :: typvar = [' ', ' ', c_null_char, c_null_char]
+        character(len=1, kind=C_CHAR), dimension(4)  :: grtyp  = [' ', c_null_char, c_null_char, c_null_char]
+        character(len=1, kind=C_CHAR), dimension(8)  :: nomvar = [' ', ' ', ' ', ' ',        &
+                                                                  c_null_char, c_null_char, c_null_char, c_null_char]
+        character(len=1, kind=C_CHAR), dimension(16) :: etiket = [' ', ' ', ' ', ' ',        &
+                                                                  ' ', ' ', ' ', ' ',        &
+                                                                  ' ', ' ', ' ', ' ',        &
+                                                                  c_null_char, c_null_char, c_null_char, c_null_char]
     end type fst_record_c
 
     type, bind(C) :: fst_record_fields

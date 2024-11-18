@@ -137,11 +137,11 @@ int c_fstfrm(int iun);
 int c_fst_version();
 void c_fstreset_ip_flags();
 void c_fst_env_var(char *cle, int index, char *content);
-int c_fst_edit_dir_plus(int handle, unsigned int date, int deet, int npas,
+int c_fst_edit_dir_plus(int handle, int date, int deet, int npas,
                         int ni, int nj, int nk, int ip1, int ip2, int ip3,
                         char *in_typvar, char *in_nomvar, char *in_etiket, char *in_grtyp, 
                         int ig1, int ig2, int ig3, int ig4, int datyp);
-int c_fst_edit_dir(int handle, unsigned int date, int deet, int npas,
+int c_fst_edit_dir(int handle, int date, int deet, int npas,
                 int ni, int nj, int nk, int ip1, int ip2, int ip3,
                 char *in_typvar, char *in_nomvar, char *in_etiket, char *in_grtyp, 
                 int ig1, int ig2, int ig3, int ig4, int datyp);
