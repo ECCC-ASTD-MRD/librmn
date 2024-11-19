@@ -129,8 +129,6 @@ void copy_record_string(
         dest[i] = ' ';
     }
     dest[actual_max_length - 1] = '\0';
-    Lib_Log(APP_LIBFST, APP_VERBATIM, "%s: copied \"%s\", max length %d (actual %lu) into \"%s\"\n",
-            __func__, src, max_length, actual_max_length, dest);
 }
 
 //! This function is slow and possibly not perfect
