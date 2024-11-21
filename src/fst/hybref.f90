@@ -52,7 +52,7 @@ integer function hyb2pres(iun, fstkeys, NK, NI, NJ, PX, logPX_L)
         bit, datyp, ip1a, ip2a, ip3a, tva, var, etik_S, grda,         &
         ig1a, ig2a, ig3a, ig4a, swa, lng, dlf, ubc, ex1, ex2, ex3 )
     if (hyb2pres.lt.0) then
-        write(app_msg, *) 'hyb2pres: fstprm failed on key', fstkeys(k)
+        write(app_msg, *) 'hyb2pres: fstprm failed on key', fstkeys(1)
         call lib_log(APP_LIBRMN, APP_ERROR, app_msg)
         return
     else

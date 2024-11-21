@@ -531,7 +531,7 @@ static int Dict_ParseVar(xmlDocPtr Doc,xmlNsPtr NS,xmlNodePtr Node,TDict_Encodin
    }
 
    if ((tmpc=xmlGetProp(Node,(const xmlChar *)"date"))) {
-      sscanf((const char *)tmpc,"%u-%u-%u",&y,&m,&d);
+      sscanf((const char *)tmpc,"%u-%u-%u",(unsigned int *)&y,(unsigned int *)&m,(unsigned int *)&d);
       metvar->Date=Meta_DateTime2Seconds(y,m,d,0,0,0,TRUE);
       xmlFree(tmpc);
    }

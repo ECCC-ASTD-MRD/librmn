@@ -43,7 +43,6 @@ typedef struct {
     // From this point, any additional search criteria (keys) will only be available in RSF files
     // Every time criteria are added to the search_metadata struct, FST24_ME
 
-    uint8_t extended_meta[];
 } search_metadata;
 
 //! Search metadata struct as it was at RSF VERSION 0 and FST VERSION 0 (they were both incremented to 1 at the same time)

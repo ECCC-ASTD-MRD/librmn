@@ -119,15 +119,16 @@ void copy_record_string(
     const char* const src,      //!< The string to copy
     const int32_t max_length    //!< Maximum size of the final string
 ) {
-    int i;
     const size_t src_length = strlen(src);
-    for (i = 0; i < max_length && i < src_length; i++) {
+    const size_t actual_max_length = max_length > 0 ? max_length : 0;
+    unsigned int i;
+    for (i = 0; i < actual_max_length && i < src_length; i++) {
         dest[i] = src[i];
     }
-    for (; i < max_length - 1; i++) {
+    for (; i < actual_max_length - 1; i++) {
         dest[i] = ' ';
     }
-    dest[max_length - 1] = '\0';
+    dest[actual_max_length - 1] = '\0';
 }
 
 //! This function is slow and possibly not perfect
@@ -175,14 +176,14 @@ void memcpy_16_8(int8_t *p8, const int16_t *p16, int nb) {
 
 
 void memcpy_16_32(int32_t *p32, const int16_t *p16, int nbits, int nb) {
-    int16_t mask = ~ (-1 << nbits);
+    int16_t mask = ~ (0xffff << nbits);
     for (int i = 0; i < nb; i++) {
         *p32++ = *p16++ & mask;
     }
 }
 
 void memcpy_32_16(int16_t *p16, const int32_t * p32, int nbits, int nb) {
-    int32_t mask = ~ (-1 << nbits);
+    int32_t mask = ~ (0xffffffff << nbits);
     for (int i = 0; i < nb; i++) {
         *p16++ = *p32++ & mask;
     }
@@ -672,6 +673,8 @@ int c_fstapp_xdf(
     //! [in] Kept for backward compatibility, but unused
     char *option
 ) {
+    (void)option; // unused
+
     int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
@@ -1636,12 +1639,12 @@ int c_fstecr(
 int c_fst_edit_dir_plus_xdf(
     //! [in] Handle of the directory entry to edit
     int handle,
-    unsigned int date,
+    int date,
     int deet,
     int npas,
-    int ni,
-    int nj,
-    int nk,
+    int ni, //!< Ignored, can't change that one
+    int nj, //!< Ignored, can't change that one
+    int nk, //!< Ignored, can't change that one
     int ip1,
     int ip2,
     int ip3,
@@ -1653,8 +1656,14 @@ int c_fst_edit_dir_plus_xdf(
     int ig2,
     int ig3,
     int ig4,
-    int datyp
+    int datyp //!< Ignore, can't change that one
 ) {
+    // Ignored parameters
+    (void) ni;
+    (void) nj;
+    (void) nk;
+    (void) datyp;
+
     int index = INDEX_FROM_HANDLE(handle);
     if ((index < 0) || (index >= MAX_XDF_FILES)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid handle=%d\n", __func__, handle);
@@ -1759,7 +1768,7 @@ int c_fst_edit_dir_plus_xdf(
 int c_fst_edit_dir_plus(
     //! [in] Handle of the directory entry to edit
     int handle,
-    unsigned int date,
+    int date,
     int deet,
     int npas,
     int ni,
@@ -1798,12 +1807,12 @@ int c_fst_edit_dir_plus(
 //! Wrapper of \link c_fst_edit_dir_plus \endlink for backward compatibility
 int c_fst_edit_dir(
     int handle,
-    unsigned int date,
+    int date,
     int deet,
     int npas,
-    int ni,
-    int nj,
-    int nk,
+    int ni, //!< Ignored
+    int nj, //!< Ignored
+    int nk, //!< Ignored
     int ip1,
     int ip2,
     int ip3,
@@ -1815,9 +1824,13 @@ int c_fst_edit_dir(
     int ig2,
     int ig3,
     int ig4,
-    int datyp
+    int datyp //!< Ignored
 ) {
-  return c_fst_edit_dir_plus(handle, date, deet, npas, -1, -1, -1, ip1, ip2, ip3, in_typvar, in_nomvar, in_etiket, " ", ig1, ig2, ig3, ig4, -1);
+    (void)ni;
+    (void)nj;
+    (void)nk;
+    (void)datyp;
+    return c_fst_edit_dir_plus(handle, date, deet, npas, -1, -1, -1, ip1, ip2, ip3, in_typvar, in_nomvar, in_etiket, " ", ig1, ig2, ig3, ig4, -1);
 }
 
 
@@ -2927,12 +2940,10 @@ int c_fstluk_xdf(
 #ifdef use_old_signed_pack_unpack_code
                 // fprintf(stderr, "OLD UNPACK CODE ======================================\n");
                 int32_t *field_out;
-                short *s_field_out;
-                signed char *b_field_out;
+                short *s_field_out = (short *)field;
+                signed char *b_field_out = (signed char *)field;
                 if (xdf_short || xdf_byte) {
                     field_out = alloca(nelm * sizeof(int));
-                    s_field_out = (short *)field;
-                    b_field_out = (signed char *)field;
                 } else {
                     field_out = (int32_t *)field;
                 }
@@ -2942,7 +2953,7 @@ int c_fstluk_xdf(
                         s_field_out[i] = field_out[i];
                     }
                 }
-                if (xdf_byte) {
+                else if (xdf_byte) {
                     for (int i = 0; i < nelm; i++) {
                         b_field_out[i] = field_out[i];
                     }
@@ -3028,7 +3039,7 @@ int c_fstluk_xdf(
     }
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
-        const int strlng = 11;
+        const int strlng = 20;
         char string[strlng];
         snprintf(string, strlng, "Read(%d)", buf->iun);
         stdf_entry.datyp = stdf_entry.datyp | has_missing;
@@ -3490,6 +3501,9 @@ int c_fstopr(
     //! [in] Operation mode (0: set option, 1: print option, 2: get option)
     int getmode
 ) {
+    (void)option;
+    (void)value;
+    (void)getmode;
     // No current float variable to be set for now
     return 0;
 }
@@ -4215,7 +4229,7 @@ int c_fstvoi_xdf(
     if (! fte->xdf_seq) {
         for (int i = 0; i < fte->npages; i++) {
             uint32_t* entry = (fte->dir_page[i])->dir.entry;
-            for (int j = 0; j < (fte->dir_page[i])->dir.nent; j++) {
+            for (unsigned int j = 0; j < (fte->dir_page[i])->dir.nent; j++) {
                 header = (xdf_record_header *) entry;
                 if (header->idtyp < 112) {
                     stdf_entry = (stdf_dir_keys *) entry;
@@ -4800,10 +4814,12 @@ int32_t f77name(fstapp)(
     char *option,
     F2Cl lng
 ) {
-    int ier, iun = *f_iun;
+    (void)lng; // Not used anymore (length of option)
+
+    int iun = *f_iun;
 
     // option not used anymore by c_fstapp
-    ier = c_fstapp(iun, option);
+    const int ier = c_fstapp(iun, option);
     return (int32_t) ier;
 }
 
@@ -6262,44 +6278,45 @@ int FstCanTranslateName(const char *varname) {
     static char filename[256];
     int result;
 
-    #pragma omp critical (fst_can_translate_name)
-    {
-        if (! read_done) {
-            // First call, get do not translate table
-            read_done = 1;
-            char * fst_noip_name = getenv("FST_NOIP_NAME");
-            ARMNLIB = getenv("ARMNLIB");
-            char * basename = ARMNLIB;
-            if (fst_noip_name) {
-                // Environment variable contains the table
-                strncpy( exception_vars , fst_noip_name , sizeof(exception_vars) );
-                basename = NULL;
-                // fst_noip_name contains a file name
-                if (exception_vars[0] == '|') basename = exception_vars + 1;
+    // --- START critical region ---
+    pthread_mutex_lock(&fst98_mutex);
+    if (! read_done) {
+        // First call, get do not translate table
+        read_done = 1;
+        char * fst_noip_name = getenv("FST_NOIP_NAME");
+        ARMNLIB = getenv("ARMNLIB");
+        char * basename = ARMNLIB;
+        if (fst_noip_name) {
+            // Environment variable contains the table
+            strncpy( exception_vars , fst_noip_name , sizeof(exception_vars) );
+            basename = NULL;
+            // fst_noip_name contains a file name
+            if (exception_vars[0] == '|') basename = exception_vars + 1;
+        }
+        if (basename) {
+            // Get table from $ARMNLIB/data/exception_vars file if it exists
+            if (basename == ARMNLIB) {
+                snprintf(filename, sizeof(filename), "%s/data/exception_regex_var", ARMNLIB);
+            } else {
+                snprintf(filename, sizeof(filename), "%s", basename);
             }
-            if (basename) {
-                // Get table from $ARMNLIB/data/exception_vars file if it exists
-                if (basename == ARMNLIB) {
-                    snprintf(filename, sizeof(filename), "%s/data/exception_regex_var", ARMNLIB);
-                } else {
-                    snprintf(filename, sizeof(filename), "%s", basename);
-                }
-                if ((fileref = fopen(filename, "r")) != NULL) {
-                    if (NULL == fgets(exception_vars, sizeof(exception_vars), fileref) ) exception_vars[0] = '\0';
-                    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: OPENING exception file: %s\n", __func__, filename);
-                    fclose(fileref);
-                }
-            }
-            if (exception_vars[0] == '~') {
-                int i;
-                for (i = 0; exception_vars[i] != '\0' && exception_vars[i] != '\n'; i++);
-                exception_vars[i] = '\0';
-                // result = regcomp(&pattern, exception_vars + 1, REG_EXTENDED | REG_NOSUB);
-                regcomp(&pattern, exception_vars + 1, REG_EXTENDED | REG_NOSUB);
-                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: exception pattern: '%s'\n", __func__, exception_vars + 1);
+            if ((fileref = fopen(filename, "r")) != NULL) {
+                if (NULL == fgets(exception_vars, sizeof(exception_vars), fileref) ) exception_vars[0] = '\0';
+                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: OPENING exception file: %s\n", __func__, filename);
+                fclose(fileref);
             }
         }
+        if (exception_vars[0] == '~') {
+            int i;
+            for (i = 0; exception_vars[i] != '\0' && exception_vars[i] != '\n'; i++);
+            exception_vars[i] = '\0';
+            // result = regcomp(&pattern, exception_vars + 1, REG_EXTENDED | REG_NOSUB);
+            regcomp(&pattern, exception_vars + 1, REG_EXTENDED | REG_NOSUB);
+            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: exception pattern: '%s'\n", __func__, exception_vars + 1);
+        }
     }
+    pthread_mutex_unlock(&fst98_mutex);
+    // --- END critical region ---
 
     if (exception_vars[0] == '~') {
         // This is a regex pattern

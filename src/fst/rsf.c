@@ -12,6 +12,10 @@ static RSF_File ** rsf_files = NULL;      //!< Global table of pointers to RSF f
 static size_t max_rsf_files_open = 0;  //!< Size of the list of open RSF files
 
 static void RSF_Finalize(void);
+static int32_t RSF_File_lock(RSF_File *fp, int lock);
+static int32_t RSF_Ensure_new_segment(RSF_File *fp);
+static rsf_rec_type RSF_Read_record(RSF_File* fp, const uint64_t address, void* dest, const size_t num_bytes);
+
 
 //! Initialize the RSF library:
 //!  - Allocate global table of pointers (slot table) to rsf files if not already done

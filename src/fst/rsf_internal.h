@@ -563,11 +563,7 @@ static inline void extract_meta0(
 }
 //! \}
 
-static int32_t RSF_File_lock(RSF_File *fp, int lock);
-static int32_t RSF_Ensure_new_segment(RSF_File *fp);
 void print_start_of_segment(start_of_segment* sos);
 void print_start_of_record(start_of_record* sor);
-
-static rsf_rec_type RSF_Read_record(RSF_File* fp, const uint64_t address, void* dest, const size_t num_bytes);
 
 #endif

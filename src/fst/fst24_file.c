@@ -34,18 +34,16 @@ static const char * fst_file_type_name[] = {
     [FST_RSF]  = "FST_RSF"
 };
 
-static fst_file default_fst_file = (fst_file) {
-    .iun                =  0,
-    .file_index         = -1,
-    .file_index_backend = -1,
-    .rsf_handle.p       = NULL,
-    .type               = FST_NONE,
-    .next               = NULL,
-    .path               = NULL,
-    .tag                = NULL
-};
-
-static int64_t fst24_get_num_records_single(const fst_file* file);
+#define default_fst_file ((fst_file) {      \
+    .iun                =  0,               \
+    .file_index         = -1,               \
+    .file_index_backend = -1,               \
+    .rsf_handle.p       = NULL,             \
+    .type               = FST_NONE,         \
+    .next               = NULL,             \
+    .path               = NULL,             \
+    .tag                = NULL              \
+})
 
 //! Verify that the file pointer is valid and the file is open. This is meant to verify that
 //! the file struct has been initialized by a call to fst24_open; it should *not* be called
@@ -294,24 +292,6 @@ int64_t fst24_get_num_records(
     return total_num_records;
 }
 
-//! Get the number of records in the file
-//! \return Number of records in the file
-static int64_t fst24_get_num_records_single(const fst_file* file) {
-    if (!fst24_is_open(file)) return ERR_NO_FILE;
-
-    if (file->type == FST_RSF) {
-        RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
-        return (int64_t)RSF_Get_num_records(file_handle);
-    }
-    else if (file->type == FST_XDF) {
-        const int status = c_fstnbr_xdf(file->iun);
-        if (status < 0) return 0;
-        return status;
-    }
-
-    return 0;
-}
-
 //! Print a summary of the records found in the given file (including any linked files)
 //!
 //! Thread safety: Safe to call concurrently (but the output could be interleaved).
@@ -337,7 +317,7 @@ int32_t fst24_print_summary(
     size_t total_data_size = 0;
     char prefix[16];
 
-    int num_digits = 0;
+    uint8_t num_digits = 0;
     for (int64_t tmp_num_records = fst24_get_num_records(file); tmp_num_records > 0; tmp_num_records /= 10) num_digits++;
 
     while (fst24_find_next(query, &rec) == TRUE) {
@@ -725,7 +705,7 @@ int32_t fst24_write_rsf(
     // Insert json metadata
     if (metastr) {
         // Copy metadata into RSF record struct, just after directory metadata
-        memcpy((char *)(meta->extended_meta), metastr, metalen);
+        memcpy((char *)(meta + 1), metastr, metalen);
     }
 
     // RSF reserved metadata
@@ -1280,12 +1260,6 @@ int32_t fst24_get_record_by_index(
 
     fst_record_set_to_default(record);
 
-    // const int64_t num_records = fst24_get_num_records_single(file);
-    // if (index >= num_records) {
-    //     Lib_Log(APP_LIBFST, APP_ERROR, "%s: requested file key %d is beyond the number of records (%d)\n",
-    //             __func__, index, num_records);
-    //     return ERR_OUT_RANGE;
-    // }
     record->file = file;
 
     if (file->type == FST_RSF) {
@@ -1335,8 +1309,9 @@ fst_query* fst24_new_query(
        return FALSE;
     }
 
+    const fst_record default_criteria = default_fst_record;
     if (criteria == NULL) {
-       criteria = &default_fst_record;
+       criteria = &default_criteria;
     }
     else {
         if (!fst24_record_is_valid(criteria)) {
@@ -1619,21 +1594,22 @@ int32_t fst24_find_all(
     //!> [in,out] Query used for the search. Will be rewinded before doing the search, but when the function returns,
     //!> it will be pointing to the end of its search.
     fst_query* query,
-    fst_record* results,          //!< [in,out] List of records found. The list must be already allocated
+    //!> [out] (Optional) List of records found. The list must be already allocated, but the records are considered uninitialized.
+    //!> This means they will be overwritten and if they contained any memory allocation, it will be lost.
+    //!> If NULL, it will just be ignored.
+    fst_record* results,
     const int32_t max_num_results //!< [in] Size of the given list of records. We will stop looking if we find that many
 ) {
-    int32_t max;
-
     if (fst24_rewind_search(query) != TRUE) return 0;
 
-    max = results ? max_num_results : INT_MAX;
+    const int32_t max = results ? max_num_results : INT_MAX;
 
     for (int i = 0; i < max; i++) {
-        if (results) {
-            if (!fst24_record_is_valid(&results[i])) results[i] = default_fst_record;
+        if (results != NULL) {
+            results[i] = default_fst_record;
             if (!fst24_find_next(query, &(results[i]))) return i;
         } else {
-           if (!fst24_find_next(query, NULL)) return i;
+            if (!fst24_find_next(query, NULL)) return i;
         }
     }
     return max_num_results;
@@ -1650,16 +1626,16 @@ int32_t fst24_find_count(
     //!> returns, it will point to the end of its search.
     fst_query * const query
 ) {
-    fst_record record = default_fst_record;
+    // fst_record record = default_fst_record;
 
     fst24_rewind_search(query);
 
     int32_t count = 0;
-    while (fst24_find_next(query, &record)) {
+    while (fst24_find_next(query, NULL)) {
         count++;
     }
 
-    fst24_record_free(&record);
+    // fst24_record_free(&record);
     return count;
 }
 
@@ -1704,7 +1680,7 @@ int32_t fst24_unpack_data(
     double dmax = 0.0;
 
     const int bitmot = 32;
-    int ier = 0;
+    int compact_ier = 0;
     if (skip_unpack) {
         if (is_type_turbopack(simple_data_type)) {
             int lngw = ((int *)source)[0];
@@ -1759,14 +1735,14 @@ int32_t fst24_unpack_data(
                             record->nk, record->pack_bits, 2, 0);
                         memcpy(dest, source_u32 + offset, nbytes);
                     } else {
-                        ier = compact_short(dest, (void *) NULL, (void *)(source_u32 + offset), nelm, record->pack_bits, 0, stride, 6);
+                        compact_ier = compact_short(dest, (void *) NULL, (void *)(source_u32 + offset), nelm, record->pack_bits, 0, stride, 6);
                     }
                 }  else if (record->data_bits == 8) {
                     if (is_type_turbopack(record->data_type)) {
                         armn_compress((unsigned char *)(source_u32 + offset), record->ni, record->nj, record->nk, record->pack_bits, 2, 0);
                         memcpy_16_8((int8_t *)dest, (int16_t *)(source_u32 + offset), nelm);
                     } else {
-                        ier = compact_char(dest, (void *)NULL, (void *)source, nelm, 8, 0, stride, 10);
+                        compact_ier = compact_char(dest, (void *)NULL, (void *)source, nelm, 8, 0, stride, 10);
                     }
                 } else if (record->data_bits == 64) {
                     memcpy(dest, source, nelm * sizeof(uint64_t));
@@ -1775,7 +1751,7 @@ int32_t fst24_unpack_data(
                         armn_compress((unsigned char *)(source_u32 + offset), record->ni, record->nj, record->nk, record->pack_bits, 2, 0);
                         memcpy_16_32((int32_t *)dest, (int16_t *)(source_u32 + offset), record->pack_bits, nelm);
                     } else {
-                        ier = compact_integer(dest, (void *)NULL, source_u32 + offset, nelm, record->pack_bits, 0, stride, 2);
+                        compact_ier = compact_integer(dest, (void *)NULL, source_u32 + offset, nelm, record->pack_bits, 0, stride, 2);
                     }
                 }
                 break;
@@ -1785,7 +1761,7 @@ int32_t fst24_unpack_data(
             {
                 // Character
                 const int num_ints = (nelm + 3) / 4;
-                ier = compact_integer(dest, (void *)NULL, source, num_ints, 32, 0, stride, 2);
+                compact_ier = compact_integer(dest, (void *)NULL, source, num_ints, 32, 0, stride, 2);
                 break;
             }
 
@@ -1798,7 +1774,7 @@ int32_t fst24_unpack_data(
                     int32_t*     field_out   = use32 ? dest : alloca(nelm * sizeof(int32_t));
                     int16_t*     field_out_16 = (int16_t*)dest;
                     int8_t*      field_out_8  = (int8_t*)dest;
-                    ier = compact_integer(field_out, (void *) NULL, source, nelm, record->pack_bits, 0, stride, 4);
+                    compact_ier = compact_integer(field_out, (void *) NULL, source, nelm, record->pack_bits, 0, stride, 4);
                     if (record->data_bits == 16) {
                         for (int i = 0; i < nelm; i++) {
                             field_out_16[i] = field_out[i];
@@ -1863,7 +1839,7 @@ int32_t fst24_unpack_data(
 
             case FST_TYPE_STRING:
                 // Character string
-                ier = compact_char(dest, (void *)NULL, source, nelm, 8, 0, stride, 10);
+                compact_ier = compact_char(dest, (void *)NULL, source, nelm, 8, 0, stride, 10);
                 break;
 
             default:
@@ -1874,6 +1850,11 @@ int32_t fst24_unpack_data(
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Read record with key 0x%x\n", __func__, record->do_not_touch.handle);
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) fst24_record_print_short(record, NULL, 1, NULL);
+
+    if (compact_ier < 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Problem while un-compacting the data\n", __func__);
+        return compact_ier;
+    }
 
     if (has_missing) {
         // Replace "missing" data points with the appropriate values given the type of data (int/float)
@@ -1890,7 +1871,6 @@ int32_t fst24_unpack_data(
 //! Read a record from an RSF file
 //! \return 0 for success, negative for error
 int32_t fst24_read_record_rsf(
-    const RSF_handle rsf_file,  //!< Handle to the file where the record is stored
     //!> [in,out] Record for which we want to read data.
     //!> Must have a valid handle!
     //!> Must have already allocated its data buffer
@@ -1898,7 +1878,7 @@ int32_t fst24_read_record_rsf(
     const int32_t skip_unpack,  //!< Whether to skip the unpacking process (e.g. if we just want to copy the record)
     const int32_t metadata_only //!< Whether we want to only read metadata, rather than including everything
 ) {
-    RSF_handle file_handle = FGFDT[record_fst->file->file_index].rsf_fh;
+    RSF_handle file_handle = record_fst->file->rsf_handle;
     if (!RSF_Is_record_in_file(file_handle, record_fst->do_not_touch.handle)) return ERR_BAD_HNDL;
 
     if (record_fst->do_not_touch.deleted == 1) {
@@ -2022,7 +2002,7 @@ void* fst24_read_metadata(
             return record->metadata; // If version > 0, we already have it.
         }
 
-        if (fst24_read_record_rsf(record->file->rsf_handle, record, 0, 1) != 0) {
+        if (fst24_read_record_rsf(record, 0, 1) != 0) {
             Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read meta from RSF file %s\n", __func__, record->file->path);
             return NULL;
         }
@@ -2085,7 +2065,7 @@ int32_t fst24_read_record(
 
     int32_t ret = -1;
     if (record->file->type == FST_RSF) {
-        ret = fst24_read_record_rsf(record->file->rsf_handle, record, image_mode_copy, 0);
+        ret = fst24_read_record_rsf(record, image_mode_copy, 0);
     }
     else if (record->file->type == FST_XDF) {
         ret = fst24_read_record_xdf(record);
@@ -2286,7 +2266,7 @@ int32_t fst24_validate_default_query_options(
 
     if (memcmp(&default_query_options, fortran_options, sizeof(fst_query_options)) != 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Not the same!\n", __func__);
-        for (int i = 0; i < sizeof(fst_query_options) / 4; i += 4) {
+        for (unsigned int i = 0; i < sizeof(fst_query_options) / 4; i += 4) {
             const uint32_t* c = (const uint32_t*)&default_query_options;
             const uint32_t* f = (const uint32_t*)fortran_options;
             fprintf(stderr, "c 0x %.8x %.8x %.8x %.8x\n", c[i], c[i+1], c[i+2], c[i+3]);

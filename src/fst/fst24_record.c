@@ -137,7 +137,7 @@ char* pad(
     const int num_written,      //!< From what offset to start the padding
     const size_t target_length  //!< Final desired length of the string
 ) {
-    if (target_length > num_written) {
+    if (num_written >= 0 && (target_length > (size_t)num_written)) {
         memset(buffer + num_written, ' ', target_length - num_written);
         buffer[target_length] = '\0';
     }
@@ -325,11 +325,15 @@ char* add_ig1234(
     const int32_t ig4,
     const size_t length //!< Width of the text we are adding. Will pad with spaces if necessary
 ) {
+    char* start = buffer;
     buffer = add_str(buffer, grtyp, 1);
     buffer = add_int(buffer, ig1, 5, 0);
     buffer = add_int(buffer, ig2, 5, 0);
     buffer = add_int(buffer, ig3, 5, 0);
     buffer = add_int(buffer, ig4, 5, 0);
+
+    if ((size_t)(buffer - start) < length) buffer += snprintf(buffer, length - (buffer - start), "                       ");
+
     return buffer;
 }
 
@@ -510,7 +514,7 @@ int32_t fst24_record_validate_params(const fst_record* record) {
                                     FST_TYPE_COMPLEX };
     const int32_t base_type = base_fst_type(record->data_type);
     int32_t ok_type = 0;
-    for (int i = 0; i < sizeof(valid_types) / sizeof(int32_t); i++) {
+    for (unsigned int i = 0; i < sizeof(valid_types) / sizeof(int32_t); i++) {
         if (base_type == valid_types[i]) {
             ok_type = 1; break;
         }
@@ -781,7 +785,8 @@ void fill_with_search_meta(fst_record* record, const search_metadata* meta, cons
     }
     else if (record->do_not_touch.fst_version <= 1) {
         if (record->do_not_touch.extended_meta_size > 0) {
-            record->do_not_touch.stringified_meta = meta->extended_meta;
+            // Right after the search keys
+            record->do_not_touch.stringified_meta = (uint32_t *)meta + record->do_not_touch.num_search_keys;
         }
     }
     else {
@@ -973,7 +978,7 @@ int32_t fst24_validate_default_record(
     if (memcmp(&default_fst_record, fortran_record, sizeof(fst_record)) != 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Doing record diff!\n", __func__);
         if (fst24_record_has_same_info(&default_fst_record, fortran_record)) {
-            for (int i = 0; i < sizeof(fst_record) / 4; i += 4) {
+            for (unsigned int i = 0; i < sizeof(fst_record) / 4; i += 4) {
                 const uint32_t* c = (const uint32_t*)&default_fst_record;
                 const uint32_t* f = (const uint32_t*)fortran_record;
                 fprintf(stderr, "c 0x %.8x %.8x %.8x %.8x\n", c[i], c[i+1], c[i+2], c[i+3]);
