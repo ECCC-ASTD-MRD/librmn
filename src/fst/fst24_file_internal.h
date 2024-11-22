@@ -1,6 +1,8 @@
 #ifndef RMN_FST24_FILE_INTERNAL_H__
 #define RMN_FST24_FILE_INTERNAL_H__
 
+#include <App.h>
+
 #include "rmn/fst24_file.h"
 #include "rmn/fst24_record.h"
 
@@ -20,6 +22,12 @@ typedef struct fst24_file_ {
     struct fst24_file_ *next;           //!< Next file in linked list of files (if any)
     const char* path;                   //!< Given when opening this file
     char*       tag;                    //!< Optional object tag (used in interpreted wrappers)
+    TApp_Timer  read_timer;             //!< Keep track of time spent reading data
+    TApp_Timer  write_timer;            //!< Keep track of time spent writing data
+    TApp_Timer  find_timer;             //!< Keep track of time spent looking for data
+    int64_t     num_bytes_read;
+    int64_t     num_bytes_written;
+    int32_t     num_records_found;
 } fst_file;
 
 int32_t fst24_write_rsf(RSF_handle rsf_file, fst_record* record, const int32_t stride);
