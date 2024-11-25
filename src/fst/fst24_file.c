@@ -1698,7 +1698,7 @@ int32_t fst24_unpack_data(
     const fst_record* record, //!< [in] Record information
     const int32_t skip_unpack,//!< Only copy data if non-zero
     const int32_t stride,     //!< Kept for compatibility with fst98 interface
-    const int32_t requested_bits //!< Size of data elements of the array into which we are reading
+    const int32_t original_num_bits //!< Size of data elements of the array from which we are reading
 ) {
     uint32_t* dest_u32 = dest;
     uint32_t* source_u32 = source;
@@ -1708,27 +1708,9 @@ int32_t fst24_unpack_data(
     // Suppress missing data flag
     const int32_t simple_data_type = record->data_type & ~FSTD_MISSING_FLAG;
 
-    // Determine into what size we are reading (only 8, 16, 32 and 64 allowed)
-    int32_t dest_elem_bits = record->data_bits;
-    if (is_type_integer(record->data_type) || is_type_real(record->data_type)) {
-        if (requested_bits < record->data_bits) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot read %d-bit data elements into an array of %d-bit elements\n",
-                    __func__, record->data_bits, requested_bits);
-            dest_elem_bits = record->data_bits;
-        }
-        else if (requested_bits > 32)
-            dest_elem_bits = 64;
-        else if (requested_bits > 16)
-            dest_elem_bits = 32;
-        else if (requested_bits > 8)
-            dest_elem_bits = 16;
-        else
-            dest_elem_bits = 8;
-    }
-
     // Unpack function son output element size
     PackFunctionPointer packfunc;
-    if (record->data_bits == 64) {
+    if (original_num_bits == 64) {
         packfunc = &compact_double;
     } else {
         packfunc = &compact_float;
@@ -1737,14 +1719,14 @@ int32_t fst24_unpack_data(
     // const size_t record_size_32 = record->rsz / 4;
     // size_t record_size = record_size_32;
     // if ((simple_data_type == FST_TYPE_OLD_QUANT) || (simple_data_type == FST_TYPE_REAL_IEEE)) {
-    //     record_size = (record->data_bits == 64) ? 2*record_size : record_size;
+    //     record_size = (original_num_bits == 64) ? 2*record_size : record_size;
     // }
 
     const int multiplier = (simple_data_type == FST_TYPE_COMPLEX) ? 2 : 1;
     const int nelm = fst24_record_num_elem(record) * multiplier;
 
     Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Unpacking %d %d-bit %s elements from %p into %p\n",
-            __func__, nelm, record->data_bits, FST_TYPE_NAMES[base_fst_type(record->data_type)], source, dest);
+            __func__, nelm, original_num_bits, FST_TYPE_NAMES[base_fst_type(record->data_type)], source, dest);
 
     double dmin = 0.0;
     double dmax = 0.0;
@@ -1799,7 +1781,7 @@ int32_t fst24_unpack_data(
             {
                 // Integer, short integer or byte stream
                 const int offset = is_type_turbopack(record->data_type) ? 1 : 0;
-                if (record->data_bits == 16) {
+                if (original_num_bits == 16) {
                     if (is_type_turbopack(record->data_type)) {
                         const int nbytes = armn_compress((unsigned char *)(source_u32 + offset), record->ni, record->nj,
                             record->nk, record->pack_bits, 2, 0);
@@ -1807,14 +1789,14 @@ int32_t fst24_unpack_data(
                     } else {
                         compact_ier = compact_short(dest, (void *) NULL, (void *)(source_u32 + offset), nelm, record->pack_bits, 0, stride, 6);
                     }
-                }  else if (record->data_bits == 8) {
+                }  else if (original_num_bits == 8) {
                     if (is_type_turbopack(record->data_type)) {
                         armn_compress((unsigned char *)(source_u32 + offset), record->ni, record->nj, record->nk, record->pack_bits, 2, 0);
                         memcpy_16_8((int8_t *)dest, (int16_t *)(source_u32 + offset), nelm);
                     } else {
                         compact_ier = compact_char(dest, (void *)NULL, (void *)source, nelm, 8, 0, stride, 10);
                     }
-                } else if (record->data_bits == 64) {
+                } else if (original_num_bits == 64) {
                     memcpy(dest, source, nelm * sizeof(uint64_t));
                 } else {
                     if (is_type_turbopack(record->data_type)) {
@@ -1836,23 +1818,29 @@ int32_t fst24_unpack_data(
             }
 
             case FST_TYPE_SIGNED: {
-                if (record->data_bits == 64) {
+                if (original_num_bits == 64) {
                     memcpy(dest, source, nelm * sizeof(int64_t));
                 }
                 else {
-                    const int use32 = !(record->data_bits == 64 || record->data_bits == 16 || record->data_bits == 8);
-                    int32_t*     field_out   = use32 ? dest : alloca(nelm * sizeof(int32_t));
-                    int16_t*     field_out_16 = (int16_t*)dest;
-                    int8_t*      field_out_8  = (int8_t*)dest;
+                    const int use32 = (record->data_bits == 32);
+                    int32_t* field_out = use32 ? dest : alloca(nelm * sizeof(int32_t));
                     compact_ier = compact_integer(field_out, (void *) NULL, source, nelm, record->pack_bits, 0, stride, 4);
                     if (record->data_bits == 16) {
+                        int16_t* field_out_16 = (int16_t*)dest;
                         for (int i = 0; i < nelm; i++) {
                             field_out_16[i] = field_out[i];
                         }
                     }
                     else if (record->data_bits == 8) {
+                        int8_t* field_out_8 = (int8_t*)dest;
                         for (int i = 0; i < nelm; i++) {
                             field_out_8[i] = field_out[i];
+                        }
+                    }
+                    else if (record->data_bits == 64) {
+                        int64_t* field_out_64 = (int64_t*)dest;
+                        for (int i = 0; i < nelm; i++) {
+                            field_out_64[i] = field_out[i];
                         }
                     }
                 }
@@ -1863,7 +1851,7 @@ int32_t fst24_unpack_data(
             case FST_TYPE_COMPLEX: {
 
                 // IEEE representation
-                if ((downgrade_32) && (record->data_bits == 64)) {
+                if ((downgrade_32) && (original_num_bits == 64)) {
                     // Downgrade 64 bit to 32 bit
 #if defined(Little_Endian)
                     swap_words(source_u32, nelm);
@@ -1919,17 +1907,17 @@ int32_t fst24_unpack_data(
     }
 
     // Upgrade to a larger size, if needed
-    if (dest_elem_bits > record->data_bits) {
+    if (original_num_bits < record->data_bits) {
         const int64_t num_elem = fst24_record_num_elem(record);
-        if (is_type_integer(record->data_type)) {
+        if (base_fst_type(record->data_type) == FST_TYPE_UNSIGNED) {
             int32_t x[num_elem];
-            memcpy(x, dest, num_elem * record->data_bits / 8);
-            upgrade_size(dest, dest_elem_bits, x, record->data_bits, num_elem, 1);
+            memcpy(x, dest, num_elem * original_num_bits / 8);
+            upgrade_size(dest, record->data_bits, x, original_num_bits, num_elem, 1);
         }
         else if (is_type_real(record->data_type)) {
             float f[num_elem];
             memcpy(f, dest, num_elem * sizeof(float));
-            upgrade_size(dest, dest_elem_bits, f, record->data_bits, num_elem, 0);
+            upgrade_size(dest, record->data_bits, f, original_num_bits, num_elem, 0);
         }
     }
 
@@ -1993,6 +1981,23 @@ int32_t fst24_read_record_rsf(
     fill_with_search_meta(record_fst, (search_metadata*)record_rsf->meta, FST_RSF); // frees old meta, if applicable
     record_fst->do_not_touch.stored_data_size = (record_rsf->data_size + 3) / 4;
 
+    // Determine into what size we are reading (only 8, 16, 32 and 64 allowed)
+    const int32_t original_num_bits = record_fst->data_bits;
+    if (is_type_integer(record_fst->data_type) || is_type_real(record_fst->data_type)) {
+        if (requested_num_bits < record_fst->data_bits) {
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot read %d-bit data elements into an array of %d-bit elements\n",
+                    __func__, record_fst->data_bits, requested_num_bits);
+        }
+        else if (requested_num_bits > 32)
+            record_fst->data_bits = 64;
+        else if (requested_num_bits > 16)
+            record_fst->data_bits = 32;
+        else if (requested_num_bits > 8)
+            record_fst->data_bits = 16;
+        else
+            record_fst->data_bits = 8;
+    }
+
     // Extract metadata from record if present
     if (record_fst->do_not_touch.extended_meta_size > 0) {
         // Located after the search keys
@@ -2002,7 +2007,7 @@ int32_t fst24_read_record_rsf(
     // Extract data
     int32_t ier = 0;
     if (metadata_only != 1)
-        ier = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1, requested_num_bits);
+        ier = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1, original_num_bits);
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;
@@ -2039,16 +2044,28 @@ int32_t fst24_read_record_xdf(
         if (ier < 0) return ier;
     }
 
+    int32_t requested_num_bits = record->data_bits;
+    if (is_type_integer(record->data_type) || is_type_real(record->data_type)) {
+        if (requested_num_bits > 32)
+            requested_num_bits = 64;
+        else if (requested_num_bits > 16)
+            requested_num_bits = 32;
+        else if (requested_num_bits > 8)
+            requested_num_bits = 16;
+        else
+            requested_num_bits = 8;
+    }
+
     // --- START critical region ---
     pthread_mutex_lock(&fst24_xdf_mutex);
 
-    if (record->data_bits == 8) {
+    if (requested_num_bits == 8) {
         c_fst_data_length(1);
     }
-    else if (record->data_bits == 16) {
+    else if (requested_num_bits == 16) {
         c_fst_data_length(2);
     }
-    else if (record->data_bits == 64) {
+    else if (requested_num_bits == 64) {
         c_fst_data_length(8);
     }
     const int32_t handle = c_fstluk_xdf(record->data, key32, &record->ni, &record->nj, &record->nk);
@@ -2060,6 +2077,9 @@ int32_t fst24_read_record_xdf(
     fill_with_search_meta(record, &meta, FST_XDF);
     record->do_not_touch.num_search_keys = 16;
     record->do_not_touch.stored_data_size = W64TOWD(lng);
+
+    if (requested_num_bits > record->data_bits) record->data_bits = requested_num_bits;
+
     return handle;
 }
 

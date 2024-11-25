@@ -34,7 +34,7 @@ int32_t fst24_write_rsf(RSF_handle rsf_file, fst_record* record, const int32_t s
 int32_t fst24_get_record_from_key(const fst_file* const file, const int64_t key, fst_record* const record);
 int32_t get_record_from_key_rsf(const RSF_handle rsf_file, const int64_t key, fst_record* const record);
 int32_t fst24_unpack_data(void* dest, void* source, const fst_record* record, const int32_t skip_unpack,
-                          const int32_t stride, const int32_t requested_bits);
+                          const int32_t stride, const int32_t original_num_bits);
 int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const query); // RSF only
 int C_fst_rsf_match_req(int datev, int ni, int nj, int nk, int ip1, int ip2, int ip3,
                         const char* typvar, const char* nomvar, const char* etiket, const char* grtyp,

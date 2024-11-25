@@ -481,6 +481,8 @@ int c_fstluk_rsf(
 
     xdf_datatyp = rec.data_type & ~FSTD_MISSING_FLAG;
 
+    const int original_num_bits = rec.data_bits;
+
     if (xdf_double) rec.data_bits = 64;
     else if (xdf_short) rec.data_bits = 16;
     else if (xdf_byte) rec.data_bits = 8;
@@ -496,7 +498,7 @@ int c_fstluk_rsf(
     // }
 
     // Extract data
-    const int32_t ier = fst24_unpack_data(rec.data, record_rsf->data, &rec, image_mode_copy, 1, rec.data_bits);
+    const int32_t ier = fst24_unpack_data(rec.data, record_rsf->data, &rec, image_mode_copy, 1, original_num_bits);
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;
