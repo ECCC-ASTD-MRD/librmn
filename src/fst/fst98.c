@@ -1047,7 +1047,11 @@ int c_fstecr_xdf(
     }
 
     if ((base_fst_type(datyp) == FST_TYPE_REAL)) { 
-        if (nbits > 24) {
+        if (nbits > 32) {
+            datyp = FST_TYPE_REAL_IEEE | (is_type_turbopack(datyp) ? FST_TYPE_TURBOPACK : 0);
+            nbits = 64;
+        }
+        else if (nbits > 24) {
             if (! dejafait_xdf_1) {
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
                 dejafait_xdf_1 = 1;

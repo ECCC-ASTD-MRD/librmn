@@ -587,7 +587,11 @@ int32_t fst24_write_rsf(
 
     // no extra compression if nbits > 16
     if ((record->pack_bits > 16) && (data_type != (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK))) data_type = base_fst_type(data_type);
-    if ((data_type == FST_TYPE_REAL) && (record->pack_bits > 24)) {
+    if ((data_type == FST_TYPE_REAL) && (record->pack_bits > 32) && (record->data_bits == 64)) {
+        data_type = FST_TYPE_REAL_IEEE;
+        record->pack_bits = 64;
+    }
+    else if ((data_type == FST_TYPE_REAL) && (record->pack_bits > 24)) {
         Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, record->pack_bits);
         data_type = FST_TYPE_REAL_IEEE;
         record->pack_bits = 32;
