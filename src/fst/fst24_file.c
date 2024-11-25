@@ -467,8 +467,8 @@ void fst24_bounds(
 //! the case, the given fst_record struct will be updated.
 //! \return TRUE (1) if writing was successful, 0 or a negative number otherwise
 int32_t fst24_write_rsf(
-    RSF_handle rsf_file,
-    fst_record* record,
+    RSF_handle rsf_file,    //!< RSF handle to the file where we are writing
+    fst_record* record,     //!< [in,out] Record we want to write. Will be updated as we adjust some parameters
     const int32_t stride    //!< Compaction parameter. When in doubt, leave at 1
 ) {
     if (rsf_file.p == NULL) {
@@ -703,6 +703,7 @@ int32_t fst24_write_rsf(
     record->do_not_touch.num_search_keys = dir_metadata_size;
     record->do_not_touch.extended_meta_size = ext_metadata_size;
     record->do_not_touch.stored_data_size = num_word32;
+    record->do_not_touch.unpacked_data_size = fst24_record_data_size(record) / sizeof(uint32_t); // 32-bit units
 
     record->num_meta_bytes = rec_metadata_size * sizeof(uint32_t);
     RSF_record* new_record = RSF_New_record(rsf_file, rec_metadata_size, rec_metadata_size, RT_DATA, num_data_bytes, NULL, 0);
@@ -1128,6 +1129,7 @@ int32_t fst24_write_xdf(
     record->do_not_touch.num_search_keys = sizeof(stdf_dir_keys) / sizeof(int32_t) - 2;
     record->do_not_touch.extended_meta_size = 0;
     record->do_not_touch.stored_data_size = 0; // We don't have a good way of knowing that number, so it stays at 0 for now. Maybe xdfprm?
+    record->do_not_touch.unpacked_data_size = 0; // We also don't know that one reliably
     record->file_index = -1;
 
     if (ier < 0) return ier;
@@ -1688,13 +1690,15 @@ int32_t fst24_find_count(
 }
 
 
-//! Unpack the given data array, according to the given record information
+//! Unpack the given data array, according to the given record information.
+//! \return 0 on success, negative if error.
 int32_t fst24_unpack_data(
     void* dest,
     void* source, //!< Should be const, but we might swap stuff in-place. It's supposed to be temporary anyway...
     const fst_record* record, //!< [in] Record information
     const int32_t skip_unpack,//!< Only copy data if non-zero
-    const int32_t stride      //!< Kept for compatibility with fst98 interface
+    const int32_t stride,     //!< Kept for compatibility with fst98 interface
+    const int32_t requested_bits //!< Size of data elements of the array into which we are reading
 ) {
     uint32_t* dest_u32 = dest;
     uint32_t* source_u32 = source;
@@ -1703,6 +1707,24 @@ int32_t fst24_unpack_data(
     const int has_missing = has_type_missing(record->data_type);
     // Suppress missing data flag
     const int32_t simple_data_type = record->data_type & ~FSTD_MISSING_FLAG;
+
+    // Determine into what size we are reading (only 8, 16, 32 and 64 allowed)
+    int32_t dest_elem_bits = record->data_bits;
+    if (is_type_integer(record->data_type) || is_type_real(record->data_type)) {
+        if (requested_bits < record->data_bits) {
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot read %d-bit data elements into an array of %d-bit elements\n",
+                    __func__, record->data_bits, requested_bits);
+            dest_elem_bits = record->data_bits;
+        }
+        else if (requested_bits > 32)
+            dest_elem_bits = 64;
+        else if (requested_bits > 16)
+            dest_elem_bits = 32;
+        else if (requested_bits > 8)
+            dest_elem_bits = 16;
+        else
+            dest_elem_bits = 8;
+    }
 
     // Unpack function son output element size
     PackFunctionPointer packfunc;
@@ -1896,6 +1918,21 @@ int32_t fst24_unpack_data(
         } // end switch
     }
 
+    // Upgrade to a larger size, if needed
+    if (dest_elem_bits > record->data_bits) {
+        const int64_t num_elem = fst24_record_num_elem(record);
+        if (is_type_integer(record->data_type)) {
+            int32_t x[num_elem];
+            memcpy(x, dest, num_elem * record->data_bits / 8);
+            upgrade_size(dest, dest_elem_bits, x, record->data_bits, num_elem, 1);
+        }
+        else if (is_type_real(record->data_type)) {
+            float f[num_elem];
+            memcpy(f, dest, num_elem * sizeof(float));
+            upgrade_size(dest, dest_elem_bits, f, record->data_bits, num_elem, 0);
+        }
+    }
+
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Read record with key 0x%x\n", __func__, record->do_not_touch.handle);
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) fst24_record_print_short(record, NULL, 1, NULL);
 
@@ -1934,7 +1971,9 @@ int32_t fst24_read_record_rsf(
         return ERR_BAD_HNDL;
     }
 
-    const size_t work_size_bytes = fst24_record_data_size(record_fst) +     // The data itself
+    const size_t needed_data_size = Max(fst24_record_data_size(record_fst),
+                                        record_fst->do_not_touch.unpacked_data_size * sizeof(uint32_t));
+    const size_t work_size_bytes = needed_data_size +                       // The data itself
                                    record_fst->num_meta_bytes +             // The metadata
                                    sizeof(RSF_record) +                     // Space for the RSF struct itself
                                    128 * sizeof(uint32_t);                  // Enough space for the largest compression scheme + rounding up for alignment
@@ -1950,6 +1989,7 @@ int32_t fst24_read_record_rsf(
         return ERR_BAD_HNDL;
     }
 
+    int requested_num_bits = record_fst->data_bits;
     fill_with_search_meta(record_fst, (search_metadata*)record_rsf->meta, FST_RSF); // frees old meta, if applicable
     record_fst->do_not_touch.stored_data_size = (record_rsf->data_size + 3) / 4;
 
@@ -1962,7 +2002,7 @@ int32_t fst24_read_record_rsf(
     // Extract data
     int32_t ier = 0;
     if (metadata_only != 1)
-        ier = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1);
+        ier = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1, requested_num_bits);
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;
@@ -2079,6 +2119,9 @@ int32_t fst24_read_record(
     //!> the allocation may be adjusted to fit this new record size (if needed).
     //!> If the `data` attribute is non-NULL and the memory is *not* managed by the API, the space
     //!> it points to must be large enough to contain all the data.
+    //!> (in) The `data_bits` attribute may have a value larger than that stored in the file (either 16, 32 or 64). If
+    //!> that is the case, the type pointed to by `data` will be considered as having that larger size. This is only
+    //!> allowed for signed integers, unsigned integers and real types.
     fst_record* const record
 ) {
     if (record != NULL && !fst24_is_open(record->file)) {

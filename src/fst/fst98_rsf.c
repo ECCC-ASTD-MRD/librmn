@@ -496,7 +496,7 @@ int c_fstluk_rsf(
     // }
 
     // Extract data
-    const int32_t ier = fst24_unpack_data(rec.data, record_rsf->data, &rec, image_mode_copy, 1);
+    const int32_t ier = fst24_unpack_data(rec.data, record_rsf->data, &rec, image_mode_copy, 1, rec.data_bits);
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;

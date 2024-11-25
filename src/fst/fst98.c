@@ -161,6 +161,71 @@ uint32_t get_valid_date32(
     return (uint32_t)origin_date;
 }
 
+//! Copy items of a certain size into an array of items with a larger size. If the input array is of type float, it
+//! will be converted to double. Only performs copies from size [8, 16, 32] to size [16, 32, 64]. 
+//! *The source and destination array must not point to the same location!*
+void upgrade_size(
+    void* dest,             //!< [out] Destination array, into which the items are copied
+    const int dest_size,    //!< [in] Size of items in destination array, in bits
+    void* src,              //!< [in] Source array, from which the items are copied
+    const int src_size,     //!< [in] Size of items in source array, in bits
+    const int64_t num_elem, //!< [in] Number of items to copy
+    const int is_integer    //!< [in] Whether we are copying integers (or float)
+) {
+    if (is_integer) {
+        if (dest_size == 16) {
+            int16_t* d = dest;
+            if (src_size == 8) {
+                int8_t* s = src;
+                for (int i = num_elem - 1; i >= 0; i--) d[i] = s[i];
+                return;
+            }
+        }
+        else if (dest_size == 32) {
+            int32_t* d = dest;
+            if (src_size == 8) {
+                int8_t* s = src;
+                for (int i = num_elem - 1; i >= 0; i--) d[i] = s[i];
+                return;
+            }
+            else if (src_size == 16) {
+                int16_t* s = src;
+                for (int i = num_elem - 1; i >= 0; i--) d[i] = s[i];
+                return;
+            }
+        }
+        else if (dest_size == 64) {
+            int64_t* d = dest;
+            if (src_size == 8) {
+                int8_t* s = src;
+                for (int i = num_elem - 1; i >= 0; i--) d[i] = s[i];
+                return;
+            }
+            else if (src_size == 16) {
+                int16_t* s = src;
+                for (int i = num_elem - 1; i >= 0; i--) d[i] = s[i];
+                return;
+            }
+            else if (src_size == 32) {
+                int32_t* s = src;
+                for (int i = num_elem - 1; i >= 0; i--) d[i] = s[i];
+                return;
+            }
+        }
+    }
+    else {
+        if (dest_size == 64 && src_size == 32) {
+            register double* d = dest;
+            register float* s = src;
+            for (int i = num_elem - 1; i >= 0; i--) d[i] = (double)s[i];
+            return;
+        }
+    }
+
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unhandled sizes: dest %d, src %d, is_integer = %d\n",
+            __func__, dest_size, src_size, is_integer);
+}
+
 void memcpy_8_16(int16_t *p16, const int8_t *p8, int nb) {
     for (int i = 0; i < nb; i++) {
         *p16++ = *p8++;
@@ -3056,6 +3121,21 @@ int c_fstluk_xdf(
         int sz=(xdf_double?64:(xdf_short?16:(xdf_byte?8:32)));
         // printf("Debug+ fstluk - DecodeMissingValue\n");
         DecodeMissingValue(field , (*ni) * (*nj) * (*nk) , xdf_datatyp & 0x3F, sz);
+    }
+
+    // Upgrade size, if necessary
+    if (xdf_double && stdf_entry.dasiz < 64) {
+        const int base_type = base_fst_type(stdf_entry.datyp);
+        if (base_type == FST_TYPE_REAL_IEEE || base_type == FST_TYPE_REAL) {
+            float f[nelm];
+            memcpy(f, field, nelm * sizeof(float));
+            upgrade_size(field, 64, f, 32, nelm, 0);
+        }
+        else if (base_type == FST_TYPE_SIGNED || base_type == FST_TYPE_UNSIGNED) {
+            int32_t x[nelm];
+            memcpy(x, field, nelm * sizeof(int32_t));
+            upgrade_size(field, 64, x, 32, nelm, 1);
+        }
     }
 
     xdf_double = 0;

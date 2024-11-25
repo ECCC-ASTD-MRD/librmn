@@ -774,6 +774,8 @@ void fill_with_search_meta(fst_record* record, const search_metadata* meta, cons
         record->ig4 = fst98_meta->ig4;
     } // fst98 metadata
 
+    record->do_not_touch.unpacked_data_size = fst24_record_data_size(record) / sizeof(uint32_t);
+
     // Here, we implement reading content for next-generation FST (anything that goes beyond the stdf_dir_keys struct)
 
     Meta_Free(record->metadata);

@@ -263,6 +263,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst24_skip_descriptors COMMAND $<TARGET_FILE:fst24_skip_descriptors>)
         add_dependencies(check fst24_skip_descriptors)
 
+        add_executable(fst24_read_into_bigger_size fst/fst24_read_into_bigger_size.c)
+        target_link_libraries(fst24_read_into_bigger_size rmn::rmn)
+        add_test(NAME fst24_read_into_bigger_size COMMAND $<TARGET_FILE:fst24_read_into_bigger_size>)
+        add_dependencies(check fst24_read_into_bigger_size)
+
         # FST samples
         add_executable(fst24_open_close_f fst/samples/fst24_open_close.F90)
         target_link_libraries(fst24_open_close_f rmn::rmn)
