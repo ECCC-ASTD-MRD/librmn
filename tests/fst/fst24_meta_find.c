@@ -69,11 +69,12 @@ int test_fst24_create(int size) {
    
    Meta_AddMissingValue(prof_fld,"out_of_domain",-999); 
 
+   const int old_lvl = Lib_LogLevelNo(APP_LIBFST, APP_WARNING);
    for(int l=0;l<NBLEVEL;l++) {
       for(int v=0;v<NBVAR;v++) {
          for(int s=0;s<NBSTEP;s++) {
 
-            App_Log(APP_INFO, "Creating record %s %i %f\n",vars[v],s,levels[l]);
+            App_Log(APP_DEBUG, "Creating record %s %i %f\n",vars[v],s,levels[l]);
             // Define field metadata
             Meta_DefVarFromDict(prof_fld,vars[v]);
             Meta_DefForecastTime(prof_fld,Meta_Stamp2Seconds(date),s,60,"second");
@@ -103,6 +104,8 @@ int test_fst24_create(int size) {
          }
       }
    }
+
+   Lib_LogLevelNo(APP_LIBFST, old_lvl);
 
    fst24_record_free(record);
    free(record);
@@ -171,7 +174,7 @@ int test_fst24_search(void) {
          num_new++;
    }
    App_TimerStop(new_timer);
-   fprintf(stderr,"Legacy search time (%i): %.3f ms\n",num_new,App_TimerLatestTime_ms(new_timer));
+   fprintf(stderr,"Extended meta search time (%i): %.3f ms\n",num_new,App_TimerLatestTime_ms(new_timer));
    fst24_query_free(query);
 
    fst24_record_free(&record_find);

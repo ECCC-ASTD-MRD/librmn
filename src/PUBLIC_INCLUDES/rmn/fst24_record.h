@@ -55,6 +55,7 @@ typedef struct {
         uint8_t num_search_keys;     //!< Number of directory search keys (32-bit units)
         uint16_t extended_meta_size; //!< Size of extended metadata (32-bit units)
         size_t stored_data_size;     //!< Size of the data on disk (32-bit units)
+        size_t unpacked_data_size;   //!< Initial size of the unpacked data (32-bit units)
         const void* stringified_meta; //!< Direct pointer to the extended metadata in the directory
     } do_not_touch;
 
@@ -115,6 +116,7 @@ typedef struct {
                          .num_search_keys = 0,                                              \
                          .extended_meta_size = 0,                                           \
                          .stored_data_size = 0,                                             \
+                         .unpacked_data_size = 0,                                           \
                          .stringified_meta = NULL,                                          \
                         },                                                                  \
                                                                                             \
@@ -240,6 +242,7 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         integer(C_INT16_T) :: num_search_keys = 0
         integer(C_INT16_T) :: extended_meta_size = 0
         integer(C_SIZE_T)  :: stored_data_size = 0
+        integer(C_SIZE_T)  :: unpacked_data_size = 0
         integer(C_INTPTR_T):: stringified_meta = 0
 
         type(C_PTR)        :: file     = C_NULL_PTR

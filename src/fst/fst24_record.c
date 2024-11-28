@@ -661,22 +661,22 @@ void make_search_criteria(
         char etiket[FST_ETIKET_LEN];
         copy_record_string(etiket, record->etiket, FST_ETIKET_LEN);
         fst98_meta->etik15 =
-            (ascii6(record->etiket[0]) << 24) |
-            (ascii6(record->etiket[1]) << 18) |
-            (ascii6(record->etiket[2]) << 12) |
-            (ascii6(record->etiket[3]) <<  6) |
-            (ascii6(record->etiket[4]));
+            (ascii6(etiket[0]) << 24) |
+            (ascii6(etiket[1]) << 18) |
+            (ascii6(etiket[2]) << 12) |
+            (ascii6(etiket[3]) <<  6) |
+            (ascii6(etiket[4]));
 
         fst98_meta->etik6a =
-            (ascii6(record->etiket[5]) << 24) |
-            (ascii6(record->etiket[6]) << 18) |
-            (ascii6(record->etiket[7]) << 12) |
-            (ascii6(record->etiket[8]) <<  6) |
-            (ascii6(record->etiket[9]));
+            (ascii6(etiket[5]) << 24) |
+            (ascii6(etiket[6]) << 18) |
+            (ascii6(etiket[7]) << 12) |
+            (ascii6(etiket[8]) <<  6) |
+            (ascii6(etiket[9]));
 
         fst98_meta->etikbc =
-            (ascii6(record->etiket[10]) <<  6) |
-            (ascii6(record->etiket[11]));
+            (ascii6(etiket[10]) <<  6) |
+            (ascii6(etiket[11]));
 
         if ((fst98_meta->etik15 == 0) && (fst98_meta->etik6a == 0)) {
             fst98_mask->etik15 = 0;
@@ -698,7 +698,7 @@ void make_search_criteria(
         char grtyp[FST_GTYP_LEN];
         copy_record_string(grtyp, record->grtyp, FST_GTYP_LEN);
         fst98_meta->gtyp = grtyp[0];
-        if (record->grtyp[0] == ' ') fst98_mask->gtyp = 0;
+        if (grtyp[0] == ' ') fst98_mask->gtyp = 0;
     } // fst98 criteria
 }
 
@@ -773,6 +773,8 @@ void fill_with_search_meta(fst_record* record, const search_metadata* meta, cons
         record->ig3 = fst98_meta->ig3;
         record->ig4 = fst98_meta->ig4;
     } // fst98 metadata
+
+    record->do_not_touch.unpacked_data_size = fst24_record_data_size(record) / sizeof(uint32_t);
 
     // Here, we implement reading content for next-generation FST (anything that goes beyond the stdf_dir_keys struct)
 

@@ -78,6 +78,8 @@ static inline int32_t base_fst_type(const int32_t type_flag) {
 //! 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags
 #define FST_TYPE_MAGIC 801
 
+void upgrade_size(void* dest, const int dest_size, void* src, const int src_size, const int64_t num_elem,
+                  const int is_integer);
 int32_t c_fst_is_rsf(const int iun);
 int c_fst_data_length(const int length_type);
 int c_ip1_all(const float level, const int kind);
