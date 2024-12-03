@@ -335,7 +335,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.
 # Fortran modules are installed in the include directory for now
 install(FILES
     ${MODULE_DIR}/f_c_strings_mod.mod
-    ${MODULE_DIR}/rmn_circular_buffer.mod
+    ${MODULE_DIR}/rmn_circular_buffer_module.mod
     ${MODULE_DIR}/rmn_common.mod
     ${MODULE_DIR}/rmn_date.mod
     ${MODULE_DIR}/rmn_jar.mod
