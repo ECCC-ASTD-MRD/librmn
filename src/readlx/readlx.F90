@@ -91,6 +91,8 @@ end module readlx_remote
 ! get contents at address(subscript) (assuming a 32 bit item)
 subroutine get_value_at_address(address, subscript, content)
     use rmn_common
+    implicit none
+
     integer(kind = int64), intent(IN) :: address   ! memory address
     integer, intent(IN) :: subscript               ! subscript
     integer, intent(OUT) :: content                ! output from memory
@@ -106,13 +108,15 @@ end subroutine
 ! set contents at address(subscript) (assuming a 32 bit item)
 subroutine set_value_at_address(address, subscript, content)
     use rmn_common
+    implicit none
+
     integer(kind = int64), intent(IN) :: address   ! memory address
     integer, intent(IN) :: subscript               ! subscript
     integer, intent(IN) :: content                 ! value to set to
     integer :: val
     pointer(pval, val(*))
 
-    pval = transfer(address,pval)
+    pval = transfer(address, pval)
     ! print *,'entering set_value_at_address, subscript =',subscript
     val(subscript) = content
     ! print *,'exiting set_value_at_address'
@@ -123,13 +127,15 @@ end subroutine
 SUBROUTINE qlx_adi2(KLE, IND, VALEUR, ERR)
     use rmn_common
     implicit none
+
     !     INTEGER IND, VALEUR, TYPE
     INTEGER IND, VALEUR
     LOGICAL ERR
     character(len=*) KLE
 
-    INTEGER  qlx_dtyp
-    EXTERNAL qlx_dtyp
+    INTEGER, EXTERNAL :: qlx_dtyp
+    EXTERNAL :: qlx_fnd
+
     integer(kind = int64) LOCVAR, LOCCNT
     INTEGER LIMITE, ITYP, IZ, INDX
     integer, dimension(1024) :: mem
@@ -164,6 +170,9 @@ integer(kind = int64) FUNCTION qlx_adr(KLE, ERR)
 
     character(len=*) KLE
     LOGICAL ERR
+
+    EXTERNAL :: qlx_err, qlx_fnd, qlx_ind
+
     INTEGER LIMITS, ITYP, IND
     integer(kind = int64) :: LOCCNT, locvar8
     integer :: VARI
@@ -189,6 +198,8 @@ END
 SUBROUTINE qlx_asg(VAL, ICOUNT, LIMIT, ERR)
     use rmn_common
     use readlx_qlxfmt
+    implicit none
+
     !> Adresse de la clé cible
     integer(kind = int64), intent(in) :: val
     !> Nombre de mots déposés
@@ -197,6 +208,8 @@ SUBROUTINE qlx_asg(VAL, ICOUNT, LIMIT, ERR)
     integer, intent(in) :: limit
     !> Indicateur d'erreur
     logical, intent(out) :: err
+
+    EXTERNAL :: qlx_err, qlx_ind, qlx_tok, qlx_xpr, qlx_val, get_value_at_address, set_value_at_address
 
     COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
     LOGICAL INEXPR
@@ -213,6 +226,7 @@ SUBROUTINE qlx_asg(VAL, ICOUNT, LIMIT, ERR)
     INTEGER IND, JLEN, qlx_val
     INTEGER OLDTYP, ITEMP(80), IREPCN
     LOGICAL IAREP, FIN
+    INTEGER :: I, J
 
     pjval = LOC(ZVAL)
     IND = 1
@@ -313,8 +327,12 @@ END
 ! Remettre un caractère dans une ligne de texte à la position courante et reculer le pointeur du caractère courant
 SUBROUTINE qlx_bak(ICAR)
     use readlx_qlxbuff
+    implicit none
+
     !> Caractère à remettre dans la ligne de texte
     character(len = 1), intent(in) :: ICAR
+
+    EXTERNAL :: qlx_err
 
     IF (NC > 1) THEN
         INLINE(NC-1:NC-1)=ICAR
@@ -329,6 +347,7 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
     use readlx_parmadr
     use readlx_qlxfmt
     use readlx_remote
+    implicit none
 
     integer(kind = int64) :: SUB, ICOUNT
 
@@ -341,6 +360,8 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
     COMMON/qlx_tok2/TOKEN
     character(len=80) TOKEN
 
+    EXTERNAL :: qlx_err, qlx_tok, qlx_flsh, set_value_at_address
+
     integer, external :: rmtcall
     EXTERNAL qlx_adr, qlx_val
     INTEGER  qlx_val
@@ -350,6 +371,8 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
     integer(kind = int64) icount64
 
     LOGICAL ERR, FIN, INLIST
+
+    integer :: I, J, NPRM0, LIMITS, JUNK
 
     pjval = LOC(ZVAL)
     FIN  = .FALSE.
@@ -480,6 +503,13 @@ END
 function qlx_chr()
     use App
     use readlx_qlxbuff
+#if __INTEL_LLVM_COMPILER == 20250001
+    use ifport, only : abort
+#endif
+    implicit none
+
+    external :: qlx_err
+
     character(len=1) qlx_chr
 
     character(len=8) SKIPMSG(0:3)
@@ -536,7 +566,7 @@ function qlx_chr()
             NC = 22
          ELSE
             CALL qlx_err(81008, 'qlx_chr')
-            CALL ABORT
+            CALL ABORT()
          ENDIF
       ENDIF
       RETURN
@@ -574,6 +604,8 @@ END
 SUBROUTINE qlx_err(CODE, MODULE)
     use app
     use readlx_qlxbuff
+    implicit none
+
     !> Code d'erreur
     INTEGER CODE
     !> Module dans lequel l'erreur est survenue
@@ -582,6 +614,8 @@ SUBROUTINE qlx_err(CODE, MODULE)
     INTEGER DESTI, MT, ME
     INTEGER TYPE(9)
     character(len=40) MSG(50)
+    INTEGER :: I
+
     DATA MSG(  1) /'REPETITION NEGATIF'/
     DATA MSG(  2) /'NB DE FOIS DEJA VU OU NON ENTIER'/
     DATA MSG(  3) /'LA LIMITE EST DEPASSEE'/
@@ -633,6 +667,8 @@ END
 
 !> Retourne le premier caractère d'une linge de text qui soit égal à l'argument
 subroutine qlx_flsh(ICAR)
+    implicit none
+
     !> Caratère à chercher
     character(len=1) ICAR
 
@@ -646,6 +682,7 @@ END
 
 subroutine qlx_fnd(key, locvar, loccnt, limits, ityp)
     use rmn_common
+    implicit none
 
     character(len = *), intent(in) :: key
     integer(kind = int64), intent(out) :: locvar
@@ -656,11 +693,12 @@ subroutine qlx_fnd(key, locvar, loccnt, limits, ityp)
     ! retrouve, a partir de la cle ikey, l'adresse de ivar, icount.
 
     integer, external :: qlx_nvar, qlx_undf, qlx_prnt
-    external low2up
+    external :: low2up, qlx_look
     character(len = 8) :: ikey
     character(len = 8), dimension(12) :: clef
-    integer :: dummy, pos
-    save dummy
+    integer, save :: dummy
+    integer :: pos, I
+
     DATA CLEF /'END', 'IF', 'ELSE', 'ENDIF', 'WHILE', 'ENDWHILE', 'ENDDATA', 'ENDCASE', 'ENDREAD', '@PRINT', '@DEFINE', '@UNDEF'/
 
     LOCVAR = 0
@@ -718,6 +756,7 @@ END
 
 SUBROUTINE qlx_ind(IND, ERR)
     use app
+    implicit none
 
     INTEGER IND
     LOGICAL ERR
@@ -730,7 +769,7 @@ SUBROUTINE qlx_ind(IND, ERR)
     COMMON/qlx_tok2/TOKEN
     character(len=80) TOKEN
 
-    EXTERNAL qlx_skp
+    EXTERNAL :: qlx_skp, qlx_tok, qlx_err, qlx_bak
     character(len=1) qlx_skp
     character(len=1) IC
 
@@ -762,6 +801,7 @@ END
 SUBROUTINE qqlx_ins(ivar, key, icount, limits, ityp, xtern)
     use rmn_common
     use readlx_nrdlx
+    implicit none
 
     INTEGER, INTENT(IN) :: ivar
     CHARACTER(len = *)  :: key
@@ -769,7 +809,7 @@ SUBROUTINE qqlx_ins(ivar, key, icount, limits, ityp, xtern)
     INTEGER, INTENT(IN) :: limits
     INTEGER, INTENT(IN) :: ityp
 
-    EXTERNAL :: xtern
+    EXTERNAL :: xtern, low2up, qlx_err
 
     ! CONSTRUIT UNE TABLE CONTENANT LA CLE(IKEY), L'ADRESSE DES
     ! VALEURS IVAR(MAXIMUM DE 'LIMITS')ET DU NOMBRE DE VALEURS(ICOUNT),
@@ -819,11 +859,15 @@ END SUBROUTINE qqlx_ins
 SUBROUTINE qlx_look(IVAR, KEY, ICOUNT, LIMITS, ITYP)
     use rmn_common
     use readlx_nrdlx
+    implicit none
+
     integer(kind = int64) :: ivar, icount
     INTEGER               :: ITYP, LIMITS
     character(len=*)      :: KEY
 
-    INTEGER               :: IPNT
+    external :: low2up
+
+    INTEGER :: IPNT
     character(len=8) ikey
 
     ! TROUVER LA CLE
@@ -895,6 +939,8 @@ END
 
 !> Reconstituer un nombre entier, reel ou octal
 INTEGER FUNCTION qlx_num(IB, LENG)
+    implicit none
+
     character(len=*), intent(INOUT) :: IB
     INTEGER, intent(INOUT) :: LENG
 
@@ -910,8 +956,10 @@ INTEGER FUNCTION qlx_num(IB, LENG)
     !        LENG      NOMBRE DE CARACTERES DANS LE NOMBRE(ENTIER OU REEL)
     !        (S)
 
-    INTEGER ILX
-    EXTERNAL qlx_chr
+    INTEGER :: J, ILX
+
+    EXTERNAL ::  qlx_chr, qlx_bak
+
     character(len=1) I, CTMP, qlx_chr
 
     IF (IB(1:1) == '.') THEN
@@ -1001,14 +1049,17 @@ END
 SUBROUTINE qlx_nvar(KEY, NW)
     use rmn_common
     use readlx_qlxfmt
+    implicit none
 
     INTEGER NW
     INTEGER KEY(*)
-    EXTERNAL argdims
-    INTEGER  argdims
-    INTEGER SC(1024), NSC
-    SAVE SC, NSC
-    INTEGER DUMMY
+
+    EXTERNAL :: qlx_look, qlx_err, qlxins
+    INTEGER, EXTERNAL :: argdims
+
+    INTEGER, SAVE :: SC(1024), NSC
+
+    INTEGER :: DUMMY, LIMITS, J, ITYP
     character(len=8) IKEY
     integer(kind = int64) IVAR, ICOUNT
 
@@ -1029,243 +1080,252 @@ SUBROUTINE qlx_nvar(KEY, NW)
     NSC = NSC + NW
 END
 
+
 !> Appliquer un operateur numerique ou logique
 SUBROUTINE qlx_opr(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
-      use rmn_common
-!       INTEGER NTOKEN, OPRTR, TOKENS(NTOKEN), TOKTYPE(NTOKEN)
-      INTEGER NTOKEN, OPRTR, TOKTYPE(NTOKEN)
-      integer(kind = int64) :: TOKENS(NTOKEN)
-      LOGICAL ERR
+    use rmn_common
+    implicit none
 
-      INTEGER IZ1, IZ2, IR1, tok32
-      REAL   Z1,  Z2,  R1
-      pointer(pz1,Z1)
-      pointer(pz2,Z2)
-      pointer(pr1,R1)
-      LOGICAL REALOP
-      integer(kind = int32) :: TOK
-      POINTER (PTOK, TOK(*))
+    !       INTEGER NTOKEN, OPRTR, TOKENS(NTOKEN), TOKTYPE(NTOKEN)
+    INTEGER NTOKEN, OPRTR, TOKTYPE(NTOKEN)
+    integer(kind = int64) :: TOKENS(NTOKEN)
+    LOGICAL ERR
 
-      pz1 = LOC(IZ1)
-      IZ1 = 0
-      pz2 = LOC(IZ2)
-      IZ2 = 0
-      pr1 = LOC(IR1)
+    EXTERNAL :: get_value_at_address, set_value_at_address
 
-      IF (ERR) THEN
-         RETURN
-      ENDIF
-      IF (OPRTR == 4 .OR. OPRTR == 17) THEN
-         MINOPER = 1
-      ELSE
-         MINOPER = 2
-      ENDIF
-      IF (NTOKEN < MINOPER) THEN
-         ERR = .TRUE.
-         RETURN
-      ENDIF
-      IF (TOKTYPE(NTOKEN) > 0) THEN
-         call get_value_at_address(TOKENS(NTOKEN), 1, tok32)
-         TOKENS(NTOKEN) = tok32
-         TOKTYPE(NTOKEN) = 0
-      ENDIF
-      IF (OPRTR.NE.2 .AND. OPRTR.NE.17   .AND. OPRTR.NE.21 .AND. OPRTR.NE.4) THEN
-         IF (TOKTYPE(NTOKEN-1) > 0) THEN
+    INTEGER :: IZ1, IZ2, IR1, tok32, MINOPER
+    REAL   Z1,  Z2,  R1
+    pointer(pz1,Z1)
+    pointer(pz2,Z2)
+    pointer(pr1,R1)
+    LOGICAL REALOP
+    integer(kind = int32) :: TOK
+    POINTER (PTOK, TOK(*))
+
+    pz1 = LOC(IZ1)
+    IZ1 = 0
+    pz2 = LOC(IZ2)
+    IZ2 = 0
+    pr1 = LOC(IR1)
+
+    IF (ERR) THEN
+        RETURN
+    ENDIF
+    IF (OPRTR == 4 .OR. OPRTR == 17) THEN
+        MINOPER = 1
+    ELSE
+        MINOPER = 2
+    ENDIF
+    IF (NTOKEN < MINOPER) THEN
+        ERR = .TRUE.
+        RETURN
+    ENDIF
+    IF (TOKTYPE(NTOKEN) > 0) THEN
+        call get_value_at_address(TOKENS(NTOKEN), 1, tok32)
+        TOKENS(NTOKEN) = tok32
+        TOKTYPE(NTOKEN) = 0
+    ENDIF
+    IF (OPRTR.NE.2 .AND. OPRTR.NE.17   .AND. OPRTR.NE.21 .AND. OPRTR.NE.4) THEN
+        IF (TOKTYPE(NTOKEN-1) > 0) THEN
             call get_value_at_address(TOKENS(NTOKEN-1), 1, tok32)
             TOKENS(NTOKEN-1) = tok32
             TOKTYPE(NTOKEN-1) = 0
-         ENDIF
-      ENDIF
-      REALOP = ABS(TOKENS(NTOKEN)) > 2147483647
-      IZ1 = int(TOKENS(NTOKEN))
-      IF (OPRTR.NE.2 .AND. OPRTR.NE.17 .AND. OPRTR.NE.4) THEN
-         REALOP = REALOP .OR. ABS(TOKENS(NTOKEN-1)) > 2147483647
-         IZ2 = int(TOKENS(NTOKEN-1))
-         IF (REALOP) THEN
+        ENDIF
+    ENDIF
+    REALOP = ABS(TOKENS(NTOKEN)) > 2147483647
+    IZ1 = int(TOKENS(NTOKEN))
+    IF (OPRTR.NE.2 .AND. OPRTR.NE.17 .AND. OPRTR.NE.4) THEN
+        REALOP = REALOP .OR. ABS(TOKENS(NTOKEN-1)) > 2147483647
+        IZ2 = int(TOKENS(NTOKEN-1))
+        IF (REALOP) THEN
             IF (ABS(IZ1) <= 2147483647) THEN
-               Z1 = int(TOKENS(NTOKEN))
+            Z1 = int(TOKENS(NTOKEN))
             ENDIF
             IF (ABS(IZ2) <= 2147483647) THEN
-               Z2 = int(TOKENS(NTOKEN-1))
+            Z2 = int(TOKENS(NTOKEN-1))
             ENDIF
-         ENDIF
-      ENDIF
-      IR1 = 0
+        ENDIF
+    ENDIF
+    IR1 = 0
 
-      select case(OPRTR)
-      case(1)
-         ERR = .TRUE.
-         RETURN
-      case(2)
-         IF (TOKENS(NTOKEN) <= 0 .OR. TOKTYPE(NTOKEN-1) <= 0 .OR. REALOP) THEN
+    select case(OPRTR)
+    case(1)
+        ERR = .TRUE.
+        RETURN
+    case(2)
+        IF (TOKENS(NTOKEN) <= 0 .OR. TOKTYPE(NTOKEN-1) <= 0 .OR. REALOP) THEN
             ERR = .TRUE.
             RETURN
-         ENDIF
-         IF (TOKENS(NTOKEN) >= TOKTYPE(NTOKEN-1)) THEN
+        ENDIF
+        IF (TOKENS(NTOKEN) >= TOKTYPE(NTOKEN-1)) THEN
             ERR = .TRUE.
             RETURN
 
-         ENDIF
-         PTOK = TOKENS(NTOKEN-1)
-         TOKENS(NTOKEN-1) = tok(TOKENS(NTOKEN))
-         NTOKEN = NTOKEN - 1
-         TOKTYPE(NTOKEN) = 0
-         RETURN
-      case(3)               ! unary +
-         RETURN
-      case(4)               ! unary -
-         IF (REALOP) THEN
+        ENDIF
+        PTOK = TOKENS(NTOKEN-1)
+        TOKENS(NTOKEN-1) = tok(TOKENS(NTOKEN))
+        NTOKEN = NTOKEN - 1
+        TOKTYPE(NTOKEN) = 0
+        RETURN
+    case(3)               ! unary +
+        RETURN
+    case(4)               ! unary -
+        IF (REALOP) THEN
             R1 = -Z1
-         ELSE
+        ELSE
             IR1 = -IZ1
-         ENDIF
-      case(5)               ! **
-         IF (REALOP) THEN
+        ENDIF
+    case(5)               ! **
+        IF (REALOP) THEN
             R1 = Z2**Z1
-         ELSE
+        ELSE
             IR1 = IZ2**IZ1
-         ENDIF
-      case(6)               ! *
-         IF (REALOP) THEN
+        ENDIF
+    case(6)               ! *
+        IF (REALOP) THEN
             R1 = Z2*Z1
-         ELSE
+        ELSE
             IR1 = IZ2*IZ1
-         ENDIF
-      case(7)               ! /
-         IF (REALOP) THEN
+        ENDIF
+    case(7)               ! /
+        IF (REALOP) THEN
             R1 = Z2/Z1
-         ELSE
+        ELSE
             IR1 = IZ2/IZ1
-         ENDIF
-      case(8)               ! binary +
-         IF (REALOP) THEN
+        ENDIF
+    case(8)               ! binary +
+        IF (REALOP) THEN
             R1 = Z2+Z1
-         ELSE
+        ELSE
             IR1 = IZ2+IZ1
-         ENDIF
-      case(9)               ! binary -
-         IF (REALOP) THEN
+        ENDIF
+    case(9)               ! binary -
+        IF (REALOP) THEN
             R1 = Z2-Z1
-         ELSE
+        ELSE
             IR1 = IZ2-IZ1
-         ENDIF
-      case(10)              ! binary <
-         IF (REALOP) THEN
+        ENDIF
+    case(10)              ! binary <
+        IF (REALOP) THEN
             IF (Z2 < Z1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ELSE
+        ELSE
             IF (IZ2 < IZ1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ENDIF
-      case(11)              ! binary >
-         IF (REALOP) THEN
+        ENDIF
+    case(11)              ! binary >
+        IF (REALOP) THEN
             IF (Z2 > Z1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ELSE
+        ELSE
             IF (IZ2 > IZ1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ENDIF
-      case(12)              ! binary ==
-         IF (REALOP) THEN
+        ENDIF
+    case(12)              ! binary ==
+        IF (REALOP) THEN
             IF (Z2 == Z1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ELSE
+        ELSE
             IF (IZ2 == IZ1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ENDIF
-      case(13)              ! binary <=
-         IF (REALOP) THEN
+        ENDIF
+    case(13)              ! binary <=
+        IF (REALOP) THEN
             IF (Z2 <= Z1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ELSE
+        ELSE
             IF (IZ2 <= IZ1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ENDIF
-      case(14)              ! binary >=
-         IF (REALOP) THEN
+        ENDIF
+    case(14)              ! binary >=
+        IF (REALOP) THEN
             IF (Z2 >= Z1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ELSE
+        ELSE
             IF (IZ2 >= IZ1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ENDIF
-      case(15)              ! binary <>
-         IF (REALOP) THEN
+        ENDIF
+    case(15)              ! binary <>
+        IF (REALOP) THEN
             IF (Z2.NE.Z1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ELSE
+        ELSE
             IF (IZ2.NE.IZ1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ENDIF
-      case(16)              ! binary ><
-         IF (REALOP) THEN
+        ENDIF
+    case(16)              ! binary ><
+        IF (REALOP) THEN
             IF (Z2.NE.Z1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ELSE
+        ELSE
             IF (IZ2.NE.IZ1) THEN
-               IR1 =ishft(-1, 32-(32))
+            IR1 =ishft(-1, 32-(32))
             ENDIF
-         ENDIF
-      case(17)              ! unary NOT
-         IF (REALOP) THEN
+        ENDIF
+    case(17)              ! unary NOT
+        IF (REALOP) THEN
             ERR = .TRUE.
-         ELSE
+        ELSE
             IR1 =NOT(IZ1)
-         ENDIF
-      case(18)              ! binary AND
-         IF (REALOP) THEN
+        ENDIF
+    case(18)              ! binary AND
+        IF (REALOP) THEN
             ERR = .TRUE.
-         ELSE
+        ELSE
             IR1 = IAND(IZ2, IZ1)
-         ENDIF
-      case(19)              ! binary OR
-         IF (REALOP) THEN
+        ENDIF
+    case(19)              ! binary OR
+        IF (REALOP) THEN
             ERR = .TRUE.
-         ELSE
+        ELSE
             IR1 = IOR(IZ2, IZ1)
-         ENDIF
-      case(20)              ! binary XOR
-         IF (REALOP) THEN
+        ENDIF
+    case(20)              ! binary XOR
+        IF (REALOP) THEN
             ERR = .TRUE.
-         ELSE
+        ELSE
             IR1 = IEOR(IZ2, IZ1)
-         ENDIF
-      case(21)              ! :=
-         IF (TOKTYPE(NTOKEN-1) <= 0) THEN
+        ENDIF
+    case(21)              ! :=
+        IF (TOKTYPE(NTOKEN-1) <= 0) THEN
             ERR = .TRUE.
             RETURN
-         ENDIF
-         tok32 = int(TOKENS(NTOKEN))
-         call set_value_at_address(TOKENS(NTOKEN-1), 1, tok32)
-!          TOKENS(NTOKEN) = tok32
-         NTOKEN = NTOKEN - 1
-         RETURN
-      end select
-      NTOKEN = NTOKEN + 1 - MINOPER
-      TOKENS(NTOKEN) = IR1
-      TOKTYPE(NTOKEN) = 0
+        ENDIF
+        tok32 = int(TOKENS(NTOKEN))
+        call set_value_at_address(TOKENS(NTOKEN-1), 1, tok32)
+        !          TOKENS(NTOKEN) = tok32
+        NTOKEN = NTOKEN - 1
+        RETURN
+    end select
+    NTOKEN = NTOKEN + 1 - MINOPER
+    TOKENS(NTOKEN) = IR1
+    TOKTYPE(NTOKEN) = 0
 END
 
 !  FONCTION  qlx_pri_l EVALUER LA PRIORITE D'UN OPERATEUR
 INTEGER FUNCTION qlx_pri_l(OPR, LEFTPRI)
+    implicit none
+
     character(len=*) OPR
     LOGICAL LEFTPRI
-!     INTEGER qlx_pril
-    PARAMETER (MAXOPER=23)
+
+    !     INTEGER qlx_pril
+    INTEGER, PARAMETER :: MAXOPER = 23
     INTEGER PRI(MAXOPER)
+    INTEGER :: I
     character(len=4) LISTE(MAXOPER), OPRTR
     SAVE LISTE, PRI
     DATA LISTE/   ')' ,   ']' ,   'U+' ,   'U-', '**' ,   '*' ,     &
@@ -1293,16 +1353,22 @@ END
 !> Evaluer la priorite d'un operateur (right priority)
 integer function qlx_pri(opr)
     implicit none
+
     character(len=*) opr
+
     integer, external :: qlx_pri_l
+
     qlx_pri = qlx_pri_l(opr, .FALSE.)
 end
 
 !> Evaluer la priorite d'un operateur (left priority)
 integer function qlx_pril(opr)
     implicit none
+
     character(len=*) opr
+
     integer, external :: qlx_pri_l
+
     qlx_pril = qlx_pri_l(opr, .TRUE.)
 end
 
@@ -1313,7 +1379,7 @@ SUBROUTINE qlx_prnt(QUOI, COMMENT)
 
     INTEGER QUOI(*), COMMENT(*)
     character(len=120) FMT
-    INTEGER argdims
+    INTEGER, external :: argdims
     integer :: I, L1, L2
 
     L1 = argdims(1)
@@ -1330,16 +1396,21 @@ END
 !> Conversion a notation postfixe (reverse polish notation)
 SUBROUTINE qlx_rpn(TOK, TOKENS, MAXTKNS, NTOKEN, TOKTYPE, PILEOP, MAXOPS, NOPER, ERR)
     use rmn_common
+    implicit none
+
     character(len=*) TOK
     INTEGER MAXTKNS, NTOKEN, MAXOPS, NOPER
-!     INTEGER TOKENS(MAXTKNS), TOKTYPE(MAXTKNS)
+    !     INTEGER TOKENS(MAXTKNS), TOKTYPE(MAXTKNS)
     INTEGER TOKTYPE(MAXTKNS)
     integer(kind  = int64) :: TOKENS(MAXTKNS)
-    EXTERNAL qlx_pri, qlx_pril
-    INTEGER  qlx_pri, qlx_pril
     LOGICAL ERR
+
+    INTEGER, EXTERNAL :: qlx_pri, qlx_pril
+    EXTERNAL :: qlx_opr
+
     character(len=4) TOKEN
     character(len=4) PILEOP(MAXOPS)
+
     IF (ERR) THEN
         RETURN
     ENDIF
@@ -1397,6 +1468,8 @@ END
 
 !> Retourne le premier caractere d'une ligne de texte, différent de icar
 FUNCTION qlx_skp(ICAR)
+    implicit none
+
     character(len=1) qlx_skp
     !> Caratère à ignorer
     character(len=1), intent(in) :: ICAR
@@ -1416,6 +1489,7 @@ END
 SUBROUTINE qlx_tok
     use rmn_common
     use readlx_qlxfmt
+    implicit none
 
     ! ARGUMENTS
     ! TOKEN
@@ -1435,16 +1509,18 @@ SUBROUTINE qlx_tok
     LOGICAL INEXPR
     INTEGER LEN, TYPE, JVAL
     REAL ZVAL
-!     EQUIVALENCE (ZVAL, JVAL)
+    !     EQUIVALENCE (ZVAL, JVAL)
     pointer(pjval,JVAL)
 
     COMMON /qlx_tok2/ TOKEN
     character(len=80) TOKEN
 
+    EXTERNAL :: qlx_chr, qlx_num, qlx_err, qlx_bak, qlx_fnd, get_value_at_address
+
     integer(kind = int64) :: LOCVAR, LOCCNT
-    EXTERNAL qlx_chr, qlx_num
+
     character(len=1) IC, qlx_chr
-    INTEGER  qlx_num
+    INTEGER :: qlx_num, ival, leng, limits
 
     pjval = LOC(ZVAL)
     IVAL = -1
@@ -1574,11 +1650,15 @@ END
 SUBROUTINE qlx_undf(IKEY)
     use rmn_common
     use readlx_qlxfmt
+    implicit none
 
     INTEGER IKEY(*)
+
+    INTEGER, EXTERNAL :: argdims
+    EXTERNAL :: qlx_udf2
+
     character(len=8) CKEY
-    INTEGER argdims
-!     integer(kind = int64) :: SCRAP
+    INTEGER :: I
 
     WRITE(CKEY, 101) (IKEY(I), I=1, argdims(1))
 101   FORMAT(2 A4)
@@ -1587,11 +1667,16 @@ END
 
 
 FUNCTION qlx_val(KLE, ERR)
+    implicit none
+
     INTEGER qlx_val
 
     character(len=*) KLE
     LOGICAL ERR
-!     INTEGER IND, VAL, DUM
+
+    EXTERNAL :: qlx_ind, qlx_adi2
+
+    !     INTEGER IND, VAL, DUM
     INTEGER IND, VAL
 
     CALL qlx_ind(IND, ERR)
@@ -1608,6 +1693,7 @@ END
 SUBROUTINE qlx_xpr(ERR)
     use app
     use rmn_common
+    implicit none
 
     LOGICAL ERR
     COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
@@ -1622,15 +1708,18 @@ SUBROUTINE qlx_xpr(ERR)
     COMMON /qlx_tok3/ jval64
     integer(kind = int64) :: jval64
 
-    PARAMETER (MAXTKNS=65, MAXOPS=30)
+    INTEGER, PARAMETER :: MAXTKNS = 65
+    INTEGER, PARAMETER :: MAXOPS = 30
     INTEGER TOKTYPE(MAXTKNS), NTOKEN
     integer(kind = int64) :: TOKENS(MAXTKNS)
     INTEGER NOPER
     integer(kind = int64) :: LOCVAR, LOCCNT
     character(len=4) :: PILEOP(MAXOPS)
     LOGICAL UNARY, FINI, FIRST
-    INTEGER PLEV, qlx_pri
-    EXTERNAL qlx_pri
+    INTEGER PLEV, BLEV, LIMITES, ITYP
+
+    INTEGER, EXTERNAL :: qlx_pri
+    EXTERNAL :: qlx_err, qlx_tok, qlx_fnd, qlx_bak, qlx_rpn
 
     pjval = LOC(ZVAL)
     INEXPR = .TRUE.
@@ -1812,7 +1901,7 @@ SUBROUTINE qlxinx(xtern, key, icount, limits, ityp)
     implicit none
 
     !> Nom de la fonction à appeler
-    EXTERNAL :: xtern
+    EXTERNAL :: xtern, qlx_err, qqlx_ins
 
     !> Chaine de caractères du jetton
     CHARACTER(LEN = *) :: key
@@ -1835,7 +1924,11 @@ END
 
 !> Interface de qlxins
 SUBROUTINE lexins(IVAR, ICLE, NB, LIMIT, TYP)
+    implicit none
+
     INTEGER :: IVAR, ICLE, NB, LIMIT, TYP
+
+    EXTERNAL :: QLXINS
 
     character(len=8) :: KLE
 
@@ -1846,7 +1939,6 @@ END
 !> DECLARATION DES CLES
 SUBROUTINE qlxins(ivar, key, icount, limits, ityp)
     use app
-
     IMPLICIT NONE
 
     INTEGER :: ivar
@@ -1856,6 +1948,7 @@ SUBROUTINE qlxins(ivar, key, icount, limits, ityp)
     INTEGER :: ityp
 
     integer, EXTERNAL :: readlx
+    EXTERNAL :: qlx_err, qqlx_ins
 
     IF (ityp == 2) THEN
         CALL lib_log(APP_LIBRMN, APP_ERROR, 'qlxinx doit etre utilise quand ityp = 2, au lieu de QLXINS')
@@ -1872,6 +1965,7 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
     use rmn_common
     use readlx_qlxbuff
     use readlx_qlxfmt
+    implicit none
 
     !> Numéro d'unité d'entrée
     INTEGER, INTENT(in) :: UNIT
@@ -1889,27 +1983,32 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
     COMMON/qlx_tok2/TOKEN
     character(len=80) TOKEN
 
-    EXTERNAL qlx_nvar, qlx_prnt, qlx_undf
+    EXTERNAL :: qlx_nvar, qlx_prnt, qlx_undf
+    EXTERNAL :: qlxinx, qlx_bak, qlx_err, qlx_tok, qlx_fnd, qlx_asg, qlx_call, qlx_xpr, qlx_flsh
+    external :: get_value_at_address, set_value_at_address
 
 #include <rmn/fnom.hf>
     integer(kind = int64) :: LOCCNT, LOCVAR
     Integer IICNT
     INTEGER LIMITS, ITYP
     LOGICAL FIN, ERR
-    PARAMETER (MAXSTRU=20)
+    INTEGER, PARAMETER :: MAXSTRU = 20
     INTEGER NXTELSE(0:2), NEXTIF(0:2), STYPE(MAXSTRU), SKIPF(MAXSTRU)
     INTEGER READBSE(MAXSTRU)
     INTEGER NSTRUC, ier
     character(len=128) nomscra
     integer(kind = int64) :: jval64
+    INTEGER :: KERRMAX
+    INTEGER :: IDUM
+
 
     DATA NXTELSE / 1, 0, 2/
     DATA NEXTIF  / 0, 2, 2/
 
     pjval = LOC(ZVAL)
     WRITE(LINEFMT, '(A,I2,A)') '(25 A', KARMOT, ')'
-    KERRMAX = 999999
 
+    KERRMAX = 999999
     IF (KERR < 0 ) THEN
         KERRMAX = MIN(ABS(KERR), KERRMAX)
     ENDIF
