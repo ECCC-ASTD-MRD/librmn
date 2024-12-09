@@ -221,7 +221,7 @@ char* add_level(
     f77name(convip_plus)(&ip1_f, &level, &kind, &mode, c_level, &flag, (F2Cl) 15);
     c_level[15] = '\0';
     /* blank initialisation */
-    snprintf(buffer, length, "%s", "                      ");
+    snprintf(buffer, length + 2, "%s", "                               ");
     posc = 14;
     posv = 14;
     /* skip blanks and right justify string */
