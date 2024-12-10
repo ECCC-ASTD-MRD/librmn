@@ -1696,7 +1696,7 @@ int32_t fst24_unpack_data(
     void* dest,
     void* source, //!< Should be const, but we might swap stuff in-place. It's supposed to be temporary anyway...
     const fst_record* record, //!< [in] Record information
-    const int32_t skip_unpack,//!< Only copy data if non-zero
+    const int32_t skip_unpack,//!< Only copy data (no uncompression) if non-zero
     const int32_t stride,     //!< Kept for compatibility with fst98 interface
     const int32_t original_num_bits //!< Size of data elements of the array from which we are reading
 ) {
@@ -1907,7 +1907,7 @@ int32_t fst24_unpack_data(
     }
 
     // Upgrade to a larger size, if needed
-    if (original_num_bits < record->data_bits) {
+    if (original_num_bits < record->data_bits && !skip_unpack) {
         const int64_t num_elem = fst24_record_num_elem(record);
         if (base_fst_type(record->data_type) == FST_TYPE_UNSIGNED) {
             int32_t x[num_elem];

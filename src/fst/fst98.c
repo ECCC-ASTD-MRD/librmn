@@ -3124,7 +3124,7 @@ int c_fstluk_xdf(
     }
 
     // Upgrade size, if necessary
-    if (xdf_double && stdf_entry.dasiz < 64) {
+    if (xdf_double && (stdf_entry.dasiz < 64 && stdf_entry.dasiz > 0) && !image_mode_copy) {
         const int base_type = base_fst_type(stdf_entry.datyp);
         if (base_type == FST_TYPE_REAL_IEEE || base_type == FST_TYPE_REAL) {
             float f[nelm];
