@@ -856,6 +856,10 @@ int c_fclos(
         } else {
             ier = close(FGFDT[entry].fd);
         }
+
+        if (FGFDT[entry].attr.scratch == 1) {
+            remove(FGFDT[entry].file_name);
+        }
     }
 
     reset_file_entry(entry);
