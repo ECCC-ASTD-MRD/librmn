@@ -2,7 +2,7 @@
 module rmn_fst24
     use App
     use f_c_strings_mod
-    use rmn_common
+    use rmn_fst_common
     use rmn_libc,       only: libc_free
     use rmn_meta
     use rmn_fst24_record
@@ -10,10 +10,6 @@ module rmn_fst24
     implicit none
 
     include 'fst24_interface.inc'
-
-    integer(C_INT32_T), parameter, public :: FST_YES   = 1
-    integer(C_INT32_T), parameter, public :: FST_NO    = 0
-    integer(C_INT32_T), parameter, public :: FST_SKIP  = -1
 
     type :: fst_file
         private

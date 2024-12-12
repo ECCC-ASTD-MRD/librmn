@@ -27,7 +27,7 @@
 
 #define FST_YES   1
 #define FST_NO    0
-#define FST_SKIP -1
+#define FST_SKIP  2
 
 #include <stdint.h>
 #include <stdlib.h>
