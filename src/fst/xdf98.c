@@ -111,8 +111,7 @@ static void finalize_xdf(void) {
             const int index_fnom = get_fnom_index(file_table[i]->iun);
             if (index_fnom >= 0 && index_fnom < MAX_FNOM_FILES) {
                 Lib_Log(APP_LIBFST, APP_WARNING,
-                        "%s: File \"%s\" is still open, so we will close it to avoid corruption. "
-                        "You really should close all files before the end of the program\n",
+                        "%s: File \"%s\" is still open, so we will close it to avoid corruption.\n",
                         __func__, FGFDT[index_fnom].file_name);
                 c_xdfcls(file_table[i]->iun);
             }
@@ -153,7 +152,9 @@ int c_xdfcheck(
     }
 
     if ((size_t)header.fsiz * 8 != file_size) {
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: File size does not match header. Expected size: %d bytes. Actual size: %d\n",__func__,header.fsiz*8,file_size);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File size does not match header. Expected size: %d bytes. Actual size: %d\n"
+                "File path = %s\n",
+                __func__, header.fsiz*8, file_size, filePath);
         return(ERR_DAMAGED);
     }
 

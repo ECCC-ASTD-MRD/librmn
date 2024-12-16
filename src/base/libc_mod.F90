@@ -53,5 +53,11 @@ module rmn_libc
             implicit none
             integer(C_INT), value :: status
         end subroutine exit
+
+        subroutine c_exit(status) bind(C, name = 'exit')
+            import :: C_INT
+            implicit none
+            integer(C_INT), value :: status
+        end subroutine c_exit
     end interface
 end module rmn_libc

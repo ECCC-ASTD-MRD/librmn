@@ -268,6 +268,33 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst24_read_into_bigger_size COMMAND $<TARGET_FILE:fst24_read_into_bigger_size>)
         add_dependencies(check fst24_read_into_bigger_size)
 
+        add_executable(cb_unaligned_input circular_buffer/cb_unaligned_input.c)
+        target_link_libraries(cb_unaligned_input rmn::rmn)
+        add_test(NAME cb_unaligned_input COMMAND $<TARGET_FILE:cb_unaligned_input>)
+        add_dependencies(check cb_unaligned_input)
+
+        add_executable(circular_buffer_single_thread circular_buffer/circular_buffer_single_thread.F90)
+        target_link_libraries(circular_buffer_single_thread rmn::rmn)
+        add_test(NAME circular_buffer_single_thread COMMAND $<TARGET_FILE:circular_buffer_single_thread>)
+        add_dependencies(check circular_buffer_single_thread)
+
+        if (TARGET rmn::rmn-ompi)
+            add_executable(circular_buffer_fill circular_buffer/circular_buffer_fill.c)
+            target_link_libraries(circular_buffer_fill rmn::rmn-ompi)
+            # add_test(NAME circular_buffer_fill COMMAND ${MPIEXEC_EXECUTABLE} ${OVERSUBSCRIBE_FLAG} -n 8 $<TARGET_FILE:circular_buffer_fill>)
+            add_dependencies(check circular_buffer_fill)
+
+            add_executable(circular_buffer_concurrent circular_buffer/circular_buffer_concurrent.F90)
+            target_link_libraries(circular_buffer_concurrent rmn::rmn-ompi)
+            # add_test(NAME circular_buffer_concurrent COMMAND ${MPIEXEC_EXECUTABLE} ${OVERSUBSCRIBE_FLAG} -n 8 $<TARGET_FILE:circular_buffer_concurrent>)
+            add_dependencies(check circular_buffer_concurrent)
+
+            add_executable(circular_buffer_timeout circular_buffer/circular_buffer_timeout.F90)
+            target_link_libraries(circular_buffer_timeout rmn::rmn-ompi)
+            # add_test(NAME circular_buffer_timeout COMMAND ${MPIEXEC_EXECUTABLE} ${OVERSUBSCRIBE_FLAG} -n 2 $<TARGET_FILE:circular_buffer_timeout>)
+            add_dependencies(check circular_buffer_timeout)
+        endif()
+
         # FST samples
         add_executable(fst24_open_close_f fst/samples/fst24_open_close.F90)
         target_link_libraries(fst24_open_close_f rmn::rmn)

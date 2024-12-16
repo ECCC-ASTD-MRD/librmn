@@ -11,15 +11,11 @@
 ! use rmn_fst98 will cause the direct fstxxx entry points from librmn to be ignored
 ! and use instead the equivalent procedures from the module and associated sub modules
 module rmn_fst98
-    use rmn_common
+    use rmn_fst_common
     use rmn_libc, only: memset
     implicit none
 #define C_INTERFACE_ONLY
 #include "rmn/fst98_interface.hf"
-
-    integer, parameter :: FST_SKIP = -1
-    integer, parameter :: FST_NO   = 0
-    integer, parameter :: FST_YES  = 1
 
     interface fstouv
         ! /*****************************************************************************
@@ -80,9 +76,9 @@ module rmn_fst98
         !  *  IN  ig3     third grid descriptor                                        * 
         !  *  IN  ig4     fourth grid descriptor                                       * 
         !  *  IN  datyp   data type of the elements                                    * 
-        !  *  IN  rewrit  rewrite flag (true (1, FST_YES) = rewrite existing record,   *
-        !  *                            false (0, FST_NO) = append,                    *
-        !  *                            FST_SKIP (-1)     = don't do anything if record exist)
+        !  *  IN  rewrit  rewrite flag (true (FST_YES) = rewrite existing record,      *
+        !  *                            false (FST_NO) = append,                       *
+        !  *                            FST_SKIP       = don't do anything if record exist)
         !  *                                                                           * 
         !  *****************************************************************************/
         module function fstecr_i(field, work, npak, iun, date, deet, npas, ni, nj, nk, &

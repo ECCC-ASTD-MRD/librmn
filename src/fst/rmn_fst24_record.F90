@@ -582,49 +582,28 @@ contains
         type(fst_record_fields) :: fields
         character(len=*)        :: string
 
-        if (len_trim(string)>0) then
+        if (index(string,'NODATEO')>0) then
             fields % dateo = 0
-            fields % datev = 0
-            fields % datestamps = 0
-            fields % level = 0
-            fields % data_type = 0
-            fields % nijk = 0
-            fields % deet = 0
-            fields % npas = 0
-            fields % ip1 = 0
-            fields % ip2 = 0
-            fields % ip3 = 0
-            fields % decoded_ip = 0
-            fields % ig1234 = 0
-            fields % grid_info = 0
-            fields % typvar = 0
-            fields % nomvar = 0
-            fields % etiket = 0
-            fields % metadata = 0
-        endif
-
-        if (index(string,'DATEO')>0) then
-            fields % dateo = 1
         end if
 
         if (index(string,'DATEV')>0) then
            fields % datev = 1
         end if
 
-        if (index(string,'STAMP')>0) then
-            fields % datestamps = 1
+        if (index(string,'NOSTAMP')>0) then
+            fields % datestamps = 0
         end if
 
         if (index(string,'LEVEL')>0) then
            fields % level = 1
         end if
 
-        if (index(string,'DATYP')>0 .or. index(string, 'DATA_TYPE')>0) then
-           fields % data_type = 1
+        if (index(string,'NODATYP')>0 .or. index(string, 'NODATA_TYPE')>0) then
+           fields % data_type = 0
         end if
 
-        if (index(string,'NIJK')>0) then
-            fields % nijk = 1
+        if (index(string,'NONIJK')>0) then
+            fields % nijk = 0
         end if
 
         if (index(string,'DEET')>0) then
@@ -635,22 +614,22 @@ contains
             fields % npas = 1
         end if
 
-        if (index(string,'IP1')>0) then
-            fields % ip1 = 1
+        if (index(string,'NOIP1')>0) then
+            fields % ip1 = 0
         end if
 
-        if (index(string,'IP2')>0) then
-            fields % ip2 = 1
+        if (index(string,'NOIP2')>0) then
+            fields % ip2 = 0
         end if
 
-        if (index(string,'IP3')>0) then
-            fields % ip3 = 1
+        if (index(string,'NOIP3')>0) then
+            fields % ip3 = 0
         end if
 
-        if (index(string,'IPS')>0) then
-            fields % ip1 = 1
-            fields % ip2 = 1
-            fields % ip3 = 1
+        if (index(string,'NOIPS')>0) then
+            fields % ip1 = 0
+            fields % ip2 = 0
+            fields % ip3 = 0
         end if 
 
         if (index(string,'DECODE')>0) then
@@ -661,24 +640,24 @@ contains
             fields % grid_info = 1
         end if
 
-        if (index(string,'IGS')>0) then
-            fields % ig1234 = 1
+        if (index(string,'NOIGS')>0) then
+            fields % ig1234 = 0
         end if
 
-        if (index(string,'TYPVAR')>0) then
-            fields % typvar = 1
+        if (index(string,'NOTYPVAR')>0) then
+            fields % typvar = 0
         end if
 
-        if (index(string,'NOMVAR')>0) then
-            fields % nomvar = 1
+        if (index(string,'NONOMVAR')>0) then
+            fields % nomvar = 0
         end if
 
-        if (index(string,'ETIKET')>0) then
-            fields % etiket = 1
+        if (index(string,'NOETIKET')>0) then
+            fields % etiket = 0
         end if
 
         if (index(string,'META')>0) then
-            fields % metadata = 1
+            fields % metadata = 0
         end if
 
     end function fst24_make_fields_from_string

@@ -53,7 +53,7 @@ static void RSF_Finalize(void) {
             if (rsf_files[i] != NULL) {
                 RSF_File* fp = rsf_files[i];
                 Lib_Log(APP_LIBFST, APP_WARNING, "%s: File \"%s\" is still open, so we will close it now to avoid "
-                        "corruption. You should really close your files before the end of the program.\n",
+                        "corruption.\n",
                         __func__, fp->name);
                 RSF_Close_file((RSF_handle){.p = fp});
             }

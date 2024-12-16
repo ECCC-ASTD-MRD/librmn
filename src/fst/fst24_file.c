@@ -519,8 +519,12 @@ int32_t fst24_write_rsf(
             }
         }
         else if (record->pack_bits != 64) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested %d packed bits for 64-bit reals, but we can only do"
-                    " 64 or less than 32. Will store 64 bits.\n", __func__, record->pack_bits);
+            static int warned_once_1 = 0;
+            if (!warned_once_1) {
+                warned_once_1 = 1;
+                Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested %d packed bits for 64-bit reals, but we can only do"
+                        " 64 or less than 32. Will store 64 bits.\n", __func__, record->pack_bits);
+            }
             record->pack_bits = 64;
         }
     }
@@ -535,8 +539,12 @@ int32_t fst24_write_rsf(
     }
 
     if ( (record->data_type == (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK)) && (record->pack_bits > 32) ) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported for IEEE when nbits > 32, "
-                "data type 133 reset to 5 (IEEE)\n", __func__);
+        static int warned_once_2 = 0;
+        if (!warned_once_2) {
+            warned_once_2 = 1;
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported for IEEE when nbits > 32, "
+                    "data type 133 reset to 5 (IEEE)\n", __func__);
+        }
         // extra compression not supported
         in_data_type = FST_TYPE_REAL_IEEE;
         data_type = FST_TYPE_REAL_IEEE;
@@ -1696,7 +1704,7 @@ int32_t fst24_unpack_data(
     void* dest,
     void* source, //!< Should be const, but we might swap stuff in-place. It's supposed to be temporary anyway...
     const fst_record* record, //!< [in] Record information
-    const int32_t skip_unpack,//!< Only copy data if non-zero
+    const int32_t skip_unpack,//!< Only copy data (no uncompression) if non-zero
     const int32_t stride,     //!< Kept for compatibility with fst98 interface
     const int32_t original_num_bits //!< Size of data elements of the array from which we are reading
 ) {
@@ -1907,7 +1915,7 @@ int32_t fst24_unpack_data(
     }
 
     // Upgrade to a larger size, if needed
-    if (original_num_bits < record->data_bits) {
+    if (original_num_bits < record->data_bits && !skip_unpack) {
         const int64_t num_elem = fst24_record_num_elem(record);
         if (base_fst_type(record->data_type) == FST_TYPE_UNSIGNED) {
             int32_t x[num_elem];

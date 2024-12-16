@@ -383,7 +383,8 @@ unlock:
 static void finalize_fnom(void) {
     for (int i = 0; i < MAX_FNOM_FILES; i++) {
         if (FGFDT[i].open_flag) {
-            Lib_Log(APP_LIBRMN, APP_WARNING, "%s: You forgot to close file %s. You really should close it.\n",
+            Lib_Log(APP_LIBRMN, APP_WARNING,
+                    "%s: File %s is still open. It should be closed before the end of the program to avoid issues.\n",
                     __func__, FGFDT[i].file_name);
         }
     }
@@ -855,6 +856,10 @@ int c_fclos(
             ier = f77name(ftnclos)(&iun77);
         } else {
             ier = close(FGFDT[entry].fd);
+        }
+
+        if (FGFDT[entry].attr.scratch == 1) {
+            remove(FGFDT[entry].file_name);
         }
     }
 
