@@ -102,7 +102,8 @@ set(PROJECT_PUBLIC_INCLUDE_FILES
 )
  
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
-set(MODULE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
+set(MODULE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include/mod)
+set(MODULE_DIR_OMPI ${CMAKE_CURRENT_BINARY_DIR}/include/mod_ompi)
 
 # A bunch of fst_record functions (generated)
 set(ARRAY_GETTER_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/rmn_fst24_record_get_data_array.hf)
@@ -191,7 +192,7 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
    add_library(rmn-ompi-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
    set_target_properties(rmn-ompi-static PROPERTIES
        POSITION_INDEPENDENT_CODE ON
-       Fortran_MODULE_DIRECTORY ${MODULE_DIR}/ompi
+       Fortran_MODULE_DIRECTORY ${MODULE_DIR_OMPI}
    )
    target_link_libraries(rmn-ompi-static PUBLIC App-ompi-static json-c-static libudunits2-static LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
    target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
@@ -208,7 +209,7 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
         VERSION ${PROJECT_VERSION}
         PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
         INTERFACE_COMPILE_DEFINITIONS HAVE_RMN="${PROJECT_VERSION}"
-        INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${MODULE_DIR}/ompi>
+        INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${MODULE_DIR_OMPI}>
         OUTPUT_NAME rmn-ompi
         SOVERSION ${SOVERSION}
         C_STANDARD 11
