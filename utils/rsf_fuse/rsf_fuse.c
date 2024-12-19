@@ -2,6 +2,8 @@
 #include <App.h>
 #include <rmn/fst24_file.h>
 
+//! Utility that fuses the segments of an RSF file. It simply opens the file in "fuse" mode, then closes it.
+
 int main(int argc, char** argv) {
 
     if (argc < 2) {

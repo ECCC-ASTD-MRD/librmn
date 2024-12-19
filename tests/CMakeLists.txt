@@ -82,9 +82,6 @@ if (EC_INIT_DONE LESS 2)
         add_executable(generate_fstd EXCLUDE_FROM_ALL fst/generate_fstd.F90)
         target_link_libraries(generate_fstd test_helper)
 
-        add_executable(rsf_fuse fst/rsf_fuse.c)
-        target_link_libraries(rsf_fuse rmn::rmn)
-
         add_executable(burp_f EXCLUDE_FROM_ALL burp_f.f)
         target_link_libraries(burp_f rmn::rmn)
         add_test(NAME burp_f COMMAND ${CMAKE_CURRENT_BINARY_DIR}/burp_f)
