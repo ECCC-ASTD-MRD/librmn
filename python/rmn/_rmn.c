@@ -1292,6 +1292,10 @@ static PyObject *py_fst_record_to_dict(struct py_fst_record *self){
     PyDict_SetItemString(d, "ni", PyLong_FromLong(self->rec.ni));
     PyDict_SetItemString(d, "nj", PyLong_FromLong(self->rec.nj));
     PyDict_SetItemString(d, "nk", PyLong_FromLong(self->rec.nk));
+    PyDict_SetItemString(d, "dateo", PyLong_FromLong(self->rec.dateo));
+    PyDict_SetItemString(d, "datev", PyLong_FromLong(self->rec.datev));
+    PyDict_SetItemString(d, "npas", PyLong_FromLong(self->rec.npas));
+    PyDict_SetItemString(d, "deet", PyLong_FromLong(self->rec.deet));
     PyDict_SetItemString(d, "ip1", PyLong_FromLong(self->rec.ip1));
     PyDict_SetItemString(d, "ip2", PyLong_FromLong(self->rec.ip2));
     PyDict_SetItemString(d, "ip3", PyLong_FromLong(self->rec.ip3));
