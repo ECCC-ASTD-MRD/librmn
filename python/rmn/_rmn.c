@@ -1114,24 +1114,34 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
         //       - Need to verify that the checking is correct
         //       - Need to code for creation of numpy arrays for the other
         //         possible types.
+        int typenum;
         switch(self->rec.data_type & (~FST_TYPE_TURBOPACK)){
+            case FST_TYPE_UNSIGNED:
+                switch(self->rec.data_bits){
+                    case 32: typenum = NPY_UINT32; break;
+                    case 64: typenum = NPY_UINT64; break;
+                    default:
+                        PyErr_Format(PyExc_NotImplementedError, "%s() Only records with elements of size (record.data_bits) equal to 32 (float) and 64 (double) are handled: %d", __func__, self->rec.data_bits);
+                        return NULL;
+                }
+                break;
+                break;
             case FST_TYPE_REAL:
             case FST_TYPE_REAL_IEEE:
             case FST_TYPE_REAL_OLD_QUANT:
+                switch(self->rec.data_bits){
+                    case 32: typenum = NPY_FLOAT32; break;
+                    case 64: typenum = NPY_FLOAT64; break;
+                    default:
+                        PyErr_Format(PyExc_NotImplementedError, "%s() Only records with elements of size (record.data_bits) equal to 32 (float) and 64 (double) are handled: %d", __func__, self->rec.data_bits);
+                        return NULL;
+                }
                 break;
             default:
                 PyErr_Format(PyExc_NotImplementedError, "%s() Cannot get data for record that is of other type than FST_TYPE_REAL or FST_TYPE_REAL_IEEE: %d", __func__, self->rec.data_type);
                 return NULL;
         }
 
-        int typenum;
-        switch(self->rec.data_bits){
-            case 32: typenum = NPY_FLOAT32; break;
-            case 64: typenum = NPY_FLOAT64; break;
-            default:
-                PyErr_Format(PyExc_NotImplementedError, "%s() Only records with elements of size (record.data_bits) equal to 32 (float) and 64 (double) are handled: %d", __func__, self->rec.data_bits);
-                return NULL;
-        }
 
         // TODO: Consider if we want to have the shape be (ni, nj) if nk == 1,
         // otherwise we can just always return arrays of shape (ni, nj, nk).
@@ -1207,6 +1217,7 @@ static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assig
     //       - Ensure verification is correct
     //       - Add code to handle other types of records
     switch(self->rec.data_type & (~FST_TYPE_TURBOPACK)){
+        case FST_TYPE_UNSIGNED:
         case FST_TYPE_REAL:
         case FST_TYPE_REAL_IEEE:
         case FST_TYPE_REAL_OLD_QUANT:
@@ -1219,10 +1230,14 @@ static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assig
     int expected_data_bits;
 
     switch(type){
-        case NPY_FLOAT32: expected_data_bits = 32; break;
-        case NPY_FLOAT64: expected_data_bits = 64; break;
+        case NPY_FLOAT32:
+        case NPY_UINT32:
+            expected_data_bits = 32; break;
+        case NPY_FLOAT64:
+        case NPY_UINT64:
+            expected_data_bits = 64; break;
         default:
-            PyErr_Format(PyExc_NotImplementedError, "Only numpy arrays of type NPY_FLOAT32 or NPY_FLOAT64 are handled", __func__);
+            PyErr_Format(PyExc_NotImplementedError, "Only numpy arrays of type NPY_FLOAT32 or NPY_FLOAT64 or NPY_UINT32 or NPY_UINT64 are handled", __func__);
             return -1;
     }
 
