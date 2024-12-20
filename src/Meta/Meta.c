@@ -360,12 +360,9 @@ json_object *Meta_Load(char *Path) {
          }
       }
    }
-<<<<<<< HEAD
-=======
   
    if (!obj)
       Lib_Log(APP_LIBMETA,APP_ERROR,"%s: Unabled to load json file %s\n",__func__,Path);
->>>>>>> be65ac5 ([META] Added horizontal and vertical reference creation functions)
 
    return(obj);
 }
