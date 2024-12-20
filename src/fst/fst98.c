@@ -2131,12 +2131,10 @@ int c_fstinfx_xdf(
     stdf_dir_keys *stdf_entry = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
     stdf_dir_keys *search_mask = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
 
-    uint32_t * pkeys = (uint32_t *) stdf_entry;
-    uint32_t * pmask = (uint32_t *) search_mask;
+    uint32_t * pkeys = stdf_entry->words;
+    uint32_t * pmask = search_mask->words;
 
-    for (int i = 0; i < (sizeof(stdf_dir_keys) / sizeof(uint32_t)); i++) {
-        pmask[i] = -1;
-    }
+    memset(search_mask, 0xff, sizeof(stdf_dir_keys));
 
     search_mask->pad1 = 0;
     search_mask->pad2 = 0;
@@ -2825,7 +2823,7 @@ int c_fstluk_xdf(
 
     stdf_dir_keys stdf_entry;
     // printf("Debug+ c_fstluk - &stdf_entry = %p\n", &stdf_entry);
-    uint32_t * pkeys = (uint32_t *) &stdf_entry;
+    uint32_t * pkeys = stdf_entry.words;
     // printf("Debug+ c_fstluk - pkeys = %p\n", pkeys);
     pkeys += W64TOWD(1);
     // printf("Debug+ c_fstluk - pkeys = %p\n", pkeys);
@@ -3849,7 +3847,7 @@ int c_fstprm_xdf(
     int ier, addr, idtyp, xdflng, l1, l2, l3, l4;
 
     stdf_entry = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
-    pkeys = (uint32_t *) stdf_entry;
+    pkeys = stdf_entry->words;
     pkeys += W64TOWD(1);
 
     ier = c_xdfprm(handle, &addr, &xdflng, &idtyp, pkeys, 16);
@@ -4188,7 +4186,7 @@ int c_fstsui_xdf(
     }
 
     stdf_dir_keys * stdf_entry = (stdf_dir_keys *) calloc(1, sizeof(stdf_dir_keys));
-    uint32_t * pkeys = (uint32_t *) stdf_entry;
+    uint32_t * pkeys = stdf_entry->words;
     pkeys += W64TOWD(1);
 
     int addr, lng, idtyp;

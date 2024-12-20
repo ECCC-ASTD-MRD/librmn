@@ -454,31 +454,34 @@ typedef struct {
 #include <rmn/fst_sz.h>
 
 //! Search tags part of standard file directory entry :  header + 8 x 64 bits
-typedef struct {
-    // Each line is 64 bits long
-#if !defined(Little_Endian)
-    uint32_t deleted:1, select:7, lng:24;
-    uint32_t addr:32;
-    uint32_t deet:24, nbits: 8, ni:   24, gtyp:  8;
-    uint32_t nj:24,  datyp: 8, nk:   20, ubc:  12;
-    uint32_t npas: 26, pad7: 6, ig4: 24, ig2a:  8;
-    uint32_t ig1:  24, ig2b:  8, ig3:  24, ig2c:  8;
-    uint32_t etik15:30, pad1:2, etik6a:30, pad2:2;
-    uint32_t etikbc:12, typvar:12, pad3:8, nomvar:24, dasiz:8;
-    uint32_t ip1:28, levtyp:4, ip2:28, pad5:4;
-    uint32_t ip3:28, pad6:4, date_stamp:32;
-#else
-    uint32_t lng:24, select:7, deleted:1;
-    uint32_t addr:32;
-    uint32_t nbits: 8, deet:24, gtyp:  8, ni:   24;
-    uint32_t datyp: 8, nj:24, ubc:  12, nk:   20;
-    uint32_t pad7: 6, npas: 26, ig2a:  8, ig4: 24;
-    uint32_t ig2b:  8, ig1:  24, ig2c:  8, ig3:  24;
-    uint32_t pad1:2, etik15:30, pad2:2, etik6a:30;
-    uint32_t pad3:8, typvar:12, etikbc:12, dasiz:8, nomvar:24;
-    uint32_t levtyp:4, ip1:28, pad5:4, ip2:28;
-    uint32_t pad6:4, ip3:28, date_stamp:32;
-#endif
+typedef union {
+    struct {
+        // Each line is 64 bits long
+        #if !defined(Little_Endian)
+            uint32_t deleted:1, select:7, lng:24;
+            uint32_t addr:32;
+            uint32_t deet:24, nbits: 8, ni:   24, gtyp:  8;
+            uint32_t nj:24,  datyp: 8, nk:   20, ubc:  12;
+            uint32_t npas: 26, pad7: 6, ig4: 24, ig2a:  8;
+            uint32_t ig1:  24, ig2b:  8, ig3:  24, ig2c:  8;
+            uint32_t etik15:30, pad1:2, etik6a:30, pad2:2;
+            uint32_t etikbc:12, typvar:12, pad3:8, nomvar:24, dasiz:8;
+            uint32_t ip1:28, levtyp:4, ip2:28, pad5:4;
+            uint32_t ip3:28, pad6:4, date_stamp:32;
+        #else
+            uint32_t lng:24, select:7, deleted:1;
+            uint32_t addr:32;
+            uint32_t nbits: 8, deet:24, gtyp:  8, ni:   24;
+            uint32_t datyp: 8, nj:24, ubc:  12, nk:   20;
+            uint32_t pad7: 6, npas: 26, ig2a:  8, ig4: 24;
+            uint32_t ig2b:  8, ig1:  24, ig2c:  8, ig3:  24;
+            uint32_t pad1:2, etik15:30, pad2:2, etik6a:30;
+            uint32_t pad3:8, typvar:12, etikbc:12, dasiz:8, nomvar:24;
+            uint32_t levtyp:4, ip1:28, pad5:4, ip2:28;
+            uint32_t pad6:4, ip3:28, date_stamp:32;
+        #endif
+    };
+    uint32_t words[18];
 } stdf_dir_keys;
 
 

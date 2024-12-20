@@ -545,12 +545,7 @@ void make_search_criteria(
     search_metadata* mask     = &(query->mask);
 
     // Reset search mask
-    {
-        uint32_t *pmask = (uint32_t *) mask;
-        for (uint32_t i = 0; i < (sizeof(search_metadata) / sizeof(uint32_t)); i++) {
-            pmask[i] = 0xffffffff;
-        }
-    }
+    memset(mask, 0xff, sizeof(search_metadata));
 
     // fst98 criteria
     {
