@@ -7,7 +7,7 @@
 #include <rmn.h>
 
 const char* test_file_name = "fst123_meta.fst";
-json_object *prof_file,*prof_fld,*meta=NULL,*search_meta=NULL;
+json_object *prof_file,*prof_fld,*prof_grid,*meta=NULL,*search_meta=NULL;
 double levels[1]= { 1000.0 };
 
 
@@ -38,6 +38,10 @@ int test_fst24_meta(void) {
    // Load metadata template
    prof_fld=Meta_New(META_TYPE_RECORD,NULL);
    prof_file=Meta_New(META_TYPE_FILE,NULL);
+//   prof_grid=Meta_Load("RPN_horizontal_reference.json");
+
+   prof_grid=Meta_CreateHorizontalRef("RPN_GDPS_TEST","YinYang","U","Two-patch overset grid",62154,75538,1,0,1,0,0,0);
+   Meta_AddHorizontalRef(prof_file,"RPN_GDPS_TEST",TRUE);
 
    search_meta=Meta_NewObject();
 //   Meta_SetCellMethods(search_meta,(char*[2]){ "time:mean\\(interval 5 minute\\)",NULL });
@@ -49,15 +53,15 @@ int test_fst24_meta(void) {
    fprintf(stderr,"Invalid json: %i\n", Meta_Is((json_object*)test_file));
 
    // Define file metadata
-   Meta_DefFile(prof_file,"CMC","Weather","G100","GDPS-5.2.0","Global forecast at 15km","Operational");
-   Meta_AddHorizontalRef(prof_file,"RPN_GDPS_2020_25KM",TRUE);
+   Meta_DefFile(prof_file,"CMC","Weather","G100","GDPS-5.2.1","Global forecast at 15km","Operational");
+   Meta_AddHorizontalRef(prof_file,"RPN_GDPS_U_2024_15KM",TRUE);
    Meta_AddVerticalRef(prof_file,"PRESSURE",TRUE);
 
    fprintf(stderr,"File JSON: %s\n",Meta_Stringify(prof_file,JSON_C_TO_STRING_PRETTY));
 
    // Define field metadata
    Meta_DefForecastTime(prof_fld,1672556400,2,1230,"millisecond"); //2023-01-01T00:00:00
-   Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_2020_25KM",FALSE);
+   Meta_DefHorizontalRef(prof_fld,"RPN_GDPS_TEST",FALSE);
    Meta_DefVerticalRef(prof_fld,"PRESSURE",levels,1,FALSE);
 
    Meta_SetCellMethods(prof_fld,(char*[4]){ "interpolation:linear","time:mean(interval 5 minute)","filter:gaussian",NULL });
@@ -70,6 +74,8 @@ int test_fst24_meta(void) {
 //   Meta_AddQualifier(prof_fld,"operational");
 //   Meta_AddQualifier(prof_fld,"tag:ETKGG22");
    Meta_AddMissingValue(prof_fld,"out_of_domain",-999);
+
+   fprintf(stderr,"Field JSON: %s\n",Meta_Stringify(prof_fld,JSON_C_TO_STRING_PRETTY));
 
     // Write records
    {
@@ -162,9 +168,9 @@ int test_fst24_meta(void) {
       Meta_Free(meta);
 
       // Test search on all keys
-      search_extra.ig1=68839;
+      search_extra.ig1=62154;
       search_extra.ni=1024;
-      search_extra.grtyp[0]='Z';
+      search_extra.grtyp[0]='U';
       fst_query* query = fst24_new_query(test_file, &search_extra, NULL);
       if (fst24_find_next(query, &record)) {
          fprintf(stderr,"Found search extra\n");    

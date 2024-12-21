@@ -41,11 +41,13 @@ json_object* Meta_GetVar(json_object *Obj,char **StandardName,char **RPNName,cha
 json_object* Meta_DefForecastTime(json_object *Obj,time_t T0,int32_t Step,double Duration,char *Unit);
 json_object* Meta_GetForecastTime(json_object *Obj,time_t *T0,int32_t *Step,double *Duration,char **Unit);
 
+json_object *Meta_CreateVerticalRef(char *Identifier,char *StandardName,char* RPNName,char *LongName,char* Description,char* Positive,char *Unit,char* FormulaTerms,int32_t Kind, int32_t VCode);
 json_object* Meta_AddVerticalRef(json_object *Obj,char *Identifier,int Copy);
 json_object* Meta_DefVerticalRef(json_object *Obj,char *Identifier,double *Value,int32_t Nb,int Copy);
 json_object* Meta_GetVerticalRef(json_object *Obj,int32_t Index,char **Identifier,double *Value);
 json_object* Meta_FindVerticalObj(char* Identifier,json_object *ObjMaster);
 
+json_object *Meta_CreateHorizontalRef(char *Identifier,char *StandardName,char* RPNName,char *LongName,int32_t IG1,int32_t IG2,int32_t IG3,int32_t IG4,int32_t IG1REF,int32_t IG2REF,int32_t IG3REF,int32_t IG4REF);
 json_object* Meta_AddHorizontalRef(json_object *Obj,char *Identifier,int Copy);
 json_object* Meta_DefHorizontalRef(json_object *Obj,char *Identifier,int Copy);
 json_object* Meta_GetHorizontalRef(json_object *Obj,char **Identifier);
