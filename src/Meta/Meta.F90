@@ -5,7 +5,8 @@ module rmn_meta
     implicit none
 
 #include "rmn/dlfcn.inc"
-#include 'Meta.inc'
+
+    include 'Meta.inc'
 
     type, public :: meta
         type(C_PTR) :: json_obj = c_null_ptr
