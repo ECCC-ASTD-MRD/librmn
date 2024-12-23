@@ -5,4 +5,4 @@
 [submodule "App"]
 	path = App
 	url = ../App.git
-	branch = master
+	branch = dev
