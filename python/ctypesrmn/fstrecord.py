@@ -1,9 +1,11 @@
 import ctypes
+import numpy as np
 
 from .sharedlib import librmn
 
 def align_to_4(val):
     return (val+3) & 0xfffffffc
+
 class fst_record(ctypes.Structure):
     _fields_ = (
         # The do-not-touch struct
@@ -62,7 +64,18 @@ class fst_record(ctypes.Structure):
     )
 
     def __init__(self, **kwargs):
-        self.data_array = None
+        #self = _get_default_fst_record()
+        self._version = 1010101001
+        self._deleted  = 0
+        self._handle   = -1
+        self._alloc    = 0
+        self._flags    = 0x0
+        self._fst_version = 0
+        self._num_search_keys = 0
+        self._extended_meta_size = 0
+        self._stored_data_size = 0
+        self._unpacked_data_size = 0
+        self._stringified_meta = None
         for k,v in kwargs.items():
             # TODO: This allowas setting and adding absolutely any attribute
             #       to a record so probably change this
@@ -70,6 +83,31 @@ class fst_record(ctypes.Structure):
                 setattr(self, '_'+k, v.encode('utf-8'))
             else:
                 setattr(self, k, v)
+
+    @property
+    def data(self):
+        # ASSUME FLOATS FOR NOW
+        if hasattr(self, "_data_array") and self._data is None:
+            raise Exception("Shouldn't happen")
+
+        if self._data is None:
+            # If no data has been set on the record and there is no file to
+            # read the data from, return None.  This access is not an error.
+            if self._handle < 0:
+                return None
+
+            data_array = np.empty((self.ni, self.nj, self.nk), dtype='f', order='F')
+            self._data = data_array.ctypes.data
+            res = _fst24_read_record(ctypes.byref(self))
+
+            self._data_array = data_array
+        return self._data_array
+
+    @data.setter
+    def data(self, value):
+        self._data_array = value
+        self._data = self._data_array.ctypes.data
+
     @property
     def etiket(self):
         return self._etiket.decode().rstrip()
@@ -98,6 +136,9 @@ class fst_record(ctypes.Structure):
     def grtyp(self, value):
         self._grtyp = value.encode('utf-8')
 
+_fst24_read_record = librmn.fst24_read_record
+_fst24_read_record.argtypes = (ctypes.POINTER(fst_record),)
+_fst24_read_record.restype = ctypes.c_int
 
 _get_default_fst_record = librmn.get_default_fst_record
 _get_default_fst_record.argtypes = tuple()

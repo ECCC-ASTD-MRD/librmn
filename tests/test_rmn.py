@@ -56,7 +56,7 @@ class TestRMNPackage(unittest.TestCase):
 
     def create_record_with_data(self):
         rec = self.create_record()
-        rec.data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk)).astype('f')
+        rec.data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk), order='F').astype('f')
         return rec
 
     def test_iterate_whole_file(self):
@@ -122,48 +122,54 @@ class TestRMNPackage(unittest.TestCase):
         rec = self.create_record()
         self.assertEqual(rec.ni, 8)
 
-#    def test_create_record_with_data(self):
-#        rec = self.create_record_with_data()
-#        self.assertIsInstance(rec.data, np.ndarray)
-#        self.assertEqual(rec.data.shape, (rec.ni, rec.nj, rec.nk))
+    def test_access_record_data(self):
+        with rmn.fst24_file(filename=self.input_file, options="R/O") as f:
+            q = f.new_query(nomvar='AL')
+            rec = next(q)
+            data = rec.data
+            self.assertAlmostEqual(data[0,0,0], 0.7999902)
+            self.assertAlmostEqual(data[-1,-1,0], 0.1699853)
+            self.assertAlmostEqual(data[235,109,0], 0.1199822)
 
+    def test_create_record_with_data(self):
+        rec = self.create_record_with_data()
+        self.assertIsInstance(rec.data, np.ndarray)
+        self.assertEqual(rec.data.shape, (rec.ni, rec.nj, rec.nk))
+
+    def test_access_record_data_of_record_without_data(self):
+        rec = self.create_record()
+        self.assertIs(rec.data, None)
+
+    def test_create_file_with_data(self):
+        to_write = self.create_record_with_data()
+        filename = f"{self.tmpdir}/new_file.std"
+        with rmn.fst24_file(filename=filename, options="R/W") as f:
+            f.write(to_write, rewrite=True)
+
+        with rmn.fst24_file(filename=filename, options="R/O") as f:
+            read_from_file = next(iter(f))
+            self.assertTrue(np.array_equal(to_write.data, read_from_file.data))
+
+    def test_write_to_closed_file(self):
+        with rmn.fst24_file(filename=f'{self.tmpdir}/write_to_closed.std', options='R/W') as f:
+            g = f
+        def write_to_closed_file():
+            rec = self.create_record_with_data()
+            g.write(rec, rewrite=True)
+        self.assertRaises(rmn.FstFileError, write_to_closed_file)
 
 #     def test_record_data_types(self):
 #         rec = self.create_record()
 #         data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk)).astype('f')
 #         rec.data_type = 1
 #         rec.data = data
-# 
+#
 #         rec.data_type = 5
 #         rec.data = data
-# 
+#
 #         rec.data_type = 6
 #         rec.data = data
-# 
-# 
-# 
-#     def test_access_record_data_of_record_without_data(self):
-#         rec = self.create_record()
-#         self.assertIs(rec.data, None)
-# 
-#     def test_create_file_with_data(self):
-#         to_write = self.create_record_with_data()
-#         filename = f"{self.tmpdir}/new_file.std"
-#         with rmn.fst24_file(filename=filename, options="R/W") as f:
-#             f.write(to_write, rewrite=True)
-# 
-#         with rmn.fst24_file(filename=filename, options="R/O") as f:
-#             read_from_file = next(iter(f))
-#             self.assertTrue(np.array_equal(to_write.data, read_from_file.data))
-# 
-#     def test_write_to_closed_file(self):
-#         with rmn.fst24_file(filename=f'{self.tmpdir}/write_to_closed.std', options='R/W') as f:
-#             g = f
-#         def write_to_closed_file():
-#             rec = self.create_record_with_data()
-#             g.write(rec, rewrite=True)
-#         self.assertRaises(rmn.FstFileError, write_to_closed_file)
-# 
+#
 #     def test_assign_invalid_data(self):
 #         rec = self.create_record()
 #         rec.data_type = 5
@@ -177,11 +183,11 @@ class TestRMNPackage(unittest.TestCase):
 #             rec.data = single_array
 #         def assign_non_array_to_record_data():
 #             rec.data = [1,2,3,4]
-# 
+#
 #         self.assertRaises(TypeError, assign_double_array_to_record_of_single)
 #         self.assertRaises(TypeError, assign_single_array_to_record_of_double)
 #         self.assertRaises(TypeError, assign_non_array_to_record_data)
-# 
+#
 #     def test_fst_record_to_dict(self):
 #         with rmn.fst24_file(filename=self.input_file) as f:
 #             it = f.__iter__()

@@ -17,6 +17,9 @@ _fst24_new_query = librmn.fst24_new_query
 _fst24_new_query.argtypes = (ctypes.c_void_p, ctypes.POINTER(fst_record), ctypes.c_void_p)
 _fst24_new_query.restype = ctypes.c_void_p
 
+_fst24_write = librmn.fst24_write
+_fst24_write.argtypes = (ctypes.c_void_p, ctypes.POINTER(fst_record), ctypes.c_int)
+
 class fst24_file(ctypes.Structure):
     def __init__(self, filename, options=""):
         # Use '*' to enforce that next arguments must be passed as
@@ -59,6 +62,13 @@ class fst24_file(ctypes.Structure):
         # print(f"fst24_file.__iter__(): c_query has type '{type(c_query)}'")
         # print(f"fst24_file.__iter__(): c_query={c_query}")
         return fst_query(c_query, self)
+
+    def write(self, record, rewrite):
+        if not isinstance(record, fst_record):
+            raise TypeError(f"First argumnent should be fst_record, not '{type(record)}'")
+        result = _fst24_write(self._c_ref, ctypes.byref(record), 1 if rewrite else 0)
+        if result != 1:
+            raise FstFileError("Error calling C function fst24_write()")
 
 class FstFileError(Exception):
     pass
