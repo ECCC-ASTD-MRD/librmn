@@ -98,6 +98,9 @@ subroutine basic_test()
     end if
   end do
 
+  success = circ_buffer % delete()
+  if (.not. success) num_error = num_error + 1
+
   if (num_error > 0) then
     print *, 'AAAAAhhhhh we found errors when running the test!!', num_error
     error stop 1
