@@ -188,49 +188,57 @@ class TestRMNPackage(unittest.TestCase):
 #         self.assertRaises(TypeError, assign_single_array_to_record_of_double)
 #         self.assertRaises(TypeError, assign_non_array_to_record_data)
 #
-#     def test_fst_record_to_dict(self):
-#         with rmn.fst24_file(filename=self.input_file) as f:
-#             it = f.__iter__()
-#             rec = next(it)
-#             self.assertEqual(rec.to_dict(), {
-#                 "nomvar": ">>",
-#                 "typvar": "X",
-#                 "grtyp": "E",
-#                 "etiket": "GEM_NEMO",
-#                 "ni": 257,
-#                 "nj": 1,
-#                 "nk": 1,
-#                 "ip1": 77343,
-#                 "ip2": 96583,
-#                 "ip3": 0,
-#                 "ig1": 900,
-#                 "ig2": 0,
-#                 "ig3": 43200,
-#                 "ig4": 43200,
-#                 "data_type": 5,
-#                 "data_bits": 32,
-#                 "file_index": 0
-#             })
-#             rec = next(it)
-#             self.assertEqual(rec.to_dict(), {
-#                 "nomvar": "^^",
-#                 "typvar": "X",
-#                 "grtyp": "E",
-#                 "etiket": "GEM_NEMO",
-#                 "ni": 1,
-#                 "nj": 128,
-#                 "nk": 1,
-#                 "ip1": 77343,
-#                 "ip2": 96583,
-#                 "ip3": 0,
-#                 "ig1": 900,
-#                 "ig2": 0,
-#                 "ig3": 43200,
-#                 "ig4": 43200,
-#                 "data_type": 5,
-#                 "data_bits": 32,
-#                 "file_index": 1
-#             })
+    def test_fst_record_to_dict(self):
+        with rmn.fst24_file(filename=self.input_file) as f:
+            it = f.__iter__()
+            rec = next(it)
+            self.assertEqual(rec.to_dict(), {
+                "nomvar": ">>",
+                "typvar": "X",
+                "grtyp": "E",
+                "etiket": "GEM_NEMO",
+                "dateo": 287576000,
+                "datev": 287576000,
+                "deet": 0,
+                "npas": 0,
+                "ni": 257,
+                "nj": 1,
+                "nk": 1,
+                "ip1": 77343,
+                "ip2": 96583,
+                "ip3": 0,
+                "ig1": 900,
+                "ig2": 0,
+                "ig3": 43200,
+                "ig4": 43200,
+                "data_type": 5,
+                "data_bits": 32,
+                "file_index": 0
+            })
+            rec = next(it)
+            self.assertEqual(rec.to_dict(), {
+                "nomvar": "^^",
+                "typvar": "X",
+                "grtyp": "E",
+                "etiket": "GEM_NEMO",
+                "dateo": 287576000,
+                "datev": 287576000,
+                "deet": 0,
+                "npas": 0,
+                "ni": 1,
+                "nj": 128,
+                "nk": 1,
+                "ip1": 77343,
+                "ip2": 96583,
+                "ip3": 0,
+                "ig1": 900,
+                "ig2": 0,
+                "ig3": 43200,
+                "ig4": 43200,
+                "data_type": 5,
+                "data_bits": 32,
+                "file_index": 1
+            })
 
 
 if __name__ == "__main__":

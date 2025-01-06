@@ -118,6 +118,31 @@ class fst_record(ctypes.Structure):
     def grtyp(self, value):
         self._grtyp = value.encode('utf-8')
 
+    def to_dict(self):
+        return {
+            'nomvar': self.nomvar,
+            'typvar': self.typvar,
+            'grtyp': self.grtyp,
+            'etiket': self.etiket,
+            'ni': self.ni,
+            'nj': self.nj,
+            'nk': self.nk,
+            'dateo': self.dateo,
+            'datev': self.datev,
+            'npas': self.npas,
+            'deet': self.deet,
+            'ip1': self.ip1,
+            'ip2': self.ip2,
+            'ip3': self.ip3,
+            'ig1': self.ig1,
+            'ig2': self.ig2,
+            'ig3': self.ig3,
+            'ig4': self.ig4,
+            'data_type': self.data_type,
+            'data_bits': self.data_bits,
+            'file_index': self.file_index,
+        }
+
 _fst24_read_record = librmn.fst24_read_record
 _fst24_read_record.argtypes = (ctypes.POINTER(fst_record),)
 _fst24_read_record.restype = ctypes.c_int
