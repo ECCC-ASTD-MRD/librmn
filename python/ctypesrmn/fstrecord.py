@@ -68,12 +68,7 @@ class fst_record(ctypes.Structure):
         _set_default_values(ctypes.byref(self))
 
         for k,v in kwargs.items():
-            # TODO: This allowas setting and adding absolutely any attribute
-            #       to a record so probably change this
-            if k in ['typvar', 'grtyp', 'nomvar', 'etiket']:
-                setattr(self, '_'+k, v.encode('utf-8'))
-            else:
-                setattr(self, k, v)
+            setattr(self, k, v)
 
     @property
     def data(self):
