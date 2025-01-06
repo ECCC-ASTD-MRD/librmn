@@ -53,10 +53,6 @@ class fst_record(ctypes.Structure):
 
         ('dummy', ctypes.c_int32),
 
-        # Make these properties probably.
-        # Note: fst_record.h has sizes like 'FST_TYPVAR_LEN + 1'
-        #       but in fst_sz.h, the comments say that the FST_TYPVAR_LEN
-        #       already contains space for the \0.
         ('_typvar', ctypes.c_char * align_to_4(3)),
         ('_grtyp', ctypes.c_char * align_to_4(2)),
         ('_nomvar', ctypes.c_char * align_to_4(5)),
@@ -72,7 +68,7 @@ class fst_record(ctypes.Structure):
 
     @property
     def data(self):
-        # ASSUME FLOATS FOR NOW
+        # TODO: Check consistency of data type
         if hasattr(self, "_data_array") and self._data is None:
             raise Exception("Shouldn't happen")
 
