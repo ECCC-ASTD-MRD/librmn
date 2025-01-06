@@ -64,18 +64,9 @@ class fst_record(ctypes.Structure):
     )
 
     def __init__(self, **kwargs):
-        #self = _get_default_fst_record()
-        self._version = 1010101001
-        self._deleted  = 0
-        self._handle   = -1
-        self._alloc    = 0
-        self._flags    = 0x0
-        self._fst_version = 0
-        self._num_search_keys = 0
-        self._extended_meta_size = 0
-        self._stored_data_size = 0
-        self._unpacked_data_size = 0
-        self._stringified_meta = None
+        # Set values according to C macro `default_fst_record`.
+        _set_default_values(ctypes.byref(self))
+
         for k,v in kwargs.items():
             # TODO: This allowas setting and adding absolutely any attribute
             #       to a record so probably change this
@@ -143,3 +134,7 @@ _fst24_read_record.restype = ctypes.c_int
 _get_default_fst_record = librmn.get_default_fst_record
 _get_default_fst_record.argtypes = tuple()
 _get_default_fst_record.restype = fst_record
+
+_set_default_values = librmn.fst_record_set_default_values
+_set_default_values.argtypes = (ctypes.POINTER(fst_record),)
+_set_default_values.restype = ctypes.c_int
