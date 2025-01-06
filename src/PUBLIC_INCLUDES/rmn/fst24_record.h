@@ -44,6 +44,9 @@ typedef struct fst24_file_ fst_file;
 
 //! Description of an FST record. See \ref default_fst_record for the default values.
 typedef struct {
+    // NOTE: Any modification to this whole struct must be reflected exactly
+    // in the Python Ctypes definition python/rmn/fstrecord.py
+
     //!> Internal implementation details
     struct {
         int32_t version;  //!< Version marker
