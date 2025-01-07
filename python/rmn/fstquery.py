@@ -18,6 +18,8 @@ class fst_query:
         return self
 
     def __next__(self):
+        if self._file_ref.closed:
+            raise ValueError(f"Query {self} references closed file")
         rec = _get_default_fst_record()
         ok = _fst24_find_next(self._c_ref, ctypes.byref(rec))
         if ok == 0:

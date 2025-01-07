@@ -169,7 +169,7 @@ class TestRMNPackage(unittest.TestCase):
         def write_to_closed_file():
             rec = self.create_record_with_data()
             g.write(rec, rewrite=True)
-        self.assertRaises(rmn.FstFileError, write_to_closed_file)
+        self.assertRaises(ValueError, write_to_closed_file)
 
 #     def test_record_data_types(self):
 #         rec = self.create_record()
@@ -273,6 +273,19 @@ class TestRMNPackage(unittest.TestCase):
         self.assertRaises(TypeError, invalid_value_typvar)
         self.assertRaises(TypeError, invalid_value_dateo)
 
+    def test_query_on_closed_file(self):
+        # We give the query object a reference to the file it was made from
+        # so that the file object stays alive as long as the query.  However
+        # the __exit__ of a context manager closes the file.  This allows us
+        # to create a query that references a closed file.  This is the
+        # desired behavior but we want to make sure that the exception we get
+        # is a ValueError with a good message
+        def query_closed_file():
+            with rmn.fst24_file(self.input_file) as f:
+                q = f.new_query()
+            for rec in q:
+                pass
+        self.assertRaisesRegex(ValueError, "references closed file", query_closed_file)
 
 if __name__ == "__main__":
     unittest.main()

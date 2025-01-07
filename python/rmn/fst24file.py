@@ -25,11 +25,11 @@ class fst24_file(ctypes.Structure):
         # Use '*' to enforce that next arguments must be passed as
         # keyword args.
         self._c_ref = None
+        self.closed = False
         self.filename = filename
         self.options = options
 
         self._c_ref = _fst24_open(filename.encode('utf-8'), options.encode('utf-8'))
-        logging.debug(f"fst24_file.__init__(): self._c_ref={self._c_ref}")
         if self._c_ref is None:
             raise FstFileError("Could not open file")
     def close(self):
@@ -38,9 +38,14 @@ class fst24_file(ctypes.Structure):
         # double closing in one object can close the file encapsulated in
         # another object.
         logging.debug(f"Closing fst24_file {self.filename}(_c_ref={self._c_ref}, id={id(self)})")
-        if self._c_ref is not None:
-            _fst24_close(self._c_ref)
+        if not self.closed:
+            res = _fst24_close(self._c_ref)
+            if res == 0:
+                raise FstFileError(f"Error calling C function fst24_close(0x{self._c_ref:x})")
+
+            self.closed = True
             self._c_ref = None
+
     def __enter__(self):
         logging.debug(f"Context Manager __enter__: fst24_file {self.filename}")
         return self
@@ -63,6 +68,8 @@ class fst24_file(ctypes.Structure):
         return fst_query(c_query, self)
 
     def write(self, record, rewrite):
+        if self.closed:
+            raise ValueError("I/O operation on closed file")
         if not isinstance(record, fst_record):
             raise TypeError(f"First argumnent should be fst_record, not '{type(record)}'")
         result = _fst24_write(self._c_ref, ctypes.byref(record), 1 if rewrite else 0)
