@@ -1,7 +1,7 @@
 import ctypes
 import logging
 
-from .sharedlib import librmn
+from ._sharedlib import librmn
 from .fstrecord import fst_record, _get_default_fst_record
 from .fstquery import fst_query
 
