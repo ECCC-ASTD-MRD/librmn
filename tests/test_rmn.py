@@ -239,6 +239,26 @@ class TestRMNPackage(unittest.TestCase):
                 "data_bits": 32,
                 "file_index": 1
             })
+    def test_invalid_record_attributes(self):
+        def inexistant_attribute():
+            rec = rmn.fst_record(meteo="8")
+        def invalid_value_etiket():
+            rec = rmn.fst_record(etiket=8)
+        def invalid_value_grtyp():
+            rec = rmn.fst_record(grtyp=8)
+        def invalid_value_typvar():
+            rec = rmn.fst_record(typvar=8)
+        def invalid_value_nomvar():
+            rec = rmn.fst_record(nomvar=8)
+        def invalid_value_dateo():
+            rec = rmn.fst_record(dateo="28757600")
+
+        self.assertRaises(AttributeError, inexistant_attribute)
+        self.assertRaises(TypeError, invalid_value_nomvar)
+        self.assertRaises(TypeError, invalid_value_etiket)
+        self.assertRaises(TypeError, invalid_value_grtyp)
+        self.assertRaises(TypeError, invalid_value_typvar)
+        self.assertRaises(TypeError, invalid_value_dateo)
 
 
 if __name__ == "__main__":

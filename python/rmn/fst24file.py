@@ -40,16 +40,9 @@ class fst24_file(ctypes.Structure):
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.close()
     def new_query(self, **kwargs):
-        # TODO: This code is copied from the __init__ of fst_record
-        #       figure something out to make this more elegant
         criteria = _get_default_fst_record()
         for k,v in kwargs.items():
-            # TODO: This allowas setting and adding absolutely any attribute
-            #       to a record so probably change this
-            if k in ['typvar', 'grtyp', 'nomvar', 'etiket']:
-                setattr(criteria, '_'+k, v.encode('utf-8'))
-            else:
-                setattr(criteria, k, v)
+            setattr(criteria, k, v)
         c_query = _fst24_new_query(self._c_ref, ctypes.byref(criteria), 0)
         if c_query is None or c_query == (None,):
             raise FstFileError("_fst24_file_new_query failed, TODO Call App_ErorrGet()")

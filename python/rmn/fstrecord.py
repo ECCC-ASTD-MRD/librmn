@@ -7,6 +7,10 @@ def align_to_4(val):
     return (val+3) & 0xfffffffc
 
 class fst_record(ctypes.Structure):
+    # The presence of __slots__ prevents the creation of other attributes.
+    # Now the only possible attributes are the ones declared in the _fields_
+    # alist and in __slots__.
+    __slots__ = ['_data_array']
     _fields_ = (
         # The do-not-touch struct
         ('_version', ctypes.c_int32),
@@ -61,17 +65,16 @@ class fst_record(ctypes.Structure):
 
     def __init__(self, **kwargs):
         # Set values according to C macro `default_fst_record`.
-        _set_default_values(ctypes.byref(self))
-
+        # _set_default_values(ctypes.byref(self))
+        self._data_array = None
         for k,v in kwargs.items():
             setattr(self, k, v)
 
+    def __new__(cls, *args, **kwargs):
+        return _get_default_fst_record()
+
     @property
     def data(self):
-        # TODO: Check consistency of data type
-        if hasattr(self, "_data_array") and self._data is None:
-            raise Exception("Shouldn't happen")
-
         if self._data is None:
             # If no data has been set on the record and there is no file to
             # read the data from, return None.  This access is not an error.
@@ -93,30 +96,51 @@ class fst_record(ctypes.Structure):
     @property
     def etiket(self):
         return self._etiket.decode().rstrip()
+
     @etiket.setter
     def etiket(self, value):
-        self._etiket = value.encode('utf-8')
+        if isinstance(value, str):
+            self._etiket = value.encode('utf-8')
+        elif isinstance(value, bytes):
+            self._etiket = value
+        else:
+            raise TypeError(f"Expected str or bytes, not {type(value).__name__}")
 
     @property
     def typvar(self):
         return self._typvar.decode().rstrip()
     @typvar.setter
     def typvar(self, value):
-        self._typvar = value.encode('utf-8')
+        if isinstance(value, str):
+            self._typvar = value.encode('utf-8')
+        elif isinstance(value, bytes):
+            self._typvar = value
+        else:
+            raise TypeError(f"Expected str or bytes, not {type(value).__name__}")
 
     @property
     def nomvar(self):
         return self._nomvar.decode().rstrip()
     @nomvar.setter
     def nomvar(self, value):
-        self._nomvar = value.encode('utf-8')
+        if isinstance(value, str):
+            self._nomvar = value.encode('utf-8')
+        elif isinstance(value, bytes):
+            self._nomvar = value
+        else:
+            raise TypeError(f"Expected str or bytes, not {type(value).__name__}")
 
     @property
     def grtyp(self):
         return self._grtyp.decode().rstrip()
     @grtyp.setter
     def grtyp(self, value):
-        self._grtyp = value.encode('utf-8')
+        if isinstance(value, str):
+            self._grtyp = value.encode('utf-8')
+        elif isinstance(value, bytes):
+            self._grtyp = value
+        else:
+            raise TypeError(f"Expected str or bytes, not {type(value).__name__}")
 
     def to_dict(self):
         return {
@@ -150,7 +174,3 @@ _fst24_read_record.restype = ctypes.c_int
 _get_default_fst_record = librmn.get_default_fst_record
 _get_default_fst_record.argtypes = tuple()
 _get_default_fst_record.restype = fst_record
-
-_set_default_values = librmn.fst_record_set_default_values
-_set_default_values.argtypes = (ctypes.POINTER(fst_record),)
-_set_default_values.restype = ctypes.c_int
