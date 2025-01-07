@@ -11,7 +11,7 @@
 
 import numpy as np
 import os
-import ctypesrmn as rmn
+import rmn
 import sys
 import tempfile
 import unittest

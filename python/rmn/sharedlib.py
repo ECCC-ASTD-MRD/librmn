@@ -3,10 +3,11 @@ import os
 import logging
 
 this_dir = os.path.dirname(__file__)
-# print(f'this_dir={this_dir}')
+logging.error(f'this_dir={this_dir}')
 # __file__ == <build-dir>/python/rmn/shared_lib.py
 # librmn.so == <build-dir>/librmn.so
 rel_build_dir = os.path.normpath(os.path.join(this_dir, '..', '..', 'librmn.so'))
+logging.error(f'rel_build_dir={rel_build_dir}')
 if os.path.isfile(rel_build_dir):
     librmn = ctypes.cdll.LoadLibrary(rel_build_dir)
 else:
