@@ -55,9 +55,8 @@ class fst24_file(ctypes.Structure):
         c_query = _fst24_new_query(self._c_ref, ctypes.byref(criteria), 0)
         if c_query is None or c_query == (None,):
             raise FstFileError("_fst24_file_new_query failed, TODO Call App_ErorrGet()")
-        # print(f"fst24_file.new_query(): c_query has type '{type(c_query)}'")
-        # print(f"fst24_file.new_query(): c_query={c_query}")
-        return fst_query(c_query, self._c_ref)
+        return fst_query(c_query, self)
+
     def __iter__(self):
         criteria = _get_default_fst_record()
         c_query = _fst24_new_query(self._c_ref, ctypes.byref(criteria), 0)
