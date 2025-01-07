@@ -141,6 +141,19 @@ class TestRMNPackage(unittest.TestCase):
         self.assertIs(rec.data, None)
 
     def test_create_file_with_data(self):
+        # Interesting situation occurs here with potential closing a file
+        # too many times with __del__ and __exit__ both closing a file:
+        # - with 1 creates file object 1, which encapsulates pointer PTR1
+        # - with 1 assigns new object to f
+        # - end with 1 calls f.__exit__ which closes the file
+        # - with 2 creates file object 2, encapsulating PTR2
+        # - with 2 assigns file object 2 to f (same name)
+        # - assignment to f reduces refcount of file object 1 to 0 which calls
+        #   __del__ of object file 1.
+        #   - Because of how RMN works, PTR2 == PTR1, so the __del__ of
+        #     of file object 1 closes the file encapsulated by file object 2
+        # THEREFORE: it is important that file object 1 remembers that it has
+        # been closed.
         to_write = self.create_record_with_data()
         filename = f"{self.tmpdir}/new_file.std"
         with rmn.fst24_file(filename=filename, options="R/W") as f:

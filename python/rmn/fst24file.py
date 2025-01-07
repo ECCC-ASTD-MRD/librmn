@@ -33,12 +33,21 @@ class fst24_file(ctypes.Structure):
         if self._c_ref is None:
             raise FstFileError("Could not open file")
     def close(self):
-        if self._c_ref != 0:
+        # See test_create_file_with_data().  It makes sense in and of itself
+        # to prevent double-closing a file but the test shows a situation where
+        # double closing in one object can close the file encapsulated in
+        # another object.
+        logging.debug(f"Closing fst24_file {self.filename}(_c_ref={self._c_ref}, id={id(self)})")
+        if self._c_ref is not None:
             _fst24_close(self._c_ref)
+            self._c_ref = None
     def __enter__(self):
+        logging.debug(f"Context Manager __enter__: fst24_file {self.filename}")
         return self
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        logging.debug(f"Context Manager __exit__: fst24_file {self.filename}")
         self.close()
+
     def new_query(self, **kwargs):
         criteria = _get_default_fst_record()
         for k,v in kwargs.items():
@@ -52,8 +61,6 @@ class fst24_file(ctypes.Structure):
     def __iter__(self):
         criteria = _get_default_fst_record()
         c_query = _fst24_new_query(self._c_ref, ctypes.byref(criteria), 0)
-        # print(f"fst24_file.__iter__(): c_query has type '{type(c_query)}'")
-        # print(f"fst24_file.__iter__(): c_query={c_query}")
         return fst_query(c_query, self)
 
     def write(self, record, rewrite):
@@ -62,6 +69,9 @@ class fst24_file(ctypes.Structure):
         result = _fst24_write(self._c_ref, ctypes.byref(record), 1 if rewrite else 0)
         if result != 1:
             raise FstFileError("Error calling C function fst24_write()")
+    def __del__(self):
+        logging.debug(f"__del__: fst24_file {self.filename} (id={id(self)}")
+        self.close()
 
 class FstFileError(Exception):
     pass
