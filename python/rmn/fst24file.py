@@ -21,7 +21,16 @@ _fst24_write = librmn.fst24_write
 _fst24_write.argtypes = (ctypes.c_void_p, ctypes.POINTER(fst_record), ctypes.c_int)
 
 class fst24_file(ctypes.Structure):
+    """ Object encapsulating an RPN fst24 file
+    >>> # Print all records of a file that have nomvar == "AL"
+    >>> import rmn
+    >>> with rmn.fst24_file(<filename>) as f:
+    >>>     q = f.new_query(nomvar="AL")
+    >>>     for rec in q:
+    >>>         print(rec)
+    """
     def __init__(self, filename, options=""):
+        """ Opens an fst24 file `filename` with options """
         # Use '*' to enforce that next arguments must be passed as
         # keyword args.
         self._c_ref = None
@@ -33,6 +42,12 @@ class fst24_file(ctypes.Structure):
         if self._c_ref is None:
             raise FstFileError("Could not open file")
     def close(self):
+        """ Closes an fst24 file.
+
+        Users should prefer to use context managers over calling this method
+        directly.
+
+        This method has no effect if the file is already closed"""
         # See test_create_file_with_data().  It makes sense in and of itself
         # to prevent double-closing a file but the test shows a situation where
         # double closing in one object can close the file encapsulated in
@@ -47,13 +62,17 @@ class fst24_file(ctypes.Structure):
             self._c_ref = None
 
     def __enter__(self):
+        """ Context manager enter method on fst24_file """
         logging.debug(f"Context Manager __enter__: fst24_file {self.filename}")
         return self
     def __exit__(self, exc_type, exc_value, exc_traceback):
+        """ Context manager exit method of fst24_file"""
         logging.debug(f"Context Manager __exit__: fst24_file {self.filename}")
         self.close()
 
     def new_query(self, **kwargs):
+        """ Returns a new query to find records matching the criteria received
+        as arguments """
         criteria = _get_default_fst_record()
         for k,v in kwargs.items():
             setattr(criteria, k, v)
@@ -63,11 +82,13 @@ class fst24_file(ctypes.Structure):
         return fst_query(c_query, self)
 
     def __iter__(self):
+        """ Returns an iterator that will iterate on all records of the file """
         criteria = _get_default_fst_record()
         c_query = _fst24_new_query(self._c_ref, ctypes.byref(criteria), 0)
         return fst_query(c_query, self)
 
     def write(self, record, rewrite):
+        """ Write a record to the file """
         if self.closed:
             raise ValueError("I/O operation on closed file")
         if not isinstance(record, fst_record):

@@ -1,15 +1,23 @@
 import ctypes
 from .fstrecord import fst_record, _get_default_fst_record
-from .sharedlib import librmn
+from ._sharedlib import librmn
 
 _fst24_find_next = librmn.fst24_find_next
 _fst24_find_next.argtypes = (ctypes.c_void_p, ctypes.POINTER(fst_record))
 _fst24_find_next.restype = ctypes.c_int
 
 class fst_query:
+    """ Query object for RPN fst24 files.  This object implements
+    the iterator protocol
+    # Print all records matching criteria
+    >>> q = f.new_query(**criteria)
+    >>> for rec in q:
+    >>>     print(rec)
+    """
+
     def __init__(self, _c_ref, _file_ref):
-        # Queries should only be created using fst24_file.new_query.
-        # Can we prevent users from creating queries directly?
+        """ Queries should only be created by users through the
+        new_query method of fst24_file."""
         self._c_ref = _c_ref
         # Keep the file object alive as long as this query is alive
         self._file_ref = _file_ref

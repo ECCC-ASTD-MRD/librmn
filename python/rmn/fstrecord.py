@@ -1,12 +1,55 @@
 import ctypes
 import numpy as np
 
-from .sharedlib import librmn
+from ._sharedlib import librmn
 
 def align_to_4(val):
     return (val+3) & 0xfffffffc
 
 class fst_record(ctypes.Structure):
+    """ fst_record object
+    Fields:
+    - dateo: int           Origin Date timestamp
+    - datev: int           Valid Date timestamp
+
+    - data_type: int       Data type of elements. See FST_TYPE_* constants.
+    - data_bits: int       Number of bits per input elements
+    - pack_bits: int       Number of stored bits
+    - ni: int              First dimension of the data field (number of elements)
+    - nj: int              Second dimension of the data field (number of elements)
+    - nk: int              Third dimension of the data field (number of elements)
+    - num_meta_bytes: int  Size of the metadata in bytes
+
+    - deet: int            Length of the time steps in seconds (deet)
+    - npas: int            Time step number
+
+    - ip1: int             Vertical level
+    - ip2: int             Forecast hour
+    - ip3: int             User defined identifier
+
+    - ig1: int             First grid descriptor
+    - ig2: int             Second grid descriptor
+    - ig3: int             Third grid descriptor
+    - ig4: int             Fourth grid descriptor
+
+    - typvar: str          Type of field (forecast, analysis, climatology)
+    - grtyp: str           Type of geographical projection
+    - nomvar: str          Variable name
+    - etiket: str          Label
+    Create a record with data
+    >>> rec = rmn.fst_record(
+    >>>     dateo=1, datev=2,
+    >>>     data_type=5, data_bits=32, pack_bits=32,
+    >>>     ni=8, nj=9, nk=1,
+    >>>     ip1=1,ip2=2,ip3=3,
+    >>>     ig1=1, ig2=2, ig3=3, ig4=4,
+    >>>     nomvar="RPN", typvar="Y", grtyp="X"
+    >>> )
+    >>> rec.deet = 0
+    >>> rec.npas = 0
+    >>> rec.etiket = "demo"
+    >>> rec.data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk), order='F').astype('f')
+    """
     # The presence of __slots__ prevents the creation of other attributes.
     # Now the only possible attributes are the ones declared in the _fields_
     # alist and in __slots__.
@@ -75,6 +118,8 @@ class fst_record(ctypes.Structure):
 
     @property
     def data(self):
+        """ Property encapsulating the data of an fst record.  On access, the
+        data is read from the file and stored in a numpy array. """
         if self._data is None:
             # If no data has been set on the record and there is no file to
             # read the data from, return None.  This access is not an error.
@@ -143,6 +188,8 @@ class fst_record(ctypes.Structure):
             raise TypeError(f"Expected str or bytes, not {type(value).__name__}")
 
     def to_dict(self):
+        """ Convert a record to dictionnary potentially for use as a row of
+        a Pandas DataFrame. """
         return {
             'nomvar': self.nomvar,
             'typvar': self.typvar,
