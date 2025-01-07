@@ -98,7 +98,7 @@ class fst_record(ctypes.Structure):
         ('ig3', ctypes.c_int32),
         ('ig4', ctypes.c_int32),
 
-        ('dummy', ctypes.c_int32),
+        ('_dummy', ctypes.c_int32),
 
         ('_typvar', ctypes.c_char * align_to_4(3)),
         ('_grtyp', ctypes.c_char * align_to_4(2)),
@@ -111,6 +111,8 @@ class fst_record(ctypes.Structure):
         # _set_default_values(ctypes.byref(self))
         self._data_array = None
         for k,v in kwargs.items():
+            if k.startswith('_'):
+                raise ValueError("Attributes beginning with '_' should not be touched")
             setattr(self, k, v)
 
     def __new__(cls, *args, **kwargs):
@@ -135,6 +137,8 @@ class fst_record(ctypes.Structure):
 
     @data.setter
     def data(self, value):
+        if not isinstance(value, np.ndarray):
+            raise ValueError(f"Expecting {np.ndarray.__name__}, got {type(value).__name__}")
         self._data_array = value
         self._data = self._data_array.ctypes.data
 

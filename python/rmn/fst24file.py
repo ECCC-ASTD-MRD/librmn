@@ -75,6 +75,8 @@ class fst24_file(ctypes.Structure):
         as arguments """
         criteria = _get_default_fst_record()
         for k,v in kwargs.items():
+            if k.startswith('_'):
+                raise ValueError("{k} cannot be used as an argument")
             setattr(criteria, k, v)
         c_query = _fst24_new_query(self._c_ref, ctypes.byref(criteria), 0)
         if c_query is None or c_query == (None,):
