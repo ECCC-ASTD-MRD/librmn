@@ -566,7 +566,7 @@ void make_search_criteria(
         fst98_mask->levtyp = 0;
 
         if (record->dateo != default_fst_record.dateo) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Searching by origin date (dateo) has not been implemented yet\n", __func__);
+            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Searching by origin date (dateo) has not been implemented yet\n", __func__);
         }
 
         fst98_meta->date_stamp = stamp_from_date(record->datev);

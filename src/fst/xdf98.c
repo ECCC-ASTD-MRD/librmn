@@ -110,9 +110,12 @@ static void finalize_xdf(void) {
         if (file_table[i] != NULL && file_table[i]->iun > 0) {
             const int index_fnom = get_fnom_index(file_table[i]->iun);
             if (index_fnom >= 0 && index_fnom < MAX_FNOM_FILES) {
-                Lib_Log(APP_LIBFST, APP_WARNING,
-                        "%s: File \"%s\" is still open, so we will close it to avoid corruption.\n",
-                        __func__, FGFDT[index_fnom].file_name);
+                // Only print warning for files opened in write mode
+                if (!FGFDT[index_fnom].attr.read_only) {
+                    Lib_Log(APP_LIBFST, APP_WARNING,
+                            "%s: File \"%s\" is still open, so we will close it to avoid corruption.\n",
+                            __func__, FGFDT[index_fnom].file_name);
+                }
                 c_xdfcls(file_table[i]->iun);
             }
         }
