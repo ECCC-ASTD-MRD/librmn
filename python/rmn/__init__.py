@@ -36,4 +36,4 @@ Create a file with a single record with random data:
 >>>     f.write(rec, rewrite=True)
 """
 from .fst24file import fst24_file, FstFileError
-from .fstrecord import fst_record
+from .fstrecord import fst_record, FstDataType

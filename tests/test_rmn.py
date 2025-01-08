@@ -56,7 +56,7 @@ class TestRMNPackage(unittest.TestCase):
 
     def create_record_with_data(self):
         rec = self.create_record()
-        rec.data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk), order='F').astype('f')
+        rec.data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk), order='F').astype(rec.numpy_type())
         return rec
 
     def test_iterate_whole_file(self):
@@ -171,36 +171,36 @@ class TestRMNPackage(unittest.TestCase):
             g.write(rec, rewrite=True)
         self.assertRaises(ValueError, write_to_closed_file)
 
-#     def test_record_data_types(self):
-#         rec = self.create_record()
-#         data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk)).astype('f')
-#         rec.data_type = 1
-#         rec.data = data
-#
-#         rec.data_type = 5
-#         rec.data = data
-#
-#         rec.data_type = 6
-#         rec.data = data
-#
-#     def test_assign_invalid_data(self):
-#         rec = self.create_record()
-#         rec.data_type = 5
-#         double_array = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk))
-#         single_array = double_array.astype('f')
-#         def assign_double_array_to_record_of_single():
-#             rec.data_bits = 32
-#             rec.data = double_array
-#         def assign_single_array_to_record_of_double():
-#             rec.data_bits = 64
-#             rec.data = single_array
-#         def assign_non_array_to_record_data():
-#             rec.data = [1,2,3,4]
-#
-#         self.assertRaises(TypeError, assign_double_array_to_record_of_single)
-#         self.assertRaises(TypeError, assign_single_array_to_record_of_double)
-#         self.assertRaises(TypeError, assign_non_array_to_record_data)
-#
+    def test_record_data_types(self):
+        rec = self.create_record()
+        data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk)).astype('f')
+        rec.data_type = 1
+        rec.data = data
+
+        rec.data_type = 5
+        rec.data = data
+
+        rec.data_type = 6
+        rec.data = data
+
+    def test_assign_invalid_data(self):
+        rec = self.create_record()
+        rec.data_type = 5
+        double_array = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk))
+        single_array = double_array.astype('f')
+        def assign_double_array_to_record_of_single():
+            rec.data_bits = 32
+            rec.data = double_array
+        def assign_single_array_to_record_of_double():
+            rec.data_bits = 64
+            rec.data = single_array
+        def assign_non_array_to_record_data():
+            rec.data = [1,2,3,4]
+
+        self.assertRaises(ValueError, assign_double_array_to_record_of_single)
+        self.assertRaises(ValueError, assign_single_array_to_record_of_double)
+        self.assertRaises(TypeError, assign_non_array_to_record_data)
+
     def test_fst_record_to_dict(self):
         with rmn.fst24_file(filename=self.input_file) as f:
             it = f.__iter__()
@@ -255,23 +255,23 @@ class TestRMNPackage(unittest.TestCase):
     def test_invalid_record_attributes(self):
         def inexistant_attribute():
             rec = rmn.fst_record(meteo="8")
-        def invalid_value_etiket():
+        def invalid_type_etiket():
             rec = rmn.fst_record(etiket=8)
-        def invalid_value_grtyp():
+        def invalid_type_grtyp():
             rec = rmn.fst_record(grtyp=8)
-        def invalid_value_typvar():
+        def invalid_type_typvar():
             rec = rmn.fst_record(typvar=8)
-        def invalid_value_nomvar():
+        def invalid_type_nomvar():
             rec = rmn.fst_record(nomvar=8)
-        def invalid_value_dateo():
+        def invalid_type_dateo():
             rec = rmn.fst_record(dateo="28757600")
 
         self.assertRaises(AttributeError, inexistant_attribute)
-        self.assertRaises(TypeError, invalid_value_nomvar)
-        self.assertRaises(TypeError, invalid_value_etiket)
-        self.assertRaises(TypeError, invalid_value_grtyp)
-        self.assertRaises(TypeError, invalid_value_typvar)
-        self.assertRaises(TypeError, invalid_value_dateo)
+        self.assertRaises(TypeError, invalid_type_nomvar)
+        self.assertRaises(TypeError, invalid_type_etiket)
+        self.assertRaises(TypeError, invalid_type_grtyp)
+        self.assertRaises(TypeError, invalid_type_typvar)
+        self.assertRaises(TypeError, invalid_type_dateo)
 
     def test_query_on_closed_file(self):
         # We give the query object a reference to the file it was made from
