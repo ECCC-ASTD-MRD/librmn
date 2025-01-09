@@ -382,7 +382,7 @@ unlock:
 //! Look through the list to signal any file that has been left open at program exit.
 static void finalize_fnom(void) {
     for (int i = 0; i < MAX_FNOM_FILES; i++) {
-        if (FGFDT[i].open_flag) {
+        if (FGFDT[i].open_flag && !FGFDT[i].attr.read_only) {
             Lib_Log(APP_LIBRMN, APP_WARNING,
                     "%s: File %s is still open. It should be closed before the end of the program to avoid issues.\n",
                     __func__, FGFDT[i].file_name);

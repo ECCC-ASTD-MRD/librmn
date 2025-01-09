@@ -52,9 +52,12 @@ static void RSF_Finalize(void) {
         for (int i = 0; i < max_rsf_files_open; i++) {
             if (rsf_files[i] != NULL) {
                 RSF_File* fp = rsf_files[i];
-                Lib_Log(APP_LIBFST, APP_WARNING, "%s: File \"%s\" is still open, so we will close it now to avoid "
-                        "corruption.\n",
-                        __func__, fp->name);
+                // Only print warning for files open for writing
+                if ((fp->mode & RSF_RW) == RSF_RW) {
+                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: File \"%s\" is still open, so we will close it now to avoid "
+                            "corruption.\n",
+                            __func__, fp->name);
+                }
                 RSF_Close_file((RSF_handle){.p = fp});
             }
         }
@@ -2810,7 +2813,9 @@ int32_t RSF_Close_file(RSF_handle h){
 
   if ((fp->mode & RSF_RW) == RSF_RW && fp->next_write < 0) {
     if (!fp->is_new && !fp->has_deleted)
-      Lib_Log(APP_LIBFST, APP_WARNING, "%s: Closing a file that was opened in write mode, but nothing was written!\n", __func__);
+      Lib_Log(APP_LIBFST, APP_WARNING,
+              "%s: Closing a file that was opened in write mode, but nothing was written! (%s)\n",
+              __func__, fp->name);
     goto RESET_WRITE_FLAG;
   }
 
