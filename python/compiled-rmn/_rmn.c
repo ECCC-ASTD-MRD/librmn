@@ -103,6 +103,12 @@ static PyObject *py_fst24_file_get_record_by_index(struct py_fst24_file *self, P
 
 static PyMemberDef py_fst24_file_member_def[] = {
     {
+        .name = "_c_ref",
+        .type = T_LONG,
+        .offset = offsetof(struct py_fst24_file, ref),
+        .doc = "C address of fst24 file",
+    },
+    {
         .name = "filename",
         .type = T_OBJECT_EX,
         .offset = offsetof(struct py_fst24_file, filename),
@@ -443,7 +449,14 @@ static int py_fst_record_init(struct py_fst_record *self, PyObject *args, PyObje
 static void py_fst_record_dealloc(struct py_fst_record *self);
 static PyObject * py_fst_record_str(struct py_fst_record *self);
 static PyObject *py_fst_record_richcompare(struct py_fst_record *self, PyObject *other, int op);
+static PyObject *py_fst_record_to_dict(struct py_fst_record *self);
 static PyMethodDef py_fst_record_method_defs[] = {
+    {
+        .ml_name = "to_dict",
+        .ml_meth = (PyCFunction)py_fst_record_to_dict,
+        .ml_doc = "Return a dictionnary formed from the record's attributes",
+        .ml_flags = METH_NOARGS
+    },
     {NULL, NULL, 0, NULL},
 };
 
@@ -1101,23 +1114,34 @@ static PyObject * py_fst_record_get_data(struct py_fst_record *self)
         //       - Need to verify that the checking is correct
         //       - Need to code for creation of numpy arrays for the other
         //         possible types.
+        int typenum;
         switch(self->rec.data_type & (~FST_TYPE_TURBOPACK)){
+            case FST_TYPE_UNSIGNED:
+                switch(self->rec.data_bits){
+                    case 32: typenum = NPY_UINT32; break;
+                    case 64: typenum = NPY_UINT64; break;
+                    default:
+                        PyErr_Format(PyExc_NotImplementedError, "%s() Only records with elements of size (record.data_bits) equal to 32 (float) and 64 (double) are handled: %d", __func__, self->rec.data_bits);
+                        return NULL;
+                }
+                break;
+                break;
             case FST_TYPE_REAL:
             case FST_TYPE_REAL_IEEE:
+            case FST_TYPE_REAL_OLD_QUANT:
+                switch(self->rec.data_bits){
+                    case 32: typenum = NPY_FLOAT32; break;
+                    case 64: typenum = NPY_FLOAT64; break;
+                    default:
+                        PyErr_Format(PyExc_NotImplementedError, "%s() Only records with elements of size (record.data_bits) equal to 32 (float) and 64 (double) are handled: %d", __func__, self->rec.data_bits);
+                        return NULL;
+                }
                 break;
             default:
                 PyErr_Format(PyExc_NotImplementedError, "%s() Cannot get data for record that is of other type than FST_TYPE_REAL or FST_TYPE_REAL_IEEE: %d", __func__, self->rec.data_type);
                 return NULL;
         }
 
-        int typenum;
-        switch(self->rec.data_bits){
-            case 32: typenum = NPY_FLOAT32; break;
-            case 64: typenum = NPY_FLOAT64; break;
-            default:
-                PyErr_Format(PyExc_NotImplementedError, "%s() Only records with elements of size (record.data_bits) equal to 32 (float) and 64 (double) are handled: %d", __func__, self->rec.data_bits);
-                return NULL;
-        }
 
         // TODO: Consider if we want to have the shape be (ni, nj) if nk == 1,
         // otherwise we can just always return arrays of shape (ni, nj, nk).
@@ -1193,8 +1217,10 @@ static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assig
     //       - Ensure verification is correct
     //       - Add code to handle other types of records
     switch(self->rec.data_type & (~FST_TYPE_TURBOPACK)){
+        case FST_TYPE_UNSIGNED:
         case FST_TYPE_REAL:
         case FST_TYPE_REAL_IEEE:
+        case FST_TYPE_REAL_OLD_QUANT:
             break;
         default:
             PyErr_Format(PyExc_NotImplementedError, "%s() Cannot set data for record that is of other type than FST_TYPE_REAL or FST_TYPE_REAL_IEEE: %d", __func__, self->rec.data_type);
@@ -1204,10 +1230,14 @@ static int py_fst_record_set_data(struct py_fst_record *self, PyObject *to_assig
     int expected_data_bits;
 
     switch(type){
-        case NPY_FLOAT32: expected_data_bits = 32; break;
-        case NPY_FLOAT64: expected_data_bits = 64; break;
+        case NPY_FLOAT32:
+        case NPY_UINT32:
+            expected_data_bits = 32; break;
+        case NPY_FLOAT64:
+        case NPY_UINT64:
+            expected_data_bits = 64; break;
         default:
-            PyErr_Format(PyExc_NotImplementedError, "Only numpy arrays of type NPY_FLOAT32 or NPY_FLOAT64 are handled", __func__);
+            PyErr_Format(PyExc_NotImplementedError, "Only numpy arrays of type NPY_FLOAT32 or NPY_FLOAT64 or NPY_UINT32 or NPY_UINT64 are handled", __func__);
             return -1;
     }
 
@@ -1252,6 +1282,33 @@ static PyObject *py_fst_record_richcompare(struct py_fst_record *self, PyObject 
         Py_RETURN_FALSE;
     }
 }
+
+static PyObject *py_fst_record_to_dict(struct py_fst_record *self){
+    PyObject *d = PyDict_New();
+    PyDict_SetItemString(d, "nomvar", py_fst_record_get_nomvar(self));
+    PyDict_SetItemString(d, "typvar", py_fst_record_get_typvar(self));
+    PyDict_SetItemString(d, "grtyp", py_fst_record_get_grtyp(self));
+    PyDict_SetItemString(d, "etiket", py_fst_record_get_etiket(self));
+    PyDict_SetItemString(d, "ni", PyLong_FromLong(self->rec.ni));
+    PyDict_SetItemString(d, "nj", PyLong_FromLong(self->rec.nj));
+    PyDict_SetItemString(d, "nk", PyLong_FromLong(self->rec.nk));
+    PyDict_SetItemString(d, "dateo", PyLong_FromLong(self->rec.dateo));
+    PyDict_SetItemString(d, "datev", PyLong_FromLong(self->rec.datev));
+    PyDict_SetItemString(d, "npas", PyLong_FromLong(self->rec.npas));
+    PyDict_SetItemString(d, "deet", PyLong_FromLong(self->rec.deet));
+    PyDict_SetItemString(d, "ip1", PyLong_FromLong(self->rec.ip1));
+    PyDict_SetItemString(d, "ip2", PyLong_FromLong(self->rec.ip2));
+    PyDict_SetItemString(d, "ip3", PyLong_FromLong(self->rec.ip3));
+    PyDict_SetItemString(d, "ig1", PyLong_FromLong(self->rec.ig1));
+    PyDict_SetItemString(d, "ig2", PyLong_FromLong(self->rec.ig2));
+    PyDict_SetItemString(d, "ig3", PyLong_FromLong(self->rec.ig3));
+    PyDict_SetItemString(d, "ig4", PyLong_FromLong(self->rec.ig4));
+    PyDict_SetItemString(d, "data_type", PyLong_FromLong(self->rec.data_type));
+    PyDict_SetItemString(d, "data_bits", PyLong_FromLong(self->rec.data_bits));
+    PyDict_SetItemString(d, "file_index", PyLong_FromLong(self->rec.file_index));
+    return d;
+}
+
 static PyObject *rmn_get_test_record(PyObject *self, PyObject * Py_UNUSED(args))
 {
     struct py_fst_record *obj = (struct py_fst_record*)py_fst_record_type.tp_alloc(&py_fst_record_type, 0);

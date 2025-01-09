@@ -44,6 +44,9 @@ typedef struct fst24_file_ fst_file;
 
 //! Description of an FST record. See \ref default_fst_record for the default values.
 typedef struct {
+    // NOTE: Any modification to this whole struct must be reflected exactly
+    // in the Python Ctypes definition python/rmn/fstrecord.py
+
     //!> Internal implementation details
     struct {
         int32_t version;  //!< Version marker
@@ -103,7 +106,6 @@ typedef struct {
 
 } fst_record;
 
-
 //! Default values for all members of an fst_record.
 //! Values for searchable parameters correspond to their wildcard.
 #define default_fst_record ((fst_record) {                                                  \
@@ -160,7 +162,6 @@ typedef struct {
                    ' ' , ' ' , ' ' , ' ',                                                   \
                    '\0', '\0', '\0', '\0'},                                                 \
     })
-
 
 //! A set of (boolean) parameters to indicate which information to print or not.
 //! See \ref default_fields for their default values

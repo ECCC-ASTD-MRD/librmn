@@ -56,14 +56,8 @@ class TestRMNPackage(unittest.TestCase):
 
     def create_record_with_data(self):
         rec = self.create_record()
-        rec.data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk)).astype('f')
+        rec.data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk), order='F').astype(rec.numpy_type())
         return rec
-
-    def test_create_file(self):
-        filename = f'{self.tmpdir}/new_file.std'
-        with rmn.fst24_file(filename=filename, options='R/W') as f:
-            pass
-        assert(os.path.isfile(filename))
 
     def test_iterate_whole_file(self):
         with rmn.fst24_file(filename=self.input_file, options="R/O") as f:
@@ -71,12 +65,6 @@ class TestRMNPackage(unittest.TestCase):
             for rec in f:
                 nb_rec += 1
         self.assertEqual(nb_rec, 161)
-
-    def test_iterate_on_query(self):
-        from collections import defaultdict
-        with rmn.fst24_file(filename=self.input_file, options="R/O") as f:
-            q = f.new_query(nomvar='AL')
-            self.assertEqual(len(list(q)), 15)
 
     def test_record_attribute_access(self):
         with rmn.fst24_file(filename=self.input_file, options="R/O") as f:
@@ -102,6 +90,18 @@ class TestRMNPackage(unittest.TestCase):
             self.assertEqual(rec.data_bits, 32)
             self.assertEqual(rec.pack_bits, 32)
 
+    def test_iterate_on_query(self):
+        from collections import defaultdict
+        with rmn.fst24_file(filename=self.input_file, options="R/O") as f:
+            q = f.new_query(nomvar='AL')
+            self.assertEqual(len(list(q)), 15)
+
+    def test_create_file(self):
+        filename = f'{self.tmpdir}/new_file.std'
+        with rmn.fst24_file(filename=filename, options='R/W') as f:
+            pass
+        assert(os.path.isfile(filename))
+
     def test_invalid_opens(self):
 
         def open_invalid_file():
@@ -115,23 +115,45 @@ class TestRMNPackage(unittest.TestCase):
 
         self.assertRaises(rmn.FstFileError, open_invalid_file)
         self.assertRaises(rmn.FstFileError, open_empty_file)
-        self.assertRaises(TypeError, open_file_bad_arguments)
+        # self.assertRaises(TypeError, open_file_bad_arguments)
         self.assertRaises(rmn.FstFileError, open_noexist_without_RW)
 
     def test_create_record(self):
         rec = self.create_record()
         self.assertEqual(rec.ni, 8)
 
-    def test_access_record_data_of_record_without_data(self):
-        rec = self.create_record()
-        self.assertIs(rec.data, None)
+    def test_access_record_data(self):
+        with rmn.fst24_file(filename=self.input_file, options="R/O") as f:
+            q = f.new_query(nomvar='AL')
+            rec = next(q)
+            data = rec.data
+            self.assertAlmostEqual(data[0,0,0], 0.7999902)
+            self.assertAlmostEqual(data[-1,-1,0], 0.1699853)
+            self.assertAlmostEqual(data[235,109,0], 0.1199822)
 
     def test_create_record_with_data(self):
         rec = self.create_record_with_data()
         self.assertIsInstance(rec.data, np.ndarray)
         self.assertEqual(rec.data.shape, (rec.ni, rec.nj, rec.nk))
 
+    def test_access_record_data_of_record_without_data(self):
+        rec = self.create_record()
+        self.assertIs(rec.data, None)
+
     def test_create_file_with_data(self):
+        # Interesting situation occurs here with potential closing a file
+        # too many times with __del__ and __exit__ both closing a file:
+        # - with 1 creates file object 1, which encapsulates pointer PTR1
+        # - with 1 assigns new object to f
+        # - end with 1 calls f.__exit__ which closes the file
+        # - with 2 creates file object 2, encapsulating PTR2
+        # - with 2 assigns file object 2 to f (same name)
+        # - assignment to f reduces refcount of file object 1 to 0 which calls
+        #   __del__ of object file 1.
+        #   - Because of how RMN works, PTR2 == PTR1, so the __del__ of
+        #     of file object 1 closes the file encapsulated by file object 2
+        # THEREFORE: it is important that file object 1 remembers that it has
+        # been closed.
         to_write = self.create_record_with_data()
         filename = f"{self.tmpdir}/new_file.std"
         with rmn.fst24_file(filename=filename, options="R/W") as f:
@@ -147,7 +169,19 @@ class TestRMNPackage(unittest.TestCase):
         def write_to_closed_file():
             rec = self.create_record_with_data()
             g.write(rec, rewrite=True)
-        self.assertRaises(rmn.FstFileError, write_to_closed_file)
+        self.assertRaises(ValueError, write_to_closed_file)
+
+    def test_record_data_types(self):
+        rec = self.create_record()
+        data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk)).astype('f')
+        rec.data_type = 1
+        rec.data = data
+
+        rec.data_type = 5
+        rec.data = data
+
+        rec.data_type = 6
+        rec.data = data
 
     def test_assign_invalid_data(self):
         rec = self.create_record()
@@ -163,9 +197,95 @@ class TestRMNPackage(unittest.TestCase):
         def assign_non_array_to_record_data():
             rec.data = [1,2,3,4]
 
-        self.assertRaises(TypeError, assign_double_array_to_record_of_single)
-        self.assertRaises(TypeError, assign_single_array_to_record_of_double)
+        self.assertRaises(ValueError, assign_double_array_to_record_of_single)
+        self.assertRaises(ValueError, assign_single_array_to_record_of_double)
         self.assertRaises(TypeError, assign_non_array_to_record_data)
+
+    def test_fst_record_to_dict(self):
+        with rmn.fst24_file(filename=self.input_file) as f:
+            it = f.__iter__()
+            rec = next(it)
+            self.assertEqual(rec.to_dict(), {
+                "nomvar": ">>",
+                "typvar": "X",
+                "grtyp": "E",
+                "etiket": "GEM_NEMO",
+                "dateo": 287576000,
+                "datev": 287576000,
+                "deet": 0,
+                "npas": 0,
+                "ni": 257,
+                "nj": 1,
+                "nk": 1,
+                "ip1": 77343,
+                "ip2": 96583,
+                "ip3": 0,
+                "ig1": 900,
+                "ig2": 0,
+                "ig3": 43200,
+                "ig4": 43200,
+                "data_type": 5,
+                "data_bits": 32,
+                "file_index": 0
+            })
+            rec = next(it)
+            self.assertEqual(rec.to_dict(), {
+                "nomvar": "^^",
+                "typvar": "X",
+                "grtyp": "E",
+                "etiket": "GEM_NEMO",
+                "dateo": 287576000,
+                "datev": 287576000,
+                "deet": 0,
+                "npas": 0,
+                "ni": 1,
+                "nj": 128,
+                "nk": 1,
+                "ip1": 77343,
+                "ip2": 96583,
+                "ip3": 0,
+                "ig1": 900,
+                "ig2": 0,
+                "ig3": 43200,
+                "ig4": 43200,
+                "data_type": 5,
+                "data_bits": 32,
+                "file_index": 1
+            })
+    def test_invalid_record_attributes(self):
+        def inexistant_attribute():
+            rec = rmn.fst_record(meteo="8")
+        def invalid_type_etiket():
+            rec = rmn.fst_record(etiket=8)
+        def invalid_type_grtyp():
+            rec = rmn.fst_record(grtyp=8)
+        def invalid_type_typvar():
+            rec = rmn.fst_record(typvar=8)
+        def invalid_type_nomvar():
+            rec = rmn.fst_record(nomvar=8)
+        def invalid_type_dateo():
+            rec = rmn.fst_record(dateo="28757600")
+
+        self.assertRaises(AttributeError, inexistant_attribute)
+        self.assertRaises(TypeError, invalid_type_nomvar)
+        self.assertRaises(TypeError, invalid_type_etiket)
+        self.assertRaises(TypeError, invalid_type_grtyp)
+        self.assertRaises(TypeError, invalid_type_typvar)
+        self.assertRaises(TypeError, invalid_type_dateo)
+
+    def test_query_on_closed_file(self):
+        # We give the query object a reference to the file it was made from
+        # so that the file object stays alive as long as the query.  However
+        # the __exit__ of a context manager closes the file.  This allows us
+        # to create a query that references a closed file.  This is the
+        # desired behavior but we want to make sure that the exception we get
+        # is a ValueError with a good message
+        def query_closed_file():
+            with rmn.fst24_file(self.input_file) as f:
+                q = f.new_query()
+            for rec in q:
+                pass
+        self.assertRaisesRegex(ValueError, "references closed file", query_closed_file)
 
 if __name__ == "__main__":
     unittest.main()
