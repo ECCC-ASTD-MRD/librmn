@@ -320,7 +320,7 @@ if (EC_INIT_DONE LESS 2)
 
         if(BUILD_PYTHON)
             add_dependencies(check _rmn)
-            add_test( NAME python_import_package COMMAND bash -c "${set_pythonpath} ${Python_EXECUTABLE} -c 'import compiled-rmn'")
+            add_test( NAME python_import_package_compiled COMMAND bash -c "${set_pythonpath} ${Python_EXECUTABLE} -c 'import compiled-rmn'")
         endif()
     endif()
 endif()
