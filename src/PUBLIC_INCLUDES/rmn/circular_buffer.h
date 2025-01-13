@@ -199,7 +199,7 @@ int CB_get_elem_size(void);
 void CB_print_header(circular_buffer_p b);
 void CB_dump_data(circular_buffer_p buffer, const int64_t num_bytes);
 circular_buffer_p CB_init_bytes(circular_buffer_p p, size_t num_bytes);
-circular_buffer_p CB_create_shared_bytes(int32_t* shmid, size_t num_bytes);
+circular_buffer_p CB_create_shared_bytes(int32_t* const shmid, size_t num_bytes);
 int32_t CB_detach_shared(circular_buffer_p p);
 circular_buffer_p CB_create_bytes(size_t num_bytes);
 circular_buffer_p CB_from_pointer_bytes(void*  p, size_t num_bytes);
