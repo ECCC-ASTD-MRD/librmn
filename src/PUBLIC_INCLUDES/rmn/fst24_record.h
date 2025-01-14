@@ -17,7 +17,7 @@
 
 #ifndef IN_FORTRAN_CODE
 
-#define FST_META_ALL  255 
+#define FST_META_ALL  255
 #define FST_META_TIME 1
 #define FST_META_GRID 2
 #define FST_META_INFO 4
