@@ -147,7 +147,7 @@ circular_buffer_p CB_init_bytes(
 //! (see man shmget)
 //! \return pointer to buffer upon success, NULL upon error
 circular_buffer_p CB_create_shared_bytes(
-    int32_t* shmid,    //!< [out] identifier of shared memory area (see man shmget) (-1 upon error)
+    int32_t* const shmid,    //!< [out] identifier of shared memory area (see man shmget) (-1 upon error)
     size_t   num_bytes //!< [in]  size in bytes of the circular buffer
 ) {
     *shmid = -1;

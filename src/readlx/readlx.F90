@@ -503,7 +503,7 @@ END
 function qlx_chr()
     use App
     use readlx_qlxbuff
-#if __INTEL_LLVM_COMPILER == 20250001
+#if __INTEL_LLVM_COMPILER >= 20250001
     use ifport, only : abort
 #endif
     implicit none
