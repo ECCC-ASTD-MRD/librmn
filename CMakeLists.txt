@@ -190,10 +190,6 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
 
    # Build static library from source files
    add_library(rmn-ompi-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-   set_target_properties(rmn-ompi-static PROPERTIES
-       POSITION_INDEPENDENT_CODE ON
-       Fortran_MODULE_DIRECTORY ${MODULE_DIR_OMPI}
-   )
    target_link_libraries(rmn-ompi-static PUBLIC App-ompi-static json-c-static libudunits2-static LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
    target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
    add_dependencies(rmn-ompi-static rmn_build_info json-c libudunits2-static)
@@ -207,7 +203,7 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
 
     set_target_properties(${OMPI_TARGETS} PROPERTIES
         VERSION ${PROJECT_VERSION}
-        Fortran_MODULE_DIRECTORY ${MODULE_DIR}
+        Fortran_MODULE_DIRECTORY ${MODULE_DIR_OMPI}
         PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
         INTERFACE_COMPILE_DEFINITIONS HAVE_RMN="${PROJECT_VERSION}"
         INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${MODULE_DIR_OMPI}>
