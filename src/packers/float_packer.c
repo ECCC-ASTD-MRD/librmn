@@ -183,8 +183,13 @@ int32_t float_packer_1(float *source, int32_t nbits, int32_t *header, int32_t *s
   n=npts;
   while(n--){                               /* transform input floating point into 16 bit integers */
     Src = *intsrc++;
-    Mantis = (1 << 23) | ( 0x7FFFFF & Src );
     Exp    = (Src >> 23) & 0xFF;
+    if (Exp > 0) {
+      Mantis = (1 << 23) | ( 0x7FFFFF & Src );
+    }
+    else {
+      Mantis = ( 0x7FFFFF & Src ) << 1;
+    }
     Shift  = MaxExp - Exp;
     if (Shift > 31) Shift = 31;
     Mantis = Mantis >> Shift;
