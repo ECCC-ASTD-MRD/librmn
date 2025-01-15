@@ -1636,8 +1636,6 @@ int32_t fst24_find_next(
         return fst24_find_next(query->next, record);
     }
 
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: No (more) record found matching the criteria\n", __func__);
-
     return FALSE;
 }
 
