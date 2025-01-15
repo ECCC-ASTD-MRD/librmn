@@ -156,11 +156,13 @@ TList* TList_Del(TList *List,void *Data) {
  */
 TList* TList_Find(TList *List,TList_CompareProc *Proc,void *Data) {
 
-   while(List) {
-      if (!Proc || Proc(List->Data,Data)) {
-         return(List);
+   if (Proc && List && Data) {
+      while(List) {
+         if (Proc(List->Data,Data)) {
+            return(List);
+         }
+         List=List->Next;
       }
-      List=List->Next;
    }
    return(NULL);
 }

@@ -1,36 +1,3 @@
-/*=========================================================
- * Environnement Canada
- * Centre Meteorologique Canadien
- * 2100 Trans-Canadienne
- * Dorval, Quebec
- *
- * Projet       : Manipulation des fichiers xml dictionnaire des variables
- * Fichier      : Dict.c
- * Creation     : Mai 2014 - J.P. Gauthier
- *
- * Description  : Basé fortement sur le code d'Yves Chartier afin de convertir
- *                Le binaire en fonctions de librairies.
- *
- * Remarques    :
- *
- * License      :
- *    This library is free software; you can redistribute it and/or
- *    modify it under the terms of the GNU Lesser General Public
- *    License as published by the Free Software Foundation,
- *    version 2.1 of the License.
- *
- *    This library is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *    Lesser General Public License for more details.
- *
- *    You should have received a copy of the GNU Lesser General Public
- *    License along with this library; if not, write to the
- *    Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- *    Boston, MA 02111-1307, USA.
- *
- *=========================================================
- */
 #include <string.h>
 
 #include <libxml/xmlmemory.h>
@@ -804,7 +771,18 @@ void Dict_AddVar(TDictVar *Var) {
  *----------------------------------------------------------------------------
 */
 int Dict_SortVar(void *Data0,void *Data1){
-   return(strcasecmp(((TDictVar*)Data0)->Name,((TDictVar*)Data1)->Name));
+
+   TDictVar *v0 = Data0;
+   TDictVar *v1 = Data1;
+   int cmp;
+
+   // If we don't have a tie, then return the result of the comparison
+   if( (cmp=strcasecmp(v0->Name,v1->Name)) )
+      return cmp;
+
+   // We are in tiebreaker mode, place any status that is current above other statuses
+   // so that they are returned first when searching for that variable
+   return (v1->Nature&DICT_STATE) - (v0->Nature&DICT_STATE);
 }
 
 /*----------------------------------------------------------------------------

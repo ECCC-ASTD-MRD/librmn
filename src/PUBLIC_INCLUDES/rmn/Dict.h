@@ -42,16 +42,19 @@
 #define DICT_NOTSET 1e+300
 
 #define DICT_ALL        0x00
-#define DICT_DEPRECATED 0x01
-#define DICT_OBSOLETE   0x02
-#define DICT_CURRENT    0x04
-#define DICT_FUTURE     0x08
-#define DICT_INCOMPLETE 0x10
 
-#define DICT_INTEGER  0x10
-#define DICT_REAL     0x20
-#define DICT_LOGICAL  0x40
-#define DICT_CODE     0x80
+#define DICT_INCOMPLETE 0x01
+#define DICT_FUTURE     0x02
+#define DICT_OBSOLETE   0x04
+#define DICT_DEPRECATED 0x08
+#define DICT_CURRENT    0x10
+#define DICT_STATE      0xFF
+
+#define DICT_INTEGER    0x100
+#define DICT_REAL       0x200
+#define DICT_LOGICAL    0x400
+#define DICT_CODE       0x800
+#define DICT_TYPE       0xF00
 
 #define DICT_EXACT    0
 #define DICT_GLOB     1

@@ -808,7 +808,10 @@ int32_t fst24_record_copy_metadata(
 ) {
 
     if (a == NULL || b == NULL) return 0;
-    if (a->do_not_touch.version != b->do_not_touch.version) return 0;
+    if (a->do_not_touch.version != b->do_not_touch.version) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Incompatible record version (%d != %d)\n",__func__,a->do_not_touch.version,b->do_not_touch.version);    
+        return 0;
+    }
 
     if (what&FST_META_TIME) {
        a->dateo = b->dateo;
