@@ -292,6 +292,11 @@ if (EC_INIT_DONE LESS 2)
             add_dependencies(check circular_buffer_timeout)
         endif()
 
+        add_executable(fst_edge_case_1 EXCLUDE_FROM_ALL fst/fst_edge_case_1.c)
+        target_link_libraries(fst_edge_case_1 rmn::rmn)
+        add_test(NAME fst_edge_case_1 COMMAND $<TARGET_FILE:fst_edge_case_1>)
+        add_dependencies(check fst_edge_case_1)
+
         # FST samples
         add_executable(fst24_open_close_f EXCLUDE_FROM_ALL fst/samples/fst24_open_close.F90)
         target_link_libraries(fst24_open_close_f rmn::rmn)
