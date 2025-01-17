@@ -17,31 +17,23 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
+
+
 module mzonxst_mod
     ! Section DECLARATIONS
-    Integer       MaxTask,      MaxVar
-    Parameter   ( MaxTask = 32, MaxVar = 1024 )
+    Integer, Parameter :: MaxTask = 32
+    Integer, Parameter :: MaxVar = 1024
+    Integer, parameter :: MaxVarP3 = MaxVar +3
 
-    Integer       MaxVarP3
-    Parameter   ( MaxVarP3 = MaxVar +3 )
-
-    Real          GrosNb
-    Parameter   ( GrosNb = 1.E+18 )
+    Real, parameter :: GrosNb = 1.E+18
 
     ! Declarations des variables statiques.
-    Integer       NombreC
-    Parameter   ( NombreC = 14)
+    Integer, Parameter :: NombreC = 14
 
-    Logical       IOPrint
-    Save          IOPrint
-    Character(len=256) NOUTZON
-    Save          NOUTZON
-    Integer       IUN,KA,NCPU,StartI,StartJ,NDIMS
-    Save          IUN,KA,NCPU,StartI,StartJ,NDIMS
-    Integer       KAJ(MaxTask),listej(MaxTask),tabctl(NombreC)
-    Save          KAJ,         listej,         tabctl
-
-    Integer       NDELTAT,DELTAT,MODE, NI,NIP,NJ,NK, NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT
+    Logical, save :: IOPrint
+    Character(len=256), save :: NOUTZON
+    Integer, save :: IUN, KA, NCPU, StartI, StartJ, NDIMS
+    Integer, save :: KAJ(MaxTask), listej(MaxTask), tabctl(NombreC)
 
     ! Equivalence
     ! +( NDELTAT, tabctl(1) ),( DELTAT, tabctl(2) ),
@@ -51,44 +43,43 @@ module mzonxst_mod
     ! +( COMPLET, tabctl(9) ),( LATMIN, tabctl(10)),
     ! +( ROT,     tabctl(11))
 
-    Common /zontab/ NDELTAT,DELTAT,MODE,NI,NIP,NJ,NK, NBIN,NBIP,SOMNK,COMPLET,LATMIN,ROT
+    Integer         NDELTAT, DELTAT, MODE, NI, NIP, NJ, NK, NBIN, NBIP, SOMNK, COMPLET, LATMIN, ROT
+    Common /zontab/ NDELTAT, DELTAT, MODE, NI, NIP, NJ, NK, NBIN, NBIP, SOMNK, COMPLET, LATMIN, ROT
 
     ! Declaration de la variable d'etat.
-    Integer       ETAT, transit(6,0:3)
-    Save          ETAT, transit
+    Integer, save :: ETAT, transit(6, 0:3)
 
     ! Parametres servant a l'allocation de memoire dynamique.
-    Integer       sizWK
-    save          sizWK
+    Integer, save :: sizWK
 
-    real, dimension(:,:), save, pointer :: sint, cost, pds
-    integer, dimension(:,:), save, pointer :: bin
-    real, dimension(:,:), save, pointer :: somx, somx2
+    real, dimension(:, :), save, pointer :: sint, cost, pds
+    integer, dimension(:, :), save, pointer :: bin
+    real, dimension(:, :), save, pointer :: somx, somx2
 
-    real, dimension(:,:,:), save, pointer :: temp
-    integer, dimension(:,:), save, pointer :: util
+    real, dimension(:, :, :), save, pointer :: temp
+    integer, dimension(:, :), save, pointer :: util
     real, dimension(:), save, pointer :: WK
 
     ! Drapeaux logiques.
-    Logical       Vrai,Faux, NOTOK, SavPas, Hard, Debug
-    Save          Vrai,Faux,        SavPas, Hard, Debug
+    Logical       Vrai, Faux, NOTOK, SavPas, Hard, Debug
+    Save          Vrai, Faux,        SavPas, Hard, Debug
 
     Character(len=8)   listvar(MaxVarP3)
-    Integer       propvar(MaxVar), posvar(0:MaxVar),NVAR
+    Integer       propvar(MaxVar), posvar(0:MaxVar), NVAR
 
-    Save          listvar,propvar,posvar,NVAR
+    Save          listvar, propvar, posvar, NVAR
 
     Character     typvar*1, etiket*12,               grtyp*1
 
-    Integer       dateo,deet,npas, ip1,ip2,ip20,ip3,        datyp,nbits, ig1,ig2,ig3,ig4,         swa,lng,dltf,ubc
+    Integer       dateo, deet, npas, ip1, ip2, ip20, ip3,        datyp, nbits, ig1, ig2, ig3, ig4,         swa, lng, dltf, ubc
 
-    Save          dateo,deet,npas,         typvar,etiket,grtyp, ip1,ip2,ip20,ip3,        datyp,nbits, ig1,ig2,ig3,ig4,         swa,lng,dltf,ubc
+    Save          dateo, deet, npas,         typvar, etiket, grtyp, ip1, ip2, ip20, ip3,        datyp, nbits, ig1, ig2, ig3, ig4,         swa, lng, dltf, ubc
 
     ! Declaration des valeurs initiales
     Data          Vrai     /     .true.     /, Faux     /     .false.    /, Hard     /     .false.    /, Debug    /     .false.    /
     Data          IOPrint  /     .true.     /
     Data          listej   /  MaxTask * -1  /
-    Data          IUN,ETAT / -1  ,  0  /
+    Data          IUN, ETAT / -1  ,  0  /
     Data          NCPU     /  1  /
     Data          NDIMS    /  0  /
     Data          StartI   /  0  /
@@ -1040,6 +1031,7 @@ end
 subroutine mzonxst ( Z,NOM,J,NDIM,hhhh,FACF3D,ORD,tttt )
     use mzonxst_mod
     implicit none
+
     Integer       J,NDIM,hhhh,ORD,tttt
     Real          FACF3D(NDIM,*)
     Real          Z(NDIM,*)
@@ -1048,6 +1040,7 @@ subroutine mzonxst ( Z,NOM,J,NDIM,hhhh,FACF3D,ORD,tttt )
     Real          echant !,echantX,echantY,poids
     Integer :: difp, ii, jj, j0, jj0, nic, nil, niv, numero
     Integer :: place, tranche, val11
+
     integer, external :: exfin
 
     ! Section mise-a-jour de la routine pour les champs scalaire
@@ -1128,6 +1121,7 @@ subroutine mzonxst ( Z,NOM,J,NDIM,hhhh,FACF3D,ORD,tttt )
         End If
 
         ! Tenir compte de KA negatifs.
+        !> \bug NIV will be undefined if KAJ(tranche) == 0! Is that possible?
         If (KAJ(tranche).lt.0) NIV = DIFP
         If (KAJ(tranche).gt.0) NIV = Min( DIFP ,KAJ(tranche) )
 
@@ -1224,6 +1218,7 @@ end
 subroutine MVZNXST ( X,Y,XNOM,YNOM,J,NDIM,FACF3D,ORD,tttt )
     use mzonxst_mod
     implicit none
+
     Integer       J,NDIM,ORD,tttt
     Real          FACF3D(NDIM,*)
     Character(len=*) XNOM, YNOM
@@ -1233,6 +1228,7 @@ subroutine MVZNXST ( X,Y,XNOM,YNOM,J,NDIM,FACF3D,ORD,tttt )
     Real :: echantX,echantY
     Integer :: ii, j0, jj, jj0, nic, nil, numeroX, numeroY, niv
     Integer :: placeX, placeY, tranche, val11X, val11Y
+
     integer, external :: exfin
 
     If (ETAT.eq.0) Return
