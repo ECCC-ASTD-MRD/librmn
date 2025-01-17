@@ -46,47 +46,47 @@ module rmn_fst98
     end interface
 
     interface fstecr
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T E C R                                  *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Writes a record into a file.                                                  *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  field   field to write to the file                                   * 
-        !  *  IN  work    work field (kept for backward compatibility)                 * 
-        !  *  IN  npak    number of bits kept for the elements of the field (-npak)    * 
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *  IN  date    date time stamp                                              * 
-        !  *  IN  deet    length of a time step in seconds                             * 
-        !  *  IN  npas    time step number                                             * 
-        !  *  IN  ni      first dimension of the data field                            * 
-        !  *  IN  nj      second dimension of the data field                           * 
-        !  *  IN  nk      third dimension of the data field                            * 
-        !  *  IN  ip1     vertical level                                               * 
-        !  *  IN  ip2     forecast hour                                                * 
-        !  *  IN  ip3     user defined identifier                                      * 
-        !  *  IN  typvar  type of field (forecast, analysis, climatology)              * 
-        !  *  IN  nomvar  variable name                                                * 
-        !  *  IN  etiket  label                                                        * 
-        !  *  IN  grtyp   type of geographical projection                              * 
-        !  *  IN  ig1     first grid descriptor                                        * 
-        !  *  IN  ig2     second grid descriptor                                       * 
-        !  *  IN  ig3     third grid descriptor                                        * 
-        !  *  IN  ig4     fourth grid descriptor                                       * 
-        !  *  IN  datyp   data type of the elements                                    * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  field   field to write to the file                                   *
+        !  *  IN  work    work field (kept for backward compatibility)                 *
+        !  *  IN  npak    number of bits kept for the elements of the field (-npak)    *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *  IN  date    date time stamp                                              *
+        !  *  IN  deet    length of a time step in seconds                             *
+        !  *  IN  npas    time step number                                             *
+        !  *  IN  ni      first dimension of the data field                            *
+        !  *  IN  nj      second dimension of the data field                           *
+        !  *  IN  nk      third dimension of the data field                            *
+        !  *  IN  ip1     vertical level                                               *
+        !  *  IN  ip2     forecast hour                                                *
+        !  *  IN  ip3     user defined identifier                                      *
+        !  *  IN  typvar  type of field (forecast, analysis, climatology)              *
+        !  *  IN  nomvar  variable name                                                *
+        !  *  IN  etiket  label                                                        *
+        !  *  IN  grtyp   type of geographical projection                              *
+        !  *  IN  ig1     first grid descriptor                                        *
+        !  *  IN  ig2     second grid descriptor                                       *
+        !  *  IN  ig3     third grid descriptor                                        *
+        !  *  IN  ig4     fourth grid descriptor                                       *
+        !  *  IN  datyp   data type of the elements                                    *
         !  *  IN  rewrit  rewrite flag (true (FST_YES) = rewrite existing record,      *
         !  *                            false (FST_NO) = append,                       *
         !  *                            FST_SKIP       = don't do anything if record exist)
-        !  *                                                                           * 
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstecr_i(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                             ip1, ip2, ip3, typvar, nomvar, etiket, &
                             grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
             implicit none
 #define IgnoreTypeKindRank field, work
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
@@ -94,7 +94,7 @@ module rmn_fst98
             character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
             integer(C_INT) :: status
         end function fstecr_i
-        
+
 
         !> Same as fstecr_i, but with type LOGICAL for parameter "rewrite"
         module function fstecr_l(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
@@ -102,7 +102,7 @@ module rmn_fst98
                             grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
             implicit none
 #define IgnoreTypeKindRank field, work
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp
@@ -122,17 +122,17 @@ module rmn_fst98
     end interface
 
     interface
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T L N K                                  *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Links a list of files together for search purpose.                      *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  liste   list of unit numbers associated to the files                 * 
-        !  *  IN  n       number of files to link                                      * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  liste   list of unit numbers associated to the files                 *
+        !  *  IN  n       number of files to link                                      *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstlnk(link_list,n) result(status) !bind(C,name='c_fstlnk')
             implicit none
@@ -141,14 +141,14 @@ module rmn_fst98
             integer(C_INT32_T) :: status
         end function fstlnk
 
-        !  /***************************************************************************** 
+        !  /*****************************************************************************
         !  *                              F S T U N L                                  *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Unlinks a list of files previously linked by fstlnk.                    *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstunl() result(status) !bind(C,name='c_fstunl')
             implicit none
@@ -157,26 +157,26 @@ module rmn_fst98
     end interface
 
     interface
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T I N F                                  *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Locate the next record that matches the research keys.                  *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *  OUT ni      dimension 1 of the data field                                * 
-        !  *  OUT nj      dimension 2 of the data field                                * 
-        !  *  OUT nk      dimension 3 of the data field                                * 
-        !  *  IN  datev   valid date                                                   * 
-        !  *  IN  etiket  label                                                        * 
-        !  *  IN  ip1     vertical level                                               * 
-        !  *  IN  ip2     forecast hour                                                * 
-        !  *  IN  ip3     user defined identifier                                      * 
-        !  *  IN  typvar  type of field                                                * 
-        !  *  IN  nomvar  variable name                                                * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *  OUT ni      dimension 1 of the data field                                *
+        !  *  OUT nj      dimension 2 of the data field                                *
+        !  *  OUT nk      dimension 3 of the data field                                *
+        !  *  IN  datev   valid date                                                   *
+        !  *  IN  etiket  label                                                        *
+        !  *  IN  ip1     vertical level                                               *
+        !  *  IN  ip2     forecast hour                                                *
+        !  *  IN  ip3     user defined identifier                                      *
+        !  *  IN  typvar  type of field                                                *
+        !  *  IN  nomvar  variable name                                                *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstinf(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
             implicit none
@@ -187,19 +187,19 @@ module rmn_fst98
             integer(C_INT) :: handle
         end function fstinf
 
-        !  /***************************************************************************** 
+        !  /*****************************************************************************
         !  *                            F S T S U I                                    *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Finds the next record that matches the last search criterias            *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *  OUT ni      dimension 1 of the data field                                * 
-        !  *  OUT nj      dimension 2 of the data field                                * 
-        !  *  OUT nk      dimension 3 of the data field                                * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *  OUT ni      dimension 1 of the data field                                *
+        !  *  OUT nj      dimension 2 of the data field                                *
+        !  *  OUT nk      dimension 3 of the data field                                *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstsui(iun, ni, nj, nk) result(handle)
             implicit none
@@ -208,28 +208,28 @@ module rmn_fst98
             integer(C_INT) :: handle
         end function fstsui
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T I N F X                                *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Locate the next record that matches the research keys.                  *
-        !  *   The search begins at the position given by the start handle.            * 
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
+        !  *   The search begins at the position given by the start handle.            *
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
         !  *  IN  start   handle from which the search begins                          *
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *  OUT ni      dimension 1 of the data field                                * 
-        !  *  OUT nj      dimension 2 of the data field                                * 
-        !  *  OUT nk      dimension 3 of the data field                                * 
-        !  *  IN  datev   valid date                                                   * 
-        !  *  IN  etiket  label                                                        * 
-        !  *  IN  ip1     vertical level                                               * 
-        !  *  IN  ip2     forecast hour                                                * 
-        !  *  IN  ip3     user defined identifier                                      * 
-        !  *  IN  typvar  type of field                                                * 
-        !  *  IN  nomvar  variable name                                                * 
-        !  *                                                                           * 
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *  OUT ni      dimension 1 of the data field                                *
+        !  *  OUT nj      dimension 2 of the data field                                *
+        !  *  OUT nk      dimension 3 of the data field                                *
+        !  *  IN  datev   valid date                                                   *
+        !  *  IN  etiket  label                                                        *
+        !  *  IN  ip1     vertical level                                               *
+        !  *  IN  ip2     forecast hour                                                *
+        !  *  IN  ip3     user defined identifier                                      *
+        !  *  IN  typvar  type of field                                                *
+        !  *  IN  nomvar  variable name                                                *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstinfx(start, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
             implicit none
@@ -241,29 +241,29 @@ module rmn_fst98
             integer(C_INT) :: handle
         end function fstinfx
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T I N L                                  *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Locates all the records that match the research keys.                   *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *  OUT ni      dimension 1 of the data field                                * 
-        !  *  OUT nj      dimension 2 of the data field                                * 
-        !  *  OUT nk      dimension 3 of the data field                                * 
-        !  *  IN  datev   valid date                                                   * 
-        !  *  IN  etiket  label                                                        * 
-        !  *  IN  ip1     vertical level                                               * 
-        !  *  IN  ip2     forecast hour                                                * 
-        !  *  IN  ip3     user defined identifier                                      * 
-        !  *  IN  typvar  type of field                                                * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *  OUT ni      dimension 1 of the data field                                *
+        !  *  OUT nj      dimension 2 of the data field                                *
+        !  *  OUT nk      dimension 3 of the data field                                *
+        !  *  IN  datev   valid date                                                   *
+        !  *  IN  etiket  label                                                        *
+        !  *  IN  ip1     vertical level                                               *
+        !  *  IN  ip2     forecast hour                                                *
+        !  *  IN  ip3     user defined identifier                                      *
+        !  *  IN  typvar  type of field                                                *
         !  *  IN  nomvar  variable name                                                *
         !  *  OUT liste   list of handles to the records                               *
         !  *  OUT infon   number of elements for the list (number of records found)    *
         !  *  OUT nmax    dimension of list as given by caller                         *
-        !  *                                                                           * 
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstinl(iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, liste, infon, nmax) result(status)
             implicit none
@@ -293,28 +293,28 @@ module rmn_fst98
         !  *  OUT npas    time step number                                             *
         !  *  OUT ni      first dimension of the data field                            *
         !  *  OUT nj      second dimension of the data field                           *
-        !  *  OUT nk      third dimension of the data field                            * 
-        !  *  OUT nbits   number of bits kept for the elements of the field            * 
-        !  *  OUT datyp   data type of the elements                                    * 
-        !  *  OUT ip1     vertical level                                               * 
-        !  *  OUT ip2     forecast hour                                                * 
-        !  *  OUT ip3     user defined identifier                                      * 
-        !  *  OUT typvar  type of field (forecast, analysis, climatology)              * 
-        !  *  OUT nomvar  variable name                                                * 
-        !  *  OUT etiket  label                                                        * 
-        !  *  OUT grtyp   type of geographical projection                              * 
-        !  *  OUT ig1     first grid descriptor                                        * 
-        !  *  OUT ig2     second grid descriptor                                       * 
-        !  *  OUT ig3     third grid descriptor                                        * 
-        !  *  OUT ig4     fourth grid descriptor                                       * 
-        !  *  OUT swa     starting word address                                        * 
-        !  *  OUT lng     record length                                                * 
-        !  *  OUT dltf    delete flag                                                  * 
-        !  *  OUT ubc     unused bit count                                             * 
-        !  *  OUT extra1  extra parameter                                              * 
-        !  *  OUT extra2  extra parameter                                              * 
-        !  *  OUT extra3  extra parameter                                              * 
-        !  *                                                                           * 
+        !  *  OUT nk      third dimension of the data field                            *
+        !  *  OUT nbits   number of bits kept for the elements of the field            *
+        !  *  OUT datyp   data type of the elements                                    *
+        !  *  OUT ip1     vertical level                                               *
+        !  *  OUT ip2     forecast hour                                                *
+        !  *  OUT ip3     user defined identifier                                      *
+        !  *  OUT typvar  type of field (forecast, analysis, climatology)              *
+        !  *  OUT nomvar  variable name                                                *
+        !  *  OUT etiket  label                                                        *
+        !  *  OUT grtyp   type of geographical projection                              *
+        !  *  OUT ig1     first grid descriptor                                        *
+        !  *  OUT ig2     second grid descriptor                                       *
+        !  *  OUT ig3     third grid descriptor                                        *
+        !  *  OUT ig4     fourth grid descriptor                                       *
+        !  *  OUT swa     starting word address                                        *
+        !  *  OUT lng     record length                                                *
+        !  *  OUT dltf    delete flag                                                  *
+        !  *  OUT ubc     unused bit count                                             *
+        !  *  OUT extra1  extra parameter                                              *
+        !  *  OUT extra2  extra parameter                                              *
+        !  *  OUT extra3  extra parameter                                              *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
                             typvar, nomvar, etiket, grtyp, &
@@ -329,17 +329,17 @@ module rmn_fst98
 
         end function fstprm
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T V O I                                  *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Opens a RPN standard file.                                              *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *  IN  options random or sequential access                                  * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *  IN  options random or sequential access                                  *
+        !  *                                                                           *
         !  *****************************************************************************/
 
         module function fstvoi(iun, options) result(status)
@@ -349,12 +349,12 @@ module rmn_fst98
             integer(C_INT) :: status
         end function fstvoi
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                           F S T  _ V E R S I O N                          *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Returns package version number.                                          *
-        !  *                                                                           * 
+        !  *                                                                           *
         !  *****************************************************************************/
 
         module function fst_version(dummy) result(vers)
@@ -367,16 +367,16 @@ module rmn_fst98
         !     integer(C_INT) :: vers
         ! end function fst_version
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T N B R                                  *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Returns the number of records of the file associated with unit number.  *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstnbr(iun) result (nrec)
             implicit none
@@ -384,17 +384,17 @@ module rmn_fst98
             integer(C_INT) :: nrec
         end function fstnbr
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T N B R V                                *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Returns the number of valid records (excluding deleted records) of the  *
         !  *   file associated with unit number.                                       *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstnbrv(iun) result (status)
             implicit none
@@ -422,58 +422,58 @@ module rmn_fst98
 
     interface
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T L U K                                  *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Read the record at position given by handle.                            *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  OUT field   data field to be read                                        * 
-        !  *  IN  handle  positioning information to the record                        * 
-        !  *  OUT ni      dimension 1 of the data field                                * 
-        !  *  OUT nj      dimension 2 of the data field                                * 
-        !  *  OUT nk      dimension 3 of the data field                                * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  OUT field   data field to be read                                        *
+        !  *  IN  handle  positioning information to the record                        *
+        !  *  OUT ni      dimension 1 of the data field                                *
+        !  *  OUT nj      dimension 2 of the data field                                *
+        !  *  OUT nk      dimension 3 of the data field                                *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstluk(field, handle, ni, nj, nk) result(handle_out)
             implicit none
 #define IgnoreTypeKindRank field
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: handle
             integer(C_INT), intent(OUT) :: ni, nj, nk
             integer(C_INT) :: handle_out
         end function fstluk
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T L I R X                                *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Reads the next record that matches the research keys.                   *
-        !  *   The search begins at the position given by the start handle.            * 
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  OUT field   data field to be read                                        * 
+        !  *   The search begins at the position given by the start handle.            *
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  OUT field   data field to be read                                        *
         !  *  IN  start   handle from which the search begins                          *
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *  OUT ni      dimension 1 of the data field                                * 
-        !  *  OUT nj      dimension 2 of the data field                                * 
-        !  *  OUT nk      dimension 3 of the data field                                * 
-        !  *  IN  datev   valid date                                                   * 
-        !  *  IN  etiket  label                                                        * 
-        !  *  IN  ip1     vertical level                                               * 
-        !  *  IN  ip2     forecast hour                                                * 
-        !  *  IN  ip3     user defined identifier                                      * 
-        !  *  IN  typvar  type of field                                                * 
-        !  *  IN  nomvar  variable name                                                * 
-        !  *                                                                           * 
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *  OUT ni      dimension 1 of the data field                                *
+        !  *  OUT nj      dimension 2 of the data field                                *
+        !  *  OUT nk      dimension 3 of the data field                                *
+        !  *  IN  datev   valid date                                                   *
+        !  *  IN  etiket  label                                                        *
+        !  *  IN  ip1     vertical level                                               *
+        !  *  IN  ip2     forecast hour                                                *
+        !  *  IN  ip3     user defined identifier                                      *
+        !  *  IN  typvar  type of field                                                *
+        !  *  IN  nomvar  variable name                                                *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstlirx(field, start, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
             implicit none
 #define IgnoreTypeKindRank field
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun, start
             integer(C_INT), intent(OUT) :: ni, nj, nk
@@ -482,32 +482,32 @@ module rmn_fst98
             integer(C_INT) :: handle
         end function fstlirx
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T L I R                                  *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Reads the next record that matches the research keys.                   *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *  OUT field   data field to be read                                        * 
-        !  *  OUT ni      dimension 1 of the data field                                * 
-        !  *  OUT nj      dimension 2 of the data field                                * 
-        !  *  OUT nk      dimension 3 of the data field                                * 
-        !  *  IN  datev   valid date                                                   * 
-        !  *  IN  etiket  label                                                        * 
-        !  *  IN  ip1     vertical level                                               * 
-        !  *  IN  ip2     forecast hour                                                * 
-        !  *  IN  ip3     user defined identifier                                      * 
-        !  *  IN  typvar  type of field                                                * 
-        !  *  IN  nomvar  variable name                                                * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *  OUT field   data field to be read                                        *
+        !  *  OUT ni      dimension 1 of the data field                                *
+        !  *  OUT nj      dimension 2 of the data field                                *
+        !  *  OUT nk      dimension 3 of the data field                                *
+        !  *  IN  datev   valid date                                                   *
+        !  *  IN  etiket  label                                                        *
+        !  *  IN  ip1     vertical level                                               *
+        !  *  IN  ip2     forecast hour                                                *
+        !  *  IN  ip3     user defined identifier                                      *
+        !  *  IN  typvar  type of field                                                *
+        !  *  IN  nomvar  variable name                                                *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstlir(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
             implicit none
 #define IgnoreTypeKindRank field
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(OUT) :: ni, nj, nk
@@ -519,7 +519,7 @@ module rmn_fst98
         module function fstlir_d(dblewords, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
             implicit none
 #define IgnoreTypeKindRank dblewords
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(OUT) :: ni, nj, nk
@@ -531,7 +531,7 @@ module rmn_fst98
         module function fstlir_h(halfwords, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
             implicit none
 #define IgnoreTypeKindRank halfwords
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(OUT) :: ni, nj, nk
@@ -543,7 +543,7 @@ module rmn_fst98
         module function fstlir_b(bytes, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar) result(handle)
             implicit none
 #define IgnoreTypeKindRank bytes
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(OUT) :: ni, nj, nk
@@ -552,27 +552,27 @@ module rmn_fst98
             integer(C_INT) :: handle
         end function fstlir_b
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T L I R _ S                              *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Reads the next record that matches the research keys.                   *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *  OUT string  character string to be read                                  * 
-        !  *  OUT ni      dimension 1 of the data field                                * 
-        !  *  OUT nj      dimension 2 of the data field                                * 
-        !  *  OUT nk      dimension 3 of the data field                                * 
-        !  *  IN  datev   valid date                                                   * 
-        !  *  IN  etiket  label                                                        * 
-        !  *  IN  ip1     vertical level                                               * 
-        !  *  IN  ip2     forecast hour                                                * 
-        !  *  IN  ip3     user defined identifier                                      * 
-        !  *  IN  typvar  type of field                                                * 
-        !  *  IN  nomvar  variable name                                                * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *  OUT string  character string to be read                                  *
+        !  *  OUT ni      dimension 1 of the data field                                *
+        !  *  OUT nj      dimension 2 of the data field                                *
+        !  *  OUT nk      dimension 3 of the data field                                *
+        !  *  IN  datev   valid date                                                   *
+        !  *  IN  etiket  label                                                        *
+        !  *  IN  ip1     vertical level                                               *
+        !  *  IN  ip2     forecast hour                                                *
+        !  *  IN  ip3     user defined identifier                                      *
+        !  *  IN  typvar  type of field                                                *
+        !  *  IN  nomvar  variable name                                                *
+        !  *                                                                           *
         !  *****************************************************************************/
         ! ftnword f77name(fstlir_s)(void *string, ftnword *f_iun,
         !                         ftnword *f_ni, ftnword *f_nj,
@@ -592,20 +592,20 @@ module rmn_fst98
             integer(C_INT) :: handle
         end function fstlir_s
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                            F S T L I S                                    *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Reads the next record that matches the last search criterias            *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  OUT field   data field to be read                                        * 
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *  OUT ni      dimension 1 of the data field                                * 
-        !  *  OUT nj      dimension 2 of the data field                                * 
-        !  *  OUT nk      dimension 3 of the data field                                * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  OUT field   data field to be read                                        *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *  OUT ni      dimension 1 of the data field                                *
+        !  *  OUT nj      dimension 2 of the data field                                *
+        !  *  OUT nk      dimension 3 of the data field                                *
+        !  *                                                                           *
         !  *****************************************************************************/
         ! int c_fstlis(word *field, int iun, int *ni, int *nj, int *nk)
         ! ftnword f77name(fstlis)(word *field, ftnword *f_iun,
@@ -613,46 +613,46 @@ module rmn_fst98
         module function fstlis(field, iun, ni, nj, nk) result(handle)
             implicit none
 #define IgnoreTypeKindRank field
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(OUT) :: ni, nj, nk
             integer(C_INT) :: handle
         end function fstlis
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                             F S T L I C                                   *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Search for a record that matches the research keys and check that the   *
         !  *   remaining parmeters match the record descriptors                        *
         !  *                                                                           *
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  OUT field    data field to be read                                       * 
-        !  *  IN  iun      unit number associated to the file                          * 
-        !  *  IN  niin     dimension 1 of the data field                               * 
-        !  *  IN  njin     dimension 2 of the data field                               * 
-        !  *  IN  nkin     dimension 3 of the data field                               * 
-        !  *  IN  datev    valid date                                                  * 
-        !  *  IN  etiket   label                                                       * 
-        !  *  IN  ip1      vertical level                                              * 
-        !  *  IN  ip2      forecast hour                                               * 
-        !  *  IN  ip3      user defined identifier                                     * 
-        !  *  IN  typvar   type of field                                               * 
-        !  *  IN  nomvar   variable name                                               * 
-        !  *  IN  ig1      first grid descriptor                                       * 
-        !  *  IN  ig2      second grid descriptor                                      * 
-        !  *  IN  ig3      third grid descriptor                                       * 
-        !  *  IN  ig4      fourth grid descriptor                                      * 
-        !  *  IN  grtyp    type of geographical projection                             * 
-        !  *                                                                           * 
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  OUT field    data field to be read                                       *
+        !  *  IN  iun      unit number associated to the file                          *
+        !  *  IN  niin     dimension 1 of the data field                               *
+        !  *  IN  njin     dimension 2 of the data field                               *
+        !  *  IN  nkin     dimension 3 of the data field                               *
+        !  *  IN  datev    valid date                                                  *
+        !  *  IN  etiket   label                                                       *
+        !  *  IN  ip1      vertical level                                              *
+        !  *  IN  ip2      forecast hour                                               *
+        !  *  IN  ip3      user defined identifier                                     *
+        !  *  IN  typvar   type of field                                               *
+        !  *  IN  nomvar   variable name                                               *
+        !  *  IN  ig1      first grid descriptor                                       *
+        !  *  IN  ig2      second grid descriptor                                      *
+        !  *  IN  ig3      third grid descriptor                                       *
+        !  *  IN  ig4      fourth grid descriptor                                      *
+        !  *  IN  grtyp    type of geographical projection                             *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstlic(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar, &
                         ig1, ig2, ig3, ig4, grtyp) result(handle)
             implicit none
 #define IgnoreTypeKindRank field
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(OUT) :: ni, nj, nk
@@ -672,7 +672,7 @@ module rmn_fst98
                                     grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
             implicit none
 #define IgnoreTypeKindRank field, work
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
@@ -686,7 +686,7 @@ module rmn_fst98
                             grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
             implicit none
 #define IgnoreTypeKindRank dblewords, work
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
@@ -699,7 +699,7 @@ module rmn_fst98
                             grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
             implicit none
 #define IgnoreTypeKindRank halfwords, work
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
@@ -712,7 +712,7 @@ module rmn_fst98
                             grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
             implicit none
 #define IgnoreTypeKindRank bytes, work
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
@@ -720,45 +720,45 @@ module rmn_fst98
             character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
         end subroutine fstecr_b
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                              F S T E C R _ S                              *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Writes record to file.                                                  *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  string  character string to write to the file                        * 
-        !  *  IN  work    work field (kept for backward compatibility)                 * 
-        !  *  IN  npak    number of bits kept for the elements of the field (-npak)    * 
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *  IN  date    date time stamp                                              * 
-        !  *  IN  deet    length of a time step in seconds                             * 
-        !  *  IN  npas    time step number                                             * 
-        !  *  IN  ni      first dimension of the data field                            * 
-        !  *  IN  nj      second dimension of the data field                           * 
-        !  *  IN  nk      third dimension of the data field                            * 
-        !  *  IN  ip1     vertical level                                               * 
-        !  *  IN  ip2     forecast hour                                                * 
-        !  *  IN  ip3     user defined identifier                                      * 
-        !  *  IN  typvar  type of field (forecast, analysis, climatology)              * 
-        !  *  IN  nomvar  variable name                                                * 
-        !  *  IN  etiket  label                                                        * 
-        !  *  IN  grtyp   type of geographical projection                              * 
-        !  *  IN  ig1     first grid descriptor                                        * 
-        !  *  IN  ig2     second grid descriptor                                       * 
-        !  *  IN  ig3     third grid descriptor                                        * 
-        !  *  IN  ig4     fourth grid descriptor                                       * 
-        !  *  IN  datyp   data type of the elements                                    * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  string  character string to write to the file                        *
+        !  *  IN  work    work field (kept for backward compatibility)                 *
+        !  *  IN  npak    number of bits kept for the elements of the field (-npak)    *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *  IN  date    date time stamp                                              *
+        !  *  IN  deet    length of a time step in seconds                             *
+        !  *  IN  npas    time step number                                             *
+        !  *  IN  ni      first dimension of the data field                            *
+        !  *  IN  nj      second dimension of the data field                           *
+        !  *  IN  nk      third dimension of the data field                            *
+        !  *  IN  ip1     vertical level                                               *
+        !  *  IN  ip2     forecast hour                                                *
+        !  *  IN  ip3     user defined identifier                                      *
+        !  *  IN  typvar  type of field (forecast, analysis, climatology)              *
+        !  *  IN  nomvar  variable name                                                *
+        !  *  IN  etiket  label                                                        *
+        !  *  IN  grtyp   type of geographical projection                              *
+        !  *  IN  ig1     first grid descriptor                                        *
+        !  *  IN  ig2     second grid descriptor                                       *
+        !  *  IN  ig3     third grid descriptor                                        *
+        !  *  IN  ig4     fourth grid descriptor                                       *
+        !  *  IN  datyp   data type of the elements                                    *
         !  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
-        !  *                                                                           * 
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstecr_s(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                             ip1, ip2, ip3, typvar, nomvar, etiket, &
                             grtyp, ig1, ig2, ig3, ig4, datyp, rewrite, lngstr) result(status)
             implicit none
 #define IgnoreTypeKindRank field, work
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
@@ -773,7 +773,7 @@ module rmn_fst98
             implicit none
             character(len=*), intent(IN) :: string
 #define IgnoreTypeKindRank work
-#define ExtraAttributes 
+#define ExtraAttributes
 #include <rmn/IgnoreTypeKindRank.hf>
             integer(C_INT), intent(IN) :: iun
             integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
@@ -782,16 +782,16 @@ module rmn_fst98
             integer(C_INT) :: status
         end function fstecr_str
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                             F S T E F F                                   *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Deletes the record associated to handle.                                *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  handle  handle to the record to delete                               * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  handle  handle to the record to delete                               *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fsteff(handle) result (status)
             implicit none
@@ -801,21 +801,21 @@ module rmn_fst98
     end interface
 
     interface
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                      F S T _ D A T A _ L E N G T H                        *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Gives information on data lenght of the elements passed to fstecr       *
         !  *   and fstlir (double, short integer, byte ...)                            *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  length_type     data length kind                                     * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  length_type     data length kind                                     *
         !  *                      1: byte                                              *
         !  *                      2: short (16 bits)                                   *
         !  *                      4: regular 32 bits                                   *
         !  *                      8: double (64 bits)                                  *
-        !  *                                                                           * 
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fst_data_length(l) result(status)
 
@@ -824,17 +824,17 @@ module rmn_fst98
             integer :: status
         end function fst_data_length
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                             I P n _ A L L                                 *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Generates all possible coded ip1 values for a given level               *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  level          ip1 level (float value)                               * 
-        !  *  IN  kind           level kind as defined in convip_plus                  * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  level          ip1 level (float value)                               *
+        !  *  IN  kind           level kind as defined in convip_plus                  *
+        !  *                                                                           *
         !  *****************************************************************************/
 
         module function ip1_all(level, vkind) result(ip_new)
@@ -856,17 +856,17 @@ module rmn_fst98
             integer(C_INT) :: ip_new
         end function ip3_all
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                             I P n _ V A L                                 *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Generates all possible coded ip1 values for a given level               *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  level          ip1 level (float value)                               * 
-        !  *  IN  kind           level kind as defined in convip_plus                  * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  level          ip1 level (float value)                               *
+        !  *  IN  kind           level kind as defined in convip_plus                  *
+        !  *                                                                           *
         !  *****************************************************************************/
 
         module function ip1_val(level, vkind) result(ip_new)
@@ -890,16 +890,16 @@ module rmn_fst98
 
         !  /*****************************************************************************
         !  *                              F S T O P I                                  *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Print out or set a fstd or xdf global variable option.                  *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *   IN     option   option name to be set/printed                           * 
-        !  *   IN     value    option value                                            * 
-        !  *   IN     getmode  logical (1: get option, 0: set option)                  * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *   IN     option   option name to be set/printed                           *
+        !  *   IN     value    option value                                            *
+        !  *   IN     getmode  logical (1: get option, 0: set option)                  *
+        !  *                                                                           *
         !  *****************************************************************************/
 
         module function fstopi(option, val, getmode) result(status)
@@ -909,18 +909,18 @@ module rmn_fst98
             integer(C_INT) :: status
         end function fstopi
 
-        !  /***************************************************************************** 
+        !  /*****************************************************************************
         !  *                              F S T O P L                                  *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Print out or set a fstd or xdf global variable option.                  *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *   IN     option   option name to be set/printed                           * 
-        !  *   IN     value    option value                                            * 
-        !  *   IN     getmode  logical (1: get option, 0: set option)                  * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *   IN     option   option name to be set/printed                           *
+        !  *   IN     value    option value                                            *
+        !  *   IN     getmode  logical (1: get option, 0: set option)                  *
+        !  *                                                                           *
         !  *****************************************************************************/
 
         module function fstopl(option, val, getmode) result(status)
@@ -931,18 +931,18 @@ module rmn_fst98
             integer(C_INT) :: status
         end function fstopl
 
-        !  /***************************************************************************** 
+        !  /*****************************************************************************
         !  *                              F S T O P R                                  *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Print out or set a fstd or xdf global variable option.                  *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *   IN     option   option name to be set/printed                           * 
-        !  *   IN     value    option value                                            * 
-        !  *   IN     getmode  logical (1: get option, 0: set option)                  * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *   IN     option   option name to be set/printed                           *
+        !  *   IN     value    option value                                            *
+        !  *   IN     getmode  logical (1: get option, 0: set option)                  *
+        !  *                                                                           *
         !  *****************************************************************************/
 
         module function fstopr(option, val, getmode) result(status)
@@ -975,12 +975,12 @@ module rmn_fst98
             integer(C_INT) :: status
         end function fstopc
 
-        !  /***************************************************************************** 
+        !  /*****************************************************************************
         !  *                   F S T R E S E T _ I P _ F L A G S                       *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Reset all the flags previously set by ip(1-3)_val                       *
-        !  *                                                                           * 
+        !  *                                                                           *
         !  *****************************************************************************/
         module subroutine fstreset_ip_flags(dummy) ! aocc
             implicit none
@@ -993,16 +993,16 @@ module rmn_fst98
 
     interface
 
-        ! /***************************************************************************** 
+        ! /*****************************************************************************
         !  *                                F S T C K P                                *
-        !  *                                                                           * 
-        !  *Object                                                                     * 
+        !  *                                                                           *
+        !  *Object                                                                     *
         !  *   Checkpoint. Clear buffers, rewrite headers.                             *
-        !  *                                                                           * 
-        !  *Arguments                                                                  * 
-        !  *                                                                           * 
-        !  *  IN  iun     unit number associated to the file                           * 
-        !  *                                                                           * 
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *                                                                           *
         !  *****************************************************************************/
         module function fstckp(iun) result (status)
             implicit none
@@ -1045,7 +1045,7 @@ contains
         logical :: is_rsf
 
         integer(C_INT32_T) :: c_is_rsf
-        
+
         is_rsf = .false.
         c_is_rsf = c_fst_is_rsf(iun)
         if (c_is_rsf == 1) is_rsf = .true.
