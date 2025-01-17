@@ -804,7 +804,7 @@ SUBROUTINE qqlx_ins(ivar, key, icount, limits, ityp, xtern)
     implicit none
 
     INTEGER, INTENT(IN) :: ivar
-    CHARACTER(len = *)  :: key
+    CHARACTER(len = *), intent(in) :: key
     INTEGER, INTENT(OUT):: icount
     INTEGER, INTENT(IN) :: limits
     INTEGER, INTENT(IN) :: ityp
@@ -1941,13 +1941,13 @@ SUBROUTINE qlxins(ivar, key, icount, limits, ityp)
     use app
     IMPLICIT NONE
 
-    INTEGER :: ivar
-    CHARACTER(LEN = *) :: key
+    INTEGER, INTENT(in) :: ivar
+    CHARACTER(LEN = *), INTENT(in) :: key
     INTEGER, INTENT(OUT) :: icount
-    INTEGER :: limits
-    INTEGER :: ityp
+    INTEGER, INTENT(IN) :: limits
+    INTEGER, INTENT(IN) :: ityp
 
-    integer, EXTERNAL :: readlx
+    EXTERNAL :: readlx
     EXTERNAL :: qlx_err, qqlx_ins
 
     IF (ityp == 2) THEN
