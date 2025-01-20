@@ -78,8 +78,6 @@ int run_test(const int is_rsf) {
         return -1;
     }
 
-    App_Log(APP_VERBATIM, "Data = [ %.2e, %.2e ]\n", ((float*)rec.data)[0], ((float*)rec.data)[1]);
-
     const uint32_t* data = rec.data;
     for (int i = 0; i < fst24_record_num_elem(&rec); i++) {
         if (float_diff(data[i], dummy_data[i]) > 5e-43) {
