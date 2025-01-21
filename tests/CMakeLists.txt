@@ -5,7 +5,7 @@ if (EC_INIT_DONE LESS 2)
    if(BUILD_TESTING)
 
         message(STATUS "(EC) Generating librmn tests")
-        
+
         # Helper module
         add_library(test_helper STATIC EXCLUDE_FROM_ALL rmn_test_helper.F90 fst/generate_fstd_module.F90)
         target_link_libraries(test_helper rmn::rmn)
@@ -82,7 +82,7 @@ if (EC_INIT_DONE LESS 2)
         add_executable(generate_fstd EXCLUDE_FROM_ALL fst/generate_fstd.F90)
         target_link_libraries(generate_fstd test_helper)
 
-        add_executable(burp_f EXCLUDE_FROM_ALL burp_f.f)
+        add_executable(burp_f EXCLUDE_FROM_ALL burp.F90)
         target_link_libraries(burp_f rmn::rmn)
         add_test(NAME burp_f COMMAND ${CMAKE_CURRENT_BINARY_DIR}/burp_f)
         add_dependencies(check burp_f)
@@ -291,6 +291,11 @@ if (EC_INIT_DONE LESS 2)
             # add_test(NAME circular_buffer_timeout COMMAND ${MPIEXEC_EXECUTABLE} ${OVERSUBSCRIBE_FLAG} -n 2 $<TARGET_FILE:circular_buffer_timeout>)
             add_dependencies(check circular_buffer_timeout)
         endif()
+
+        add_executable(fst_old_file EXCLUDE_FROM_ALL fst/fst_old_file.c)
+        target_link_libraries(fst_old_file rmn::rmn)
+        # add_test(NAME fst_old_file COMMAND $<TARGET_FILE:fst_old_file>)
+        add_dependencies(check fst_old_file)
 
         add_executable(fst_edge_case_1 EXCLUDE_FROM_ALL fst/fst_edge_case_1.c)
         target_link_libraries(fst_edge_case_1 rmn::rmn)
