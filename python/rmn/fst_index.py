@@ -11,7 +11,7 @@ FST_TYPVAR_LEN = 3
 FST_NOMVAR_LEN = 5
 FST_ETIKET_LEN = 13
 FST_GTYP_LEN = 2
-FST_PATH_LEN = 1024
+FST_PATH_LEN = 4096 # The value of PATH_MAX
 
 class RecordData(ctypes.Structure):
     _pack_ = 1  # Match C struct packing
