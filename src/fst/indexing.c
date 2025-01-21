@@ -67,99 +67,6 @@ RecordData *NewRecordData(size_t nb_records)
         rdata->ig4 = (uint32_t *)(&data[n]);
         n += (nb_records * sizeof(uint32_t));
 
-        // rdata->grid = (char *)(&data[n]);
-        // n += (nb_records * FST_GRID_LEN * sizeof(char));
-
-        // rdata->label = (char *)(&data[n]);
-        // n += (nb_records * FST_LABEL_LEN * sizeof(char));
-
-        // rdata->run = (char *)(&data[n]);
-        // n += (nb_records * FST_RUN_LEN * sizeof(char));
-
-        // rdata->implementation = (char *)(&data[n]);
-        // n += (nb_records * FST_IMPLEMENTATION_LEN * sizeof(char));
-
-        // rdata->ensemble_member = (char *)(&data[n]);
-        // n += (nb_records * FST_ENSEMBLE_MEMBER_LEN * sizeof(char));
-
-        // rdata->etiket_format = (char *)(&data[n]);
-        // n += (nb_records * FST_ETIKET_FORMAT_LEN * sizeof(char));
-
-        // rdata->date_of_observation = (uint32_t *)(&data[n]);
-        // n += (nb_records * sizeof(uint32_t));
-
-        // rdata->date_of_validity = (uint32_t *)(&data[n]);
-        // n += (nb_records * sizeof(uint32_t));
-
-        // rdata->forecast_hour = (float *)(&data[n]);
-        // n += (nb_records * sizeof(float));
-
-        // rdata->data_type_str = (char *)(&data[n]);
-        // n += (nb_records * FST_DATA_TYPE_STR_LEN * sizeof(char));
-
-        // rdata->level = (float *)(&data[n]);
-        // n += (nb_records * sizeof(float));
-
-        // rdata->ip1_kind = (uint32_t *)(&data[n]);
-        // n += (nb_records * sizeof(uint32_t));
-        // rdata->ip1_kind_str = (char *)(&data[n]);
-        // n += (nb_records * sizeof(char));
-        // rdata->ip2_dec = (float *)(&data[n]);
-        // n += (nb_records * sizeof(float));
-        // rdata->ip2_kind = (uint32_t *)(&data[n]);
-        // n += (nb_records * sizeof(uint32_t));
-        // rdata->ip2_kind_str = (char *)(&data[n]);
-        // n += (nb_records * sizeof(char));
-        // rdata->ip3_dec = (float *)(&data[n]);
-        // n += (nb_records * sizeof(float));
-        // rdata->ip3_kind = (uint32_t *)(&data[n]);
-        // n += (nb_records * sizeof(uint32_t));
-        // rdata->ip3_kind_str = (char *)(&data[n]);
-        // n += (nb_records * sizeof(char));
-
-        // rdata->surface = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-        // rdata->follow_topography = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-        // rdata->ascending = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-
-        // rdata->interval_ip = (char *)(&data[n]);
-        // n += (nb_records * FST_INTERVAL_IP_LEN * sizeof(char));
-        // rdata->interval_low = (float *)(&data[n]);
-        // n += (nb_records * sizeof(float));
-        // rdata->interval_high = (float *)(&data[n]);
-        // n += (nb_records * sizeof(float));
-        // rdata->interval_kind = (uint32_t *)(&data[n]);
-        // n += (nb_records * sizeof(uint32_t));
-
-        // rdata->path = (char *)(&data[n]);
-        // n += (nb_records * FST_PATH_LEN * sizeof(char));
-
-        // rdata->multiple_modifications = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-        // rdata->zapped = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-        // rdata->filtered = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-        // rdata->interpolated = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-        // rdata->unit_converted = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-        // rdata->bounded = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-        // rdata->missing_data = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-        // rdata->ensemble_extra_info = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-        // rdata->masks = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-        // rdata->masked = (bool *)(&data[n]);
-        // n += (nb_records * sizeof(bool));
-
-        // rdata->grid_desc = (char *)(&data[n]);
-        // n += (nb_records * FST_GRID_DESC_LEN * sizeof(char));
-
         // Add path field
         rdata->path = (char *)(&data[n]);
         n += (nb_records * FST_PATH_LEN * sizeof(char));
@@ -208,6 +115,10 @@ static inline void safe_string_copy(char *dest, const char *src, size_t dest_off
 RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
 {
     TApp_Timer t;
+    if(nb_files < 0 || MAXFILES < nb_files){
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s() nb_files=%d is negative or greater than MAXFILES=%d\n", __func__, nb_files, MAXFILES);
+        return NULL;
+    }
     App_TimerInit(&t);
     RecordData *raw_columns, *lraw[MAXFILES];
     int i, n, total_nb_records = 0;
@@ -608,59 +519,59 @@ void print_record(RecordData *data)
 // }
 
 // TODO Replace with normal python record data access but for Seb's info:
-void *fst_read_data_at_index(const char *path, const int32_t index, void *data)
-{
-    void *output_data = NULL;
-
-    Lib_Log(APP_LIBFST, APP_DEBUG, "Starting to read data at index %d from file %s\n", index, path);
-
-    // Open the file first
-    fst_file *file = fst24_open(path, "R");
-    if (!file)
-    {
-        Lib_Log(APP_LIBFST, APP_ERROR, "Failed to open file %s\n", path);
-        return NULL;
-    }
-    Lib_Log(APP_LIBFST, APP_DEBUG, "Successfully opened file\n");
-
-    // Initialize record structure
-    fst_record record = {0}; // Zero initialize all fields
-    Lib_Log(APP_LIBFST, APP_DEBUG, "Initialized record structure\n");
-
-    // Get record info at index
-    int get_record_result = fst24_get_record_by_index(file, index, &record);
-    if (get_record_result <= 0)
-    {
-        Lib_Log(APP_LIBFST, APP_ERROR, "Failed to get record at index %d (result: %d)\n", index, get_record_result);
-        fst24_close(file);
-        return NULL;
-    }
-
-    Lib_Log(APP_LIBFST, APP_DEBUG, "Got record at index %d: ni=%d, nj=%d, nk=%d, data_type=%d\n",
-            index, record.ni, record.nj, record.nk, record.data_type);
-
-    // Read the actual data
-    record.data = data;  // Now read will put data there and not allocate
-                         // Python allocated our data so we don't have to worry
-    int read_record_result = fst24_read_record(&record);
-    if (read_record_result <= 0)
-    {
-        Lib_Log(APP_LIBFST, APP_ERROR, "Failed to read record data (result: %d)\n", read_record_result);
-        // fst24_record_free(&record);
-        fst24_close(file);
-        return NULL;
-    }
-
-    // Validate record data
-    if (record.data == NULL)
-    {
-        Lib_Log(APP_LIBFST, APP_ERROR, "Record data pointer is NULL\n");
-        // fst24_record_free(&record);
-        fst24_close(file);
-        return NULL;
-    }
-
-    fst24_close(file);
-
-    return output_data;
-}
+// void *fst_read_data_at_index(const char *path, const int32_t index, void *data)
+// {
+//     void *output_data = NULL;
+// 
+//     Lib_Log(APP_LIBFST, APP_DEBUG, "Starting to read data at index %d from file %s\n", index, path);
+// 
+//     // Open the file first
+//     fst_file *file = fst24_open(path, "R");
+//     if (!file)
+//     {
+//         Lib_Log(APP_LIBFST, APP_ERROR, "Failed to open file %s\n", path);
+//         return NULL;
+//     }
+//     Lib_Log(APP_LIBFST, APP_DEBUG, "Successfully opened file\n");
+// 
+//     // Initialize record structure
+//     fst_record record = {0}; // Zero initialize all fields
+//     Lib_Log(APP_LIBFST, APP_DEBUG, "Initialized record structure\n");
+// 
+//     // Get record info at index
+//     int get_record_result = fst24_get_record_by_index(file, index, &record);
+//     if (get_record_result <= 0)
+//     {
+//         Lib_Log(APP_LIBFST, APP_ERROR, "Failed to get record at index %d (result: %d)\n", index, get_record_result);
+//         fst24_close(file);
+//         return NULL;
+//     }
+// 
+//     Lib_Log(APP_LIBFST, APP_DEBUG, "Got record at index %d: ni=%d, nj=%d, nk=%d, data_type=%d\n",
+//             index, record.ni, record.nj, record.nk, record.data_type);
+// 
+//     // Read the actual data
+//     record.data = data;  // Now read will put data there and not allocate
+//                          // Python allocated our data so we don't have to worry
+//     int read_record_result = fst24_read_record(&record);
+//     if (read_record_result <= 0)
+//     {
+//         Lib_Log(APP_LIBFST, APP_ERROR, "Failed to read record data (result: %d)\n", read_record_result);
+//         // fst24_record_free(&record);
+//         fst24_close(file);
+//         return NULL;
+//     }
+// 
+//     // Validate record data
+//     if (record.data == NULL)
+//     {
+//         Lib_Log(APP_LIBFST, APP_ERROR, "Record data pointer is NULL\n");
+//         // fst24_record_free(&record);
+//         fst24_close(file);
+//         return NULL;
+//     }
+// 
+//     fst24_close(file);
+// 
+//     return output_data;
+// }

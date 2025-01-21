@@ -113,21 +113,30 @@ class fst24_file(ctypes.Structure):
         logging.debug(f"__del__: fst24_file {self.filename} (id={id(self)}")
         self.close()
 
+    def get_record_by_index(self, index):
+        """ Get a record by its file index """
+        if self.closed:
+            raise ValueError("I/O operation on closed file")
 
-    def get_record_at_index_with_data(self, index):
+        rec = fst_record()
+        result = _fst24_get_record_by_index(self._c_ref, index, ctypes.byref(rec))
+
+        return rec
+
+    def get_record_by_index_with_data(self, index):
         """ This is a convenience function that gets a record using its index in
         the file.  Because the record is being accessed using said index, we
         assume that this function is called to get the data of the record.
 
         Only call this function if you want the data. """
-        if self.closed:
-            raise ValueError("I/O operation on closed file")
-        rec = fst_record()
-        result = _fst24_get_record_by_index(self._c_ref, index, ctypes.byref(rec))
-        if result != 1:
-            raise FstFileError("Error calling C function fst24_get_record_by_index")
+        rec = self.get_record_by_index(index)
+        
         rec.data
+
         return rec
+
+    def get_records_by_index_with_data(self, indices):
+        yield from map(self.get_record_by_index_with_data, indices)
 
     @classmethod
     def get_records_with_data(cls, filename, indices):
@@ -139,5 +148,6 @@ class fst24_file(ctypes.Structure):
         records as soon as they stop being consumed by the caller. """
         
         with cls(filename) as f:
-            yield from map(f.get_record_at_index_with_data, indices)
+            yield from f.get_records_by_index_with_data(indices)
+    
         

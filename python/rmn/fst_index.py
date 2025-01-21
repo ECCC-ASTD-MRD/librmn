@@ -40,6 +40,9 @@ class RecordData(ctypes.Structure):
         ("path", ctypes.POINTER(ctypes.c_char)),
         ("file_index", ctypes.POINTER(ctypes.c_uint32)),
     ]
+    def __del__(self):
+        """ See notes.py: We need to allocate memory in Python """
+        print("Destructor")
 
 librmn.rmn_get_index_columns_raw.argtypes = [ctypes.POINTER(ctypes.c_char_p), ctypes.c_size_t]
 librmn.rmn_get_index_columns_raw.restype = ctypes.POINTER(RecordData)
@@ -63,7 +66,6 @@ def get_index_columns(filenames):
     if not raw_columns_ptr:
         raise RuntimeError("Failed to get index columns from C function.")
 
-    # Dereference the pointer to get the RecordData
     raw_columns = raw_columns_ptr.contents
 
     nb_records = raw_columns.nb_records
@@ -71,18 +73,15 @@ def get_index_columns(filenames):
     logging.debug(f"Number of records: {nb_records}")
 
     columns = {}
-    # Decode fixed-length string fields
     columns['typvar'] = _decode_fixed_length_strings(raw_columns.typvar, FST_TYPVAR_LEN, nb_records)
     columns['nomvar'] = _decode_fixed_length_strings(raw_columns.nomvar, FST_NOMVAR_LEN, nb_records)
     columns['etiket'] = _decode_fixed_length_strings(raw_columns.etiket, FST_ETIKET_LEN, nb_records)
     columns['grtyp'] = _decode_fixed_length_strings(raw_columns.grtyp, FST_GTYP_LEN, nb_records)
     columns['path'] = _decode_fixed_length_strings(raw_columns.path, FST_PATH_LEN, nb_records)
 
-    # Extract numeric fields using _ptr_to_numpy
     columns['ni'] = _ptr_to_numpy(raw_columns.ni, np.uint32, nb_records)
     columns['nj'] = _ptr_to_numpy(raw_columns.nj, np.uint32, nb_records)
     columns['nk'] = _ptr_to_numpy(raw_columns.nk, np.uint32, nb_records)
-
     columns['dateo'] = _ptr_to_numpy(raw_columns.dateo, np.uint32, nb_records)
     columns['ip1'] = _ptr_to_numpy(raw_columns.ip1, np.uint32, nb_records)
     columns['ip2'] = _ptr_to_numpy(raw_columns.ip2, np.uint32, nb_records)
@@ -141,52 +140,6 @@ def _ptr_to_numpy(ptr, dtype, count):
     return np.ctypeslib.as_array(ptr, shape=(count,))  # Convert to NumPy array
 
 
-# Numpy dtype mappings for 32-bit FST data types
-FST_DATYP2NUMPY_LIST = {
-    0: np.uint32,  # binary, transparent
-    1: np.float32,  # floating point
-    2: np.uint32,  # unsigned integer
-    3: np.uint32,  # character (R4A in integer)
-    4: np.int32,  # signed integer
-    5: np.float32,  # IEEE floating point
-    6: np.float32,  # floating point (16 bit)
-    7: np.uint8,  # character string
-    8: np.complex64,  # complex IEEE
-}
-
-# Numpy dtype mappings for 64-bit FST data types
-FST_DATYP2NUMPY_LIST64 = {
-    0: np.uint64,  # binary, transparent
-    1: np.float64,  # floating point
-    2: np.uint64,  # unsigned integer
-    3: np.uint64,  # character (R4A in integer)
-    4: np.int64,  # signed integer
-    5: np.float64,  # IEEE floating point
-    6: np.float64,  # floating point (16 bit)
-    8: np.complex128,  # complex IEEE
-}
-
-
-def get_record_dtype(data_type: int, pack_bits: int) -> np.dtype:
-    """Convert FST data type to numpy dtype."""
-
-    # Remove turbopack and missing value flags for type checking
-    base_type = data_type & ~128
-
-    # Select dtype mapping based on pack_bits
-    # TODO: Centralize logic: already coded for fst_record data accessor and getter
-    if pack_bits == 64:
-        dtype_map = FST_DATYP2NUMPY_LIST64
-    elif pack_bits <= 32:
-        dtype_map = FST_DATYP2NUMPY_LIST
-    else:
-        raise ValueError(f"Unsupported pack_bits value: {pack_bits}")
-
-    try:
-        return dtype_map[base_type]
-    except KeyError:
-        raise ValueError(f"Unsupported FST data type: {data_type} (base type: {base_type})")
-
 
 # TODO:
 # - read_record_data_by_index(path, indices):
@@ -200,9 +153,7 @@ def read_fst_data_at_index_phil(path, index):
     with fst24_file(path) as f:
         return f.get_record_at_index(index)
 
-def read_fst_data_at_index(
-    path: str, index: int, ni: int, nj: int, nk: int, data_type: int, pack_bits: int
-) -> np.ndarray:
+def read_fst_data_at_index(path: str, index: int) -> np.ndarray:
     """
     Read data from a FST file at a specific record index.
 
@@ -221,53 +172,12 @@ def read_fst_data_at_index(
     Raises:
         RuntimeError: If reading fails
     """
-    # Get the data using the C function
-    data_ptr = librmn.fst_read_data_at_index(str(path).encode("utf-8"), ctypes.c_int32(index))
-
-    # Convert void pointer to integer address
-    if not data_ptr:
-        raise RuntimeError(f"Failed to read data at index {index}")
-
-    # Convert void pointer to integer address
-    data_address = ctypes.cast(data_ptr, ctypes.c_void_p).value
-
-    try:
-        # Get the appropriate numpy dtype
-        dtype = get_record_dtype(data_type, pack_bits)
-
-        # Calculate shape
-        shape = (ni, nj, nk) if nk > 1 else (ni, nj)
-
-        # Calculate total size
-        size = np.prod(shape)
-
-        # Create a ctypes array type of the appropriate dtype and size
-        if dtype == np.float32:
-            c_arr_type = ctypes.c_float * size
-        elif dtype == np.float64:
-            c_arr_type = ctypes.c_double * size
-        elif dtype == np.int32:
-            c_arr_type = ctypes.c_int32 * size
-        elif dtype == np.uint32:
-            c_arr_type = ctypes.c_uint32 * size
-        elif dtype == np.complex64:
-            c_arr_type = (ctypes.c_float * 2) * size
-        else:
-            raise ValueError(f"Unsupported dtype: {dtype}")
-
-        # Explicitly convert address to integer
-        c_arr = c_arr_type.from_address(data_address)
-        data = np.ctypeslib.as_array(c_arr)
-
-        # Reshape and make a copy in Fortran order
-        data = data.reshape(shape, order="F").copy()
-
-        return data
-
-    finally:
-        # Free the C memory
-        librmn.free(data_ptr)
-
+    with fst24_file(path) as f:
+        # NOTE: The way the data is read, the numpy array is allocated in Python
+        # and we tell the C function to put the data in the memory that is
+        # managed by the numpy array.  That way we have nothing to worry about
+        # in terms of memory allocation.
+        return f.get_record_at_index(index).data
 
 # def get_grid_identifier_expr(df: pl.DataFrame) -> pl.DataFrame:
 #     """
@@ -566,3 +476,50 @@ def read_fst_data_at_index(
 #         else:
 #             label = raw_etiket
 #     return label, run, implementation, ensemble_member, etiket_format
+
+
+# Numpy dtype mappings for 32-bit FST data types
+# FST_DATYP2NUMPY_LIST = {
+#     0: np.uint32,  # binary, transparent
+#     1: np.float32,  # floating point
+#     2: np.uint32,  # unsigned integer
+#     3: np.uint32,  # character (R4A in integer)
+#     4: np.int32,  # signed integer
+#     5: np.float32,  # IEEE floating point
+#     6: np.float32,  # floating point (16 bit)
+#     7: np.uint8,  # character string
+#     8: np.complex64,  # complex IEEE
+# }
+# 
+# # Numpy dtype mappings for 64-bit FST data types
+# FST_DATYP2NUMPY_LIST64 = {
+#     0: np.uint64,  # binary, transparent
+#     1: np.float64,  # floating point
+#     2: np.uint64,  # unsigned integer
+#     3: np.uint64,  # character (R4A in integer)
+#     4: np.int64,  # signed integer
+#     5: np.float64,  # IEEE floating point
+#     6: np.float64,  # floating point (16 bit)
+#     8: np.complex128,  # complex IEEE
+# }
+# 
+# 
+# def get_record_dtype(data_type: int, pack_bits: int) -> np.dtype:
+#     """Convert FST data type to numpy dtype."""
+# 
+#     # Remove turbopack and missing value flags for type checking
+#     base_type = data_type & ~128
+# 
+#     # Select dtype mapping based on pack_bits
+#     # TODO: Centralize logic: already coded for fst_record data accessor and getter
+#     if pack_bits == 64:
+#         dtype_map = FST_DATYP2NUMPY_LIST64
+#     elif pack_bits <= 32:
+#         dtype_map = FST_DATYP2NUMPY_LIST
+#     else:
+#         raise ValueError(f"Unsupported pack_bits value: {pack_bits}")
+# 
+#     try:
+#         return dtype_map[base_type]
+#     except KeyError:
+#         raise ValueError(f"Unsupported FST data type: {data_type} (base type: {base_type})")
