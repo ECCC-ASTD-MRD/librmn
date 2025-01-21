@@ -255,7 +255,7 @@ RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
             // Copy the file path
             strncpy(lraw[i]->path + n * FST_PATH_LEN, filenames[i], FST_PATH_LEN - 1);
             // Ensure null-termination
-            // lraw[i]->path[n * FST_PATH_LEN + FST_PATH_LEN - 1] = '\0';
+            lraw[i]->path[n * FST_PATH_LEN + FST_PATH_LEN - 1] = '\0';
 
             lraw[i]->ni[n] = result.ni;
             lraw[i]->nj[n] = result.nj;
