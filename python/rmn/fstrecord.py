@@ -3,6 +3,7 @@ import numpy as np
 import enum
 
 from ._sharedlib import librmn
+from .errors import FstFileError
 
 class FstDataType(enum.IntEnum):
     # Paste the whole thing once, put the #define line before it's documentation
@@ -217,6 +218,8 @@ class fst_record(ctypes.Structure):
             data_array = np.empty((self.ni, self.nj, self.nk), dtype=dtype, order='F')
             self._data = data_array.ctypes.data
             res = _fst24_read_record(ctypes.byref(self))
+            if res != 1:
+                raise FstFileError("Call to C function fst24_read_record failed")
 
             self._data_array = data_array
         return self._data_array

@@ -4,6 +4,7 @@ import logging
 from ._sharedlib import librmn
 from .fstrecord import fst_record, _get_default_fst_record
 from .fstquery import fst_query
+from .errors import FstFileError
 
 _fst24_open = librmn.fst24_open
 _fst24_open.argtypes = (ctypes.c_char_p, ctypes.c_char_p)
@@ -19,6 +20,10 @@ _fst24_new_query.restype = ctypes.c_void_p
 
 _fst24_write = librmn.fst24_write
 _fst24_write.argtypes = (ctypes.c_void_p, ctypes.POINTER(fst_record), ctypes.c_int)
+        
+_fst24_get_record_by_index = librmn.fst24_get_record_by_index
+_fst24_get_record_by_index.argtypes = (ctypes.c_void_p, ctypes.c_int32, ctypes.POINTER(fst_record))
+_fst24_get_record_by_index.restype = ctypes.c_int32
 
 class fst24_file(ctypes.Structure):
     """ Object encapsulating an RPN fst24 file
@@ -95,6 +100,12 @@ class fst24_file(ctypes.Structure):
             raise ValueError("I/O operation on closed file")
         if not isinstance(record, fst_record):
             raise TypeError(f"First argumnent should be fst_record, not '{type(record)}'")
+
+        # Note: Accessing the property causes the data to be read if there is
+        # some data so this check is more important than just verifying.
+        if record.data is None:
+            raise ValueError("The record has no data")
+
         result = _fst24_write(self._c_ref, ctypes.byref(record), 1 if rewrite else 0)
         if result != 1:
             raise FstFileError("Error calling C function fst24_write()")
@@ -102,5 +113,31 @@ class fst24_file(ctypes.Structure):
         logging.debug(f"__del__: fst24_file {self.filename} (id={id(self)}")
         self.close()
 
-class FstFileError(Exception):
-    pass
+
+    def get_record_at_index_with_data(self, index):
+        """ This is a convenience function that gets a record using its index in
+        the file.  Because the record is being accessed using said index, we
+        assume that this function is called to get the data of the record.
+
+        Only call this function if you want the data. """
+        if self.closed:
+            raise ValueError("I/O operation on closed file")
+        rec = fst_record()
+        result = _fst24_get_record_by_index(self._c_ref, index, ctypes.byref(rec))
+        if result != 1:
+            raise FstFileError("Error calling C function fst24_get_record_by_index")
+        rec.data
+        return rec
+
+    @classmethod
+    def get_records_with_data(cls, filename, indices):
+        """ This function will read all the records at the given indices in the
+        given file *and their data*.  Only use this function if you really want
+        all that data!
+
+        This function is implemented as a generator so it will stop reading
+        records as soon as they stop being consumed by the caller. """
+        
+        with cls(filename) as f:
+            yield from map(f.get_record_at_index_with_data, indices)
+        

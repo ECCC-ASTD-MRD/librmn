@@ -287,5 +287,12 @@ class TestRMNPackage(unittest.TestCase):
                 pass
         self.assertRaisesRegex(ValueError, "references closed file", query_closed_file)
 
+    def test_copy_file(self):
+        output_file = f"{self.tmpdir}/copied_file.std"
+        with rmn.fst24_file(self.input_file) as f:
+            with rmn.fst24_file(output_file, options="R/W") as g:
+                for rec in f:
+                    g.write(rec, rewrite=True)
+
 if __name__ == "__main__":
     unittest.main()

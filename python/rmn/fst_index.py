@@ -1,4 +1,5 @@
 from ._sharedlib import librmn
+from .fst24file import fst24_file
 
 import ctypes
 import os
@@ -120,7 +121,7 @@ def _decode_fixed_length_strings(ptr, length, nb_records):
 
     np_array = _ptr_to_numpy(ptr, np.char, length * nb_records)
     slices = (bytes(s) for s in np.split(np_array, nb_records))
-    return (s.decode('utf-8', errors='ignore').rstrip('\x00') for s in slices)
+    return (s.decode('utf-8', errors='ignore').rstrip('\x00').strip() for s in slices)
 
 def _ptr_to_numpy(ptr, dtype, count):
     """
@@ -195,6 +196,10 @@ def get_record_dtype(data_type: int, pack_bits: int) -> np.dtype:
 #           for i in indices:
 #               yiels f.get_record_at_index(i).data
 # - Subtask: Create method `get_record_at_index(sefl, index)` in class fst24_file
+def read_fst_data_at_index_phil(path, index):
+    with fst24_file(path) as f:
+        return f.get_record_at_index(index)
+
 def read_fst_data_at_index(
     path: str, index: int, ni: int, nj: int, nk: int, data_type: int, pack_bits: int
 ) -> np.ndarray:
