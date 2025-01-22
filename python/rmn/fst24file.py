@@ -123,6 +123,9 @@ class fst24_file(ctypes.Structure):
 
         return rec
 
+    def get_records_by_index(self, indices):
+        yield from map(self.get_record_by_index, indices)
+
     def get_record_by_index_with_data(self, index):
         """ This is a convenience function that gets a record using its index in
         the file.  Because the record is being accessed using said index, we

@@ -140,19 +140,6 @@ def _ptr_to_numpy(ptr, dtype, count):
     return np.ctypeslib.as_array(ptr, shape=(count,))  # Convert to NumPy array
 
 
-
-# TODO:
-# - read_record_data_by_index(path, indices):
-#       if isinstance(indices, int):
-#           indices = [indices]
-#       with fst24_file(path) as f:
-#           for i in indices:
-#               yiels f.get_record_at_index(i).data
-# - Subtask: Create method `get_record_at_index(sefl, index)` in class fst24_file
-def read_fst_data_at_index_phil(path, index):
-    with fst24_file(path) as f:
-        return f.get_record_at_index(index)
-
 def read_fst_data_at_index(path: str, index: int) -> np.ndarray:
     """
     Read data from a FST file at a specific record index.
@@ -160,17 +147,15 @@ def read_fst_data_at_index(path: str, index: int) -> np.ndarray:
     Args:
         path: Path to the FST file
         index: Record index to read
-        ni: First dimension size
-        nj: Second dimension size
-        nk: Third dimension size
-        data_type: Data type of the record
-        pack_bits: Number of bits per element
 
     Returns:
         numpy.ndarray: The data array with the correct shape and dtype.
 
     Raises:
         RuntimeError: If reading fails
+
+    Note:
+        use fst24_file.get_records_with_data(filename, indices):
     """
     with fst24_file(path) as f:
         # NOTE: The way the data is read, the numpy array is allocated in Python

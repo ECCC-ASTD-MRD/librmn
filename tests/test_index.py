@@ -22,11 +22,27 @@ records = list(rmn.fst24_file.get_records_with_data(test_row['path'], [test_row[
 print(records[0].data[:,:,0])
 
 one_file = index_df[index_df['path'] == str(filenames[0])]
-one_file_indices = one_file['file_index']
-print(one_file_indices)
+indices = one_file['file_index']
 
-for rec in rmn.fst24_file.get_records_with_data(str(filenames[0]), one_file_indices):
+for rec in rmn.fst24_file.get_records_with_data(str(filenames[0]), indices):
     print(rec)
     print(rec.data[:,:,0])
+
+with rmn.fst24_file(str(filenames[0])) as f:
+    for rec in f.get_records_by_index(indices):
+        print(rec)
+        print(rec.data[:,:,0]) # Access to python property data causes data to # be read
+
+with rmn.fst24_file(str(filenames[0])) as f:
+    for rec in f.get_records_by_index_with_data(indices):
+        print(rec)
+        print(rec.data[:,:,0]) # get with data already caused the data to be
+                               # read, accessing it does not cause it to be read
+                               # a second time
+
+with rmn.fst24_file(str(filenames[0])) as f:
+    # the get_records* functions are generators.  We can create a list from them
+    # if we want to iterate over them multiple times.
+    records = list(f.get_records_by_index_with_data(indices))
     
 
