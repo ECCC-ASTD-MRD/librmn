@@ -46,3 +46,5 @@ with rmn.fst24_file(str(filenames[0])) as f:
     records = list(f.get_records_by_index_with_data(indices))
     
 
+
+print(rmn.get_opdict_metadata("I8"))

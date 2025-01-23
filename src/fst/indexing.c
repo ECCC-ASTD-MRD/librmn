@@ -292,286 +292,45 @@ void print_record(RecordData *data)
     }
 }
 
-// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// static PyObject *make_array_owning_data(int ndims, npy_intp *dims, int type, void *data)
-// {
-//     PyObject *array = PyArray_SimpleNewFromData(ndims, dims, NPY_INT32, data);
-//     if (array == NULL)
-//     {
-//         return NULL;
-//     }
-//     PyObject *capsule = PyCapsule_New(data, "raw_columns ni", (PyCapsule_Destructor)free_capsule_ptr);
-//     if (capsule == NULL)
-//     {
-//         Py_DECREF(array);
-//         return NULL;
-//     }
-//     if (PyArray_SetBaseObject((PyArrayObject *)array, capsule) < 0)
-//     {
-//         Py_DECREF(array);
-//         Py_DECREF(capsule);
-//         return NULL;
-//     }
 
-//     return array;
-// }
+int get_opdict_metadata(char *rpn_name, char *result, size_t result_buffer_size)
+{
+    json_object *prof_fld = Meta_New(META_TYPE_RECORD, NULL);
+    if(prof_fld == NULL){
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s(): Meta_New: Failed to get JSON object\n", __func__);
+        return 1;
+    }
 
-// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// int make_1d_string_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int max_str_length, char *data)
-// {
-//     npy_intp dims[] = {nb_items};
-//     PyObject *array_1d = PyArray_New(&PyArray_Type, 1, dims, NPY_STRING, NULL, data, max_str_length, NPY_ARRAY_OWNDATA, NULL);
-//     if (array_1d == NULL)
-//     {
-//         PyErr_Format(PyExc_RuntimeError, "Could not create numpy array for column '%s'", key);
-//         return 1;
-//     }
-//     if (PyDict_SetItemString(dict, key, array_1d))
-//     {
-//         Py_DECREF(array_1d);
-//         return 1;
-//     }
-//     return 0;
-// }
-// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// int make_1d_array_and_add_to_dict(PyObject *dict, const char *key, int nb_items, int type, void *data)
-// {
-//     npy_intp dims[] = {nb_items};
-//     PyObject *array_1d = make_array_owning_data(1, dims, NPY_INT32, data);
-//     if (array_1d == NULL)
-//     {
-//         PyErr_Format(PyExc_RuntimeError, "Could not create numpy array for column '%s'", key);
-//         return 1;
-//     }
-//     if (PyDict_SetItemString(dict, key, array_1d))
-//     {
-//         Py_DECREF(array_1d);
-//         return 1;
-//     }
-//     return 0;
-// }
-// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// static PyObject *rmn_get_index_columns(PyObject *self, PyObject *args)
-// {
+    json_object *def_var = Meta_DefVarFromDict(prof_fld, rpn_name);
+    if(def_var == NULL){
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s(): Could not get var from dict for '%s'\n", __func__, rpn_name);
+        json_object_put(prof_fld);
+        return 1;
+    }
 
-//     PyObject *file_list = NULL;
-//     int ok = PyArg_ParseTuple(args, "O", &file_list);
-//     if (!ok)
-//     {
-//         // Exception already set by PyArg_ParseTuple
-//         return NULL;
-//     }
+    char *json_str = Meta_Stringify(def_var, JSON_C_TO_STRING_PLAIN);
+    if(json_str == NULL){
+        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): Could not serialize JSON object for var '%s'\n", __func__, rpn_name);
+        result[0] = '\0';
+        json_object_put(prof_fld);
+        return 0;
+    }
 
-//     /*
-//      * Convert list of Python unicode strings into an array of char *
-//      */
-//     // TODO: Verify that the object is a list and throw exception otherwise
-//     Py_ssize_t nb_files = PyList_Size(file_list);
-//     const char *filenames[nb_files]; // TODO: Automatic arrays, some people don't like them and if they're too big they can blow the stack
-//     for (int i = 0; i < nb_files; i++)
-//     {
-//         PyObject *item = PyList_GetItem(file_list, i);
-//         if (item == NULL)
-//         {
-//             Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): ERROR: OOPSIE: Better error handling is required to not leak memory (Phil)\n", __func__);
-//             return NULL;
-//         }
-//         const char *filename = PyUnicode_AsUTF8AndSize(item, NULL);
-//         if (filename == NULL)
-//         {
-//             return NULL;
-//         }
-//         filenames[i] = filename;
-//     }
+    size_t result_size = strlen(json_str) + 1;
+    Lib_Log(APP_LIBRMN, APP_DEBUG, "%s(): result_buffer_size: %d, result_size: %d\n", __func__, result_buffer_size, result_size);
+    if(result_buffer_size < result_size) {
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s(): provided buffer size %d is too small to contain result of size %d\n", __func__, result_buffer_size, result_size);
+        json_object_put(prof_fld);
+        return 1;
+    }
 
-//     /*
-//      * Get raw column data
-//      */
-//     RecordData *raw_columns = rmn_get_index_columns_raw(filenames, nb_files);
-//     if (raw_columns == NULL)
-//     {
-//         PyErr_SetString(PyExc_RuntimeError, "Could not get column data");
-//         return NULL;
-//     }
+    strncpy(result, json_str, result_size);
 
-//     /*
-//      * Create a dictionnary where the keys are column names and the values
-//      * are numpy arrays created from the raw column data
-//      */
-//     Lib_Log(APP_LIBRMN, APP_DEBUG, "Creating numpy arrays and assigning them as keys in a dictionnary\n");
-//     PyObject *columns = PyDict_New();
-
-//     if (make_1d_string_array_and_add_to_dict(columns, "nomvar", raw_columns->nb_records, FST_NOMVAR_LEN, raw_columns->nomvar))
-//     {
-//         goto error;
-//     }
-//     if (make_1d_string_array_and_add_to_dict(columns, "typvar", raw_columns->nb_records, FST_TYPVAR_LEN, raw_columns->typvar))
-//     {
-//         goto error;
-//     }
-//     if (make_1d_string_array_and_add_to_dict(columns, "etiket", raw_columns->nb_records, FST_ETIKET_LEN, raw_columns->etiket))
-//     {
-//         goto error;
-//     }
-
-//     if (make_1d_array_and_add_to_dict(columns, "ni", raw_columns->nb_records, NPY_INT32, raw_columns->ni))
-//     {
-//         goto error;
-//     }
-//     if (make_1d_array_and_add_to_dict(columns, "nj", raw_columns->nb_records, NPY_INT32, raw_columns->nj))
-//     {
-//         goto error;
-//     }
-//     if (make_1d_array_and_add_to_dict(columns, "nk", raw_columns->nb_records, NPY_INT32, raw_columns->nk))
-//     {
-//         goto error;
-//     }
-
-//     if (make_1d_array_and_add_to_dict(columns, "dateo", raw_columns->nb_records, NPY_INT32, raw_columns->dateo))
-//     {
-//         goto error;
-//     }
-
-//     if (make_1d_array_and_add_to_dict(columns, "ip1", raw_columns->nb_records, NPY_INT32, raw_columns->ip1))
-//     {
-//         goto error;
-//     }
-//     if (make_1d_array_and_add_to_dict(columns, "ip2", raw_columns->nb_records, NPY_INT32, raw_columns->ip2))
-//     {
-//         goto error;
-//     }
-//     if (make_1d_array_and_add_to_dict(columns, "ip3", raw_columns->nb_records, NPY_INT32, raw_columns->ip3))
-//     {
-//         goto error;
-//     }
-
-//     if (make_1d_array_and_add_to_dict(columns, "deet", raw_columns->nb_records, NPY_INT32, raw_columns->deet))
-//     {
-//         goto error;
-//     }
-//     if (make_1d_array_and_add_to_dict(columns, "npas", raw_columns->nb_records, NPY_INT32, raw_columns->npas))
-//     {
-//         goto error;
-//     }
-//     if (make_1d_array_and_add_to_dict(columns, "data_type", raw_columns->nb_records, NPY_INT32, raw_columns->data_type))
-//     {
-//         goto error;
-//     }
-//     if (make_1d_array_and_add_to_dict(columns, "pack_bits", raw_columns->nb_records, NPY_INT32, raw_columns->pack_bits))
-//     {
-//         goto error;
-//     }
-
-//     if (make_1d_string_array_and_add_to_dict(columns, "grtyp", raw_columns->nb_records, FST_GTYP_LEN, raw_columns->grtyp))
-//     {
-//         goto error;
-//     }
-
-//     if (make_1d_array_and_add_to_dict(columns, "ig1", raw_columns->nb_records, NPY_INT32, raw_columns->ig1))
-//     {
-//         goto error;
-//     }
-//     if (make_1d_array_and_add_to_dict(columns, "ig2", raw_columns->nb_records, NPY_INT32, raw_columns->ig2))
-//     {
-//         goto error;
-//     }
-//     if (make_1d_array_and_add_to_dict(columns, "ig3", raw_columns->nb_records, NPY_INT32, raw_columns->ig3))
-//     {
-//         goto error;
-//     }
-//     if (make_1d_array_and_add_to_dict(columns, "ig4", raw_columns->nb_records, NPY_INT32, raw_columns->ig4))
-//     {
-//         goto error;
-//     }
-
-//     if (make_1d_array_and_add_to_dict(columns, "file_index", raw_columns->nb_records, NPY_INT32, raw_columns->file_index))
-//     {
-//         goto error;
-//     }
-
-//     // if(make_1d_array_and_add_to_dict(columns, "swa", raw_columns->nb_records, NPY_INT32, raw_columns->swa)){ goto error; }
-//     // if(make_1d_array_and_add_to_dict(columns, "lng", raw_columns->nb_records, NPY_INT32, raw_columns->lng)){ goto error; }
-//     // if(make_1d_array_and_add_to_dict(columns, "dltf", raw_columns->nb_records, NPY_INT32, raw_columns->dltf)){ goto error; }
-//     // if(make_1d_array_and_add_to_dict(columns, "dltc", raw_columns->nb_records, NPY_INT32, raw_columns->dltc)){ goto error; }
-
-//     // if(make_1d_array_and_add_to_dict(columns, "extra1", raw_columns->nb_records, NPY_INT32, raw_columns->extra1)){ goto error; }
-//     // if(make_1d_array_and_add_to_dict(columns, "extra2", raw_columns->nb_records, NPY_INT32, raw_columns->extra2)){ goto error; }
-//     // if(make_1d_array_and_add_to_dict(columns, "extra3", raw_columns->nb_records, NPY_INT32, raw_columns->extra3)){ goto error; }
-//     // if(make_1d_string_array_and_add_to_dict(columns, "path", raw_columns->nb_records, PATH_MAX+1, raw_columns->path)){ goto error; }
-
-//     free(raw_columns); // The struct contains a bunch of arrays but we don't want
-//                        // to free them since we gave them away to some numpy arrays
-//     Lib_Log(APP_LIBRMN, APP_DEBUG, "Handing control back to Python\n");
-//     return columns;
-// error:
-//     free(raw_columns);
-//     // TODO: Error handling for all the numpy arrays we created.
-//     // Doing DECREF(columns) will destroy the dictionnary, and every array
-//     // we added to the dictionnary will get DECREF'd by the destruction of the
-//     // dictionnary, and all the make_1d... destroy the array if they can't
-//     // add it to the dictionnary so I think we're good here.
-//     // What about the ones that we didn't get to yet, we need to free those
-//     // but not the ones that we gave to the dictionnary.
-//     // We'll have to think about that one.
-//     Py_XDECREF(columns);
-//     // All functions called here that could fail will set the exception.
-//     return NULL;
-// }
-
-// TODO Replace with normal python record data access but for Seb's info:
-// void *fst_read_data_at_index(const char *path, const int32_t index, void *data)
-// {
-//     void *output_data = NULL;
-// 
-//     Lib_Log(APP_LIBFST, APP_DEBUG, "Starting to read data at index %d from file %s\n", index, path);
-// 
-//     // Open the file first
-//     fst_file *file = fst24_open(path, "R");
-//     if (!file)
-//     {
-//         Lib_Log(APP_LIBFST, APP_ERROR, "Failed to open file %s\n", path);
-//         return NULL;
-//     }
-//     Lib_Log(APP_LIBFST, APP_DEBUG, "Successfully opened file\n");
-// 
-//     // Initialize record structure
-//     fst_record record = {0}; // Zero initialize all fields
-//     Lib_Log(APP_LIBFST, APP_DEBUG, "Initialized record structure\n");
-// 
-//     // Get record info at index
-//     int get_record_result = fst24_get_record_by_index(file, index, &record);
-//     if (get_record_result <= 0)
-//     {
-//         Lib_Log(APP_LIBFST, APP_ERROR, "Failed to get record at index %d (result: %d)\n", index, get_record_result);
-//         fst24_close(file);
-//         return NULL;
-//     }
-// 
-//     Lib_Log(APP_LIBFST, APP_DEBUG, "Got record at index %d: ni=%d, nj=%d, nk=%d, data_type=%d\n",
-//             index, record.ni, record.nj, record.nk, record.data_type);
-// 
-//     // Read the actual data
-//     record.data = data;  // Now read will put data there and not allocate
-//                          // Python allocated our data so we don't have to worry
-//     int read_record_result = fst24_read_record(&record);
-//     if (read_record_result <= 0)
-//     {
-//         Lib_Log(APP_LIBFST, APP_ERROR, "Failed to read record data (result: %d)\n", read_record_result);
-//         // fst24_record_free(&record);
-//         fst24_close(file);
-//         return NULL;
-//     }
-// 
-//     // Validate record data
-//     if (record.data == NULL)
-//     {
-//         Lib_Log(APP_LIBFST, APP_ERROR, "Record data pointer is NULL\n");
-//         // fst24_record_free(&record);
-//         fst24_close(file);
-//         return NULL;
-//     }
-// 
-//     fst24_close(file);
-// 
-//     return output_data;
-// }
+    // Doing free(json_str) causes double-free if we also have
+    // json_object_put(prof_fld) which shows that it frees the
+    // string.  We also get a segfault if we do json_object_put(def_var)
+    // and json_object_put(prof_fld) so we just need to free
+    // the root one.
+    json_object_put(prof_fld);
+    return 0;
+}

@@ -6,6 +6,7 @@ import os
 import logging
 import numpy as np
 import pandas as pd
+import json
 
 FST_TYPVAR_LEN = 3
 FST_NOMVAR_LEN = 5
@@ -163,6 +164,26 @@ def read_fst_data_at_index(path: str, index: int) -> np.ndarray:
         # managed by the numpy array.  That way we have nothing to worry about
         # in terms of memory allocation.
         return f.get_record_at_index(index).data
+
+librmn.get_opdict_metadata.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_size_t]
+librmn.get_opdict_metadata.restype = ctypes.c_int
+
+def get_opdict_metadata(rpn_name: str) -> str:
+    """
+    Retrieves metadata for a given RPN name.
+
+    Args:
+        rpn_name (str): The RPN name.
+
+    Returns:
+        str: The metadata as a string.
+    """
+    result = ctypes.create_string_buffer(1000)
+    returncode = librmn.get_opdict_metadata(rpn_name.encode("utf-8"), result, len(result))
+    if returncode != 0:
+        raise RuntimeError("Failed obtain metadata from op dictionnary")
+    meta = result.value.decode("utf-8").strip()
+    return json.loads(meta)
 
 # def get_grid_identifier_expr(df: pl.DataFrame) -> pl.DataFrame:
 #     """
