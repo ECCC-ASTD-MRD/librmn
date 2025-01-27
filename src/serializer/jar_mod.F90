@@ -429,8 +429,8 @@ module rmn_jar
                 size_byte_down = size_elem_down * (storage_size(jar_content(1)) / storage_size(byte)) ! number of bytes already inserted
                 byte_pos = extraction_pos * (storage_size(jar_content(1)) / storage_size(byte)) ! extraction_pos in bytes
                 temp = C_LOC(object)
-                call C_F_POINTER(temp, object_bytes, [size_byte])                   ! object as a byte array
-                call C_F_POINTER(jar_instance%ptr, jar_bytes, [size_byte])          ! jar data as a byte array
+                call C_F_POINTER(temp, object_bytes, [size_byte])                    ! object as a byte array
+                call C_F_POINTER(jar_instance%ptr, jar_bytes, [byte_pos + size_byte])! jar data as a byte array
                 object_bytes(size_byte_down + 1 : size_byte) = jar_bytes(byte_pos + size_byte_down + 1 : byte_pos + size_byte)
             end block
         endif
