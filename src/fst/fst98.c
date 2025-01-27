@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <alloca.h>
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -978,6 +977,12 @@ int c_fstecr_xdf(
 ) {
     (void)work; // unused
 
+    // Pointer to the data to be written. The data may be processed before encoding/compression, so this pointer
+    // could change. This avoids modifying the original data.
+    void* field = field_in;
+    float* field_f = NULL; // float version of the data
+    uint32_t* field_missing = NULL; // data with missing values transformed
+
     // will be cancelled later if not supported or no missing values detected
     //  missing value feature used flag
     int is_missing = in_datyp_ori & FSTD_MISSING_FLAG;
@@ -1111,12 +1116,13 @@ int c_fstecr_xdf(
         }
     }
 
+    if (is_type_real(datyp) && nbits > 32) {
+        datyp = FST_TYPE_REAL_IEEE;
+        nbits = 64;
+    }
+
     if ((base_fst_type(datyp) == FST_TYPE_REAL)) { 
-        if (nbits > 32) {
-            datyp = FST_TYPE_REAL_IEEE | (is_type_turbopack(datyp) ? FST_TYPE_TURBOPACK : 0);
-            nbits = 64;
-        }
-        else if (nbits > 24) {
+        if (nbits > 24) {
             if (! dejafait_xdf_1) {
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: nbits > 24, writing E32 instead of F%2d\n", __func__, nbits);
                 dejafait_xdf_1 = 1;
@@ -1136,8 +1142,6 @@ int c_fstecr_xdf(
     // no extra compression if nbits > 16 (except for IEEE reals)
     if ((nbits > 16) && (datyp != (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK))) datyp = base_fst_type(datyp);
 
-    float* field_f = field_in; // Hold real datatypes, in case we need to convert from float to double
-
     // Determine data_nbits (uncompressed datatype size)
     int8_t data_nbits = 0;
     if (is_type_real(datyp) || is_type_complex(datyp)) {
@@ -1146,11 +1150,12 @@ int c_fstecr_xdf(
             if (nbits <= 32) {
                 // We convert now from double to float
                 data_nbits = 32;
-                field_f = alloca(ni * nj * nk * sizeof(float));
+                field_f = malloc(ni * nj * nk * sizeof(float));
                 double* field_d = field_in;
                 for (int i = 0; i < ni * nj * nk; i++) {
                     field_f[i] = (float)field_d[i];
                 }
+                field = field_f;
             }
             else if (nbits != 64) {
                 Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested %d packed bits for 64-bit reals, but we can only do"
@@ -1213,7 +1218,7 @@ int c_fstecr_xdf(
     nw = W64TOWD(nw);
 
     int keys_len = W64TOWD((fte->primary_len + fte->info_len));
-    buffer_interface_ptr buffer = (buffer_interface_ptr) alloca((10 + keys_len + nw + 128) * sizeof(int));
+    buffer_interface_ptr buffer = (buffer_interface_ptr) malloc((10 + keys_len + nw + 128) * sizeof(int));
     if (buffer) {
         memset(buffer, 0, (10 + keys_len + nw + 128) * sizeof(int));
     } else {
@@ -1312,20 +1317,22 @@ int c_fstecr_xdf(
             // append mode for xdfput
             handle = 0;
         } else if (rewrit==FST_SKIP) {
+            if (field_f != NULL) free(field_f);
+            free(buffer);
             return 0; // Success
         }
     }
 
-    uint32_t * field = field_in;
+    uint32_t * field_u32 = field_in;
     if (image_mode_copy) {
         // no pack/unpack, used by editfst
         if (is_type_turbopack(datyp)) {
             // first element is length
-            int lngw = field[0];
+            int lngw = field_u32[0];
             // fprintf(stderr, "Debug+ datyp=%d ecriture mode image lngw=%d\n", datyp, lngw);
             buffer->nbits = (keys_len + lngw) * bitmot;
             for (int i = 0; i < lngw + 1; i++) {
-                buffer->data[keys_len + i] = field[i];
+                buffer->data[keys_len + i] = field_u32[i];
             }
         } else {
             int lngw;
@@ -1341,7 +1348,7 @@ int c_fstecr_xdf(
             if (datyp == FST_TYPE_CHAR) lngw = ni * nj * 8;
             lngw = (lngw + bitmot - 1) / bitmot;
             for (int i = 0; i < lngw; i++) {
-                buffer->data[keys_len+i] = field[i];
+                buffer->data[keys_len+i] = field_u32[i];
             }
         }
     } else {
@@ -1355,10 +1362,12 @@ int c_fstecr_xdf(
         if (xdf_double | IEEE_64) sizefactor = 8;
         // put appropriate values into field after allocating it
         if (is_missing) {
-            // allocate self deallocating scratch field
-            field = (uint32_t *)alloca(ni * nj * nk * sizefactor);
-            if ( 0 == EncodeMissingValue(field, field_in, ni * nj * nk, in_datyp, sizefactor*8, nbits) ) {
-                field = field_in;
+            field_missing = malloc(ni * nj * nk * sizefactor);
+            if (EncodeMissingValue(field_missing, field_in, ni * nj * nk, in_datyp, sizefactor*8, nbits) > 0) {
+                field_u32 = field_missing;
+            }
+            else {
+                field_u32 = field_in;
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: NO missing value, data type %d reset to %d\n", __func__, stdf_entry->datyp, datyp);
                 // cancel missing data flag in data type
                 stdf_entry->datyp = datyp;
@@ -1378,7 +1387,7 @@ int c_fstecr_xdf(
                 }
                 int lngw = ((ni * nj * nk * nbits) + bitmot - 1) / bitmot;
                 for (int i = 0; i < lngw; i++) {
-                    buffer->data[keys_len+i] = field[i];
+                    buffer->data[keys_len+i] = field_u32[i];
                 }
                 break;
 
@@ -1389,12 +1398,12 @@ int c_fstecr_xdf(
                 if (is_type_turbopack(datyp) && (nbits <= 16)) {
                     // use an additional compression scheme
                     // nbits>64 flags a different packing
-                    packfunc(field, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+5]),
+                    packfunc(field_u32, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+5]),
                         ni * nj * nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
                     int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL_OLD_QUANT;
-                        packfunc(field, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
+                        packfunc(field_u32, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
                             ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
                     } else {
                         int nbytes = 16 + compressed_lng;
@@ -1406,7 +1415,7 @@ int c_fstecr_xdf(
                         buffer->nbits = (keys_len + nw) * bitmot;
                     }
                 } else {
-                    packfunc(field, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
+                    packfunc(field_u32, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
                         ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
                 }
                 break;
@@ -1421,18 +1430,18 @@ int c_fstecr_xdf(
                         if (xdf_short) {
                             stdf_entry->nbits = Min(16, nbits);
                             nbits = stdf_entry->nbits;
-                            memcpy(&(buffer->data[keys_len+offset]), field, ni * nj * nk * 2);
+                            memcpy(&(buffer->data[keys_len+offset]), field_u32, ni * nj * nk * 2);
                         } else if (xdf_byte) {
                             stdf_entry->nbits = Min(8, nbits);
                             nbits = stdf_entry->nbits;
-                            memcpy_8_16((int16_t *)&(buffer->data[keys_len+offset]), (int8_t *)field, ni * nj * nk);
+                            memcpy_8_16((int16_t *)&(buffer->data[keys_len+offset]), (int8_t *)field_u32, ni * nj * nk);
                         } else {
-                            memcpy_32_16((short *)&(buffer->data[keys_len+offset]), (const int32_t *)field, nbits, ni * nj * nk);
+                            memcpy_32_16((short *)&(buffer->data[keys_len+offset]), (const int32_t *)field_u32, nbits, ni * nj * nk);
                         }
                         int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+offset]), ni, nj, nk, nbits, 1, 0);
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = FST_TYPE_UNSIGNED;
-                            compact_integer(field, (void *) NULL, &(buffer->data[keys_len+offset]),
+                            compact_integer(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
                                 ni * nj * nk, nbits, 0, xdf_stride, 1);
                         } else {
                             int nbytes = 4 + compressed_lng;
@@ -1446,15 +1455,15 @@ int c_fstecr_xdf(
                         if (xdf_short) {
                             stdf_entry->nbits = Min(16, nbits);
                             nbits = stdf_entry->nbits;
-                            compact_short(field, (void *) NULL, &(buffer->data[keys_len+offset]),
+                            compact_short(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
                                 ni * nj * nk, nbits, 0, xdf_stride, 5);
                         } else if (xdf_byte) {
-                            compact_char(field, (void *) NULL, &(buffer->data[keys_len]),
+                            compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]),
                                 ni * nj * nk, Min(8, nbits), 0, xdf_stride, 9);
                             stdf_entry->nbits = Min(8, nbits);
                             nbits = stdf_entry->nbits;
                         } else {
-                            compact_integer(field, (void *) NULL, &(buffer->data[keys_len+offset]),
+                            compact_integer(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
                                 ni * nj * nk, nbits, 0, xdf_stride, 1);
                         }
                     }
@@ -1473,14 +1482,14 @@ int c_fstecr_xdf(
                         datyp = FST_TYPE_CHAR;
                         stdf_entry->datyp = datyp;
                     }
-                    compact_integer(field, (void *) NULL, &(buffer->data[keys_len]), nc,
+                    compact_integer(field_u32, (void *) NULL, &(buffer->data[keys_len]), nc,
                         32, 0, xdf_stride, 1);
                     stdf_entry->nbits = 8;
                 }
                 break;
 
             case FST_TYPE_SIGNED:
-            case FST_TYPE_SIGNED | FST_TYPE_TURBOPACK:
+            case FST_TYPE_SIGNED | FST_TYPE_TURBOPACK: {
                 // signed integer
                 if (is_type_turbopack(datyp)) {
                     Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not supported, data type %d reset to FST_TYPE_SIGNED (%d)\n", __func__, stdf_entry->datyp, is_missing | FST_TYPE_SIGNED);
@@ -1490,31 +1499,32 @@ int c_fstecr_xdf(
                 stdf_entry->datyp = is_missing | FST_TYPE_SIGNED;
 #ifdef use_old_signed_pack_unpack_code
                 // fprintf(stderr, "OLD PACK CODE======================================\n");
-                int32_t* field3 = (int32_t *)field;
+                int32_t* field3 = (int32_t *)field_u32;
                 if (xdf_short || xdf_byte) {
-                    field3 = (int *)alloca(ni * nj * nk*sizeof(int));
-                    short * s_field = (short *)field;
-                    signed char * b_field = (signed char *)field;
+                    field3 = (int *)malloc(ni * nj * nk*sizeof(int));
+                    short * s_field = (short *)field_u32;
+                    signed char * b_field = (signed char *)field_u32;
                     if (xdf_short) for (int i = 0; i < ni * nj * nk;i++) { field3[i] = s_field[i]; };
                     if (xdf_byte)  for (int i = 0; i < ni * nj * nk;i++) { field3[i] = b_field[i]; };
                 }
                 compact_integer(field3, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
                     nbits, 0, xdf_stride, 3);
+                if (field3 != (int32_t*)field_u32) free(field3);
 #else
                 // fprintf(stderr, "NEW PACK CODE======================================\n");
                 if (xdf_short) {
-                    compact_short(field, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
+                    compact_short(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
                         nbits, 0, xdf_stride, 7);
                 } else if (xdf_byte) {
-                    compact_char(field, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
+                    compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
                         nbits, 0, xdf_stride, 11);
                 } else {
-                    compact_integer(field, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
+                    compact_integer(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
                         nbits, 0, xdf_stride, 3);
                 }
 #endif
                 break;
-
+            }
             case FST_TYPE_REAL_IEEE:
             case FST_TYPE_COMPLEX:
             case FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK:
@@ -1534,10 +1544,10 @@ int c_fstecr_xdf(
                     }
                     if (datyp == (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK)) {
                         // use an additionnal compression scheme
-                        int compressed_lng = c_armn_compress32((unsigned char *)&(buffer->data[keys_len+1]), (float *)field, ni, nj, nk, nbits);
+                        int compressed_lng = c_armn_compress32((unsigned char *)&(buffer->data[keys_len+1]), (float *)field_u32, ni, nj, nk, nbits);
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = FST_TYPE_REAL_IEEE;
-                            f77name(ieeepak)((int32_t *)field, (int32_t *)&(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
+                            f77name(ieeepak)((int32_t *)field_u32, (int32_t *)&(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
                                 &f_zero, &f_one);
                         } else {
                             int nbytes = 16 + compressed_lng;
@@ -1548,7 +1558,7 @@ int c_fstecr_xdf(
                         }
                     } else {
                         if (datyp == FST_TYPE_COMPLEX) f_ni = f_ni * 2;
-                        f77name(ieeepak)((int32_t*)field_f, (int32_t *)&(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
+                        f77name(ieeepak)((int32_t*)field, (int32_t *)&(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
                             &f_zero, &f_one);
                     }
                 }
@@ -1560,12 +1570,12 @@ int c_fstecr_xdf(
 
                 if (is_type_turbopack(datyp) && (nbits <= 16)) {
                     // use an additional compression scheme
-                    c_float_packer((float *)field, nbits, (int32_t *)&(buffer->data[keys_len+1]),
+                    c_float_packer((float *)field_u32, nbits, (int32_t *)&(buffer->data[keys_len+1]),
                                    (int32_t *)&(buffer->data[keys_len+1+header_size]), ni * nj * nk);
                     int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL;
-                        c_float_packer((float *)field, nbits, (int32_t *)&(buffer->data[keys_len]),
+                        c_float_packer((float *)field_u32, nbits, (int32_t *)&(buffer->data[keys_len]),
                                         (int32_t *)&(buffer->data[keys_len+header_size]), ni * nj * nk);
                     } else {
                         int nbytes = 16 + (header_size*4) + compressed_lng;
@@ -1577,7 +1587,7 @@ int c_fstecr_xdf(
                         buffer->nbits = (keys_len + nw) * bitmot;
                     }
                 } else {
-                    c_float_packer((float *)field, nbits, (int32_t *)&(buffer->data[keys_len]),
+                    c_float_packer((float *)field_u32, nbits, (int32_t *)&(buffer->data[keys_len]),
                                    (int32_t *)&(buffer->data[keys_len+header_size]), ni * nj * nk);
                     // fprintf(stderr, "Debug+ fstecr apres float_packer buffer->data=%8X\n", buffer->data[keys_len]);
                 }
@@ -1593,7 +1603,7 @@ int c_fstecr_xdf(
                     datyp = FST_TYPE_STRING;
                     stdf_entry->datyp = datyp;
                 }
-                compact_char(field, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk, 8, 0, xdf_stride, 9);
+                compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk, 8, 0, xdf_stride, 9);
                 break;
 
             default:
@@ -1610,6 +1620,10 @@ int c_fstecr_xdf(
         snprintf(string, strlng, "Write(%d)", iun);
         print_std_parms(stdf_entry, string, prnt_options, -1);
     }
+
+    if (field_f != NULL) free(field_f);
+    if (field_missing != NULL) free(field_missing);
+    free(buffer);
 
     xdf_double = 0;
     xdf_short = 0;
@@ -2878,17 +2892,15 @@ int c_fstluk_xdf(
     // printf("Debug+ fstluk lng2 = %d\n", lng2);
 
     // Allocate 8 more bytes in case of realingment for 64 bit data
-    int workFieldSz = 8 + (lng2 + 10) * sizeof(int);
-    // printf("Debug+ fstluk - workFieldSz = %d\n", workFieldSz);
-    int workField[workFieldSz/4];
-    // printf("Debug+ fstluk - memset(workField, 0, %d)\n", workFieldSz);
-    bzero(workField, workFieldSz);
+    const size_t work_field_size = 8 + (lng2 + 10) * sizeof(int);
+    void* work_field = malloc(work_field_size);
+    memset(work_field, 0, work_field_size);
 
     // printf("Debug+ fstluk - buf = (buffer_interface_ptr) workField\n");
-    buffer_interface_ptr buf = (buffer_interface_ptr) workField;
+    buffer_interface_ptr buf = (buffer_interface_ptr) work_field;
     if ( (((&(buf->data[0]) - &(buf->nwords)) * sizeof(int)) & 0x7) != 0 ) {
         // Realign buf to make sure that buf->data is 64bit align
-        buf = (buffer_interface_ptr) (workField + 1);
+        buf = (buffer_interface_ptr) (work_field + 1);
     }
     // negative value means get data only
     buf->nwords = -(lng + 10);
@@ -3010,7 +3022,7 @@ int c_fstluk_xdf(
                 short *s_field_out = (short *)field;
                 signed char *b_field_out = (signed char *)field;
                 if (xdf_short || xdf_byte) {
-                    field_out = alloca(nelm * sizeof(int));
+                    field_out = malloc(nelm * sizeof(int));
                 } else {
                     field_out = (int32_t *)field;
                 }
@@ -3025,6 +3037,7 @@ int c_fstluk_xdf(
                         b_field_out[i] = field_out[i];
                     }
                 }
+                if (field_out != (int32_t*)field) free(field_out);
 #else
                 // fprintf(stderr, "NEW UNPACK CODE ======================================\n");
                 if (xdf_short) {
@@ -3139,6 +3152,8 @@ int c_fstluk_xdf(
     xdf_double = 0;
     xdf_short = 0;
     xdf_byte = 0;
+
+    free(work_field);
 
     return handle;
 }

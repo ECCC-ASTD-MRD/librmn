@@ -94,6 +94,7 @@ int run_test(const int is_rsf) {
     }
 
     fst24_query_free(query);
+    fst24_record_free(&rec);
 
     if (!fst24_close(test_file)) {
         App_Log(APP_ERROR, "Unable to close test file %s\n", filename);

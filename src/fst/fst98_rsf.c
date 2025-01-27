@@ -462,8 +462,13 @@ int c_fstluk_rsf(
                                    sizeof(RSF_record) +               // Space for the RSF struct itself
                                    128 * sizeof(uint32_t);            // Enough space for the largest compression scheme + rounding up for alignment
 
-    uint64_t work_space[work_size_bytes / sizeof(uint64_t)];
-    memset(work_space, 0, sizeof(work_space));
+    void* work_space = malloc(work_size_bytes);
+    if (work_space == NULL) {
+        Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to allocate workspace for reading record (%zu bytes)\n",
+                __func__, work_size_bytes);
+        return ERR_MEM_FULL;
+    }
+    memset(work_space, 0, work_size_bytes);
 
     RSF_record* record_rsf = RSF_Get_record(file_handle, rec.do_not_touch.handle, 0, (void*)work_space);
 
@@ -507,6 +512,8 @@ int c_fstluk_rsf(
         f.npas = 1;
         fst24_record_print_short(&rec, &f, 0, "Read : ");
     }
+
+    free(work_space);
 
     if (ier < 0) return ier;
 
