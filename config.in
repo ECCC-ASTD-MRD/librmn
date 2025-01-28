@@ -18,7 +18,7 @@ libs=CMAKE_LIBS
 version=@PROJECT_VERSION@
 env=@EC_CI_ENV@
 arch=@EC_ARCH@
-date=@BUILD_TIMESTAMP@
+date="@BUILD_TIMESTAMP@"
 
 usage()
 {
@@ -64,7 +64,7 @@ while test $# -gt 0; do
         usage 0
         ;;
 
-    --build_date)
+    --build-date)
         echo ${date}
         ;;
 
