@@ -96,6 +96,8 @@ int main()
         }
     }
 
+    free(cb);
+
     printf("Done.\n");
     return 0;
 }
