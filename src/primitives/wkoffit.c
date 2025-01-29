@@ -70,7 +70,6 @@
 #endif
 
 #include <App.h>
-#include <rmn/fst98.h>
 #include <rmn/c_wkoffit.h>
 
 #include "fst/burp98.h"
@@ -527,13 +526,11 @@ static int isps(
                     case '/' :
                         fclose(fp);
                         return TRUE;
-                        break;
                     case '\n' :
                         break;
                     default :
                         fclose(fp);
                         return FALSE;
-                        break;
                 }
             }
         }
@@ -782,8 +779,6 @@ static int ispcl(
     int     scanf_count;
     char    in_sequence = FALSE;
     char    pass_seq;
-    char    plus_sign;              /* for relative values */
-    int32_t flen;
     char    buffer[256];
 
     if ( (fp = fopen( path, "rb")) == NULL ) return FALSE;
@@ -792,7 +787,6 @@ static int ispcl(
         fclose(fp);
         return FALSE;
     }
-    flen = ftell(fp);
     if (fseek( fp, 0L, SEEK_SET )) {
         fclose(fp);
         return FALSE;
@@ -940,9 +934,7 @@ static int ispcl(
         // First see if the value has a plus sign
         scanf_count = fscanf(fp, " + %d", &value );
         if ( scanf_count == 1 ) {
-            plus_sign = TRUE;
         } else {
-            plus_sign = FALSE;
             scanf_count = fscanf(fp, " %d", &value );
             if ( scanf_count == 0 ) {
                 /* by default */

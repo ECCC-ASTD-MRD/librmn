@@ -179,7 +179,7 @@ int c_fstouv_rsf(
     //!> [in] Index given to this file by fnom
     const int index_fnom,
     //!> [in] Opening mode (read/write/append)
-    const rsf_open_mode mode,
+    const rsf_open_mode_type mode,
     //!> [in] Size in MB of segments, if open for parallel write (not parallel if <= 0)
     const int32_t parallel_segment_size_mb
 ) {

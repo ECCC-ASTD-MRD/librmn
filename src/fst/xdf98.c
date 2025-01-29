@@ -28,29 +28,101 @@
 #include "qstdir.h"
 #include "rmn/excdes_new.h"
 
-static pthread_mutex_t xdf_mutex = PTHREAD_MUTEX_INITIALIZER;
+//! \name Global (extern) variables \{
+//! Stride
+int xdf_stride = 1;
+//! Data size indicator
+int xdf_size = 0;
+//! Double float indicator
+int xdf_double = 0;
+//! Short integer indicator
+int xdf_short = 0;
+//! Byte array indicator
+int xdf_byte = 0;
+//! Enforce 8 char for date specifications
+int xdf_enforc8 = 0;
+//! Data type of last record read
+int xdf_datatyp;
+//! Number of splited output files in xdfuse
+int xdf_nsplit = 1;
+//! Number of bits per FORTRAN word
+int FTN_Bitmot = 8 * sizeof(int32_t);
+//! No pack/unpack, used by editfst
+int image_mode_copy = 0;
+//! Chekcpoint mode, no closing of the file
+int xdf_checkpoint = 0;
+//! If one std seq file is opened, the limit of opened files becomes 128
+int STDSEQ_opened = 0;
+key_descriptor stdfkeys[] = {
+#if !defined(Little_Endian)
+    {'SF01', 31,31, 0, 0},
+    {'SF02', 63,31, 0, 0},
+    {'SF03', 95,31, 0, 0},
+    {'SF04',127,31, 0, 0},
+    {'SF05',159,31, 0, 0},
+    {'SF06',191,31, 0, 0},
+    {'SF07',223,31, 0, 0},
+    {'SF08',255,31, 0, 0},
+    {'SF09',287,31, 0, 0},
+    {'SF10',319,31, 0, 0},
+    {'SF11',351,31, 0, 0},
+    {'SF12',383,31, 0, 0},
+    {'SF13',415,31, 0, 0},
+    {'SF14',447,31, 0, 0},
+    {'SF15',479,31, 0, 0},
+    {'SF16',511,31, 0, 0}
+#else
+    {'SF01', 0, 0, 31,  31},
+    {'SF02', 0, 0, 31,  63},
+    {'SF03', 0, 0, 31,  95},
+    {'SF04', 0, 0, 31, 127},
+    {'SF05', 0, 0, 31, 159},
+    {'SF06', 0, 0, 31, 191},
+    {'SF07', 0, 0, 31, 223},
+    {'SF08', 0, 0, 31, 255},
+    {'SF09', 0, 0, 31, 287},
+    {'SF10', 0, 0, 31, 319},
+    {'SF11', 0, 0, 31, 351},
+    {'SF12', 0, 0, 31, 383},
+    {'SF13', 0, 0, 31, 415},
+    {'SF14', 0, 0, 31, 447},
+    {'SF15', 0, 0, 31, 479},
+    {'SF16', 0, 0, 31, 511}
+#endif
+};
+key_descriptor stdf_info_keys[] = {
+#if !defined(Little_Endian)
+    {'AXI1', 31, 31, 0, 0},
+    {'AXI2', 63, 31, 0, 0}
+#else
+    {'AXI1', 0, 0, 31, 31},
+    {'AXI2', 0, 0, 31, 63}
+#endif
+};
 
-static int endian_int = 1;
-static char *little_endian = (char *)&endian_int;
+static const int ABSOLUTE_MAX_XDF_FILES = 1024;
+file_table_entry_ptr* file_table = NULL;
+int MAX_XDF_FILES = 0;
+
+// \}
 
 // prototypes declarations
 static int get_free_index();
 static void init_file(file_table_entry* const entry, const int index);
-static int32_t scan_random(int file_index);
 static int32_t add_dir_page(int file_index, int wflag);
-static int32_t rewind_file(int file_index, int handle);
 static int create_new_xdf(int index, int iun, word_2 *pri, int npri,
                           word_2 *aux, int naux, char *appl);
-static uint32_t next_match(int file_index);
+static int32_t next_match(int file_index);
 static void build_gen_prim_keys(uint32_t *buf, uint32_t *keys, uint32_t *mask,
                                 uint32_t *mskkeys, int index, int mode);
 static void build_gen_info_keys(uint32_t * const buf, uint32_t * const keys, const int index, const int mode);
 static void finalize_xdf(void);
 static void release_xdf_index(const int index);
 
-const int ABSOLUTE_MAX_XDF_FILES = 1024;
-file_table_entry_ptr* file_table = NULL;
-int MAX_XDF_FILES = 0;
+static pthread_mutex_t xdf_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+static int endian_int = 1;
+static char *little_endian = (char *)&endian_int;
 
 static const intptr_t XDF_RESERVED = 1;
 static const int XDF_IUN_AVAILABLE = -1;
@@ -83,19 +155,21 @@ static int initialize_xdf(void) {
         goto unlock;
     }
 
-    const int num_files = MAX_FNOM_FILES > ABSOLUTE_MAX_XDF_FILES ? ABSOLUTE_MAX_XDF_FILES : MAX_FNOM_FILES;
-    file_table = (file_table_entry_ptr*) calloc(num_files, sizeof(file_table_entry_ptr));
-    if (file_table == NULL) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate space for file table (%d files)\n",
-                __func__, num_files);
-        goto unlock;
+    {
+        const int num_files = MAX_FNOM_FILES > ABSOLUTE_MAX_XDF_FILES ? ABSOLUTE_MAX_XDF_FILES : MAX_FNOM_FILES;
+        file_table = (file_table_entry_ptr*) calloc(num_files, sizeof(file_table_entry_ptr));
+        if (file_table == NULL) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to allocate space for file table (%d files)\n",
+                    __func__, num_files);
+            goto unlock;
+        }
+
+        MAX_XDF_FILES = num_files; // Signal to other threads that the API is initialized
+
+        // Init first entry to start with file index = 1. Is that really useful? We need to have the API initialized to call the get_free_index() function.
+        int ind = get_free_index();
+        file_table[ind]->iun = 123456789;
     }
-
-    MAX_XDF_FILES = num_files; // Signal to other threads that the API is initialized
-
-    // Init first entry to start with file index = 1. Is that really useful? We need to have the API initialized to call the get_free_index() function.
-    int ind = get_free_index();
-    file_table[ind]->iun = 123456789;
 
 unlock:
     pthread_mutex_unlock(&xdf_mutex);
@@ -680,7 +754,7 @@ int c_qdfrstr(
     return 0;
 }
 
-void* xdf_set_file_filter(const int iun, void* const new_filter) {
+match_fn xdf_set_file_filter(const int iun, match_fn new_filter) {
     const int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: file is not connected with fnom\n",__func__);
@@ -695,7 +769,7 @@ void* xdf_set_file_filter(const int iun, void* const new_filter) {
 
     file_table_entry * const f = file_table[index];
 
-    void* old_file_filter = f->file_filter;
+    match_fn old_file_filter = f->file_filter;
     f->file_filter = new_filter;
     return old_file_filter;
 }
@@ -1442,7 +1516,7 @@ int c_xdfins(
 ) {
     int nbwords, index_word, last_ind, i, mode;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
-    int  ier;
+    int ier = 0;
 
     if ((bitpos % 64) != 0) {
         Lib_Log(APP_LIBFST,APP_FATAL,"%s: bitpos must be a multiple of 64\n",__func__);
@@ -1524,7 +1598,7 @@ int c_xdfins(
     } /* end switch */
 
     buf->nbits += nbwords * sizeof(uint32_t) * 8;
-    return 0;
+    return ier;
 }
 
 
@@ -2439,9 +2513,9 @@ int c_xdfrep(
     //! [in] Data type
     int datyp
 ) {
-    int nbwords, index_word, last_ind, i, mode;
+    int nbwords, index_word, i, mode;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
-    int ier;
+    int ier = 0;
 
     if ((bitpos % 64) != 0) {
         Lib_Log(APP_LIBFST,APP_FATAL,"%s: bitpos must be a multiple of 64\n",__func__);
@@ -2457,8 +2531,6 @@ int c_xdfrep(
     nbwords = W64TOWD(nbwords);
 
     index_word = buf->data_index + (bitpos / (sizeof(uint32_t) * 8));
-
-    last_ind = buf->record_index + (buf->nbits / (sizeof(uint32_t) *8));
 
     if ((index_word + nbwords - 1) > buf->nwords) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: buffer not big enough for replacemen\n",__func__);
@@ -2519,7 +2591,7 @@ int c_xdfrep(
             return(ERR_BAD_DATYP);
     }
 
-   return 0;
+   return ier;
 }
 
 
@@ -2893,7 +2965,7 @@ int c_xdfxtr(
 ) {
     int nbwords, index_word, i, mode;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
-    int ier;
+    int ier = 0;
 
     if ((bitpos % 64) != 0) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: bitpos must be a multiple of 64\n",__func__);
@@ -2950,7 +3022,7 @@ int c_xdfxtr(
             return(ERR_BAD_DATYP);
     } // End switch (datyp)
 
-    return 0;
+    return ier;
 }
 
 
@@ -3224,14 +3296,14 @@ static int32_t make_seq_handle(
 
 //! Find the next record that matches the current search criterias.
 //! \return Handle of the next matching record or error code
-static uint32_t next_match(
+static int32_t next_match(
     //! [in] index of file in the file table
     int file_index
 ) {
     int match;
-    int end_of_file, nw, addr_match;
+    int nw, addr_match;
     uint32_t *entry, *search, *mask, handle;
-    stdf_dir_keys *stds, *stdm, *stde;
+    stdf_dir_keys *stde;
     seq_dir_keys *seq_entry;
     xdf_record_header *header;
     int32_t f_datev;
@@ -3279,8 +3351,6 @@ static uint32_t next_match(
                         search = (uint32_t *) fte->target;
                         mask = (uint32_t *) fte->cur_mask;
                         stde = (stdf_dir_keys *) entry;
-                        stdm = (stdf_dir_keys *) mask;
-                        stds = (stdf_dir_keys *) search;
                         match = 0;
                         for (int i = 0; i < width; i++, mask++, search++, entry++) {
                             match |= (((*entry) ^ (*search)) & (*mask));
@@ -3306,7 +3376,6 @@ static uint32_t next_match(
                 if ((header->idtyp >= 112) && (header->idtyp < 127)) {
                     fte->cur_addr += W64TOWD(1);
                 }
-                end_of_file = 1;
                 break;
             }
             if (fte->fstd_vintage_89) {
@@ -3323,7 +3392,6 @@ static uint32_t next_match(
                 if (seq_entry->eof > 0) {
                     header->idtyp = 112 + seq_entry->eof;
                     header->lng = 1;
-                    end_of_file = 1;
                     break;
                 }
                 stde->deleted = 0;
@@ -3482,43 +3550,6 @@ int32_t  f77name(qdfrstr)(int32_t *f_inp, int32_t *f_outp)
     int inp = *f_inp, outp = *f_outp;
 
     return (int32_t) c_qdfrstr(inp, outp);
-}
-
-//! Set file position, if handle=-1, rewind file
-static int32_t rewind_file(
-    int file_index,
-    int handle
-) {
-    // check if file exists
-    register file_table_entry *fte = file_table[file_index];
-    if ( fte == NULL) return ERR_NO_FILE;
-
-    if (handle == -1) {
-        fte->cur_dir_page = fte->dir_page[0];
-        fte->cur_entry = (fte->cur_dir_page)->dir.entry;
-        fte->page_nrecords = (fte->cur_dir_page)->dir.nent;
-        fte->page_record = 0;
-    } else {
-        int file_index2 = INDEX_FROM_HANDLE(handle);
-        register file_table_entry *fte2 = file_table[file_index2];
-        if (file_index != file_index2) {
-            // check if file2 exists and is linked to file
-            if (fte2 == NULL) return ERR_NO_FILE;
-            fte2 = fte;
-            int linked = fte2->link;
-            while ((linked > 0) && (linked != file_index2)) {
-                fte2 = file_table[linked];
-                linked = fte2->link;
-            }
-            if (linked != file_index2) return ERR_BAD_LINK;
-        }
-        fte2 = file_table[file_index2];
-        fte->cur_dir_page = fte2->dir_page[PAGENO_FROM_HANDLE(handle)];
-        fte->page_record = RECORD_FROM_HANDLE(handle);
-        fte->page_nrecords = (fte->cur_dir_page)->dir.nent;
-        fte->cur_entry = (fte->cur_dir_page)->dir.entry + (fte->page_record)*(fte->primary_len);
-    }
-    return 0;
 }
 
 int32_t f77name(xdfadd)(uint32_t *buf, uint32_t *donnees,

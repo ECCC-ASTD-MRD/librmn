@@ -51,6 +51,9 @@ static const char * fst_file_type_name[] = {
     .num_records_found  = 0,                \
 })
 
+//!> Maximum number of character the options can contain when opening a file. Includes the options added internally
+#define MAX_OPTION_LENGTH 1024
+
 //! Verify that the file pointer is valid and the file is open. This is meant to verify that
 //! the file struct has been initialized by a call to fst24_open; it should *not* be called
 //! on a file that has been closed, since it will result in undefined behavior.
@@ -134,9 +137,8 @@ fst_file* fst24_open(
 
     *the_file = default_fst_file;
 
-    const int MAX_LENGTH = 1024;
-    char local_options[MAX_LENGTH];
-    snprintf(local_options, MAX_LENGTH, "RND+%s%s",
+    char local_options[MAX_OPTION_LENGTH];
+    snprintf(local_options, MAX_OPTION_LENGTH, "RND+%s%s",
              (!options || !(strcasestr(options, "R/W") || strcasestr(options, "R/O"))) ? "R/O+" : "",
              options ? options : "");
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: filePath = %s, options = %s\n", __func__, filePath, local_options);
@@ -1490,7 +1492,7 @@ int64_t find_next_xdf(const int32_t iun, fst_query* const query) {
     const int32_t start_key = query->search_index & 0xffffffff;
 
     // --- START critical section (maybe) ---
-    void* old_filter = NULL;
+    match_fn old_filter = NULL;
     if (query->options.skip_filter) {
         pthread_mutex_lock(&fst24_xdf_mutex);
         old_filter = xdf_set_file_filter(iun, NULL);

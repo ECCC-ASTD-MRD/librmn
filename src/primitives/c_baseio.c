@@ -331,47 +331,49 @@ static int initialize_fnom(void) {
 
     if (MAX_FNOM_FILES > 0) goto unlock; // check again after locking, in case someone else was already initializing it
 
-    // Retrieve open files number limit for process
-    const uint64_t max_open_files = get_max_open_files();
+    {
+        // Retrieve open files number limit for process
+        const uint64_t max_open_files = get_max_open_files();
 
-    // Allocate all tables
-    FGFDT = (general_file_info*) calloc(max_open_files, sizeof(general_file_info));
-    unit_entries = (int32_t*) calloc(max_open_files, sizeof(int32_t));
-    NUM_BITMAP_ENTRIES = (max_open_files + 31) / 32;
-    used_units_bitmap = (uint32_t*) calloc(NUM_BITMAP_ENTRIES, sizeof(int32_t));
+        // Allocate all tables
+        FGFDT = (general_file_info*) calloc(max_open_files, sizeof(general_file_info));
+        unit_entries = (int32_t*) calloc(max_open_files, sizeof(int32_t));
+        NUM_BITMAP_ENTRIES = (max_open_files + 31) / 32;
+        used_units_bitmap = (uint32_t*) calloc(NUM_BITMAP_ENTRIES, sizeof(int32_t));
 
-    if (FGFDT == NULL || unit_entries == NULL || used_units_bitmap == NULL) {
-        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Unable to allocate fnom file table (%d files)\n", __func__, max_open_files);
-        goto unlock;
-    }
-
-    // Retrieve options from environment
-    ARMNLIB = getenv("ARMNLIB");
-    if( ARMNLIB == NULL ) ARMNLIB = LOCALDIR;
-    CMCCONST = getenv("CMCCONST");
-    if( CMCCONST == NULL ) CMCCONST = LOCALDIR;
-    for (int i = 0; i < max_open_files; i++) {
-        reset_file_entry(i);
-    }
-
-    // Set up bitmap table
-    if (max_open_files % 32 != 0) {
-        uint32_t off = 0;
-        Lib_Log(APP_LIBRMN, APP_DEBUG, "%s: MAX files = %d, remainder = %d, num bitmap entries = %d\n",
-                __func__, max_open_files, max_open_files % 32, NUM_BITMAP_ENTRIES);
-        for (int i = 0; i < max_open_files % 32; i++) {
-            off |= (1 << i);
+        if (FGFDT == NULL || unit_entries == NULL || used_units_bitmap == NULL) {
+            Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Unable to allocate fnom file table (%d files)\n", __func__, max_open_files);
+            goto unlock;
         }
-        used_units_bitmap[NUM_BITMAP_ENTRIES - 1] = 0xffffffff & ~off;
+
+        // Retrieve options from environment
+        ARMNLIB = getenv("ARMNLIB");
+        if( ARMNLIB == NULL ) ARMNLIB = LOCALDIR;
+        CMCCONST = getenv("CMCCONST");
+        if( CMCCONST == NULL ) CMCCONST = LOCALDIR;
+        for (int i = 0; i < max_open_files; i++) {
+            reset_file_entry(i);
+        }
+
+        // Set up bitmap table
+        if (max_open_files % 32 != 0) {
+            uint32_t off = 0;
+            Lib_Log(APP_LIBRMN, APP_DEBUG, "%s: MAX files = %d, remainder = %d, num bitmap entries = %d\n",
+                    __func__, max_open_files, max_open_files % 32, NUM_BITMAP_ENTRIES);
+            for (int i = 0; i < max_open_files % 32; i++) {
+                off |= (1 << i);
+            }
+            used_units_bitmap[NUM_BITMAP_ENTRIES - 1] = 0xffffffff & ~off;
+        }
+
+        if (atexit(finalize_fnom) != 0) {
+            Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Unable to register function with atexit()\n", __func__);
+            goto unlock;
+        }
+
+        MAX_FNOM_FILES = max_open_files; // Signal initialization is complete
+
     }
-
-    if (atexit(finalize_fnom) != 0) {
-        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Unable to register function with atexit()\n", __func__);
-        goto unlock;
-    }
-
-    MAX_FNOM_FILES = max_open_files; // Signal initialization is complete
-
 unlock:
     pthread_mutex_unlock(&fnom_mutex);
     // --- END critical region ---
@@ -457,7 +459,7 @@ int c_fnom(
     if (initialize_fnom() <= 0) return -1; // Error message will be printed
 
     int ier = 0;
-    int liun;
+    int liun = 0;
     if (((intptr_t)iun > 0) && ((intptr_t)iun < 1000)) {
         // An integer value has been passed to c_fnom as iun
         intptr_t ptr_as_int = (intptr_t)iun ;
@@ -545,229 +547,231 @@ int c_fnom(
     Lib_Log(APP_LIBRMN, APP_DEBUG, "%s: Assigning unit %d to entry index %d\n", __func__, liun, entry);
     if (entry < 0) goto fnom_error; // Error message should already be printed
 
-    // Record file attributes
-    int lngt = strlen(type) + 1;
-    FGFDT[entry].file_type = malloc(lngt + 1);
-    strncpy(FGFDT[entry].file_type, type, lngt);
-    FGFDT[entry].attr.stream = 0;
-    FGFDT[entry].attr.std = 0;
-    FGFDT[entry].attr.rsf = 0;
-    FGFDT[entry].attr.burp = 0;
-    FGFDT[entry].attr.rnd = 0;
-    FGFDT[entry].attr.wa = 0;
-    FGFDT[entry].attr.ftn = 0;
-    FGFDT[entry].attr.unf = 0;
-    FGFDT[entry].attr.read_only = 0;
-    FGFDT[entry].attr.old = 0;
-    FGFDT[entry].attr.notpaged = 0;
-    FGFDT[entry].attr.scratch = 0;
-    FGFDT[entry].attr.pipe = 0;
-    FGFDT[entry].attr.remote = 0;
-    FGFDT[entry].attr.volatil = 0;
-
-    if (strcasestr(type, "STREAM")) {
-        FGFDT[entry].attr.stream = 1;
-        FGFDT[entry].attr.rnd = 1;
-    }
-    if (strcasestr(type, "STD")) {
-        FGFDT[entry].attr.std = 1;
-        FGFDT[entry].attr.rnd = 1;
-    }
-    if (strcasestr(type, "BURP")) {
-        FGFDT[entry].attr.burp = 1;
-        FGFDT[entry].attr.rnd = 1;
-    }
-    if (strcasestr(type, "RND")) {
-        FGFDT[entry].attr.rnd = 1;
-    }
-    if (strcasestr(type, "WA")) {
-        // wa attribute will be set by waopen
-        FGFDT[entry].attr.rnd = 1;
-    }
-    if (strcasestr(type, "FTN")) {
-        FGFDT[entry].attr.ftn = 1;
+    {
+        // Record file attributes
+        int lngt = strlen(type) + 1;
+        FGFDT[entry].file_type = malloc(lngt + 1);
+        strncpy(FGFDT[entry].file_type, type, lngt);
+        FGFDT[entry].attr.stream = 0;
+        FGFDT[entry].attr.std = 0;
+        FGFDT[entry].attr.rsf = 0;
+        FGFDT[entry].attr.burp = 0;
         FGFDT[entry].attr.rnd = 0;
-    }
-    if (strcasestr(type, "UNF")) {
-        FGFDT[entry].attr.unf = 1;
-        FGFDT[entry].attr.ftn = 1;
-        FGFDT[entry].attr.rnd = 0;
-    }
-    if (strcasestr(type, "OLD")) {
-        FGFDT[entry].attr.old = 1;
-    }
-    if (strcasestr(type, "R/O")) {
-        FGFDT[entry].attr.read_only = 1;
-        FGFDT[entry].attr.old = 1;
-    }
-    if (strcasestr(type, "R/W")) {
+        FGFDT[entry].attr.wa = 0;
+        FGFDT[entry].attr.ftn = 0;
+        FGFDT[entry].attr.unf = 0;
         FGFDT[entry].attr.read_only = 0;
-        FGFDT[entry].attr.write_mode = 1;
-    }
-    if (strcasestr(type, "D77")) {
-        FGFDT[entry].attr.ftn = 1;
-        FGFDT[entry].attr.rnd = 1;
-    }
-    if (strcasestr(type, "SCRATCH")) {
-        FGFDT[entry].attr.scratch = 1;
-    }
-    if (strcasestr(type, "REMOTE")) {
-        FGFDT[entry].attr.remote = 1;
-    }
-    if (strcasestr(type, "VOLATILE")) {
-        FGFDT[entry].attr.volatil = 1;
-    }
+        FGFDT[entry].attr.old = 0;
+        FGFDT[entry].attr.notpaged = 0;
+        FGFDT[entry].attr.scratch = 0;
+        FGFDT[entry].attr.pipe = 0;
+        FGFDT[entry].attr.remote = 0;
+        FGFDT[entry].attr.volatil = 0;
 
-    if (!FGFDT[entry].attr.std && !FGFDT[entry].attr.burp && !FGFDT[entry].attr.wa && !FGFDT[entry].attr.rnd  && !FGFDT[entry].attr.stream) {
-        FGFDT[entry].attr.ftn = 1;
-    }
-    FGFDT[entry].lrec = lrec;
-    FGFDT[entry].open_flag = 0;
+        if (strcasestr(type, "STREAM")) {
+            FGFDT[entry].attr.stream = 1;
+            FGFDT[entry].attr.rnd = 1;
+        }
+        if (strcasestr(type, "STD")) {
+            FGFDT[entry].attr.std = 1;
+            FGFDT[entry].attr.rnd = 1;
+        }
+        if (strcasestr(type, "BURP")) {
+            FGFDT[entry].attr.burp = 1;
+            FGFDT[entry].attr.rnd = 1;
+        }
+        if (strcasestr(type, "RND")) {
+            FGFDT[entry].attr.rnd = 1;
+        }
+        if (strcasestr(type, "WA")) {
+            // wa attribute will be set by waopen
+            FGFDT[entry].attr.rnd = 1;
+        }
+        if (strcasestr(type, "FTN")) {
+            FGFDT[entry].attr.ftn = 1;
+            FGFDT[entry].attr.rnd = 0;
+        }
+        if (strcasestr(type, "UNF")) {
+            FGFDT[entry].attr.unf = 1;
+            FGFDT[entry].attr.ftn = 1;
+            FGFDT[entry].attr.rnd = 0;
+        }
+        if (strcasestr(type, "OLD")) {
+            FGFDT[entry].attr.old = 1;
+        }
+        if (strcasestr(type, "R/O")) {
+            FGFDT[entry].attr.read_only = 1;
+            FGFDT[entry].attr.old = 1;
+        }
+        if (strcasestr(type, "R/W")) {
+            FGFDT[entry].attr.read_only = 0;
+            FGFDT[entry].attr.write_mode = 1;
+        }
+        if (strcasestr(type, "D77")) {
+            FGFDT[entry].attr.ftn = 1;
+            FGFDT[entry].attr.rnd = 1;
+        }
+        if (strcasestr(type, "SCRATCH")) {
+            FGFDT[entry].attr.scratch = 1;
+        }
+        if (strcasestr(type, "REMOTE")) {
+            FGFDT[entry].attr.remote = 1;
+        }
+        if (strcasestr(type, "VOLATILE")) {
+            FGFDT[entry].attr.volatil = 1;
+        }
 
-    // If scratch file, add tmpdir directory and pid to the file name
-    int lng;
-    const char * lnom = nom;
-    char remote_mach[HOST_NAME_MAX];
-    if (FGFDT[entry].attr.scratch) {
-        if (strstr(lnom, "/")) {
-            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: / is illegal in scratch file name, specified name was %s\n",__func__,lnom);
-            return -1;
+        if (!FGFDT[entry].attr.std && !FGFDT[entry].attr.burp && !FGFDT[entry].attr.wa && !FGFDT[entry].attr.rnd  && !FGFDT[entry].attr.stream) {
+            FGFDT[entry].attr.ftn = 1;
         }
-        int pid = getpid();
-        char *tmpdir = getenv("TMPDIR");
-        if (tmpdir == NULL) {
-            Lib_Log(APP_LIBRMN,APP_WARNING,"%s: TMPDIR environment variable is not defined, /tmp is used\n",__func__);
-            tmpdir = "/tmp";
-        }
-        // Espace tampon supplementaire
-        lng = strlen(lnom) + strlen(tmpdir) + 10 + 3 + 128;
-        if ((FGFDT[entry].file_name = malloc(lng)) == NULL) {
-            Lib_Log(APP_LIBRMN,APP_FATAL,"%s: can't allocate memory for file name\n",__func__);
-            perror("c_fnom");
-            exit(1);
-        }
-        sprintf(FGFDT[entry].file_name, "%s/%d_%s", tmpdir, pid, lnom);
-    } else {
-        // Convert file name to lower case unless it contains a mix of upper case / lower case
-        lng = strlen(lnom);
-        FGFDT[entry].file_name = malloc(lng + 1);
-        if ((FGFDT[entry].attr.remote) && (strchr(lnom, ':'))) {
-            if (FGFDT[entry].attr.rnd) {
-                char *pos2p = strchr(lnom, ':');
-                if (pos2p != NULL) {
-                    strncpy(remote_mach, lnom, pos2p - lnom);
-                    remote_mach[pos2p - lnom] = '\0';
-                    lnom = ++pos2p;
-                    Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: remote_mach=%s file name=%s\n",__func__,remote_mach,lnom);
-                    lng = strlen(lnom);
+        FGFDT[entry].lrec = lrec;
+        FGFDT[entry].open_flag = 0;
+
+        // If scratch file, add tmpdir directory and pid to the file name
+        int lng;
+        const char * lnom = nom;
+        char remote_mach[HOST_NAME_MAX];
+        if (FGFDT[entry].attr.scratch) {
+            if (strstr(lnom, "/")) {
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: / is illegal in scratch file name, specified name was %s\n",__func__,lnom);
+                return -1;
+            }
+            int pid = getpid();
+            char *tmpdir = getenv("TMPDIR");
+            if (tmpdir == NULL) {
+                Lib_Log(APP_LIBRMN,APP_WARNING,"%s: TMPDIR environment variable is not defined, /tmp is used\n",__func__);
+                tmpdir = "/tmp";
+            }
+            // Espace tampon supplementaire
+            lng = strlen(lnom) + strlen(tmpdir) + 10 + 3 + 128;
+            if ((FGFDT[entry].file_name = malloc(lng)) == NULL) {
+                Lib_Log(APP_LIBRMN,APP_FATAL,"%s: can't allocate memory for file name\n",__func__);
+                perror("c_fnom");
+                exit(1);
+            }
+            sprintf(FGFDT[entry].file_name, "%s/%d_%s", tmpdir, pid, lnom);
+        } else {
+            // Convert file name to lower case unless it contains a mix of upper case / lower case
+            lng = strlen(lnom);
+            FGFDT[entry].file_name = malloc(lng + 1);
+            if ((FGFDT[entry].attr.remote) && (strchr(lnom, ':'))) {
+                if (FGFDT[entry].attr.rnd) {
+                    char *pos2p = strchr(lnom, ':');
+                    if (pos2p != NULL) {
+                        strncpy(remote_mach, lnom, pos2p - lnom);
+                        remote_mach[pos2p - lnom] = '\0';
+                        lnom = ++pos2p;
+                        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: remote_mach=%s file name=%s\n",__func__,remote_mach,lnom);
+                        lng = strlen(lnom);
+                    }
+                } else {
+                    // Code to remote copy the file on local machine and change file name
+                    FGFDT[entry].attr.remote = 0;
+                    // File becomes read only
+                    FGFDT[entry].attr.read_only = 0;
                 }
             } else {
-                // Code to remote copy the file on local machine and change file name
                 FGFDT[entry].attr.remote = 0;
-                // File becomes read only
-                FGFDT[entry].attr.read_only = 0;
             }
+            const char *cptr1 = lnom;
+            if (lnom[0] == '@') {
+                // Name is of the form @some_file_name
+                // Skip the @, scan later under
+                cptr1++;
+                // CMCCONST & ARMNLIB if not local file
+                lng--;
+            }
+            if (lnom[0] == '%') {
+                // Name is of the form %[%@]some_pipe_ file
+                // Skip the %
+                cptr1++;
+                lng--;
+                FGFDT[entry].attr.pipe = 1;
+            }
+            if (lnom[0] == '+') {
+                // Name is of the form +some_file_name
+                // skip the +, do not convert to lowercase
+                cptr1++;
+                lng--;
+            } 
+            strncpy(FGFDT[entry].file_name, cptr1, lng);
+            FGFDT[entry].file_name[lng] = '\0';
+        }
+
+
+        // Verify for a cmcarc type of file (filename@subfilename)
+        char *cmcarc = strchr(FGFDT[entry].file_name, '@');
+        if (cmcarc && !(FGFDT[entry].attr.remote)) {
+            FGFDT[entry].subname = malloc(lng + 1);
+            strcpy(FGFDT[entry].subname, cmcarc + 1);
+            *cmcarc = '\0';
+            /* file must exist and be read/only */
+            FGFDT[entry].attr.old = 1;
+            FGFDT[entry].attr.read_only = 1;
         } else {
-            FGFDT[entry].attr.remote = 0;
+            FGFDT[entry].subname = NULL;
         }
-        const char *cptr1 = lnom;
+
+        // Check for @file (@filename)
         if (lnom[0] == '@') {
-            // Name is of the form @some_file_name
-            // Skip the @, scan later under
-            cptr1++;
-            // CMCCONST & ARMNLIB if not local file
-            lng--;
-        }
-        if (lnom[0] == '%') {
-            // Name is of the form %[%@]some_pipe_ file
-            // Skip the %
-            cptr1++;
-            lng--;
-            FGFDT[entry].attr.pipe = 1;
-        }
-        if (lnom[0] == '+') {
-            // Name is of the form +some_file_name
-            // skip the +, do not convert to lowercase
-            cptr1++;
-            lng--;
-        } 
-        strncpy(FGFDT[entry].file_name, cptr1, lng);
-        FGFDT[entry].file_name[lng] = '\0';
-    }
+            char filename[PATH_MAX];
+            strcpy(filename, FGFDT[entry].file_name);
 
-
-    // Verify for a cmcarc type of file (filename@subfilename)
-    char *cmcarc = strchr(FGFDT[entry].file_name, '@');
-    if (cmcarc && !(FGFDT[entry].attr.remote)) {
-        FGFDT[entry].subname = malloc(lng + 1);
-        strcpy(FGFDT[entry].subname, cmcarc + 1);
-        *cmcarc = '\0';
-        /* file must exist and be read/only */
-        FGFDT[entry].attr.old = 1;
-        FGFDT[entry].attr.read_only = 1;
-    } else {
-        FGFDT[entry].subname = NULL;
-    }
-
-    // Check for @file (@filename)
-    if (lnom[0] == '@') {
-        char filename[PATH_MAX];
-        strcpy(filename, FGFDT[entry].file_name);
-
-        if (access(filename, F_OK) == -1) {
-            /* no local file */
-            sprintf(filename, "%s/%s", CMCCONST, FGFDT[entry].file_name);
-            if (access(filename, F_OK)  == -1) {
-                /* not under CMCCONST */
-                sprintf(filename, "%s/data/%s", ARMNLIB, FGFDT[entry].file_name);
-
+            if (access(filename, F_OK) == -1) {
+                /* no local file */
+                sprintf(filename, "%s/%s", CMCCONST, FGFDT[entry].file_name);
                 if (access(filename, F_OK)  == -1) {
-                    /* not under ARMNLIB either */
-                    goto fnom_error;
+                    /* not under CMCCONST */
+                    sprintf(filename, "%s/data/%s", ARMNLIB, FGFDT[entry].file_name);
+
+                    if (access(filename, F_OK)  == -1) {
+                        /* not under ARMNLIB either */
+                        goto fnom_error;
+                    }
                 }
             }
+            free(FGFDT[entry].file_name);
+            FGFDT[entry].file_name = malloc(strlen(filename) + 10);
+            strcpy(FGFDT[entry].file_name, filename);
+            lng = strlen(filename);
         }
-        free(FGFDT[entry].file_name);
-        FGFDT[entry].file_name = malloc(strlen(filename) + 10);
-        strcpy(FGFDT[entry].file_name, filename);
-        lng = strlen(filename);
-     }
 
-    if ((FGFDT[entry].attr.old || FGFDT[entry].attr.read_only) && ! FGFDT[entry].attr.remote) {
-        if (!f77name(existe)(FGFDT[entry].file_name, (F2Cl) strlen(FGFDT[entry].file_name))) {
-            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file %s should exist and does not\n",__func__,FGFDT[entry].file_name);
-            c_fclos(liun);
-            goto fnom_error;
+        if ((FGFDT[entry].attr.old || FGFDT[entry].attr.read_only) && ! FGFDT[entry].attr.remote) {
+            if (!f77name(existe)(FGFDT[entry].file_name, (F2Cl) strlen(FGFDT[entry].file_name))) {
+                Lib_Log(APP_LIBRMN,APP_ERROR,"%s: file %s should exist and does not\n",__func__,FGFDT[entry].file_name);
+                c_fclos(liun);
+                goto fnom_error;
+            }
         }
+
+        // FORTRAN files must be opened by a FORTRAN module
+        if (FGFDT[entry].attr.ftn) {
+            int32_t iun77 = liun;
+            int32_t lrec77 = lrec;
+            int32_t rndflag77 = FGFDT[entry].attr.rnd;
+            int32_t unfflag77 = FGFDT[entry].attr.unf;
+            // lmult is no longer used by qqqf7op, but the argument was kept for backward compatibility
+            int32_t lmult = 42;
+            ier = open64(FGFDT[entry].file_name, O_RDONLY);
+            if (ier <= 0) {
+                FGFDT[entry].file_size = -1;
+                FGFDT[entry].eff_file_size = -1;
+            } else {
+                off64_t dimm = lseek64(ier, 0, SEEK_END);
+                FGFDT[entry].file_size = dimm / sizeof(uint32_t);
+                FGFDT[entry].eff_file_size = dimm / sizeof(uint32_t);
+                close(ier);
+            }
+            ier = f77name(qqqf7op)(&iun77, FGFDT[entry].file_name, &lrec77, &rndflag77, &unfflag77, &lmult, (F2Cl) lng);
+        } else if (FGFDT[entry].attr.stream || FGFDT[entry].attr.std || FGFDT[entry].attr.burp || FGFDT[entry].attr.wa ||
+                (FGFDT[entry].attr.rnd && !FGFDT[entry].attr.ftn)) {
+            ier = c_waopen2(liun);
+            /* will be set by waopen */
+            FGFDT[entry].attr.wa = 0;
+        }
+
+        if (FGFDT[entry].attr.remote) ier = fnom_rem_connect(entry, remote_mach);
     }
-
-    // FORTRAN files must be opened by a FORTRAN module
-    if (FGFDT[entry].attr.ftn) {
-        int32_t iun77 = liun;
-        int32_t lrec77 = lrec;
-        int32_t rndflag77 = FGFDT[entry].attr.rnd;
-        int32_t unfflag77 = FGFDT[entry].attr.unf;
-        // lmult is no longer used by qqqf7op, but the argument was kept for backward compatibility
-        int32_t lmult = 42;
-        ier = open64(FGFDT[entry].file_name, O_RDONLY);
-        if (ier <= 0) {
-            FGFDT[entry].file_size = -1;
-            FGFDT[entry].eff_file_size = -1;
-        } else {
-            off64_t dimm = lseek64(ier, 0, SEEK_END);
-            FGFDT[entry].file_size = dimm / sizeof(uint32_t);
-            FGFDT[entry].eff_file_size = dimm / sizeof(uint32_t);
-            close(ier);
-        }
-        ier = f77name(qqqf7op)(&iun77, FGFDT[entry].file_name, &lrec77, &rndflag77, &unfflag77, &lmult, (F2Cl) lng);
-    } else if (FGFDT[entry].attr.stream || FGFDT[entry].attr.std || FGFDT[entry].attr.burp || FGFDT[entry].attr.wa ||
-               (FGFDT[entry].attr.rnd && !FGFDT[entry].attr.ftn)) {
-        ier = c_waopen2(liun);
-        /* will be set by waopen */
-        FGFDT[entry].attr.wa = 0;
-    }
-
-    if (FGFDT[entry].attr.remote) ier = fnom_rem_connect(entry, remote_mach);
 
     if (Lib_LogLevel(APP_LIBRMN, NULL) >= APP_EXTRA) {
         dump_file_entry(entry);
@@ -1744,7 +1748,7 @@ int c_sqgetw(
         alu += nlu;
         pbuf += (nlu / sizeof(uint32_t));
     }
-    return (alire == 0) ? alu / sizeof(uint32_t) : -1;
+    return (alire == 0) ? alu / (int)sizeof(uint32_t) : -1;
 }
 
 
@@ -1779,7 +1783,7 @@ int c_sqputw(
         aecrit += necrit;
         pbuf += (necrit / sizeof(uint32_t));
     }
-    return (aecrire == 0) ? necrit / sizeof(uint32_t) : -1;
+    return (aecrire == 0) ? necrit / (int)sizeof(uint32_t) : -1;
 }
 
 
@@ -2160,27 +2164,29 @@ static int initialize_wa() {
     }
 
     
-    char * waConfig = getenv("WA_CONFIG");
-    int nset = 0;
-    int n1, n2, n3, n4;
-    if (waConfig != NULL) {
-        nset = sscanf(waConfig, "%d %d %d %d", &n1, &n2, &n3, &n4);
-    }
+    {
+        char * waConfig = getenv("WA_CONFIG");
+        int nset = 0;
+        int n1, n2, n3, n4;
+        if (waConfig != NULL) {
+            nset = sscanf(waConfig, "%d %d %d %d", &n1, &n2, &n3, &n4);
+        }
 
-    switch (nset) {
-        case 4:
-        case 3:
-            WA_PAGE_LIMIT = n3;
+        switch (nset) {
+            case 4:
+            case 3:
+                WA_PAGE_LIMIT = n3;
 
-        case 2:
-            WA_PAGE_NB = n2;
+            case 2:
+                WA_PAGE_NB = n2;
 
-        case 1:
-            WA_PAGE_SIZE = n1 * 1024 * (sizeof(int32_t) / sizeof(uint32_t));
-            break;
+            case 1:
+                WA_PAGE_SIZE = n1 * 1024 * (sizeof(int32_t) / sizeof(uint32_t));
+                break;
 
-        default:
-            WA_PAGE_SIZE = 0;
+            default:
+                WA_PAGE_SIZE = 0;
+        }
     }
 
     WA_PAGE_NB = (WA_PAGE_NB < MAXPAGES) ? WA_PAGE_NB : MAXPAGES;
@@ -2823,7 +2829,7 @@ static int fnom_rem_connect(
         }
 
         demande[0] = 0; demande[1] = 0; demande[2] = 0; demande[3] = 0; demande[4] = 0;
-        nc = read_stream(fclient, (char * const)demande, 5 * sizeof(int));
+        nc = read_stream(fclient, (char *)demande, 5 * sizeof(int));
         if (nc !=  5 * sizeof(int)) {
             Lib_Log(APP_LIBRMN,APP_ERROR,"%s: read only %d bytes from server\n",__func__,nc);
             close(fclient);

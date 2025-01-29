@@ -10,7 +10,7 @@ int c_xdfunl(int *liste, int n);
 int c_xdfdel(const int handle);
 
 int32_t c_xdf_handle_in_file(const int32_t handle);
-void* xdf_set_file_filter(const int iun, void* const new_filter);
+match_fn xdf_set_file_filter(const int iun, match_fn new_filter);
 int file_index_xdf(int iun);
 
 int32_t f77name(xdfopn)(int32_t *fiun, char *mode, ftnword_2 *pri, int32_t *fnpri,

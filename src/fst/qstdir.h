@@ -884,79 +884,6 @@ typedef buffer_interface* buffer_interface_ptr;
 extern file_table_entry_ptr* file_table;
 extern int MAX_XDF_FILES;
 
-#if defined(XDF_OWNER)
-//! Stride
-int xdf_stride = 1;
-//! Data size indicator
-int xdf_size = 0;
-//! Double float indicator
-int xdf_double = 0;
-//! Short integer indicator
-int xdf_short = 0;
-//! Byte array indicator
-int xdf_byte = 0;
-//! Enforce 8 char for date specifications
-int xdf_enforc8 = 0;
-//! Data type of last record read
-int xdf_datatyp;
-//! Number of splited output files in xdfuse
-int xdf_nsplit = 1;
-//! Number of bits per FORTRAN word
-int FTN_Bitmot = 8 * sizeof(int32_t);
-//! No pack/unpack, used by editfst
-int image_mode_copy = 0;
-//! Chekcpoint mode, no closing of the file
-int xdf_checkpoint = 0;
-//! If one std seq file is opened, the limit of opened files becomes 128
-int STDSEQ_opened = 0;
-key_descriptor stdfkeys[] = {
-#if !defined(Little_Endian)
-    {'SF01', 31,31, 0, 0},
-    {'SF02', 63,31, 0, 0},
-    {'SF03', 95,31, 0, 0},
-    {'SF04',127,31, 0, 0},
-    {'SF05',159,31, 0, 0},
-    {'SF06',191,31, 0, 0},
-    {'SF07',223,31, 0, 0},
-    {'SF08',255,31, 0, 0},
-    {'SF09',287,31, 0, 0},
-    {'SF10',319,31, 0, 0},
-    {'SF11',351,31, 0, 0},
-    {'SF12',383,31, 0, 0},
-    {'SF13',415,31, 0, 0},
-    {'SF14',447,31, 0, 0},
-    {'SF15',479,31, 0, 0},
-    {'SF16',511,31, 0, 0}
-#else
-    {'SF01', 0, 0, 31,  31},
-    {'SF02', 0, 0, 31,  63},
-    {'SF03', 0, 0, 31,  95},
-    {'SF04', 0, 0, 31, 127},
-    {'SF05', 0, 0, 31, 159},
-    {'SF06', 0, 0, 31, 191},
-    {'SF07', 0, 0, 31, 223},
-    {'SF08', 0, 0, 31, 255},
-    {'SF09', 0, 0, 31, 287},
-    {'SF10', 0, 0, 31, 319},
-    {'SF11', 0, 0, 31, 351},
-    {'SF12', 0, 0, 31, 383},
-    {'SF13', 0, 0, 31, 415},
-    {'SF14', 0, 0, 31, 447},
-    {'SF15', 0, 0, 31, 479},
-    {'SF16', 0, 0, 31, 511}
-#endif
-};
-key_descriptor stdf_info_keys[] = {
-#if !defined(Little_Endian)
-    {'AXI1', 31, 31, 0, 0},
-    {'AXI2', 63, 31, 0, 0}
-#else
-    {'AXI1', 0, 0, 31, 31},
-    {'AXI2', 0, 0, 31, 63}
-#endif
-};
-#else
-
 //! !stride
 extern int xdf_stride;
 //! Double float indicator
@@ -979,6 +906,5 @@ extern int xdf_checkpoint;
 extern int STDSEQ_opened;
 extern key_descriptor stdfkeys[];
 extern key_descriptor stdf_info_keys[];
-#endif
 
 #endif

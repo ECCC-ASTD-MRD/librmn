@@ -42,7 +42,7 @@ size_t SparseConcatFd(
     const int fdo,    //!< Output file descriptor
     const int diag    //!< If non zero, fdo is ignored and fdi hole/data map is printed
 ) {
-    off_t hole, cur_i, szo, cur_o;
+    off_t hole, cur_i, szo;
 
     const off_t szi = lseek(fdi, 0L, SEEK_END);                // input file size
     szo = 0;
@@ -59,7 +59,7 @@ size_t SparseConcatFd(
             if (diag) {
                 Lib_Log(APP_LIBFST, APP_VERBATIM, "hole at %12ld, %12ld bytes \n", hole, cur_i - hole);
             } else {
-                cur_o = lseek(fdo, cur_i - hole, SEEK_CUR);   // make a hole in output file
+                lseek(fdo, cur_i - hole, SEEK_CUR);   // make a hole in output file
             }
         }
     }
