@@ -2898,9 +2898,10 @@ int c_fstluk_xdf(
 
     // printf("Debug+ fstluk - buf = (buffer_interface_ptr) workField\n");
     buffer_interface_ptr buf = (buffer_interface_ptr) work_field;
-    if ( (((&(buf->data[0]) - &(buf->nwords)) * sizeof(int)) & 0x7) != 0 ) {
+    const size_t misalignment = (((&(buf->data[0]) - &(buf->nwords)) * sizeof(int)) & 0x7);
+    if (misalignment > 0) {
         // Realign buf to make sure that buf->data is 64bit align
-        buf = (buffer_interface_ptr) (work_field + 1);
+        buf = (buffer_interface_ptr) ((char*)work_field + misalignment);
     }
     // negative value means get data only
     buf->nwords = -(lng + 10);
