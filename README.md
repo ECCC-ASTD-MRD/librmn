@@ -50,13 +50,13 @@ the compiler loaded will be used.  If the ECCC-specific environment variables ar
 not found, the default is `gnu`.
 
 `WITH_OMPI`
-: `(yes|no)` Indicates whether OpenMP/MPI support is enabled.  Default: `yes`
+: `(TRUE|FALSE)` Indicates whether OpenMP/MPI support is enabled.  Default: `TRUE`
 
 ### Compilation example
 ```
 cmake \
     -DCMAKE_INSTALL_PREFIX=$install_dir_path \
-    -DWITH_OMPI=no \
+    -DWITH_OMPI=FALSE \
     $src_dir_path
 make -j $a_resonable_number
 make install
@@ -86,11 +86,6 @@ architecture.  This will load the specified compiler, set the
 ```
 . $ECCI_ENV/latest/ubuntu-22.04-amd-64/gnu.sh
 ```
-
-Since the default version of CMake available on ECCC systems is probably too
-old, you need to load a version newer than 3.20.  For example: `. ssmuse-sh
--d main/opt/cmake/cmake-3.21.1`.
-
 
 ### Example of compiling the dev branch on a system outside ECCC:
 ```bash
