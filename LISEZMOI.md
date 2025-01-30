@@ -12,6 +12,7 @@ l'interpolateur EZ.
 ### Composantes
   * [Standard files](src/fst/README.md)
   * [Extended metadata](src/Meta/README.md)
+  * [FST24 Python interface](python/rmn/README.md)
 
 ## Obtenir le code
 
@@ -49,13 +50,13 @@ le compilateur chargé sera utilisé. Si les variables d'environnement propres �
 ECCC ne sont pas trouvées, la valeur par défaut est `gnu`.
 
 `WITH_OMPI`
-: `(yes|no)` Indique si le support OpenMP/MPI est activé. Défaut: `yes`
+: `(TRUE|FALSE)` Indique si le support OpenMP/MPI est activé. Défaut: `TRUE`
 
 ### Exemple de compilation
 ```
 cmake \
     -DCMAKE_INSTALL_PREFIX=$install_dir_path \
-    -DWITH_OMPI=no \
+    -DWITH_OMPI=FALSE \
     $src_dir_path
 make -j $a_resonable_number
 make install
@@ -85,11 +86,6 @@ la variable `ECCI_DATA_DIR` pour la série de tests et définir la variable
 ```
 . $ECCI_ENV/latest/ubuntu-22.04-amd-64/gnu.sh
 ```
-
-Puisque la version par défaut de CMake disponible sur les systèmes
-d'ECCC est probablement trop vieille, vous devez charger une version
-plus récente que 3.20. Par exemple: `. ssmuse-sh -d main/opt/cmake/cmake-3.21.1`.
-
 
 ### Exemple de compilation de la branche dev sur un système à l'extérieur d'ECCC
 ```bash
