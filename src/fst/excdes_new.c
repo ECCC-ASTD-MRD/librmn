@@ -840,7 +840,6 @@ int ReadRequestTable(char *filename)
         return -1;
     }
     goto readnext;
-    return 0;
 }
 
 
@@ -1033,7 +1032,7 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
 {
   int i, last_in_use;
   int amatch = 0;
-  int debut, fin, date;
+  int debut, fin;
   double diff_deb, diff_fin, delta8, remainder;
   char *desire_exclure;
   int translatable;
@@ -1046,9 +1045,9 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
 //  if (! Requests[first_R].in_use) return 1;        /* aucune requete desire ou exclure */
 
   Lib_Log(APP_LIBFST, APP_EXTRA, "%s: fstprm date=%d ip1=%d ip2=%d ip3=%d nomvar=\"%s\" typvar=\"%s\" etiket=\"%s\"\n",
-          __func__, date, ip1, ip2, ip3, nomvar, typvar, etiket);
+          __func__, datevalid, ip1, ip2, ip3, nomvar, typvar, etiket);
   translatable = FstCanTranslateName(nomvar) ;
-  date = datevalid;
+  int date = datevalid;
 
   if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) {
     char buffer[1024];

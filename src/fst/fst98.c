@@ -836,22 +836,21 @@ int c_fstckp_xdf(
     //! [in] Unit number associated to the file
     const int iun
 ) {
-    int index, ier;
-
-    int index_fnom = get_fnom_index(iun);
+    const int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not connected with fnom\n", __func__, iun);
         return ERR_NO_FNOM;
     }
 
-    if ((index = file_index_xdf(iun)) == ERR_NO_FILE) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not open\n", __func__, iun);
+    const int index = file_index_xdf(iun);
+    if (index == ERR_NO_FILE) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d, index=%d) is not open\n", __func__, iun, index);
         return ERR_NO_FILE;
     }
 
     // checkpoint mode, not a complete close
     xdf_checkpoint = 1;
-    ier = c_xdfcls(iun);
+    const int ier = c_xdfcls(iun);
     return ier;
 }
 
@@ -1248,8 +1247,8 @@ int c_fstecr_xdf(
     stdf_dir_keys * stdf_entry = (stdf_dir_keys *) &(buffer->data);
     stdf_entry->deleted = 0;
     stdf_entry->select = 1;
-    stdf_entry->lng = -1;
-    stdf_entry->addr = -1;
+    stdf_entry->lng = 0xffffff;
+    stdf_entry->addr = 0xffffffff;
     stdf_entry->deet = deet;
     stdf_entry->nbits = nbits;
     stdf_entry->ni = ni;
@@ -1309,7 +1308,7 @@ int c_fstecr_xdf(
         // find handle for rewrite operation
         int niout, njout, nkout;
 
-        void* const old_file_filter = xdf_set_file_filter(iun, NULL); // Remove file filter for this particular search
+        match_fn old_file_filter = xdf_set_file_filter(iun, NULL); // Remove file filter for this particular search
         handle = c_fstinf(iun, &niout, &njout, &nkout, -1, etiket, ip1, ip2, ip3, typvar, nomvar);
         xdf_set_file_filter(iun, old_file_filter); // Put file filter back
 
@@ -1378,7 +1377,7 @@ int c_fstecr_xdf(
         switch (datyp) {
 
             case FST_TYPE_BINARY:
-            case FST_TYPE_BINARY | FST_TYPE_TURBOPACK:
+            case FST_TYPE_BINARY | FST_TYPE_TURBOPACK: {
                 // transparent mode
                 if (is_type_turbopack(datyp)) {
                     Lib_Log(APP_LIBFST,APP_WARNING, "%s: extra compression not available, data type %d reset to FST_TYPE_BINARY (%d)\n", __func__, stdf_entry->datyp, FST_TYPE_BINARY);
@@ -1390,6 +1389,7 @@ int c_fstecr_xdf(
                     buffer->data[keys_len+i] = field_u32[i];
                 }
                 break;
+            }
 
             case FST_TYPE_REAL_OLD_QUANT:
             case FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK: {
@@ -1422,53 +1422,52 @@ int c_fstecr_xdf(
             }
 
             case FST_TYPE_UNSIGNED:
-            case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK:
+            case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK: {
                 // integer, short integer or byte stream
-                {
-                    int offset = is_type_turbopack(datyp) ? 1 :0;
-                    if (is_type_turbopack(datyp)) {
-                        if (xdf_short) {
-                            stdf_entry->nbits = Min(16, nbits);
-                            nbits = stdf_entry->nbits;
-                            memcpy(&(buffer->data[keys_len+offset]), field_u32, ni * nj * nk * 2);
-                        } else if (xdf_byte) {
-                            stdf_entry->nbits = Min(8, nbits);
-                            nbits = stdf_entry->nbits;
-                            memcpy_8_16((int16_t *)&(buffer->data[keys_len+offset]), (int8_t *)field_u32, ni * nj * nk);
-                        } else {
-                            memcpy_32_16((short *)&(buffer->data[keys_len+offset]), (const int32_t *)field_u32, nbits, ni * nj * nk);
-                        }
-                        int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+offset]), ni, nj, nk, nbits, 1, 0);
-                        if (compressed_lng < 0) {
-                            stdf_entry->datyp = FST_TYPE_UNSIGNED;
-                            compact_integer(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
-                                ni * nj * nk, nbits, 0, xdf_stride, 1);
-                        } else {
-                            int nbytes = 4 + compressed_lng;
-                            // fprintf(stderr, "Debug+ fstecr armn_compress compressed_lng=%d\n", compressed_lng);
-                            nw = (nbytes * 8 + 63) / 64;
-                            nw = W64TOWD(nw);
-                            buffer->data[keys_len] = nw;
-                            buffer->nbits = (keys_len + nw) * bitmot;
-                        }
+                int offset = is_type_turbopack(datyp) ? 1 :0;
+                if (is_type_turbopack(datyp)) {
+                    if (xdf_short) {
+                        stdf_entry->nbits = Min(16, nbits);
+                        nbits = stdf_entry->nbits;
+                        memcpy(&(buffer->data[keys_len+offset]), field_u32, ni * nj * nk * 2);
+                    } else if (xdf_byte) {
+                        stdf_entry->nbits = Min(8, nbits);
+                        nbits = stdf_entry->nbits;
+                        memcpy_8_16((int16_t *)&(buffer->data[keys_len+offset]), (int8_t *)field_u32, ni * nj * nk);
                     } else {
-                        if (xdf_short) {
-                            stdf_entry->nbits = Min(16, nbits);
-                            nbits = stdf_entry->nbits;
-                            compact_short(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
-                                ni * nj * nk, nbits, 0, xdf_stride, 5);
-                        } else if (xdf_byte) {
-                            compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]),
-                                ni * nj * nk, Min(8, nbits), 0, xdf_stride, 9);
-                            stdf_entry->nbits = Min(8, nbits);
-                            nbits = stdf_entry->nbits;
-                        } else {
-                            compact_integer(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
-                                ni * nj * nk, nbits, 0, xdf_stride, 1);
-                        }
+                        memcpy_32_16((short *)&(buffer->data[keys_len+offset]), (const int32_t *)field_u32, nbits, ni * nj * nk);
+                    }
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+offset]), ni, nj, nk, nbits, 1, 0);
+                    if (compressed_lng < 0) {
+                        stdf_entry->datyp = FST_TYPE_UNSIGNED;
+                        compact_integer(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
+                            ni * nj * nk, nbits, 0, xdf_stride, 1);
+                    } else {
+                        int nbytes = 4 + compressed_lng;
+                        // fprintf(stderr, "Debug+ fstecr armn_compress compressed_lng=%d\n", compressed_lng);
+                        nw = (nbytes * 8 + 63) / 64;
+                        nw = W64TOWD(nw);
+                        buffer->data[keys_len] = nw;
+                        buffer->nbits = (keys_len + nw) * bitmot;
+                    }
+                } else {
+                    if (xdf_short) {
+                        stdf_entry->nbits = Min(16, nbits);
+                        nbits = stdf_entry->nbits;
+                        compact_short(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
+                            ni * nj * nk, nbits, 0, xdf_stride, 5);
+                    } else if (xdf_byte) {
+                        compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]),
+                            ni * nj * nk, Min(8, nbits), 0, xdf_stride, 9);
+                        stdf_entry->nbits = Min(8, nbits);
+                        nbits = stdf_entry->nbits;
+                    } else {
+                        compact_integer(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
+                            ni * nj * nk, nbits, 0, xdf_stride, 1);
                     }
                 }
                 break;
+            }
 
 
             case FST_TYPE_CHAR:
@@ -1615,9 +1614,8 @@ int c_fstecr_xdf(
     // write record to file and add entry to directory
     int ier = c_xdfput(iun, handle, buffer);
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
-        const int strlng = 14;
-        char string[strlng];
-        snprintf(string, strlng, "Write(%d)", iun);
+        char string[14];
+        snprintf(string, sizeof(string), "Write(%d)", iun);
         print_std_parms(stdf_entry, string, prnt_options, -1);
     }
 
@@ -1836,9 +1834,8 @@ int c_fst_edit_dir_plus_xdf(
 
     stdf_special_parms cracked;
     crack_std_parms(stdf_entry, &cracked);
-    const int strlng = 20;
-    char string[strlng];
-    snprintf(string, strlng, "%5d-", recno);
+    char string[20];
+    snprintf(string, sizeof(string), "%5d-", recno);
     if (Lib_LogLevel(APP_LIBFST, NULL)>=APP_INFO) {
         print_std_parms(stdf_entry, string, "NINJNK+DATEO+IP1+IG1234", 1);
     }
@@ -2905,7 +2902,7 @@ int c_fstluk_xdf(
     }
     // negative value means get data only
     buf->nwords = -(lng + 10);
-    buf->nbits = -1;
+    buf->nbits = (unsigned)-1;
     // printf("Debug+ fstluk - c_xdfget2(handle, buf, stdf_aux_keys)\n");
     int stdf_aux_keys[2];
     ier = c_xdfget2(handle, buf, stdf_aux_keys);
@@ -3120,9 +3117,8 @@ int c_fstluk_xdf(
     }
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
-        const int strlng = 20;
-        char string[strlng];
-        snprintf(string, strlng, "Read(%d)", buf->iun);
+        char string[20];
+        snprintf(string, sizeof(string), "Read(%d)", buf->iun);
         stdf_entry.datyp = stdf_entry.datyp | has_missing;
         print_std_parms(&stdf_entry, string, prnt_options, -1);
     }
@@ -3506,7 +3502,7 @@ int c_fstopi(
         if (getmode) {
             if (getmode == 2) val = App->LogLevel[APP_LIBFST];
             } else {
-                App->LogLevel[APP_LIBFST]=value;
+                App->LogLevel[APP_LIBFST] = (TApp_LogLevel)value;
             }
             if (getmode == 1) {
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: option 'MSGLVL' , %d\n", __func__, App->LogLevel[APP_LIBFST]);
@@ -3686,16 +3682,15 @@ int c_fstouv(
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opening iun %d, fnom index %d, with options %s\n", __func__, iun, i, options);
 
-    int ier;
+    int ier = -1;
 
-    const int strlng = 5;
-    char appl[strlng];
+    char appl[5];
     if (strcasestr(options, "RND")) {
         // standard random
-        snprintf(appl, strlng, "%s", "STDR");
+        snprintf(appl, sizeof(appl), "%s", "STDR");
     } else {
         // standard sequential
-        snprintf(appl, strlng, "%s", "STDS");
+        snprintf(appl, sizeof(appl), "%s", "STDS");
     }
 
     // Determine if we're opening in read or write mode
@@ -4091,7 +4086,7 @@ int c_fstskp_xdf(
                 cur_pos = fte->cur_addr;
                 fte->cur_addr += W64TOWD(header64.lng);
                 c_waread(iun, &postfix, fte->cur_addr, W64TOWD(2));
-                if ((postfix.idtyp == 0) && (postfix.lng == 2) && (postfix.addr == -1)) {
+                if ((postfix.idtyp == 0) && (postfix.lng == 2) && (postfix.addr == (unsigned)-1)) {
                     // skip postfix also
                     fte->cur_addr += W64TOWD(2);
                 } else {
@@ -4104,7 +4099,7 @@ int c_fstskp_xdf(
             for (i = 0; i < nrec; i++) {
                 if ((fte->cur_addr - W64TOWD(2)) > fte->seq_bof) {
                     c_waread(iun, &postfix, (fte->cur_addr - W64TOWD(2)), W64TOWD(2));
-                    if ((postfix.idtyp == 0) && (postfix.lng == 2) && (postfix.addr == -1)) {
+                    if ((postfix.idtyp == 0) && (postfix.lng == 2) && (postfix.addr == (unsigned)-1)) {
                         fte->cur_addr = W64TOWD( (postfix.prev_addr - 1) )+1;
                     } else {
                         Lib_Log(APP_LIBFST, APP_FATAL, "%s: file (unit=%d) has no record postfix\n", __func__, iun);
@@ -4322,8 +4317,7 @@ int c_fstvoi_xdf(
     int width = W64TOWD(fte->primary_len);
     stdf_dir_keys* stdf_entry;
     xdf_record_header* header;
-    const int strlng = 20;
-    char string[strlng];
+    char string[20];
     if (! fte->xdf_seq) {
         for (int i = 0; i < fte->npages; i++) {
             uint32_t* entry = (fte->dir_page[i])->dir.entry;
@@ -4331,7 +4325,7 @@ int c_fstvoi_xdf(
                 header = (xdf_record_header *) entry;
                 if (header->idtyp < 112) {
                     stdf_entry = (stdf_dir_keys *) entry;
-                    snprintf(string, strlng, "%5ld-", *total_num_valid_records + nrec);
+                    snprintf(string, sizeof(string), "%5ld-", *total_num_valid_records + nrec);
                     print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                     nrec++;
                 }
@@ -4440,7 +4434,7 @@ int c_fstvoi_xdf(
                     // re-octalise the date_stamp
                     stdf_entry->date_stamp = 8 * (datexx/10) + (datexx % 10);
                 }
-                snprintf(string, strlng, "%5ld-", *total_num_valid_records + nrec);
+                snprintf(string, sizeof(string), "%5ld-", *total_num_valid_records + nrec);
                 print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                 nrec++;
                 fte->cur_addr += W64TOWD( (((seq_entry->lng + 3) >> 2)+15) );
@@ -4451,7 +4445,7 @@ int c_fstvoi_xdf(
                     continue;
                 }
                 stdf_entry = (stdf_dir_keys *) fte->head_keys;
-                snprintf(string, strlng, "%5ld-", *total_num_valid_records + nrec);
+                snprintf(string, sizeof(string), "%5ld-", *total_num_valid_records + nrec);
                 print_std_parms(stdf_entry, string, options, (((*total_num_valid_records + nrec) % 70) == 0));
                 nrec++;
                 fte->cur_addr += W64TOWD(header->lng);
@@ -4472,9 +4466,9 @@ int c_fstvoi_xdf(
     if (print_stats) {
         fprintf(stdout, "\nSTATISTICS for file %s, unit=%d\n\n", FGFDT[index_fnom].file_name, iun);
         if (fte->fstd_vintage_89) {
-            snprintf(string, strlng, "Version 1989");
+            snprintf(string, sizeof(string), "Version 1989");
         } else {
-            snprintf(string, strlng, "Version 1998");
+            snprintf(string, sizeof(string), "Version 1998");
         }
         if (fte->xdf_seq) {
             fprintf(stdout, "%d records in sequential RPN standard file (%s)\n", nrec, string);
