@@ -846,7 +846,7 @@ int32_t RSF_Valid_record(const RSF_record * const rec) {
     if ( ((char*)(rec->sor) + sizeof(start_of_record)) != (void *) rec->meta) return 2;
     if ( ((char*)(rec->data) - (char*)(rec->meta)) != sizeof(int32_t) * rec->rec_meta ) return 3;
     int64_t rsz = (rec->rsz >= 0) ? rec->rsz : -(rec->rsz); // use absolute value of rsz
-    if ( (void *)&rec->d[rec->max_data] > ( (char*)recptr + rsz - sizeof(end_of_record) ) ) return 4;
+    if ( (char *)&rec->d[rec->max_data] > ( (char*)recptr + rsz - sizeof(end_of_record) ) ) return 4;
     return 0;
 }
 
