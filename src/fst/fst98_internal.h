@@ -103,6 +103,7 @@ void print_std_parms(const stdf_dir_keys * const stdf_entry, const char * const 
 void crack_std_parms(const stdf_dir_keys * const stdf_entry, stdf_special_parms * const cracked_parms);
 int32_t c_fstunl(void);
 int c_fstnbr_xdf(const int iun);
+int c_fstnbrv_xdf(const int iun);
 int c_fstecr_xdf(void *field_in, void *work, int npak, int iun, int date, int deet, int npas, int ni,
     int nj, int nk, int ip1, int ip2, int ip3, char *in_typvar, char *in_nomvar, char *in_etiket,
     char *in_grtyp, int ig1, int ig2, int ig3, int ig4, int in_datyp_ori, int rewrit);

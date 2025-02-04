@@ -298,7 +298,7 @@ int64_t fst24_get_num_records(
         total_num_records = (int64_t)RSF_Get_num_records(file_handle);
     }
     else if (file->type == FST_XDF) {
-        const int status = c_fstnbr_xdf(file->iun);
+        const int status = c_fstnbrv_xdf(file->iun);
         if (status < 0) return 0; // Stop recursion here if error
         total_num_records = status;
     }
