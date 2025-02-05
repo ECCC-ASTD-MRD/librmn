@@ -188,10 +188,22 @@ class fst_record(ctypes.Structure):
         # Set values according to C macro `default_fst_record`.
         # _set_default_values(ctypes.byref(self))
         self._data_array = None
+
+        # Setting data depends on other attributes of the record so it must be
+        # set after all the other attributes have been set.  If the user
+        # provided an invalid value for data_bits, data_type,
+        data_to_set_after = None
+        if 'data' in kwargs:
+            data_to_set_after = kwargs.get('data')
+            del kwargs['data']
+
         for k,v in kwargs.items():
             if k.startswith('_'):
-                raise ValueError("Attributes beginning with '_' should not be touched")
+                raise ValueError(f"Attributes beginning with '_' should not be touched: '{k}'")
             setattr(self, k, v)
+
+        if data_to_set_after is not None:
+            self.data = data_to_set_after
 
     def __new__(cls, *args, **kwargs):
         return _get_default_fst_record()

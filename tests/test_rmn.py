@@ -40,6 +40,17 @@ class TestRMNPackage(unittest.TestCase):
         else:
             self.tmpdir_obj.cleanup()
 
+    def basic_keyword_args(self):
+        return {
+            "dateo": 1, "datev": 2,
+            "data_type": 5, "data_bits": 32, "pack_bits": 32,
+            "ni": 8, "nj": 9, "nk": 1,
+            "ip1": 1,"ip2": 2,"ip3": 3,
+            "ig1": 1, "ig2": 2, "ig3": 3, "ig4": 4,
+            "nomvar": "RPN", "typvar": "Y", "grtyp": "X",
+            "deet": 0, "npas": 0, "etiket": "unittest"
+        }
+
     def create_record(self):
         rec = rmn.fst_record(
             dateo=1, datev=2,
@@ -293,6 +304,37 @@ class TestRMNPackage(unittest.TestCase):
             with rmn.fst24_file(output_file, options="R/W") as g:
                 for rec in f:
                     g.write(rec, rewrite=True)
+
+    def test_record_invalid_keyword_args(self):
+
+        # Probably not necessary but the __init__ of fst_record
+        # has a check to prevent us from touching private attributes
+        # (those starting with underscores).
+        def bad_record_creation_private_attributes():
+            rec = rmn.fst_record(_etiket="ETIKET", _nomvar="UU")
+        self.assertRaises(ValueError, bad_record_creation_private_attributes)
+
+        # They can still be set and I don't think it's worth it to prevent that
+        # because the underscore is clearly marking them as private anyway.
+        rec = rmn.fst_record()
+        rec._deleted = True
+
+        # Because fst_record has a __slots__ class attribute, this makes it a
+        # so-called "data class" which cannot receive any new attributes.
+        def bad_record_creation_inexistatn_attributes():
+            rec = rmn.fst_record(new_attribute=True)
+        self.assertRaises(AttributeError, bad_record_creation_inexistatn_attributes)
+
+        def set_new_attribute():
+            rec = rmn.fst_record()
+            rec.new_attribute = True
+        self.assertRaises(AttributeError, set_new_attribute)
+
+
+    def test_record_invalid_order_keyword_args(self):
+        template = self.create_record_with_data()
+        data = template.data
+        rec = rmn.fst_record(data=template.data, **self.basic_keyword_args())
 
 if __name__ == "__main__":
     unittest.main()
