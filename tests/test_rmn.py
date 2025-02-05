@@ -331,10 +331,26 @@ class TestRMNPackage(unittest.TestCase):
         self.assertRaises(AttributeError, set_new_attribute)
 
 
-    def test_record_invalid_order_keyword_args(self):
-        template = self.create_record_with_data()
-        data = template.data
-        rec = rmn.fst_record(data=template.data, **self.basic_keyword_args())
+    # Since data is a property, setting it runs some code that looks at the
+    # values of other attributes.  In record initialization, those attributes
+    # need to be set first.  All other properties simply wrap a single private
+    # attribute so they do not have this problem
+    def test_record_kwargs_data_before_others(self):
+        data = self.create_record_with_data().data
+        rec = rmn.fst_record(data=data, **self.basic_keyword_args())
+
+    # Create records with legal attributes with invalid values.  It will raise
+    # an exception because settin data will fail.  The exception message could
+    # be better but it indicates what is wrong clearly enough.
+    def test_invalid_kwarg_combination():
+        data = self.create_record_with_data().data
+        kwargs = self.basic_keyword_args()
+        kwargs['data_bits'] = 3 # Invalid
+        # Create a record where setting the data will fail because we gave a
+        # bad value for data_bits.
+        rec = rmn.fst_record(**kwargs, data=data)
+    self.assertRaisesRegex(NotImplementedError, "No numpy data type known for .* with .*", invalid_kwarg_combination)
+
 
 if __name__ == "__main__":
     unittest.main()
