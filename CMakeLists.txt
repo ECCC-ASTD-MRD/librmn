@@ -292,7 +292,12 @@ endforeach()
 
 
 # Compilation options for specific files
-set_source_files_properties(src/fst/xdf98.c            PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar> $<$<COMPILE_LANG_AND_ID:C,PGI,NVHPC>:-Mnovect>")
+set_source_files_properties(src/fst/xdf98.c            PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar> $<$<COMPILE_LANG_AND_ID:C,PGI,NVHPC>:-Mnovect --diag_suppress multi_char_literal,integer_sign_change>")
+set_source_files_properties(src/primitives/wkoffit.c   PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar> $<$<COMPILE_LANG_AND_ID:C,NVHPC>:--diag_suppress multi_char_literal>")
+set_source_files_properties(src/primitives/constnt.F90 PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028,7416>")
+set_source_files_properties(src/base/fft_m4.f          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7342>")
+set_source_files_properties(src/base/fft_m8.f          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=7342>")
+set_source_files_properties(src/readlx/readlx.F90      PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028,7416>")
 if(COMPILER_SUITE MATCHES "intel" AND CMAKE_C_COMPILER_VERSION MATCHES "2025.0.0")
 #   message(STATUS "(ICX) C_COMPILER_VERSION = ${CMAKE_C_COMPILER_VERSION}")
   set_source_files_properties(src/fst/fst98.c            PROPERTIES COMPILE_FLAGS "-O1")
@@ -301,11 +306,6 @@ if(COMPILER_SUITE MATCHES "aocc" AND CMAKE_C_COMPILER_VERSION MATCHES "17")
 #   message(STATUS "(AOCC) C_COMPILER_VERSION = ${CMAKE_C_COMPILER_VERSION}")
   set_source_files_properties(src/fst/excdes_new.c     PROPERTIES COMPILE_FLAGS "-O0")
 endif()
-set_source_files_properties(src/primitives/wkoffit.c   PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar>")
-set_source_files_properties(src/primitives/constnt.F90 PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028,7416>")
-set_source_files_properties(src/base/fft_m4.f          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7342>")
-set_source_files_properties(src/base/fft_m8.f          PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=7342>")
-set_source_files_properties(src/readlx/readlx.F90      PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:Fortran,Intel,IntelLLVM>:-diag-disable=6477,7028,7416>")
 
 if (${RMN_BUILD_SHARED})
     install(TARGETS ${shared_targets}

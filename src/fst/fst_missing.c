@@ -980,29 +980,6 @@ static int fst_int_encode_missing(
         }
     }
     return missing;
-
-    // Should this code even be kept!?  It's impossible to reach it!
-    // this code assumes packing of z-min (bias removal)
-    if (npak < 32) {
-        plug = plug2;
-        // double the range if max-min+1 will not fit in npak
-        if (plug > (max - min)) {
-            plug = max + 1;
-        } else {
-            plug = max + (max - min);
-        }
-    } else {
-        // best effort !!
-        plug = max + 1;
-    }
-    for (int i = 0; i < nElems; i++) {
-        if (src[i] == int_missing_val) {
-            dst[i] = plug;
-        } else {
-            dst[i] = src[i];
-        }
-    }
-    return missing;
 }
 
 
@@ -1032,29 +1009,6 @@ static int fst_short_encode_missing(
         plug = max + 1;
     } else {
         Lib_Log(APP_LIBFST,APP_WARNING,"%s: Maximum value >= encoded missing value flag\n",__func__);
-    }
-    for (int i = 0; i < nElems; i++) {
-        if (src[i] == short_missing_val) {
-            dst[i] = plug;
-        } else {
-            dst[i] = src[i];
-        }
-    }
-    return missing;
-
-    // Should this code even be kept!?  It's impossible to reach it!
-    // this code assumes packing of dst-min (bias removal)
-    if (npak < 16) {
-        plug = plug2;
-        if (plug > (max - min)) {
-            plug = max + 1;
-        } else {
-            // double the range if max-min+1 will not fit in npak
-            plug = max + (max-min);
-        }
-    } else {
-        // best effort !!
-        plug = max + 1;
     }
     for (int i = 0; i < nElems; i++) {
         if (src[i] == short_missing_val) {
@@ -1137,26 +1091,6 @@ static int fst_uint_encode_missing(
         }
     }
     return missing;
-
-    // this code assumes packing of z-min (bias removal)
-    if (npak < 32) {
-        if (plug > (max - min)) {
-            plug = max + 1;
-        } else {
-            // double the range if max-min+1 will not fit in npak
-            plug = max + (max-min);
-        }
-    } else {
-        plug = max + 1;  /* best effort !! */
-    }
-    for (int i = 0; i < nElems; i++) {
-        if (src[i] == uint_missing_val) {
-            dst[i] = plug;
-        } else {
-            dst[i] = src[i];
-        }
-    }
-    return missing;
 }
 
 
@@ -1183,26 +1117,6 @@ static int fst_ushort_encode_missing(
         plug = max + 1;
     } else {
         Lib_Log(APP_LIBFST,APP_WARNING,"%s: Maximum value %hu >= encoded missing value flag %hu\n",__func__,max,plug);
-    }
-    for (int i = 0; i < nElems; i++) {
-        if (src[i] == ushort_missing_val) {
-            dst[i] = plug;
-        } else {
-            dst[i] = src[i];
-        }
-    }
-    return missing;
-
-    // this code assumes packing of z-min (bias removal)
-    if (npak < 16) {
-        if (plug > (max - min)) {
-            plug = max + 1;
-        } else {
-            // double the range if max-min+1 will not fit in npak
-            plug = max + (max - min);
-        }
-    } else {
-        plug = max + 1;
     }
     for (int i = 0; i < nElems; i++) {
         if (src[i] == ushort_missing_val) {
@@ -1476,7 +1390,6 @@ int EncodeMissingValue(
             if (npak > 32) {
                 // datalength > 32 not supported
                 return 0;
-                missing = (*__fst_float_encode_missing)(dst, src, nElems, npak);
             }
         }
     }

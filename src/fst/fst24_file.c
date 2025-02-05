@@ -134,9 +134,8 @@ fst_file* fst24_open(
 
     *the_file = default_fst_file;
 
-    const int MAX_LENGTH = 1024;
-    char local_options[MAX_LENGTH];
-    snprintf(local_options, MAX_LENGTH, "RND+%s%s",
+    char local_options[1024];
+    snprintf(local_options, sizeof(local_options), "RND+%s%s",
              (!options || !(strcasestr(options, "R/W") || strcasestr(options, "R/O"))) ? "R/O+" : "",
              options ? options : "");
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: filePath = %s, options = %s\n", __func__, filePath, local_options);
@@ -299,7 +298,7 @@ int64_t fst24_get_num_records(
         total_num_records = (int64_t)RSF_Get_num_records(file_handle);
     }
     else if (file->type == FST_XDF) {
-        const int status = c_fstnbr_xdf(file->iun);
+        const int status = c_fstnbrv_xdf(file->iun);
         if (status < 0) return 0; // Stop recursion here if error
         total_num_records = status;
     }
@@ -1490,7 +1489,7 @@ int64_t find_next_xdf(const int32_t iun, fst_query* const query) {
     const int32_t start_key = query->search_index & 0xffffffff;
 
     // --- START critical section (maybe) ---
-    void* old_filter = NULL;
+    match_fn old_filter = NULL;
     if (query->options.skip_filter) {
         pthread_mutex_lock(&fst24_xdf_mutex);
         old_filter = xdf_set_file_filter(iun, NULL);

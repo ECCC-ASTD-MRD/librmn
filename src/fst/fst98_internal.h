@@ -103,6 +103,7 @@ void print_std_parms(const stdf_dir_keys * const stdf_entry, const char * const 
 void crack_std_parms(const stdf_dir_keys * const stdf_entry, stdf_special_parms * const cracked_parms);
 int32_t c_fstunl(void);
 int c_fstnbr_xdf(const int iun);
+int c_fstnbrv_xdf(const int iun);
 int c_fstecr_xdf(void *field_in, void *work, int npak, int iun, int date, int deet, int npas, int ni,
     int nj, int nk, int ip1, int ip2, int ip3, char *in_typvar, char *in_nomvar, char *in_etiket,
     char *in_grtyp, int ig1, int ig2, int ig3, int ig4, int in_datyp_ori, int rewrit);
@@ -131,7 +132,7 @@ int c_fstinfx_rsf(const int handle, const int iun, const int index_fnom, int * c
 int c_fstlirx_rsf(void *field, int handle, int iun, const int index_fnom, int *ni, int *nj, int *nk, int datev,
                   char *etiket, int ip1, int ip2, int ip3, char *typvar, char *nomvar);
 int c_fstnbr_rsf(const int index_fnom);
-int c_fstouv_rsf(const int index_fnom, const rsf_open_mode mode, const int32_t parallel_segment_size_mb);
+int c_fstouv_rsf(const int index_fnom, const rsf_open_mode_type mode, const int32_t parallel_segment_size_mb);
 int c_fstluk_rsf(void * const vfield, const RSF_handle file_handle,
                  const int key, int * const ni, int * const nj, int * const nk);
 int c_fsteff_rsf(RSF_handle file_handle, int handle);

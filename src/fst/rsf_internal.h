@@ -8,7 +8,8 @@
 #include <App.h>
 #include "qstdir.h"
 
-static const uint8_t RSF_VERSION_COUNT = 1; //!< Version number that increments at every new version
+//!> Version number that increments at every new version. Must be at most 255
+#define RSF_VERSION_COUNT  1
 #define RSF_VERSION_STRING "1.0.0"
 
 static const uint32_t RSF_VERSION = 0x12312300 | RSF_VERSION_COUNT;
@@ -447,7 +448,7 @@ typedef struct _RSF_File {
     uint64_t seg_max ;             //!< Maximum address allowable in segment (ssegl if sparse file). 0 for compact segment (or no limit?)
     uint64_t seg_max_hint ;        //!< Desired maximum address allowable in segment (sparse only)
     off_t    next_write ;          //!< file offset from beginning of file for next write operation ( -1 if not defined)
-    uint32_t rec_class ;           //!< record class being writen (default : data class 1) (rightmost 24 bits only)
+    rsf_rec_class rec_class ;      //!< record class being writen (default : data class 1) (rightmost 24 bits only)
     uint32_t class_mask ;          //!< record class mask (for scan/read/...) (by default all ones)
     uint32_t dir_read ;            //!< Total number of records found in all the directories of a file upon opening
     uint32_t num_deleted_records ; //!< Number of records that have the RT_DEL type (included in the total)
@@ -458,10 +459,10 @@ typedef struct _RSF_File {
     int32_t  slot ;                //!< Slot where this file is located in the list of open files (-1 if invalid)
     uint32_t nwritten ;            //!< number of records written (useful when closing after write)
     int32_t  lock ;                //!< used to lock the file for thread safety
-    int32_t iun ;                  //!< eventual Fortran file number
+    int32_t  iun ;                 //!< eventual Fortran file number
     uint16_t rec_meta ;            //!< record metadata size (uint32_t units)
     uint16_t dir_meta ;            //!< directory entry metadata size (uint32_t units)
-    rsf_open_mode mode ;           //!< file mode (RO/RW/AP/...)
+    rsf_open_mode_type mode ;      //!< file mode (RO/RW/AP/...)
     uint8_t is_new ;               //!< whether we created the file upon opening
     uint8_t has_deleted ;          //!< Whether we have deleted record since opening the file
     uint8_t last_op ;              //!< last operation (1 = read) (2 = write) (0 = unknown/invalid)
@@ -558,7 +559,7 @@ static inline void extract_meta0(
     rsf_rec_type * const record_type    //!< [out]
 ) {
     *version      = (meta0 & 0x00ff0000) >> 16;
-    *record_class = (rsf_rec_class) (meta0 & 0x0000ff00) >> 8;
+    *record_class = (rsf_rec_class) ((meta0 & 0x0000ff00) >> 8);
     *record_type  = (rsf_rec_type) (meta0 & 0x000000ff);
 }
 //! \}
