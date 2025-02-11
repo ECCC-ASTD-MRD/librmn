@@ -1,6 +1,7 @@
 import ctypes
 import numpy as np
 import enum
+from typing import Union, Optional
 
 from ._sharedlib import librmn
 from .errors import FstFileError
@@ -209,17 +210,18 @@ class fst_record(ctypes.Structure):
         return _get_default_fst_record()
 
     @property
-    def data_type(self):
+    def data_type(self) -> FstDataType:
         return FstDataType(self._data_type)
 
     @data_type.setter
-    def data_type(self, value):
+    def data_type(self, value: FstDataType):
         self._data_type = value
 
     @property
-    def data(self):
+    def data(self) -> Optional[np.ndarray]:
         """ Property encapsulating the data of an fst record.  On access, the
         data is read from the file and stored in a numpy array. """
+        self._data: Optional[int]
         if self._data is None:
             # If no data has been set on the record and there is no file to
             # read the data from, return None.  This access is not an error.
@@ -237,7 +239,7 @@ class fst_record(ctypes.Structure):
         return self._data_array
 
     @data.setter
-    def data(self, value):
+    def data(self, value: np.ndarray):
         if not isinstance(value, np.ndarray):
             raise TypeError(f"Expecting {np.ndarray.__name__}, got {type(value).__name__}")
         dtype = fst_type_to_numpy_type(self.data_type, self.data_bits)
@@ -250,11 +252,11 @@ class fst_record(ctypes.Structure):
         self._data = self._data_array.ctypes.data
 
     @property
-    def etiket(self):
+    def etiket(self) -> str:
         return self._etiket.decode().rstrip()
 
     @etiket.setter
-    def etiket(self, value):
+    def etiket(self, value: Union[str,bytes]):
         if isinstance(value, str):
             self._etiket = value.encode('utf-8')
         elif isinstance(value, bytes):
@@ -263,10 +265,10 @@ class fst_record(ctypes.Structure):
             raise TypeError(f"Expected str or bytes, not {type(value).__name__}")
 
     @property
-    def typvar(self):
+    def typvar(self) -> str:
         return self._typvar.decode().rstrip()
     @typvar.setter
-    def typvar(self, value):
+    def typvar(self, value: Union[str,bytes]):
         if isinstance(value, str):
             self._typvar = value.encode('utf-8')
         elif isinstance(value, bytes):
@@ -275,10 +277,10 @@ class fst_record(ctypes.Structure):
             raise TypeError(f"Expected str or bytes, not {type(value).__name__}")
 
     @property
-    def nomvar(self):
+    def nomvar(self) -> str:
         return self._nomvar.decode().rstrip()
     @nomvar.setter
-    def nomvar(self, value):
+    def nomvar(self, value: Union[str,bytes]):
         if isinstance(value, str):
             self._nomvar = value.encode('utf-8')
         elif isinstance(value, bytes):
@@ -287,10 +289,10 @@ class fst_record(ctypes.Structure):
             raise TypeError(f"Expected str or bytes, not {type(value).__name__}")
 
     @property
-    def grtyp(self):
+    def grtyp(self) -> str:
         return self._grtyp.decode().rstrip()
     @grtyp.setter
-    def grtyp(self, value):
+    def grtyp(self, value: Union[str,bytes]):
         if isinstance(value, str):
             self._grtyp = value.encode('utf-8')
         elif isinstance(value, bytes):
@@ -298,7 +300,7 @@ class fst_record(ctypes.Structure):
         else:
             raise TypeError(f"Expected str or bytes, not {type(value).__name__}")
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """ Convert a record to dictionnary potentially for use as a row of
         a Pandas DataFrame. """
         return {
@@ -336,12 +338,12 @@ class fst_record(ctypes.Structure):
         return fst_type_to_numpy_type(self.data_type, self.data_bits)
 
 
-def numpy_type_to_fst_type(array_or_dtype):
+def numpy_type_to_fst_type(array_or_dtype: Union[np.dtype, np.ndarray]) -> tuple[tuple[FstDataType, ...], int]:
     """ Return possible data Fst data types for a given numpy array or type.
     The result is returned as tuple with the first element being the list of
     possible values for a record's data_type attribute and the second element
     is the value for a record's data_bits attribute """
-    if isinstance(array_or_dtype, numpy.ndarray):
+    if isinstance(array_or_dtype, np.ndarray):
         numpy_type = array_or_dtype.dtype
     else:
         numpy_type = array_or_dtype
@@ -354,8 +356,8 @@ def numpy_type_to_fst_type(array_or_dtype):
         FstDataType.FST_TYPE_REAL_OLD_QUANT_TURBOPACK,
     )
     uint_types = (
-        FstDataTYpe.FST_TYPE_UNSIGNED,
-        FstDataTYpe.FST_TYPE_UNSIGNED_TURBOPACK,
+        FstDataType.FST_TYPE_UNSIGNED,
+        FstDataType.FST_TYPE_UNSIGNED_TURBOPACK,
     )
     return {
         "float32": (real_types, 32),
@@ -364,24 +366,24 @@ def numpy_type_to_fst_type(array_or_dtype):
         "uint64":  (uint_types, 64),
     }[numpy_type]
 
-def fst_type_to_numpy_type(rmn_type, nbits):
+def fst_type_to_numpy_type(rmn_type, nbits) -> np.dtype:
     """ Return the numpy data type for a given pair of (FstDataType, nbits)
     Use the `numpy_type` method of fst_record if you have an instance. """
     base_rmn_type = FstDataType(rmn_type &~ FstDataType.FST_TYPE_TURBOPACK)
     if base_rmn_type == FstDataType.FST_TYPE_UNSIGNED:
         if nbits == 32:
-            return "uint32"
+            return np.dtype("uint32")
         elif nbits == 64:
-            return "uint64"
+            return np.dtype("uint64")
         else:
             raise NotImplementedError(f"No numpy data type known for FST_TYPE_UNSIGNED with data_bits = {nbits}")
     elif base_rmn_type in [FstDataType.FST_TYPE_REAL_OLD_QUANT,
                       FstDataType.FST_TYPE_REAL_IEEE,
                       FstDataType.FST_TYPE_REAL]:
         if nbits == 32:
-            return "float32"
+            return np.dtype("float32")
         elif nbits == 64:
-            return "float64"
+            return np.dtype("float64")
         else:
             raise NotImplementedError(f"No numpy data type known for FST_TYPE_REAL with data_bits = {nbits}")
     else:

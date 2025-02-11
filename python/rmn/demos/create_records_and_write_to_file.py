@@ -15,7 +15,7 @@ rec_1.etiket = 'ASSIGN'
 rec_1.ni = 100
 rec_1.nj = 200
 rec_1.nk = 1
-rec_1.data_type = 5    # The type constants haven't been exposed to Python
+rec_1.data_type = rmn.FstDataType.FST_TYPE_REAL    # The type constants haven't been exposed to Python
 rec_1.data_bits = 32
 rec_1.pack_bits = 32
 

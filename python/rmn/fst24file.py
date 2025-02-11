@@ -1,5 +1,9 @@
 import ctypes
 import logging
+import os
+import sys
+from collections.abc import Sequence
+from typing import Union, Generator, Optional, Iterable
 
 from ._sharedlib import librmn
 from .fstrecord import fst_record, _get_default_fst_record
@@ -20,10 +24,14 @@ _fst24_new_query.restype = ctypes.c_void_p
 
 _fst24_write = librmn.fst24_write
 _fst24_write.argtypes = (ctypes.c_void_p, ctypes.POINTER(fst_record), ctypes.c_int)
-        
+
 _fst24_get_record_by_index = librmn.fst24_get_record_by_index
 _fst24_get_record_by_index.argtypes = (ctypes.c_void_p, ctypes.c_int32, ctypes.POINTER(fst_record))
 _fst24_get_record_by_index.restype = ctypes.c_int32
+
+# PYTHON VERSION:
+# 3.9+: Generator[fst_record, None, None]
+# 3.8-: Iterable[fst_record]
 
 class fst24_file(ctypes.Structure):
     """ Object encapsulating an RPN fst24 file
@@ -34,7 +42,7 @@ class fst24_file(ctypes.Structure):
     >>>     for rec in q:
     >>>         print(rec)
     """
-    def __init__(self, filename, options=""):
+    def __init__(self, filename: Union[str,os.PathLike] , options: str = ""):
         """ Opens an fst24 file `filename` with options """
         # Use '*' to enforce that next arguments must be passed as
         # keyword args.
@@ -42,8 +50,12 @@ class fst24_file(ctypes.Structure):
         self.closed = False
         self.filename = filename
         self.options = options
+        if isinstance(filename, str):
+            _filename = filename.encode('utf-8')
+        elif isinstance(filename, os.PathLike):
+            _filename = filename.__fspath__()
 
-        self._c_ref = _fst24_open(filename.encode('utf-8'), options.encode('utf-8'))
+        self._c_ref = _fst24_open(_filename, options.encode('utf-8'))
         if self._c_ref is None:
             raise FstFileError("Could not open file")
     def close(self):
@@ -94,7 +106,7 @@ class fst24_file(ctypes.Structure):
         c_query = _fst24_new_query(self._c_ref, ctypes.byref(criteria), 0)
         return fst_query(c_query, self)
 
-    def write(self, record, rewrite):
+    def write(self, record: fst_record, rewrite: bool):
         """ Write a record to the file """
         if self.closed:
             raise ValueError("I/O operation on closed file")
@@ -113,7 +125,7 @@ class fst24_file(ctypes.Structure):
         logging.debug(f"__del__: fst24_file {self.filename} (id={id(self)}")
         self.close()
 
-    def get_record_by_index(self, index):
+    def get_record_by_index(self, index: int) -> fst_record:
         """ Get a record by its file index """
         if self.closed:
             raise ValueError("I/O operation on closed file")
@@ -123,34 +135,35 @@ class fst24_file(ctypes.Structure):
 
         return rec
 
-    def get_records_by_index(self, indices):
+    # NOTE: Using  `Generator[fst_record, None, None]` requires Python 3.9
+    def get_records_by_index(self, indices: Sequence[int]) -> Iterable[fst_record]:
         yield from map(self.get_record_by_index, indices)
 
-    def get_record_by_index_with_data(self, index):
+    def get_record_by_index_with_data(self, index: int) -> fst_record:
         """ This is a convenience function that gets a record using its index in
         the file.  Because the record is being accessed using said index, we
         assume that this function is called to get the data of the record.
 
         Only call this function if you want the data. """
         rec = self.get_record_by_index(index)
-        
+
         rec.data
 
         return rec
 
-    def get_records_by_index_with_data(self, indices):
+    def get_records_by_index_with_data(self, indices: Sequence[int]) -> Iterable[fst_record]:
         yield from map(self.get_record_by_index_with_data, indices)
 
     @classmethod
-    def get_records_with_data(cls, filename, indices):
+    def get_records_with_data(cls, filename: Union[str, os.PathLike], indices: Sequence[int]) -> Iterable[fst_record]:
         """ This function will read all the records at the given indices in the
         given file *and their data*.  Only use this function if you really want
         all that data!
 
         This function is implemented as a generator so it will stop reading
         records as soon as they stop being consumed by the caller. """
-        
+
         with cls(filename) as f:
             yield from f.get_records_by_index_with_data(indices)
-    
-        
+
+
