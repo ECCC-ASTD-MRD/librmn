@@ -1,7 +1,7 @@
 import ctypes
 import numpy as np
 import enum
-from typing import Union, Optional
+from typing import Union, Optional, Tuple
 
 from ._sharedlib import librmn
 from .errors import FstFileError
@@ -338,7 +338,7 @@ class fst_record(ctypes.Structure):
         return fst_type_to_numpy_type(self.data_type, self.data_bits)
 
 
-def numpy_type_to_fst_type(array_or_dtype: Union[np.dtype, np.ndarray]) -> tuple[tuple[FstDataType, ...], int]:
+def numpy_type_to_fst_type(array_or_dtype: Union[np.dtype, np.ndarray]) -> Tuple[Tuple[FstDataType, ...], int]:
     """ Return possible data Fst data types for a given numpy array or type.
     The result is returned as tuple with the first element being the list of
     possible values for a record's data_type attribute and the second element

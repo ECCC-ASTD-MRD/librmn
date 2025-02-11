@@ -2,8 +2,7 @@ import ctypes
 import logging
 import os
 import sys
-from collections.abc import Sequence
-from typing import Union, Generator, Optional, Iterable
+from typing import Union, Generator, Optional, Iterable, Sequence
 
 from ._sharedlib import librmn
 from .fstrecord import fst_record, _get_default_fst_record
