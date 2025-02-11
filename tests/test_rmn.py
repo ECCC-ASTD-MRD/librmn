@@ -342,14 +342,15 @@ class TestRMNPackage(unittest.TestCase):
     # Create records with legal attributes with invalid values.  It will raise
     # an exception because settin data will fail.  The exception message could
     # be better but it indicates what is wrong clearly enough.
-    def test_invalid_kwarg_combination():
-        data = self.create_record_with_data().data
-        kwargs = self.basic_keyword_args()
-        kwargs['data_bits'] = 3 # Invalid
-        # Create a record where setting the data will fail because we gave a
-        # bad value for data_bits.
-        rec = rmn.fst_record(**kwargs, data=data)
-    self.assertRaisesRegex(NotImplementedError, "No numpy data type known for .* with .*", invalid_kwarg_combination)
+    def test_invalid_kwarg_combination(self):
+        def invalid_kwarg_combination():
+            data = self.create_record_with_data().data
+            kwargs = self.basic_keyword_args()
+            kwargs['data_bits'] = 3 # Invalid
+            # Create a record where setting the data will fail because we gave a
+            # bad value for data_bits.
+            rec = rmn.fst_record(**kwargs, data=data)
+        self.assertRaisesRegex(NotImplementedError, "No numpy data type known for .* with .*", invalid_kwarg_combination)
 
 
 if __name__ == "__main__":
