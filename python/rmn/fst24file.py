@@ -56,7 +56,7 @@ class fst24_file(ctypes.Structure):
 
         self._c_ref = _fst24_open(_filename, options.encode('utf-8'))
         if self._c_ref is None:
-            raise FstFileError("Could not open file")
+            raise FstFileError(f"Could not open file '{filename}'")
     def close(self):
         """ Closes an fst24 file.
 
@@ -72,7 +72,7 @@ class fst24_file(ctypes.Structure):
         if not self.closed:
             res = _fst24_close(self._c_ref)
             if res == 0:
-                raise FstFileError(f"Error calling C function fst24_close(0x{self._c_ref:x})")
+                raise FstFileError(f"Error closing file '{self.filename}': Error calling C function fst24_close(0x{self._c_ref:x})")
 
             self.closed = True
             self._c_ref = None
