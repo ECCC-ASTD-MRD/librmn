@@ -74,7 +74,7 @@ contains
         implicit none
         class(fst_file), intent(in), target :: this
         type(C_PTR) :: ptr
-        ptr = c_loc(this % file_ptr)
+        ptr = this % file_ptr
     end function fst24_file_get_c_ptr
 
     !> Check whether the file at the given path is a valid standard file
