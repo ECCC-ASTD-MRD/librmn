@@ -52,6 +52,9 @@ not found, the default is `gnu`.
 `WITH_OMPI`
 : `(TRUE|FALSE)` Indicates whether OpenMP/MPI support is enabled.  Default: `TRUE`
 
+`WITH_DOC`
+: `(TRUE|FALSE)` Indicates whether the code documentation should be generated.  Default: `FALSE`
+
 ### Compilation example
 ```
 cmake \
@@ -102,7 +105,7 @@ make -j4 install
 ### Documentation
 
 A `doc` target is created by cmake to generate documentation. This, however, requires
-Doxygen and graphviz.
+Doxygen and graphviz, as well as adding the `WITH_DOC` option at compile time.
 ```
 make doc
 ```

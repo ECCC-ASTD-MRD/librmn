@@ -395,6 +395,10 @@ static void finalize_fnom(void) {
 //! Open a file and make the connection with a unit number and process record file attributes
 int c_fnom(
     //! [in,out] Unit number
+    //! If the value given is in ]0; 1000[, it will be used as the unit number. Otherwise,
+    //! it will be interpreted as a pointer (memory address). If the value of the target
+    //! memory is 0, a unit number will be allocated automatically. Otherwise, the value
+    //! of the target memory will be used as the unit number.
     int * const iun,
     //! [in] File path
     //! - If the file name contains the special character @ then it refers to a CMCARC file.

@@ -52,6 +52,9 @@ ECCC ne sont pas trouvées, la valeur par défaut est `gnu`.
 `WITH_OMPI`
 : `(TRUE|FALSE)` Indique si le support OpenMP/MPI est activé. Défaut: `TRUE`
 
+`WITH_DOC`
+: `(TRUE|FALSE)` Indique si la documentation du code devrait être générée.  Défaut: `FALSE`
+
 ### Exemple de compilation
 ```
 cmake \
@@ -102,7 +105,7 @@ make -j4 install
 ### Documentation
 
 Une cible `doc` est créée par cmake pour générer la documentation. Ceci nécessite cependant
-Doxygen et graphviz.
+Doxygen et graphviz, ainsi que l'ajout de l'option `WITH_DOC` à la compilation.
 ```
 make doc
 ```
