@@ -932,7 +932,7 @@ int c_xdfcle(
 //! Closes the XDF file. Rewrites file header, computes directory checksum and rewrites directory pages if modified.
 int c_xdfcls(
     //! [in] Unit number associated to the file
-    int iun
+    const int iun
 ) {
     int index_fnom = get_fnom_index(iun);
     if (index_fnom < 0) {

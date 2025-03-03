@@ -12,13 +12,13 @@ static inline size_t strlen_up_to(const char* string, const size_t max_length) {
 }
 
 //! Checks whether the given unit corresponds to an RSF file
-//! \return 1 if the unit is an RSF, 0 if not, something else (negative) if there was an error
 int32_t is_rsf(
     //! [in] Unit number associated to the file
     const int32_t iun,
     //! [out] (Optional) The index given to this file by fnom
-    int32_t* out_index_fnom
+    int32_t * const out_index_fnom
 ) {
+    //! \return 1 if the unit is an RSF, 0 if not, something else (negative) if there was an error
     if (out_index_fnom != NULL) *out_index_fnom = -1;
 
     const int index_fnom = get_fnom_index(iun);
@@ -363,7 +363,7 @@ int c_fstinfx_rsf(
 //! RSF version
 int c_fstfrm_rsf(
     //! [in] Unit number associated to the file
-    int iun,
+    const int iun,
     //! [in] Index of the file given by fnom
     const int index_fnom
 ) {

@@ -279,18 +279,17 @@ static void reset_file_entry(
 }
 
 //! Find index position in master file table (fnom file table).
-//! \return Index of the provided unit number in the file table or -1 if not found.
 int get_fnom_index(
     //! [in] Unit number associated to the file
     const int iun
 ) {
+    //! \return Index of the provided unit number in the file table or -1 if not found.
     if (iun < MAX_FNOM_FILES) {
         const int entry = unit_entries[iun];
         if (entry >= 0 && FGFDT[entry].iun == iun) {
             return unit_entries[iun];
         }
-    }
-    else {
+    } else {
         for (int i = 0; i < MAX_FNOM_FILES; i++) {
             if (FGFDT[i].iun == iun) {
                 return i;

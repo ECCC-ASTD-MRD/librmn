@@ -266,8 +266,8 @@ end subroutine INCDATr_c
 INTEGER FUNCTION newdate_c(DAT1, DAT2, DAT3, MODE) bind(C, name = 'newdate_c')
     use rmn_date
     IMPLICIT NONE
-    integer :: DAT1, DAT2(*), DAT3, MODE
-    integer, external :: naetwed
+    integer, INTENT(inout) :: DAT1, DAT2(*), DAT3
+    integer, intent(in) :: MODE
     newdate_c = newdate(DAT1, DAT2, DAT3, MODE)
 end function newdate_c
 

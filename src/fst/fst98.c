@@ -1693,6 +1693,7 @@ int c_fstecr(
     //! | +64   | Missing value convention used                |
     int datyp,
     //! [in] Rewrite existing record, append otherwise
+    //! If true, records match if all metadata is the same with the exception of \p dateo and **datev** (\p dateo + \p deet * \p npas) which are not checked for this purpose
     int rewrit
 ) {
     int index_fnom;
@@ -2029,17 +2030,19 @@ int c_fsteof(
 //! XDF version
 int c_fstfrm_xdf(
     //! [in] Unit number associated to the file
-    int iun
+    const int iun
 ) {
     return c_xdfcls(iun);
 }
 
 //! Close a RPN standard file
-//! \return -1 if there's an error
 int c_fstfrm(
     //! [in] Unit number associated to the file
-    int iun
+    const int iun
 ) {
+    //! \return -1 if there's an error
+    //! \see c_fstouv
+
     int index_fnom = -1;
     const int rsf_status = is_rsf(iun, &index_fnom);
 
@@ -3664,13 +3667,16 @@ unlock:
     return MAX_FST98_FILES;
 }
 
-//! Opens a RPN standard file
+//! Open a RPN standard file
 int c_fstouv(
     //! [in] Unit number associated to the file
-    int iun,
+    const int iun,
     //! [in] Random or sequential access
-    char *options
+    const char * const options
 ) {
+    //! \return Number of records in file
+    //! \see c_fstfrm
+
     // Check fnom index first, because we can't initialize the fst98 library if fnom is not itself initialized
     int i = get_fnom_index(iun);
     if (i == -1) {

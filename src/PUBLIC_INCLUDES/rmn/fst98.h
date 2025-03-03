@@ -125,7 +125,7 @@ int c_fstecr(void *field_in, void * work, int npak, int iun, int date,
             int deet, int npas, int ni, int nj, int nk, int ip1, int ip2, int ip3,
             char *in_typvar, char *in_nomvar, char *in_etiket, char *in_grtyp, 
             int ig1, int ig2, int ig3, int ig4, int in_datyp_ori, int rewrit);
-int c_fstouv(int iun, char *options);
+int c_fstouv(const int iun, const char * const options);
 int c_fstvoi(const int iun, const char * const options);
 int c_fstapp(int iun, char *option);
 int c_fsteff(int handle);
@@ -135,7 +135,7 @@ int c_fstskp(int iun, int nrec);
 int c_fstweo(int iun, int level);
 int c_fstnbr(const int iun);
 int c_fstnbrv(int iun);
-int c_fstfrm(int iun);
+int c_fstfrm(const int iun);
 int c_fst_version();
 void c_fstreset_ip_flags();
 void c_fst_env_var(char *cle, int index, char *content);

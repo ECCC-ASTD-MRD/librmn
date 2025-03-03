@@ -18,7 +18,7 @@ int32_t f77name(xdfopn)(int32_t *fiun, char *mode, ftnword_2 *pri, int32_t *fnpr
 int c_xdfopn(int iun, char *mode, word_2 *pri, int npri,
              word_2 *aux, int naux, char *appl);
 int32_t f77name(xdfcls)(int32_t *fiun);
-int c_xdfcls(int iun);
+int c_xdfcls(const int iun);
 int32_t f77name(xdfsta)(int32_t *fiun, int32_t *stat, int32_t *fnstat,
             ftnword_2 *pri, int32_t *fnpri,
             ftnword_2 *aux, int32_t *fnaux,
