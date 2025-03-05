@@ -6,6 +6,8 @@ message(STATUS "(EC) Generating librmn Makefile")
 # Append EC specific module path
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_rpn/modules $ENV{EC_CMAKE_MODULE_PATH})
 
+include(CheckSourceCompiles)
+
 include(ec_init)           # Initialise compilers and ec specific functions
 ec_git_version()           # Get version from git state
 ec_parse_manifest()        # Parse MANIFEST file
@@ -37,12 +39,6 @@ set(Intel_FFLAGS -convert big_endian -align array32byte -assume byterecl)
 set(GNU_FFLAGS -fconvert=big-endian -fcray-pointer -frecord-marker=4 -fno-second-underscore)
 set(Flang_FFLAGS -Mbyteswapio)
 set(PGI_FFLAGS -byteswapio)
-
-# This is required when using GNU compilers without OpenMP.
-# It has no adverse effect with other compilers and/or when OpenMP is enabled.
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ldl -pthread")
-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ldl -pthread")
-set(CMAKE_EXE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT} -ldl -pthread")
 
 #set(CMAKE_VERBOSE_MAKEFILE TRUE)
 set(CMAKE_C_STANDARD 99)
@@ -190,14 +186,30 @@ foreach(TARGET IN ITEMS ${TARGETS})
                $<$<COMPILE_LANG_AND_ID:Fortran,Intel>:${Intel_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,Flang>:${Flang_FFLAGS}>
                $<$<COMPILE_LANG_AND_ID:Fortran,PGI>:${PGI_FFLAGS}>
-               $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:${PGI_FFLAGS}>)
+               $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:${PGI_FFLAGS}>
+               -pthread)
+
+    target_link_options(${TARGET} PUBLIC -pthread)
+
     # nvhpc doesn't recognize shiftl	  
     target_compile_definitions(${TARGET}
         PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:SHIFTL=LSHIFT>)
-    # for IntelLLVM > 2024.0 - TODO: move in source code
-    if (("${CMAKE_Fortran_COMPILER_ID}" STREQUAL "IntelLLVM") AND (CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER 2024.1))
-      target_compile_definitions(${TARGET} PUBLIC FORTRAN_202X_SUPPORTED)
+
+    # Check if -ldl flag is needed
+    check_source_compiles(C
+        "#include <dlfcn.h>
+        int main(void) { dlopen(0, 0); }"
+        DL_INCLUDED)
+    if (NOT ${DL_INCLUDED})
+        target_link_options(${TARGET} PUBLIC -ldl)
     endif()
+
+    # Check for f_c_string and c_f_strpointer availability
+    check_source_compiles(Fortran "use, intrinsic :: iso_c_binding, only: c_f_strpointer; end" C_F_STRPOINTER_AVAILABLE SRC_EXT F90)
+    if (${C_F_STRPOINTER_AVAILABLE})
+        target_compile_definitions(${TARGET} PRIVATE FORTRAN_202X_SUPPORTED)
+    endif()
+
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
         WhiteBoardFortranHeader)

@@ -261,7 +261,7 @@ module f_c_strings_mod
         character(len=:), pointer :: fptr
         nc = c_strlen(cstrptr)
         nc = min(nc, int(nchars, kind=C_SIZE_T))
-#if defined(__INTEL_LLVM_COMPILER) && !defined(FORTRAN_202X_SUPPORTED)
+#if defined(__INTEL_LLVM_COMPILER)
         call c_f_pointer(cstrptr, fptr, [nc])
 #else
         call c_f_pointer(cstrptr, fptr)
