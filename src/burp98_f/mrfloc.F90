@@ -84,7 +84,7 @@ INTEGER FUNCTION mrfloc(iun, handle, stnid, idtyp, lat, lon, datein, temps, sup,
     END IF
 
     ! Composer les clefs a partir du stnid
-    istnid = stnid
+    istnid = stnid(1:9)
     DO i = 1,9
         IF (istnid(i:i) /= '*') THEN
             ! READ(istnid(i:i),'(a1)') pri(i)
