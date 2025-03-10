@@ -15,6 +15,8 @@ if (NOT CMAKE_MODULE_PATH)
     message(FATAL_ERROR "No paths were added to CMAKE_MODULE_PATH; cmake_rpn will not be found!")
 endif()
 
+include(CheckSourceCompiles)
+
 include(ec_init)           # Initialise compilers and ec specific functions
 ec_git_version()           # Get version from git
 ec_parse_manifest()        # Parse MANIFEST file
@@ -237,8 +239,8 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-byteswapio>
     )
     target_link_options(${TARGET} PUBLIC
-               $<$<COMPILE_LANG_AND_ID:C,GNU>:-ldl -pthread>
-               $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ldl -pthread>
+               $<$<COMPILE_LANG_AND_ID:C,GNU>:-pthread>
+               $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-pthread>
     )
 
     if (${RMN_LLVM_ADDRESS_SANITIZER})
@@ -254,10 +256,22 @@ foreach(TARGET IN ITEMS ${TARGETS})
     # nvhpc doesn't recognize shiftl	  
     target_compile_definitions(${TARGET}
         PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:SHIFTL=LSHIFT>)
-    # for IntelLLVM > 2024.0 - TODO: move in source code
-    if (("${CMAKE_C_COMPILER_ID}" STREQUAL "IntelLLVM") AND (${CMAKE_C_COMPILER_VERSION} VERSION_GREATER_EQUAL 2024.1))
-      target_compile_definitions(${TARGET} PUBLIC FORTRAN_202X_SUPPORTED)
+
+    # Check if -ldl flag is needed
+    check_source_compiles(C
+        "#include <dlfcn.h>
+        int main(void) { dlopen(0, 0); }"
+        DL_INCLUDED)
+    if (NOT ${DL_INCLUDED})
+        target_link_options(${TARGET} PUBLIC -ldl)
     endif()
+
+    # Check for f_c_string and c_f_strpointer availability
+    check_source_compiles(Fortran "use, intrinsic :: iso_c_binding, only: c_f_strpointer; end" C_F_STRPOINTER_AVAILABLE SRC_EXT F90)
+    if (${C_F_STRPOINTER_AVAILABLE})
+        target_compile_definitions(${TARGET} PRIVATE FORTRAN_202X_SUPPORTED)
+    endif()
+
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
         WhiteBoardFortranHeader
