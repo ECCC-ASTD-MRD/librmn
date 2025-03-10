@@ -1,30 +1,37 @@
-*/* RMNLIB - Library of useful routines for C and FORTRAN programming
-* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-* *                          Environnement Canada
-* *
-* * This library is free software; you can redistribute it and/or
-* * modify it under the terms of the GNU Lesser General Public
-* * License as published by the Free Software Foundation,
-* * version 2.1 of the License.
-* *
-* * This library is distributed in the hope that it will be useful,
-* * but WITHOUT ANY WARRANTY; without even the implied warranty of
-* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* * Lesser General Public License for more details.
-* *
-* * You should have received a copy of the GNU Lesser General Public
-* * License along with this library; if not, write to the
-* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-* * Boston, MA 02111-1307, USA.
-* */
+!/* RMNLIB - Library of useful routines for C and FORTRAN programming
+! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+! *                          Environnement Canada
+! *
+! * This library is free software; you can redistribute it and/or
+! * modify it under the terms of the GNU Lesser General Public
+! * License as published by the Free Software Foundation,
+! * version 2.1 of the License.
+! *
+! * This library is distributed in the hope that it will be useful,
+! * but WITHOUT ANY WARRANTY; without even the implied warranty of
+! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! * Lesser General Public License for more details.
+! *
+! * You should have received a copy of the GNU Lesser General Public
+! * License along with this library; if not, write to the
+! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! * Boston, MA 02111-1307, USA.
+! */
       module igaxg95_helper
          implicit none
          save
 
+         integer, parameter :: ncodemax = 32
+
+         character(len = 512) :: cgbinfo(ncodemax)
+         character(len = 256) :: gdsinfo(ncodemax)
+
          integer :: qqqngb = 0
       end module igaxg95_helper
 
+
       integer function igagds95(gds,gtyin,ig1,ig2,ig3,ig4)
+      use igaxg95_helper
       implicit none
       character(len = 1)  :: gtyin,gtyout
       character(len =256) :: gds
@@ -37,7 +44,6 @@
       integer nxg
 
       integer ier
-#include "qqqcgb1.cdk"
 
       nxg=20
       if (gtyin.ne.'!') then
@@ -122,8 +128,6 @@
       integer ig1,ig2,ig3,ig4
 
 
-#include "qqqcgb1.cdk"
-
       integer i,gribcode,ni,nj,centercode,subcentercode,projcode
       real xlat00,xlon00,xlatninj,xlonninj,dx,dy,
      $     yaxislon,latin1,latin2
@@ -207,7 +211,6 @@
       integer function qqqgbld()
       use igaxg95_helper
       implicit none
-#include "qqqcgb1.cdk"
 
 #include <rmn/fnom.hf>
       character(len = 256) :: filename,armnlib
@@ -304,6 +307,4 @@
          goto 20
       endif
 
-
-      return
       end

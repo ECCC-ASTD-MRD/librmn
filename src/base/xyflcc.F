@@ -28,26 +28,15 @@
       END
 
       SUBROUTINE XYFLCC0(X,Y,DLAT,DLON,PHI1,PHI2,LAM0,DELTA,NHEM,XYALL)
+      use rmn_base_const, only: dgtord, rdtodg
       REAL X,Y,DLAT,DLON,PHI1,PHI2,LAM0,DELTA,NHEM
       LOGICAL XYALL
-
-#include "piprm.cdk"
 
       REAL XPHI1,XPHI2,XDELTA,R0,ALPHA,C1,S1
       SAVE XPHI1,XPHI2,XDELTA,R0,ALPHA,C1,S1
       REAL C2,S2,R,A,B
 
       DATA XPHI1,XPHI2,XDELTA/-999999.,-999999.,0./
-*      XYALL = .FALSE.
-*      GO TO 10
-
-
-*      E N T R Y LCCFXY(X,Y,DLAT,DLON,PHI1,PHI2,LAM0,DELTA,NHEM)
-
-
-*      XYALL = .TRUE.
-*10    CONTINUE
-
 
       IF(XPHI1.NE.PHI1 .OR. XPHI2.NE.PHI2) THEN
          XPHI1 = PHI1
@@ -77,5 +66,4 @@
          X = R*SIN(DGTORD*(DLON-LAM0))
          Y = -R*COS(DGTORD*(DLON-LAM0))
       ENDIF
-      RETURN
       END

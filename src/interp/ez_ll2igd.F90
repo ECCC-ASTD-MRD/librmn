@@ -21,7 +21,8 @@
 !> Conversion de coordonnees lat-lon a pts de grille
 subroutine ez_ll2igd(px, py, xlat, xlon, npts, ni, nj, grtyp, grref, ig1, ig2, ig3, ig4, ax, ay, coordflag)
     implicit none
-#include "qqqpar.cdk"
+
+#include "ez_def_shared.h"
 
     integer, intent(in) :: coordflag
     integer, intent(in) :: npts, ni, nj
@@ -71,7 +72,7 @@ subroutine ez_ll2igd(px, py, xlat, xlon, npts, ni, nj, grtyp, grref, ig1, ig2, i
         call ez_gfxyfll(xlon, xlat, px, py, npts, xlat1, xlon1, xlat2, xlon2)
     endif
 
-    if (coordflag == relatif) then
+    if (coordflag == RELATIF) then
         do i = 1, npts
             indx = ez_cherche(px(i), ax, ni)
             indy = ez_cherche(py(i), ay, nj)

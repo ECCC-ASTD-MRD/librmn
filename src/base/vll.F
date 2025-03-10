@@ -18,24 +18,13 @@
 * * Boston, MA 02111-1307, USA.
 * */
 *
-***S/P VLL - INTERPOLATION DE VECTEURS A PARTIR D'UNE GRILLE LL
-*
+
+
+!> Interpolate vectors from a LL grid
       SUBROUTINE VLL(S,PSI,LAMBDA,PHI,U,V,LI,LJ,XLA0,XLO0,DLAT,DLON)
+      use rmn_base_const, only: dgtord
       REAL U(LI,LJ), V(LI,LJ)
-*
-*AUTEUR   - M.VALIN DRPN 1981
-*
-*OBJECT(VLL)
-*           INTERPOLATION DE VECTEURS A PARTIR D'UNE GRILLE LL
-*
-*LANGAGE  - FORTRAN
-*
-*LIBRAIRIES
-*         SOURCE  RMNSOURCELIB,ID=RMNP     DECK=VLL
-*         OBJET   RMNLIB,ID=RMNP
-*
-*APPEL    - CALL VLL(S,PSI,LAMBDA,PHI,U,V,LI,LJ,XLA0,XLO0,DLAT,DLON)
-*
+
 *ARGUMENTS
 *   OUT   - S      - VITESSE DU VENT AU POINT DEMANDE
 *   OUT   - PSI    - DIRECTION DU VENT
@@ -48,20 +37,14 @@
 *   IN    - XLO0   - LONGITUDE DU COIN INFERIEUR GAUCHE (DEGRES).
 *   IN    - DLAT   - ESPACEMENT EN LATITUDE (DEGRES).
 *   IN    - DLON   - ESPACEMENT EN LONGITUDE (DEGRES).
-*
-*---------------------------------------------------------------------------
-*
-      REAL LAMBDA
-#include "pi.cdk"
-      ARBPSI = 99999.0
 
+      REAL LAMBDA
+      ARBPSI = 99999.0
 
       UFIN = SLL(LAMBDA,PHI,U,LI,LJ,XLA0,XLO0,DLAT,DLON)
       VFIN = SLL(LAMBDA,PHI,V,LI,LJ,XLA0,XLO0,DLAT,DLON)
 
-
       S = SQRT(UFIN**2 + VFIN**2)
-
 
       PSI = ARBPSI
       SS = -SIN (LAMBDA*DGTORD)
@@ -71,6 +54,4 @@
       IF (S.NE.0) PSI = RDTODG * ATAN2(VF,UF)
       IF(PSI.LT.0.0) PSI = PSI + 360.0
 
-
-      RETURN
       END

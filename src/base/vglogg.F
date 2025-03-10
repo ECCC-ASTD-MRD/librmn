@@ -38,6 +38,7 @@
 *             AT POINT CLAMDA (LONGITUDE) AND PHI(LATITUDE)
 *
       SUBROUTINE VGLOGG_0(SPEED,PSI,CLAMDA,PHI,U,V,LI,LJ,ROOTS,mode)
+      use rmn_base_const, only: dgtord, global, north
       REAL U(LI,LJ), V(LI,LJ)
       integer :: mode
 *
@@ -105,13 +106,7 @@
 
 
 *             -EPSPHI AN ARBITRARY LIMIT
-
-
-#include "kases.cdk"
-
-
       DATA EPSPHI / 1.0E-8 /
-#include "pi.cdk"
       DATA ARBPSI /99999.0/
 
 
@@ -291,6 +286,6 @@
       RETURN
   600 FORMAT(//' LAMBDA PHI LI LJ SBRT VGLOGG WRONG VALUE',2E12.4,2I7)
       CONTAINS
-#include "cubic.cdk"
-#include "lagrange.cdk"
+      include 'cubic.inc'
+      include 'lagrange.inc'
       END

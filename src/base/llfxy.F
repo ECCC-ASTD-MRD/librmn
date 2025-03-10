@@ -59,8 +59,8 @@
 *-----------------------------------------------------------------------
 *
 *     * 1.866025=(1+SIN60),   6.371E+6=EARTH RADIUS IN METERS.
-#include "pi.cdk"
 *
+      use rmn_base_const, only: rdtodg
       RE=1.866025*6.371E+6/D60
       RE2=RE**2
 *

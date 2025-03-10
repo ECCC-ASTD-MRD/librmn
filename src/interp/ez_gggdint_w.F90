@@ -1,37 +1,35 @@
-!/* RMNLIB - Library of useful routines for C and FORTRAN programming
-! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-! *                          Environnement Canada
-! *
-! * This library is free software; you can redistribute it and/or
-! * modify it under the terms of the GNU Lesser General Public
-! * License as published by the Free Software Foundation,
-! * version 2.1 of the License.
-! *
-! * This library is distributed in the hope that it will be useful,
-! * but WITHOUT ANY WARRANTY; without even the implied warranty of
-! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! * Lesser General Public License for more details.
-! *
-! * You should have received a copy of the GNU Lesser General Public
-! * License along with this library; if not, write to the
-! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-! * Boston, MA 02111-1307, USA.
-! */
-      subroutine ez_gggdint_w(zo,px,py,npts,ay,z,ni,j1,j2,wrap)
-          use rmn_common
-      implicit none
-!*******
-!Auteur: Y.Chartier, drpn
-!        Fevrier 1991
-!
-!Objet:  Interpolation bi-cubique de points a partir
-!        d'une grille gaussienne.
-!*******
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
+! 
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
+! 
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
+! 
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
 
-      integer npts, ni, j1, j2, wrap, limite
-      real zo(npts),px(npts),py(npts)
-      real ay(j1:j2),cy(6)
-      real z(ni,j1:j2)
+
+!> \file
+
+
+!> Bicubic interpolation of points from a gaussian grid
+subroutine ez_gggdint_w(zo,px,py,npts,ay,z,ni,j1,j2,wrap)
+    use iso_fortran_env, only: real64
+    implicit none
+
+    integer npts, ni, j1, j2, wrap, limite
+    real zo(npts),px(npts),py(npts)
+    real ay(j1:j2),cy(6)
+    real z(ni,j1:j2)
 !
 !  npts   : nombre de points a interpoler
 !  i1:i2  : dimension de la grille source selon x
@@ -72,8 +70,6 @@
       real(kind = real64) :: y11, y12, y13, y14
       real(kind = real64) :: ay1, ay2, ay3, ay4
       real(kind = real64) :: dx
-
-#include "ez_qqqxtrp.cdk"
 
          do n=1,npts
             limite = ni +2 -wrap
@@ -133,5 +129,4 @@
       contains
 #include "cubic8.cdk"
 #include "fa8.cdk"
-      end
-
+end

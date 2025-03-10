@@ -24,6 +24,7 @@
 
 
       SUBROUTINE IDXES (IDX,JDX,I,J,LI,LJ,KASE)
+      use rmn_base_const, only: north
 *
 *AUTEUR   - D. ROBERTSON
 *
@@ -70,8 +71,7 @@
 *-----------------------------------------------------------------------
 *
       INTEGER IDX (4,4) , JDX(4)
-       LOGICAL RANGE
-#include "kases.cdk"
+      LOGICAL RANGE
 *
       LIO2 = LI/2
 *

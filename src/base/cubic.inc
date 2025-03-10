@@ -1,0 +1,20 @@
+! THIS IS A CUBIC FOR INTERPOLATION ON A UNIFORM MESH
+! THE FUNCTION TAKES VALUES Z1,Z2,Z3,Z4 AT 4 POINTS UNIT
+! DISTANCE APART, AND THE FUNCTION INTERPOLATES TO A POINT
+! DX FROM THE 2ND POINT TOWARDS THE 3RD POINT, 0.LE.DX.LE.1.
+
+      pure function CUBIC(Z1,Z2,Z3,Z4,DX) result(Z_OUT)
+          implicit none
+          real, intent(in) :: Z1, Z2, Z3, Z4, DX
+          real :: Z_OUT
+          Z_OUT = ((((Z4-Z1)*0.1666666666666 +                          &
+     &      0.5*(Z2-Z3))*DX + 0.5*(Z1+Z3)-Z2)*DX +                      &
+     &      Z3-0.1666666666666*Z4-0.5*Z2-0.3333333333333*Z1)*DX + Z2
+      end function CUBIC
+
+      pure function ZLIN(AA,BB,DDX) result(Z_OUT)
+          implicit none
+          real, intent(in) :: AA, BB, DDX
+          real :: Z_OUT
+          Z_OUT = AA + (BB - AA)*DDX
+      end function ZLIN

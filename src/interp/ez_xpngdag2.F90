@@ -17,57 +17,54 @@
 ! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! * Boston, MA 02111-1307, USA.
 ! */
-      subroutine ez_xpngdag2(zout, zi, ni, nj, j1, j2, hem, symetrie)
-
-      implicit none
-#include "qqqpar.cdk"
-
-      external permut
-
-      integer j1, j2, ni, nj
-      integer hem, symetrie
-      integer i, j
 
 
-      real zout(ni,j1:j2)
-      real zi(ni,nj)
-      real sign
+subroutine ez_xpngdag2(zout, zi, ni, nj, j1, j2, hem, symetrie)
+    use rmn_base_const, only: nord, sud
+    implicit none
 
-      if (symetrie .eq. 0) then
-         sign = -1.0
-      else
-         sign = 1.0
-      endif
+    external permut
 
-      if (hem .eq. nord) then
-         do j=1,nj
-            do i=1,ni
-               zout(i,j)  = zi(i,j)
+    integer j1, j2, ni, nj
+    integer hem, symetrie
+    integer i, j
+
+
+    real zout(ni, j1:j2)
+    real zi(ni, nj)
+    real sign
+
+    if (symetrie .eq. 0) then
+        sign = -1.0
+    else
+        sign = 1.0
+    endif
+
+    if (hem .eq. nord) then
+        do j = 1, nj
+            do i = 1, ni
+                zout(i, j) = zi(i, j)
             enddo
-         enddo
+        enddo
 
-         do j=1,nj
-            do i=1,ni
-               zout(i,-j+1)  = sign * zi(i,j)
+        do j = 1, nj
+            do i = 1, ni
+                zout(i, -j + 1) = sign * zi(i, j)
             enddo
-         enddo
-      endif
+        enddo
+    endif
 
-      if (hem .eq. sud) then
-         do j=1,nj
-            do i=1,ni
-               zout(i,j)  = zi(i,j)
+    if (hem .eq. sud) then
+        do j = 1, nj
+            do i = 1, ni
+                zout(i, j) = zi(i, j)
             enddo
-         enddo
+        enddo
 
-         do j=1,nj
-            do i=1,ni
-               zout(i,nj+j)  = sign * zi(i,nj-j+1)
+        do j = 1, nj
+            do i = 1, ni
+                zout(i, nj + j) = sign * zi(i, nj - j + 1)
             enddo
-         enddo
-      endif
-
-
-      return
-      end
-
+        enddo
+    endif
+end

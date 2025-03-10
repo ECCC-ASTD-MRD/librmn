@@ -17,26 +17,15 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
+
+
 ***S/R XYFLL - COMPUTES THE GRID CO-ORDINATES OF A POINT
 *
       SUBROUTINE XYFLL(X,Y,DLAT,DLON,D60,DGRW,NHEM)
-*
-*AUTHOR   - J.D. HENDERSON  -  FEB 75
-*
-*REVISION 001   C. THIBEAULT  -  NOV 79  DOCUMENTATION
-*
-*LANGUAGE - FORTRAN
-*
-*OBJECT(XYFLL)
+      use rmn_base_const, only: dgtord, south
+
 *         - COMPUTES THE GRID CO-ORDINATES MEASURED FROM THE POLE OF A
 *           POINT, GIVEN THE LATITUDE AND LONGITUDE IN DEGREES.
-*
-*LIBRARIES
-*         - SOURCE  RMNSOURCELIB,ID=RMNP     DECK=XYFLL
-*         - OBJECT  RMNLIB,ID=RMNP
-*
-*USAGE    - CALL XYFLL(X,Y,DLAT,DLON,D60,DGRW,NHEM)
-*
 *ARGUMENTS
 *   OUT   - X    - X-CO-ORDINATE OF THE POINT AS MEASURED WITH POLE
 *                  AS ORIGIN
@@ -57,24 +46,19 @@
 *------------------------------------------------------------------------------
 *
 *     * 1.866025=(1+SIN60),   6.371E+6=EARTH RADIUS IN METERS.
-#include "pi.cdk"
 *
-      RE=1.866025*6.371E+6/D60
-*
-      GLON=DLON
-      IF(NHEM.EQ.2) GLON=-DLON
+      RE = 1.866025 * 6.371E+6 / D60
+
+      GLON = DLON
+      IF(NHEM .EQ. SOUTH) GLON = -DLON
       GLAT=DLAT
-      IF(NHEM.EQ.2) GLAT=-DLAT
-*
-      RLON=DGTORD*(GLON+DGRW)
-      RLAT=DGTORD*GLAT
-      SINLAT=SIN(RLAT)
-      R=RE*SQRT((1.-SINLAT)/(1.+SINLAT))
-      X=R*COS(RLON)
-      Y=R*SIN(RLON)
-*
-*------------------------------------------------------------------------
-*
-      RETURN
+      IF(NHEM .EQ. SOUTH) GLAT = -DLAT
+
+      RLON = DGTORD * (GLON + DGRW)
+      RLAT = DGTORD * GLAT
+      SINLAT = SIN(RLAT)
+      R = RE * SQRT((1.0 - SINLAT) / (1.0 + SINLAT))
+      X = R * COS(RLON)
+      Y = R * SIN(RLON)
       END
 

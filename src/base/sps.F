@@ -165,6 +165,6 @@
       CALL XYFLCC(X,Y,90.-PHI,LAMBDA,D60,DGRW,1.,PHI1,PHI2)
       GOTO 1
       CONTAINS
-#include "cubic.cdk"
-#include "lagrange.cdk"
+      include 'cubic.inc'
+      include 'lagrange.inc'
       END

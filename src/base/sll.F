@@ -135,6 +135,6 @@
 
       RETURN
       CONTAINS
-#include "cubic.cdk"
-#include "lagrange.cdk"
+      include 'cubic.inc'
+      include 'lagrange.inc'
       END

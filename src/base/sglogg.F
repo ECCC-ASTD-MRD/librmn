@@ -17,7 +17,7 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-*
+
       real function SGLOGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
       implicit none
       integer :: LI, LJ
@@ -46,28 +46,29 @@
 
 
       FUNCTION SGLOGG0(G,LI,LJ,ROOTS,LAMBDA,PHI, mode)
+      use rmn_base_const, only: dgtord, global, north
       use rmn_ordr
       REAL G(LI,LJ)
       integer :: mode
-*
+
 *AUTEUR   - D.ROBERTSON RPN 1981
-*
+
 *REVISION 001   M. VALIN  -  1981  SYMETRIES ET COMMENTAIRES
 *REVISION 002   C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
 *               M. VALIN      - OCT 2023  removed entry statements
-*
+
 *LANGAGE  - FORTRAN
-*
+
 *OBJET(SGLOGG0)
 *         - TROUVER LA VALEUR D'UNE FONCTION EN UN POINT QUELCONQUE D'UNE
 *           GRILLE GAUSSIENNE
-*
+
 *LIBRAIRIES
 *         - SOURCE  RMNSOURCELIB,ID=RMNP     DECK=SGLOGG0
 *         - OBJET   RMNLIB,ID=RMNP
-*
+
 *APPEL    - R=SGLOGG0(G,LI,LJ,ROOTS,LAMBDA,PHI)
-*
+
 *ARGUMENTS
 *   OUT   - SGLOGG0 - VALEUR INTERPOLEE AU POINT DEMANDE
 *   IN    - G      - CHAMP SOURCE
@@ -80,17 +81,15 @@
 *                    UTILISEES DIRECTEMENT.
 *   IN    - LAMBDA - LONGITUDE DU POINT DESIRE
 *   IN    - PHI    - COLATITUDE (90.0-LATITUDE) DU POINT DESIRE
-*
+
 *MODULES  - DGAUSS,IDXES
-*
+
 *----------------------------------------------------------------
-*
+
       REAL LAMBDA,MU
       REAL ROOTS(LJ) , T(4) , P(4)
       INTEGER IDX(4,4), JDX(4)
-#include "kases.cdk"
-#include "pi.cdk"
-*
+
       if(mode .eq. 0) then
         ORDINT = 3
         KASE = GLOBAL
@@ -98,9 +97,9 @@
         NPOLY = LJ
         GO TO 99
       endif
-*
+
 *     SCALAR SYMMETRIC NORTHERN HEMISPHERE
-*
+
 *     E N T R Y SSNHGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
       if(mode .eq. 1) then
         KASE = NORTH
@@ -108,9 +107,9 @@
         NPOLY = 2*LJ
         GO TO 99
       endif
-*
+
 *     SCALAR ANTISYMMETRIC NORTHERN HEMISPHERE
-*
+
 *     E N T R Y SANHGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
       if(mode .eq. 2) then
         KASE = NORTH
@@ -118,27 +117,27 @@
         SIGN = -1.0
         GO TO 99
       endif
-*
+
 * START OF ACTUAL INTERPOLATION
 * TAKE ABS(MU) IF HEMISPHERIC
-*
+
    99 CONTINUE
-*
+
       MU = COS(PHI*DGTORD)
       SIGN2 = 1.0
       IF(MU.LT.0) SIGN2 = -SIGN2
       IF (KASE.EQ.NORTH) MU = ABS(MU)
-*
+
 * DEFINE GAUSSIAN GRID IF NECESSARY
-*
+
       IF (LEGVAR(ROOTS(1)).NE.0)
      1  CALL DGAUSS(NPOLY,ROOTS,KASE)
       IF(ROOTS(1).GT.1.0)
      1  CALL DGAUSS(NPOLY,ROOTS,KASE)
-*
+
 * THERE ARE 5 CASES TO CONSIDER DEPENDING ON MU
 * 2 NEAR THE N POLE, 1 INTERIOUR, AND 2 NEAR THE S POLE.
-*
+
       IF(MU.GT.ROOTS(1)) ICASE = 1
       IF(MU.LE.ROOTS(1) .AND. MU.GT.ROOTS(2)) ICASE=2
       IF(MU.LE.ROOTS(2).AND.MU.GT.ROOTS(NPOLY-1)) ICASE = 3
@@ -149,55 +148,55 @@
       if (icase == 3) goto 3
       if (icase == 4) goto 4
       if (icase == 5) goto 5
-*
+
 *     BETWEEN N POLE AND FIRST ROW
-*
+
     1 JJ = 0
       A = 2.0 -ROOTS(2)
       B = 2.0 -ROOTS(1)
       C = ROOTS(1)
       D = ROOTS(2)
       GO TO 30
-*
+
 *     BETWEEN TOP TWO ROWS
-*
+
     2 JJ = 1
       A = 2.0 -ROOTS(1)
       B = ROOTS(1)
       C = ROOTS(2)
       D = ROOTS(3)
       GO TO 30
-*
+
 *     FAR ENOUGH FROM POLES
-*
+
     3 FRAC = 0.5*(1.0-MU)
       JJ = MIN0(NPOLY-1,MAX0(2,INT(FRAC*NPOLY)))
-*
+
 * ONE MUST LOCATE MU, I.E. ROOTS(JJ).GE.MU.GT.ROOTS(JJ+1)
 * THE ABOVE IS A SUITABLE 1ST GUESS.
 * WHILE ROOTS(JJ).LT.MU DO JJ=JJ-1
-*
+
    10 IF(ROOTS(JJ).GE.MU) GO TO 15
          JJ=JJ-1
          GO TO 10
-*
+
 * WHILE ROOTS(JJ+1).GE.MU DO JJ=JJ+1
-*
+
    15 IF(ROOTS(JJ+1).LT.MU) GO TO 17
          JJ=JJ+1
          GO TO 15
    17 CONTINUE
-*
+
 * ROOTS(JJ).GE.MU.GT.ROOTS(JJ+1)
-*
+
       A = ROOTS(JJ-1)
       B = ROOTS(JJ)
       C = ROOTS(JJ+1)
       D = ROOTS(JJ+2)
       GO TO 30
-*
+
 *     BETWEEN LAST TWO ROWS
-*
+
     4 JJ = NPOLY-1
       A = ROOTS(NPOLY-2)
       B = ROOTS(NPOLY-1)
@@ -205,9 +204,9 @@
       IF(KASE.EQ.GLOBAL) D = -2.0-ROOTS(NPOLY)
       IF(KASE.EQ.NORTH)  D = -ROOTS(NPOLY)
       GO TO 30
-*
+
 *     BETWEEN LAST ROW AND S POLE
-*
+
     5 JJ = NPOLY
       A = ROOTS(NPOLY-1)
       B = ROOTS(NPOLY)
@@ -217,9 +216,9 @@
       IF(KASE.EQ.NORTH)  D = -ROOTS(NPOLY-1)
       GO TO 30
    30 CONTINUE
-*
+
 *     WE KNOW WHERE WE ARE, NOW DO THE WORK
-*
+
       RDLAM = FLOAT(LI)/360.0
       XX = 1.0 + LAMBDA*RDLAM
       II = XX
@@ -243,10 +242,10 @@
 90       CONTINUE
          SGLOGG0 = ZLIN(T(2),T(3),(MU-B)/(C-B))
       ELSE
-*
+
 *     FOUR INTERPOLATIONS WITH CONSTANT GRID LENGTH IN THE E-W
 *     DIRECTION, FOLLOWED BY ONE IN THE N-S DIRECTION
-*
+
       DO 47 J=1,4
          DO 45 K = 1 , 4
             P(K) = G(IDX(K,J),IABS(JDX(J)))
@@ -254,15 +253,15 @@
    45      CONTINUE
          T(J)=CUBIC(P(1),P(2),P(3),P(4),DX)
    47    CONTINUE
-*
+
       SGLOGG0 = POLY(T(1),T(2),T(3),T(4),MU,A,B,C,D)
       ENDIF
-*
+
 *     APPLY SYMMETRIES IF NECESSARY
-*
+
       IF(KASE.EQ.NORTH .AND. SIGN.LT.0) SGLOGG0 = SIGN2*SGLOGG0
       RETURN
       CONTAINS
-#include "cubic.cdk"
-#include "lagrange.cdk"
+      include 'cubic.inc'
+      include 'lagrange.inc'
       END
