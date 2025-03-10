@@ -98,7 +98,7 @@ function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, i
     end if
 
     ! Transformer chaque caractere de stnid en un entier
-    istnid = stnid
+    istnid = stnid(1:9)
     do i = 1, 9
         call char2rah(istnid(i:i), klprim(i), 1)
     end do
