@@ -97,7 +97,7 @@
       ENDIF
 
 !     TRANSFORMER CHAQUE CARACTERE DE STNID EN UN ENTIER
-      ISTNID = STNID
+      ISTNID = STNID(1:9)
       DO 10 I = 1,9
          IF(ISTNID(I:I).NE.'*') THEN
 !            READ(ISTNID(I:I),'(A1)') KLPRIM(I)
