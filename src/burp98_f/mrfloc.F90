@@ -86,7 +86,7 @@
       ENDIF
 
 !     COMPOSER LES CLEFS A PARTIR DU STNID
-      ISTNID = STNID
+      ISTNID = STNID(1:9)
       DO 10 I=1,9
          IF(ISTNID(I:I) .NE. '*') THEN
 !            READ(ISTNID(I:I),'(A1)') PRI(I)
