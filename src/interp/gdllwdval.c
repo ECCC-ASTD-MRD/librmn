@@ -72,5 +72,5 @@ int32_t c_gdllwdval(int32_t gdid, float *uuout, float *vvout, float *uuin, float
         ier = c_gdllvval(gdid, uuout, vvout, uuin, vvin, lat, lon, n);
         ier = c_gdwdfuv(gdid, uuout, vvout, uuout, vvout, lat, lon, n);
     }
-    return 0;
+    return ier;
 }

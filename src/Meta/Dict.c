@@ -357,11 +357,10 @@ void Dict_SetModifier(char *Modifier) {
 */
 int Dict_Parse(char *Filename,TDict_Encoding Encoding) {
 
-   xmlDocPtr    doc;
-   xmlNsPtr     ns;
-   xmlNodePtr   node;
-   xmlChar     *tmpc;
-   char        ok;
+   xmlDocPtr    doc  = NULL;
+   xmlNsPtr     ns   = NULL;
+   xmlNodePtr   node = NULL;
+   xmlChar     *tmpc = NULL;
 
    xmlDoValidityCheckingDefaultValue=1;
    LIBXML_TEST_VERSION
@@ -421,7 +420,7 @@ int Dict_Parse(char *Filename,TDict_Encoding Encoding) {
    node=node->children;
 
    // Now, walk the tree
-   ok=1;
+   char ok = 1;
    while (node) {
 
       if (!strcmp((const char *)node->name,"metvar")) {
@@ -1434,7 +1433,7 @@ void Dict_PrintType(TDictType *DType,int Format,TApp_Lang Lang) {
 */
 TDictVar* Dict_ApplyModifier(TDictVar *Var,char *Modifier) {
 
-   char     *c,*l,lang;
+   char     *c,*l;
    TDictVar *var=NULL;
 
    if (!Modifier || Modifier[0]=='\0') {
@@ -1446,7 +1445,7 @@ TDictVar* Dict_ApplyModifier(TDictVar *Var,char *Modifier) {
       memcpy(var,Var,sizeof(TDictVar));
 
       // Loop on languages
-      for(lang=0;lang<2;lang++) {
+      for(uint8_t lang=0;lang<2;lang++) {
 
          c=&Modifier[2];
          l=var->Short[lang];

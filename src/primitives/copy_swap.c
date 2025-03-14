@@ -205,7 +205,7 @@ int Copy_items_r2l(void *src, uint32_t srclen, void *dst, uint32_t dstlen, uint3
 }
 // left to right fill/extract to/from larger item
 int Copy_items_l2r(void *src, uint32_t srclen, void *dst, uint32_t dstlen, uint32_t ns){
-  uint32_t nd ;
+  uint32_t nd = 0;
   uint8_t  *s8  = (uint8_t  *)src;
   uint16_t *s16 = (uint16_t *)src, *d16 = (uint16_t *)dst;
   uint32_t *s32 = (uint32_t *)src, *d32 = (uint32_t *)dst;

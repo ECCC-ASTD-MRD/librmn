@@ -28,8 +28,8 @@ int test_write_in_ro(const int is_rsf) {
         return -1;
     }
 
-    void* data;
-    void* work;
+    void* data = NULL;
+    void* work = NULL;
     int32_t status = c_fstecr(data, work, -32, iun, 0, 0, 0, 1, 1, 1, 1, 1, 1, "", "", "", "", 1, 1, 1, 1, 5, 0);
     if (status >= 0) {
         App_Log(APP_ERROR, "%s: Write (fst98) should have failed\n", __func__);

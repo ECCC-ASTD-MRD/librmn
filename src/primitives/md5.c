@@ -321,9 +321,8 @@ int md5_file( char *path, unsigned char output[16] )
 int md5_ssh( unsigned char output[16] )
 {
     char filename[4096];
-    int nc=0;
     char *home=getenv("HOME");
-    nc=snprintf(filename,4095,"%s/.ssh/id_rsa.pub",home);
+    snprintf(filename,4095,"%s/.ssh/id_rsa.pub",home);
     return( md5_file(filename,output) );
 }
 

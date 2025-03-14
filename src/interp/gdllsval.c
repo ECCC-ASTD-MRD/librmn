@@ -51,6 +51,6 @@ int32_t c_gdllsval(int32_t gdid, float *zout, float *zin, float *lat, float *lon
 
     free(x);
     free(y);
-    return 0;
+    return ier;
 }
 

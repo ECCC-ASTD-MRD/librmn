@@ -331,21 +331,15 @@ TQTree* QTree_AddTriangle(TQTree* restrict Node,Vect2d T[3],unsigned int MaxDept
  */
 void QTree_Neighbors(TQTree* Node,TQTree** Neighbors,int Nb) {
 
-   TQTree *root,*node;
-   double  dx,dy;
-   int     d=0;;
+   for(int n=0;n<Nb;n++) Neighbors[n]=NULL;
    
-   if (Nb!=4 || Nb!=8) { // TODO this is always true. Remove the condition?
-      for(int n=0;n<Nb;n++) Neighbors[n]=NULL;
-   }
-   
-   dx=(Node->BBox[1].X-Node->BBox[0].X)*0.5;
-   dy=(Node->BBox[1].Y-Node->BBox[0].Y)*0.5;
+   const double dx=(Node->BBox[1].X-Node->BBox[0].X)*0.5;
+   const double dy=(Node->BBox[1].Y-Node->BBox[0].Y)*0.5;
 
    // Climb back up the tree
-   root=NULL;
-   node=Node;
-   while((node=node->Parent)) { d++; root=node; }      
+   TQTree* root=NULL;
+   TQTree* node=Node;
+   while((node=node->Parent)) { root=node; }      
          
    // Find neighbors
    Neighbors[0]=QTree_Find(root,Node->BBox[0].X+dx,Node->BBox[0].Y-dy);

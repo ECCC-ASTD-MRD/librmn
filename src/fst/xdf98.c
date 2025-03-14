@@ -2309,7 +2309,7 @@ int c_xdfput(
     int write_to_end = (handle <= 0) ? 1 : 0;
     int nwords = buf->nbits / (8 * sizeof(uint32_t));
     int index = index_from_iun;
-    file_record *record;
+    file_record *record = NULL;
 
     if (handle != 0) {
         if (handle < 0 ) handle = -handle;
@@ -2864,8 +2864,9 @@ int c_xdfuse(
     }
 
     if (! match) {
-      if (close_src)
-        err = c_xdfcls(src_unit);
+        if (close_src) {
+            err = c_xdfcls(src_unit);
+        }
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: incompatible source (unit %d) and destination (unit %d) files\n",__func__,src_unit,dest_unit);
         return(ERR_NOT_COMP);
     }

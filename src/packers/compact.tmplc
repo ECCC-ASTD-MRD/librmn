@@ -81,7 +81,6 @@ void *compact_FLOAT_TYPE(
 
     double maxFloat, minFloat;
     ALL_FLOAT rangeTemplate;
-    double desiredRange;
     uint32_t signOfMinFloat;
     uint32_t scaledExpOfMinFloat, scaledExpOfRange;
     double mulFactor;
@@ -241,7 +240,6 @@ void *compact_FLOAT_TYPE(
         scaledExpOfRange = tempExpo - packedTokenBS;
 
         // Obtain desired range and sign of minimum floating point number
-        desiredRange = rangeTemplate.XD;
         signOfMinFloat = ( minFloat < 0 )? 1 : 0;
         if ( minFloat == 0.0 ) {
             scaledExpOfMinFloat = scaledExpOfMinFloat & 0x00000111;

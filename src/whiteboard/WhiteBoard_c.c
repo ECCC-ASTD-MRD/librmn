@@ -842,33 +842,6 @@ static wb_line *new_line(
 }
 
 
-//! Set line flags from the provided numeric value
-//! \return WB_OK on success, error code otherwise
-static int options_to_flags(
-    //! [out] Line in which to set the flags
-    wb_line *line,
-    //! [in] Numeric value representing the active flags
-    int options
-) {
-    line->meta.flags.array = (options & WB_IS_ARRAY) ? 1 : 0;
-    // Not created by a restart
-    line->meta.flags.fromrestart = (options & WB_CREATED_BY_RESTART) ? 1 : 0;
-    line->meta.flags.readonly = (options & WB_REWRITE_NONE) ? 1 : 0;
-    // Mark as bad value in case it fails unless it is a create only call
-    line->meta.flags.badval = (options & WB_BADVAL) ? 1 : 0;
-    // Variable has the local attribute, this will be used when checkpointing
-    line->meta.flags.islocal = (options & WB_IS_LOCAL) ? 1 : 0;
-    line->meta.flags.resetuntil = (options & WB_REWRITE_UNTIL) ? 1 : 0;
-    line->meta.flags.resetmany = (options & WB_REWRITE_MANY) ? 1 : 0;
-    line->meta.flags.noresetafterrestart = (options & WB_READ_ONLY_ON_RESTART) ? 1 : 0;
-    line->meta.flags.initialized = (options & WB_INITIALIZED) ? 1 : 0;
-    if (line->meta.flags.readonly + line->meta.flags.resetmany + line->meta.flags.resetuntil > 1) {
-        return wb_error(WB_MSG_ERROR, WB_ERR_OPTION);
-    }
-    return WB_OK;
-}
-
-
 //! Get the numeric representation of the active flags of the provided line
 //! \return Numeric representation of the active flags
 static int flags_to_options(

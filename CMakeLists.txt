@@ -237,6 +237,7 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<$<COMPILE_LANG_AND_ID:Fortran,Flang>: -Mbyteswapio>
         $<$<COMPILE_LANG_AND_ID:Fortran,PGI>: -byteswapio>
         $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-byteswapio>
+        $<$<COMPILE_LANGUAGE:C>: -Wall>
     )
     target_link_options(${TARGET} PUBLIC
                $<$<COMPILE_LANG_AND_ID:C,GNU>:-pthread>

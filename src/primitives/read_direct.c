@@ -303,17 +303,6 @@ static int Verb(char *token){
  return(len);
 }
 
-/* test function for C callbacks, prints arguments and private data */
-static int Print_Args(int argc , char **argv,char cmd_strt,  char *Private_Data, char *Private_Data_2) {
-int cmd=0xFF&cmd_strt;
-int i;
-printf("Private_Data=%s\n",Private_Data);
-printf("Private_Data_2=%s\n",Private_Data_2);
-printf("Command Type=%s\n",cmd=='('?"EXEC":"ASSIGN");
-for (i=0;i<=argc;i++) printf("%s\n",argv[i]);
-return(0);
-}
-
 /* process directives from file */
 int process_c_callback(char *filename){
 int oo, errors=0;
@@ -491,13 +480,3 @@ the_name[l_filename<1023 ? l_filename : 1023]='\0';
 return(process_c_callback(the_name));
 }
 
-#ifdef TEST
-f77name(c_callback_test)()
-{
-int errs;
-rpn_c_callback("verb1",Print_Args,"","VERB1","verb1");
-rpn_c_callback("verb2",Print_Args,"","VERB2","verb2");
-errs=process_c_callback("test_directives_c");
-printf("Number of errors=%d\n",errs);
-}
-#endif

@@ -37,20 +37,20 @@ void rempli(int* tableau, int ni, int nj, int nk);
 int main (int argc, char* argv[])
 {
     int bufa[8000], bufb[5000], bufc[6000], bufd[8000], bufe[20000];
-    int tblval[10000],xtra[3];
+    int tblval[10000];
     int lstelea[10],lsteleb[4],lstelec[6],lstelee[130];
     float rval[500], opvalr;
-    int clistea[10], clisteb[4], clistec[6], clistee[130];
+    int clistea[10], clisteb[4], clistee[130];
     int tblburp[10][4];
     int bit0,blkno,lbits,left,ier,ier1,ier2,ier3,i,j, relem;
-    int sup[2],xaux[2],nsup,nxaux;
-    int tblcomp[500],lstcomp[10],tempo,etblval[10000];
+    int sup[2],xaux[2];
+    int tblcomp[500],lstcomp[10],etblval[10000];
     char stnid[10], opvalc[9];
     int temps,flgs,idtyp,lati,longi,elev,drcv,date,oars,run,nblk,nele,nval,
         dx,dy,nt,bfam,bdesc,btyp,nbit,datyp,lonenr,lonmax;
 
     int *ptba, *ptbb, *ptbc, *ptbd, *ptbe, *ptla, *ptlb, *ptlc,  *ptle,
-        *pttcmp, *ptlcmp, *pttval, *cptla, *cptlb, *cptlc;
+        *pttcmp, *ptlcmp, *pttval, *cptla, *cptlb;
     int *pttblburp;
     float *ptrval;
     char *ptstnid;
@@ -86,7 +86,7 @@ int main (int argc, char* argv[])
 
 
     ptla = lstelea; ptlb = lsteleb; ptlc = lstelec, ptle = lstelee;
-    cptla = clistea; cptlb = clisteb; cptlc = clistec;
+    cptla = clistea; cptlb = clisteb;
     *ptla     = 2;
     *(ptla+1) = 1001;
     *(ptla+2) = 2121;

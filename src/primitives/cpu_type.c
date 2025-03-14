@@ -156,12 +156,11 @@ static void X86_cpuid(uint32_t eax, uint32_t ecx, uint32_t* regs)  /* interface 
 static void get_cpu_capabilities()
 {
 #if defined(__x86_64__)
-  uint32_t regs[4], eax1;;
+  uint32_t regs[4];
   int j;
   float freq;
 
   X86_cpuid( 1, 0, regs );  /* get CPU capabilities EAX=1, ECX=0 */
-  eax1 = regs[0];
   if((1 <<  0) & regs[2]) ProcessorCapabilities |= FLAG_SSE3 ;  /* SSE3   ECX bit  0 */
   if((1 << 12) & regs[2]) ProcessorCapabilities |= FLAG_FMA ;   /* FMA    ECX bit 12 */
   if((1 << 20) & regs[2]) ProcessorCapabilities |= FLAG_SSE4 ;  /* SSE4.2 ECX bit 20 */

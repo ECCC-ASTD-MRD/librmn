@@ -134,7 +134,6 @@ typedef union {
         lastWordShifted = token & ( -1 >> ( wordSize - ( bitSizeOfPackedToken - spaceInLastWord)));\
         spaceInLastWord = wordSize - ( bitSizeOfPackedToken - spaceInLastWord );\
         availableWordPtr++;\
-        lastSlot++;\
     };\
 }\
 
