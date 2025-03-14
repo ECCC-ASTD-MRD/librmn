@@ -25,7 +25,7 @@ integer function mrblocx(buf, bfam, bdesc, bknat, bktyp, bkstp, blkno)
     implicit none
 
     integer :: buf(*)
-    !> Familly of the sreached block
+    !> Family of the searched block
     integer :: bfam
     !> Description of the searched block
     integer :: bdesc

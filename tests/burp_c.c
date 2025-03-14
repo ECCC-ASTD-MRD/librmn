@@ -281,7 +281,7 @@ int main (int argc, char* argv[])
 
 
     printf(" %3.1f  mrbhdr bufa \n",7.0);
-    ier = c_mrbhdr((uint32_t *)bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+    ier = c_mrbhdr(bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                    &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
 
     printf(" temps  = %d\n",temps);
@@ -305,7 +305,7 @@ int main (int argc, char* argv[])
     testit(ier);
 
     printf(" %3.1f  mrbhdr bufb \n",7.1);
-    ier = c_mrbhdr((uint32_t *)bufb,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+    ier = c_mrbhdr(bufb,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                    &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
 
     printf(" temps  = %d\n",temps);
@@ -329,7 +329,7 @@ int main (int argc, char* argv[])
     testit(ier);
 
     printf(" %3.1f  mrbhdr bufc \n",7.2);
-    ier = c_mrbhdr((uint32_t *)bufc,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+    ier = c_mrbhdr(bufc,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                    &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
 
     printf(" temps  = %d\n",temps);
@@ -917,7 +917,7 @@ int main (int argc, char* argv[])
     ier1 = c_mrbini(10,bufa,1123,0377,"station12",2,1800,3600,
                    0,0,975,42,901024,65535,1,sup,0,xaux,0);
 
-    ier = c_mrbhdr((uint32_t *)bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+    ier = c_mrbhdr(bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                    &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
     printf(" temps  = %d\n",temps);
     printf(" flgs  = %d\n",flgs);
@@ -951,7 +951,7 @@ int main (int argc, char* argv[])
     ier = c_mrfget(ier1,bufa);
    
 
-    ier = c_mrbhdr((uint32_t *)bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+    ier = c_mrbhdr(bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                    &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
     printf(" temps  = %d\n",temps);
     printf(" flgs  = %d\n",flgs);

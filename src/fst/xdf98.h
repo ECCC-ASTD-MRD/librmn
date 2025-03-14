@@ -38,9 +38,9 @@ int c_xdfini(int iun, buffer_interface_ptr buf, int idtyp,
              uint32_t *keys, int nkeys, uint32_t *info, int ninfo);
 
 
-int32_t f77name(xdfadd)(uint32_t *buf, uint32_t *donnees,
-                        int32_t *fnelm, int32_t *fnbits, int32_t *fdatyp);
-int c_xdfadd(uint32_t *buffer, uint32_t *donnees, int nelm, int nbits, int datyp);
+int32_t f77name(xdfadd)(int32_t *buf, int32_t *donnees,
+                        const int32_t *fnelm, const int32_t *fnbits, const int32_t *fdatyp);
+int c_xdfadd(void *buffer, uint32_t *donnees, int nelm, int nbits, int datyp);
 int32_t f77name(xdfprm)(int32_t *fhandle, int32_t *addr, int32_t *lng,
                         int32_t *idtyp, int32_t *primk, int32_t *fnprim);
 int c_xdfprm(int handle, int *addr, int *lng, int *idtyp,
@@ -54,7 +54,7 @@ int32_t f77name(xdfloc)(int32_t *fiun, int32_t *fhandle, int32_t *primk,
             int32_t *fnprim);
 int c_xdfloc(int iun, int handle, uint32_t *primk, int nprim);
 int c_xdfloc2(int iun, int handle, uint32_t *primk, int nprim, uint32_t *mskkeys);
-int32_t f77name(xdfget)(int32_t *fhandle, uint32_t *buf);
+int32_t f77name(xdfget)(const int32_t *fhandle, int32_t *buf);
 int c_xdfget(const int handle, buffer_interface_ptr buf);
 int c_xdfget2(const int handle, buffer_interface_ptr buf, int * const aux_ptr);
 int32_t f77name(xdfput)(int32_t *fiun, int32_t *fhandle,
@@ -66,21 +66,17 @@ int c_xdfopt(char *optname, char *optc, int optv);
 int32_t f77name(xdfgop)(char *foptname, char *foptc, int32_t *foptv,
             F2Cl l1, F2Cl l2);
 int c_xdfgop(char *optname, char *optc, int *optv);
-int32_t f77name(xdfins)(uint32_t *buf, uint32_t *donnees,
-                        int32_t *fbitpos, int32_t *fnelm,
-            int32_t *fnbits, int32_t *fdatyp);
-int c_xdfins(uint32_t *buffer, uint32_t *donnees, int bitpos,
+int32_t f77name(xdfins)(int32_t *buf, int32_t *donnees, const int32_t *fbitpos, const int32_t *fnelm,
+                        const int32_t *fnbits, const int32_t *fdatyp);
+int c_xdfins(void *buffer, uint32_t *donnees, int bitpos,
              int nelm, int nbits, int datyp);
-int32_t f77name(xdfxtr)(uint32_t *buf, uint32_t *donnees,
-                        int32_t *fbitpos, int32_t *fnelm,
-            int32_t *fnbits, int32_t *fdatyp);
-int c_xdfxtr(uint32_t *buffer, uint32_t *donnees, int bitpos,
+int32_t f77name(xdfxtr)(int32_t *buf, int32_t *donnees, const int32_t *fbitpos, const int32_t *fnelm,
+                        const int32_t *fnbits, const int32_t *fdatyp);
+int c_xdfxtr(void *buffer, uint32_t *donnees, int bitpos,
              int nelm, int nbits, int datyp);
-int32_t f77name(xdfrep)(uint32_t *buf, uint32_t *donnees,
-                        int32_t *fbitpos, int32_t *fnelm,
-            int32_t *fnbits, int32_t *fdatyp);
-int c_xdfrep(uint32_t *buffer, uint32_t *donnees, int bitpos,
-         int nelm, int nbits, int datyp);
+int32_t f77name(xdfrep)(int32_t *buf, int32_t *donnees, const int32_t *fbitpos, const int32_t *fnelm,
+                        const int32_t *fnbits, const int32_t *fdatyp);
+int c_xdfrep(void *buffer, uint32_t *donnees, int bitpos, int nelm, int nbits, int datyp);
 int32_t f77name(xdfcut)(uint32_t *buf,
             int32_t *fbitpos, int32_t *fnelm,
             int32_t *fnbits, int32_t *fdatyp);
