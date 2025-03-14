@@ -647,7 +647,7 @@ void* xdf_set_file_filter(const int iun, void* const new_filter) {
 //! Add to the end of the record contained in buf, nelm*nbits bits from donnees.
 int c_xdfadd(
     //! [inout] Buffer to contain the record
-    uint32_t *buffer,
+    void *buffer,
     //! [in] Data bits to add to buffer
     uint32_t *donnees,
     //! [in] Number of elements
@@ -1394,7 +1394,7 @@ int c_xdfini(
 //! \return 0 on success, error code otherwise
 int c_xdfins(
     //! [inout] Buffer to contain the modified record
-    uint32_t *buffer,
+    void *buffer,
     //! [in] Data bits to add
     uint32_t *donnees,
     //! [in] Bit position of insertion into buf
@@ -2383,7 +2383,7 @@ int c_xdfput(
 //! \return 0 on success, error code otherwise
 int c_xdfrep(
     //! [inout] Buffer to contain the modified record
-    uint32_t *buffer,
+    void *buffer,
     //! [in] Replacement data bits
     uint32_t *donnees,
     //! [in] Bit position of replacement in buf
@@ -2835,7 +2835,7 @@ int c_xdfuse(
 //! \return 0 on success, error code otherwise
 int c_xdfxtr(
     //! [in] Buffer to contain the modified record
-    uint32_t *buffer,
+    void *buffer,
     //! [out] Data bits to get
     uint32_t *donnees,
     //! [in] Bit position of starting extraction
@@ -3523,13 +3523,13 @@ static int32_t rewind_file(int file_index, int handle)
  *                              X D F A D D                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfadd)(uint32_t *buf, uint32_t *donnees,
-                        int32_t *fnelm, int32_t *fnbits, int32_t *fdatyp)
+int32_t f77name(xdfadd)(int32_t *buf, int32_t *donnees,
+                        const int32_t *fnelm, const int32_t *fnbits, const int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp;
    int ier;
 
-   ier = c_xdfadd(buf, donnees, nelm, nbits, datyp);
+   ier = c_xdfadd(buf, (uint32_t*)donnees, nelm, nbits, datyp);
 
    return (int32_t) ier;
 
@@ -3605,7 +3605,7 @@ int32_t f77name(xdfdel)(int32_t *fhandle)
  *                              X D F G E T                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfget)(int32_t *fhandle, uint32_t *buf)
+int32_t f77name(xdfget)(const int32_t *fhandle, int32_t *buf)
 {
    int handle = *fhandle, ier;
 
@@ -3716,13 +3716,13 @@ int32_t f77name(xdfini)(int32_t *fiun, uint32_t *buf, int32_t *fidtyp,
  *                              X D F I N S                                  *
  *****************************************************************************/
 
-int32_t f77name(xdfins)(uint32_t *buf, uint32_t *donnees,
-                        int32_t *fbitpos, int32_t *fnelm,
-            int32_t *fnbits, int32_t *fdatyp)
+int32_t f77name(xdfins)(int32_t *buf, int32_t *donnees,
+                        const int32_t *fbitpos, const int32_t *fnelm,
+            const int32_t *fnbits, const int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
 
-   return (int32_t) c_xdfins(buf, donnees, bitpos, nelm, nbits, datyp);
+   return (int32_t) c_xdfins(buf, (uint32_t*)donnees, bitpos, nelm, nbits, datyp);
 }
 
 
@@ -3856,13 +3856,12 @@ int32_t f77name(xdfput)(int32_t *fiun, int32_t *fhandle,
 }
 
 
-int32_t f77name(xdfrep)(uint32_t *buf, uint32_t *donnees,
-                        int32_t *fbitpos, int32_t *fnelm,
-            int32_t *fnbits, int32_t *fdatyp)
+int32_t f77name(xdfrep)(int32_t *buf, int32_t *donnees, const int32_t *fbitpos, const int32_t *fnelm,
+                        const int32_t *fnbits, const int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
 
-   return (int32_t) c_xdfrep(buf, donnees, bitpos, nelm, nbits, datyp);
+   return (int32_t) c_xdfrep(buf, (uint32_t*)donnees, bitpos, nelm, nbits, datyp);
 }
 
 
@@ -3907,11 +3906,10 @@ int32_t f77name(xdfuse)(int32_t *fsrc_unit, int32_t *fdest_unit)
 }
 
 
-int32_t f77name(xdfxtr)(uint32_t *buf, uint32_t *donnees,
-                        int32_t *fbitpos, int32_t *fnelm,
-            int32_t *fnbits, int32_t *fdatyp)
+int32_t f77name(xdfxtr)(int32_t *buf, int32_t *donnees, const int32_t *fbitpos, const int32_t *fnelm,
+                        const int32_t *fnbits, const int32_t *fdatyp)
 {
    int nelm = *fnelm, nbits = *fnbits, datyp = *fdatyp, bitpos = *fbitpos;
 
-   return (int32_t) c_xdfxtr(buf, donnees, bitpos, nelm, nbits, datyp);
+   return (int32_t) c_xdfxtr(buf, (uint32_t*)donnees, bitpos, nelm, nbits, datyp);
 }
