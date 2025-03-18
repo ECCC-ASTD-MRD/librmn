@@ -15,6 +15,8 @@ if (NOT CMAKE_MODULE_PATH)
     message(FATAL_ERROR "No paths were added to CMAKE_MODULE_PATH; cmake_rpn will not be found!")
 endif()
 
+include(CheckSourceCompiles)
+
 include(ec_init)           # Initialise compilers and ec specific functions
 ec_git_version()           # Get version from git
 ec_parse_manifest()        # Parse MANIFEST file
@@ -30,7 +32,6 @@ string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 include(GNUInstallDirs)
 set(CMAKE_INSTALL_LIBDIR lib CACHE INTERNAL "Install dir for libs" FORCE)  # Avoid using lib64, cache when in super-project
 
-ec_build_info()            # Generate build information
 include(ec_compiler_presets)
 
 # Need to add HAVE_RMN definition for auto-registering librmn within App
@@ -75,9 +76,6 @@ endif()
 # Figure out the correct arch_dependent include path
 set(BUILD_ARCH "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "Build architecture: ${BUILD_ARCH}")
-
-# TODO Adapt Config.cmake.in to be ready for this
-#set(CMAKE_DEBUG_POSTFIX "d")
 
 file(GLOB PROJECT_C_FILES
    src/*/*.c
@@ -239,10 +237,11 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<$<COMPILE_LANG_AND_ID:Fortran,Flang>: -Mbyteswapio>
         $<$<COMPILE_LANG_AND_ID:Fortran,PGI>: -byteswapio>
         $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-byteswapio>
+        $<$<COMPILE_LANGUAGE:C>: -Wall>
     )
     target_link_options(${TARGET} PUBLIC
-               $<$<COMPILE_LANG_AND_ID:C,GNU>:-ldl -pthread>
-               $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-ldl -pthread>
+               $<$<COMPILE_LANG_AND_ID:C,GNU>:-pthread>
+               $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-pthread>
     )
 
     if (${RMN_LLVM_ADDRESS_SANITIZER})
@@ -258,10 +257,22 @@ foreach(TARGET IN ITEMS ${TARGETS})
     # nvhpc doesn't recognize shiftl	  
     target_compile_definitions(${TARGET}
         PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:SHIFTL=LSHIFT>)
-    # for IntelLLVM > 2024.0 - TODO: move in source code
-    if (("${CMAKE_C_COMPILER_ID}" STREQUAL "IntelLLVM") AND (${CMAKE_C_COMPILER_VERSION} VERSION_GREATER_EQUAL 2024.1))
-      target_compile_definitions(${TARGET} PUBLIC FORTRAN_202X_SUPPORTED)
+
+    # Check if -ldl flag is needed
+    check_source_compiles(C
+        "#include <dlfcn.h>
+        int main(void) { dlopen(0, 0); }"
+        DL_INCLUDED)
+    if (NOT ${DL_INCLUDED})
+        target_link_options(${TARGET} PUBLIC -ldl)
     endif()
+
+    # Check for f_c_string and c_f_strpointer availability
+    check_source_compiles(Fortran "use, intrinsic :: iso_c_binding, only: c_f_strpointer; end" C_F_STRPOINTER_AVAILABLE SRC_EXT F90)
+    if (${C_F_STRPOINTER_AVAILABLE})
+        target_compile_definitions(${TARGET} PRIVATE FORTRAN_202X_SUPPORTED)
+    endif()
+
     add_dependencies(${TARGET}
         ${PROJECT_NAME}_build_info
         WhiteBoardFortranHeader
@@ -331,6 +342,9 @@ add_custom_command(TARGET rmn-static POST_BUILD
     BYPRODUCTS lib${PROJECT_NAME}_${PROJECT_VERSION}.a)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.a DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
+ec_build_config()
+ec_build_info()
+
 # Fortran modules are installed in the include directory for now
 install(FILES
     ${MODULE_DIR}/f_c_strings_mod.mod
@@ -381,7 +395,7 @@ install(EXPORT rmn-static-targets
 install(EXPORT udunits2-targets
         NAMESPACE udunits2::
         DESTINATION ${CONFIG_INSTALL_DIR})
-    
+
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
     "Config.cmake.in"
@@ -406,7 +420,6 @@ add_subdirectory(tests)
 
 # Packaging
 ec_package_name()                 # Define package prefix  
-ec_build_config()                 # Create build configuration script
 ec_prepare_ssm()                  # Prepare ssm packaging files
 
 set(CPACK_GENERATOR "TGZ")

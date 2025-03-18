@@ -65,8 +65,8 @@ int32_t c_ezgdef_supergrid(
     strcpy(newgr.fst.nomvarx, "^>  ");
     strcpy(newgr.fst.nomvary, "^>  ");
 
-    float * ax;
-    float * ay;
+    float * ax = NULL;
+    float * ay = NULL;
     int32_t sub_gdrow_id, sub_gdcol_id;
     if (vercode == 1) {
         int32_t sub_gdid = subgrid[0];

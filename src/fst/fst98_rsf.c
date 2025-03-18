@@ -7,9 +7,6 @@
 #include "fst24_record_internal.h"
 #include "primitives/fnom_internal.h"
 
-static inline size_t strlen_up_to(const char* string, const size_t max_length) {
-    return Min(strlen(string), Max(max_length, 0));
-}
 
 //! Checks whether the given unit corresponds to an RSF file
 int32_t is_rsf(

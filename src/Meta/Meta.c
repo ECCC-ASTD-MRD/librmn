@@ -568,7 +568,7 @@ json_object *Meta_GetVar(json_object *Obj,char **StandardName,char **RPNName,cha
 
 double Meta_DurationToSeconds(char *Unit) {
 
-   double sec;
+   double sec = 0.0;
 
    if (!strncmp(MetaTimeUnits[0],Unit,11)) {
       sec=0.001;

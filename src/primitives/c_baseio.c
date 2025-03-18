@@ -1773,7 +1773,6 @@ int c_sqputw(
     //! [in] Number of words to write
     const int nwords
 ) {
-    int aecrit = 0;
     int aecrire = sizeof(uint32_t) * nwords;
     int necrit = 1;
     int fd = c_getfdsc(iun);
@@ -1783,7 +1782,6 @@ int c_sqputw(
     while (aecrire && (necrit > 0)) {
         necrit = write(fd, pbuf, aecrire);
         aecrire -= necrit;
-        aecrit += necrit;
         pbuf += (necrit / sizeof(uint32_t));
     }
     return (aecrire == 0) ? necrit / (int)sizeof(uint32_t) : -1;
@@ -2232,7 +2230,7 @@ static int qqcopen(
     const int ind = get_free_wafile_slot();
     if (ind < 0) return -1; // Error message already printed
 
-    int fd;
+    int fd = 0;
     int subfile_length = 0;
     if (FGFDT[indf].subname) {
         // cmcarc file

@@ -99,7 +99,7 @@ int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, in
     float *gdst_lats, tmp, real_un, real_j;
     char option[32], value[32];
 
-    int32_t ni_out, nj_out, ninj_out;
+    int32_t ni_out, nj_out;
 
     c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
 
@@ -117,7 +117,6 @@ int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, in
             c_gdkey2rowcol(gdout,  &gdrow_out,  &gdcol_out);
             ni_out = Grille[gdrow_out][gdcol_out].ni;
             nj_out = Grille[gdrow_out][gdcol_out].nj;
-            ninj_out = ni_out * nj_out;
             ier = c_gdcompatible_grids(gdin, gdout);
             if (ier < 0) {
                 fprintf(stderr, "(gdinterp) input and output grids are not compatible for average computation\n");
@@ -208,7 +207,6 @@ int32_t c_gdinterp(float *zout, float *zin, int32_t gdin, float *x, float *y, in
          idx_gdin = c_find_gdin(gdin, gdout);
          ni_out = Grille[gdrow_out][gdcol_out].ni;
          nj_out = Grille[gdrow_out][gdcol_out].nj;
-         ninj_out = ni_out * nj_out;
          un = 1;
          strcpy(option, "cloud_interp_alg");
          ier = c_ezgetopt(option, value);

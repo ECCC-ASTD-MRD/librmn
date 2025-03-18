@@ -22,19 +22,13 @@
 
 void flush_stdout()
 {
-  int ier;
-  
-  ier = fflush(stdout);
+  fflush(stdout);
 }
 void flush_stdout_()
 {
-  int ier;
-  
-  ier = fflush(stdout);
+  fflush(stdout);
 }
 void flush_stdout__()
 {
-  int ier;
-  
-  ier = fflush(stdout);
+  fflush(stdout);
 }
