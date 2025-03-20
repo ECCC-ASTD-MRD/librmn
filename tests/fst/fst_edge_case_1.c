@@ -9,10 +9,6 @@ static inline float as_float(const void* a) {
     return *((float*)a);
 }
 
-static inline uint32_t as_uint(const void* a) {
-    return *((uint32_t*)a);
-}
-
 static inline float float_diff(const uint32_t a, const uint32_t b) {
     return fabsf(as_float(&a) - as_float(&b));
 }

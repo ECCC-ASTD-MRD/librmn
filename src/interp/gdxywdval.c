@@ -37,7 +37,7 @@ int32_t f77name(gdxywdval)(int32_t *gdin, float *uuout, float *vvout, float *uui
 //! Vector interpolation of points located at x-y coordinates, returned as speed and direction (UVand WD)
 int32_t c_gdxywdval(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n)
 {
-    int32_t ier, j, icode, yin_gdid, yan_gdid, lni, lnj;
+    int32_t ier, j, yin_gdid, yan_gdid, lni, lnj;
 
     int32_t gdrow_id, gdcol_id, yin_gdrow_id, yin_gdcol_id;
     float *tmplat, *tmplon, *tmpy;
@@ -68,13 +68,13 @@ int32_t c_gdxywdval(int32_t gdin, float *uuout, float *vvout, float *uuin, float
                 tmpy[j] = y[j];
             }
         }
-        icode = c_gdxyvval_orig(yin_gdid, tmpuu, tmpvv, uuin, vvin, x, tmpy, n);
-        icode = c_gdllfxy_orig (yin_gdid, tmplat, tmplon, x, tmpy, n);
-        icode = c_gdwdfuv_orig (yin_gdid, uuyin, vvyin, tmpuu, tmpvv, tmplat, tmplon, n);
+        ier = c_gdxyvval_orig(yin_gdid, tmpuu, tmpvv, uuin, vvin, x, tmpy, n);
+        ier = c_gdllfxy_orig (yin_gdid, tmplat, tmplon, x, tmpy, n);
+        ier = c_gdwdfuv_orig (yin_gdid, uuyin, vvyin, tmpuu, tmpvv, tmplat, tmplon, n);
 
-        icode = c_gdxyvval_orig(yan_gdid, tmpuu, tmpvv, &uuin[(lni*lnj)], &vvin[(lni*lnj)], x, tmpy, n);
-        icode = c_gdllfxy_orig (yan_gdid, tmplat, tmplon, x, tmpy, n);
-        icode = c_gdwdfuv_orig (yan_gdid, uuyan, vvyan, tmpuu, tmpvv, tmplat, tmplon, n);
+        ier = c_gdxyvval_orig(yan_gdid, tmpuu, tmpvv, &uuin[(lni*lnj)], &vvin[(lni*lnj)], x, tmpy, n);
+        ier = c_gdllfxy_orig (yan_gdid, tmplat, tmplon, x, tmpy, n);
+        ier = c_gdwdfuv_orig (yan_gdid, uuyan, vvyan, tmpuu, tmpvv, tmplat, tmplon, n);
         for (j = 0; j < n; j++) {
             if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj) {
                 uuout[j] = uuyan[j];
@@ -100,5 +100,5 @@ int32_t c_gdxywdval(int32_t gdin, float *uuout, float *vvout, float *uuin, float
     free(tmpuu);
     free(tmpvv);
 
-    return 0;
+    return ier;
 }

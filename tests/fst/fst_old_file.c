@@ -157,7 +157,7 @@ int check_file(const char* filepath_orig) {
         return -1;
     }
 
-    if (!fst24_close(old_file) | !fst24_close(mirror_copy) | !fst24_close(similar_copy)) {
+    if (!fst24_close(old_file) || !fst24_close(mirror_copy) || !fst24_close(similar_copy)) {
         App_Log(APP_ERROR, "Error while closing %s and its copies\n", filename);
         return -1;
     }
@@ -205,7 +205,7 @@ int check_file(const char* filepath_orig) {
     fst24_record_free(&rec_mirror);
     fst24_record_free(&rec_similar);
 
-    if (!fst24_close(old_file) | !fst24_close(mirror_copy) | !fst24_close(similar_copy)) {
+    if (!fst24_close(old_file) || !fst24_close(mirror_copy) || !fst24_close(similar_copy)) {
         App_Log(APP_ERROR, "Error while closing %s and its copies\n", filename);
         return -1;
     }

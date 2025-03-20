@@ -344,7 +344,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     int minSignedInteger=0, maxSignedInteger=0;
     uint32_t minUnsignedInteger=0, maxUnsignedInteger=0;
     uint32_t maxRange;
-    uint32_t maxSpan;
+    uint32_t maxSpan = 0;
 
 
     int positiveMask;
@@ -508,7 +508,6 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
          {
            tokenSize     = bitSizeOfPackedToken;
            ShiftIntended = 0;
-           intCount      = intCount;
            minSigned     = minSignedInteger;
            minUnsigned   = minUnsignedInteger;
          };
@@ -603,10 +602,9 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
 
     int wordSize;
     uint32_t cleanupMask;
-    int minSignedInteger=0;
     uint32_t minUnsignedInteger=0, maxUnsignedInteger=0;
     uint32_t maxRange;
-    uint32_t maxSpan;
+    uint32_t maxSpan = 0;
 
 
     int positiveMask;
@@ -637,8 +635,6 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     int significantBit, inSignificantBit;
     uint32_t *arrayPtr;
     int tokenSize, ShiftIntended;
-    int  minSigned;
-    uint32_t minUnsigned;
     integer_header *theHeader;
 
     /********************************
@@ -749,17 +745,12 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
            tokenSize     = theHeader->numOfBitsPerToken;
            ShiftIntended = theHeader->SHIFT;
            intCount      = theHeader->numOfPackedToken;
-           minSigned     = theHeader->minValue;
-           minUnsigned   = theHeader->minValue;
 
          }
        else
          {
            tokenSize     = bitSizeOfPackedToken;
            ShiftIntended = 0;
-           intCount      = intCount;
-           minSigned     = minSignedInteger;
-           minUnsigned   = minUnsignedInteger;
          };
      };
 
@@ -841,10 +832,9 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
 
     int wordSize;
     uint32_t cleanupMask;
-    int minSignedInteger=0;
     uint32_t minUnsignedInteger=0, maxUnsignedInteger=0;
     uint32_t maxRange;
-    uint32_t maxSpan;
+    uint32_t maxSpan = 0;
 
 
     int positiveMask;
@@ -875,8 +865,6 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     int significantBit, inSignificantBit;
     uint32_t *arrayPtr;
     int tokenSize, ShiftIntended;
-    int  minSigned;
-    uint32_t minUnsigned;
     integer_header *theHeader;
 
     /********************************
@@ -987,17 +975,12 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
            tokenSize     = theHeader->numOfBitsPerToken;
            ShiftIntended = theHeader->SHIFT;
            intCount      = theHeader->numOfPackedToken;
-           minSigned     = theHeader->minValue;
-           minUnsigned   = theHeader->minValue;
 
          }
        else
          {
            tokenSize     = bitSizeOfPackedToken;
            ShiftIntended = 0;
-           intCount      = intCount;
-           minSigned     = minSignedInteger;
-           minUnsigned   = minUnsignedInteger;
          };
      };
 

@@ -32,6 +32,7 @@ string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 include(GNUInstallDirs)
 set(CMAKE_INSTALL_LIBDIR lib CACHE INTERNAL "Install dir for libs" FORCE)  # Avoid using lib64, cache when in super-project
 
+ec_build_info()            # Generate build information
 include(ec_compiler_presets)
 
 # Need to add HAVE_RMN definition for auto-registering librmn within App
@@ -76,6 +77,9 @@ endif()
 # Figure out the correct arch_dependent include path
 set(BUILD_ARCH "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 message(STATUS "Build architecture: ${BUILD_ARCH}")
+
+# TODO Adapt Config.cmake.in to be ready for this
+#set(CMAKE_DEBUG_POSTFIX "d")
 
 file(GLOB PROJECT_C_FILES
    src/*/*.c
@@ -237,6 +241,7 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<$<COMPILE_LANG_AND_ID:Fortran,Flang>: -Mbyteswapio>
         $<$<COMPILE_LANG_AND_ID:Fortran,PGI>: -byteswapio>
         $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-byteswapio>
+        $<$<COMPILE_LANGUAGE:C>: -Wall>
     )
     target_link_options(${TARGET} PUBLIC
                $<$<COMPILE_LANG_AND_ID:C,GNU>:-pthread>
@@ -341,9 +346,6 @@ add_custom_command(TARGET rmn-static POST_BUILD
     BYPRODUCTS lib${PROJECT_NAME}_${PROJECT_VERSION}.a)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.a DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-ec_build_config()
-ec_build_info()
-
 # Fortran modules are installed in the include directory for now
 install(FILES
     ${MODULE_DIR}/f_c_strings_mod.mod
@@ -394,7 +396,7 @@ install(EXPORT rmn-static-targets
 install(EXPORT udunits2-targets
         NAMESPACE udunits2::
         DESTINATION ${CONFIG_INSTALL_DIR})
-
+    
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
     "Config.cmake.in"
@@ -419,6 +421,7 @@ add_subdirectory(tests)
 
 # Packaging
 ec_package_name()                 # Define package prefix  
+ec_build_config()                 # Create build configuration script
 ec_prepare_ssm()                  # Prepare ssm packaging files
 
 set(CPACK_GENERATOR "TGZ")

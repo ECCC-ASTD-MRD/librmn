@@ -37,20 +37,20 @@ void rempli(int* tableau, int ni, int nj, int nk);
 int main (int argc, char* argv[])
 {
     int bufa[8000], bufb[5000], bufc[6000], bufd[8000], bufe[20000];
-    int tblval[10000],xtra[3];
+    int tblval[10000];
     int lstelea[10],lsteleb[4],lstelec[6],lstelee[130];
     float rval[500], opvalr;
-    int clistea[10], clisteb[4], clistec[6], clistee[130];
+    int clistea[10], clisteb[4], clistee[130];
     int tblburp[10][4];
     int bit0,blkno,lbits,left,ier,ier1,ier2,ier3,i,j, relem;
-    int sup[2],xaux[2],nsup,nxaux;
-    int tblcomp[500],lstcomp[10],tempo,etblval[10000];
+    int sup[2],xaux[2];
+    int tblcomp[500],lstcomp[10],etblval[10000];
     char stnid[10], opvalc[9];
     int temps,flgs,idtyp,lati,longi,elev,drcv,date,oars,run,nblk,nele,nval,
         dx,dy,nt,bfam,bdesc,btyp,nbit,datyp,lonenr,lonmax;
 
     int *ptba, *ptbb, *ptbc, *ptbd, *ptbe, *ptla, *ptlb, *ptlc,  *ptle,
-        *pttcmp, *ptlcmp, *pttval, *cptla, *cptlb, *cptlc;
+        *pttcmp, *ptlcmp, *pttval, *cptla, *cptlb;
     int *pttblburp;
     float *ptrval;
     char *ptstnid;
@@ -86,7 +86,7 @@ int main (int argc, char* argv[])
 
 
     ptla = lstelea; ptlb = lsteleb; ptlc = lstelec, ptle = lstelee;
-    cptla = clistea; cptlb = clisteb; cptlc = clistec;
+    cptla = clistea; cptlb = clisteb;
     *ptla     = 2;
     *(ptla+1) = 1001;
     *(ptla+2) = 2121;
@@ -281,7 +281,7 @@ int main (int argc, char* argv[])
 
 
     printf(" %3.1f  mrbhdr bufa \n",7.0);
-    ier = c_mrbhdr((uint32_t *)bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+    ier = c_mrbhdr(bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                    &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
 
     printf(" temps  = %d\n",temps);
@@ -305,7 +305,7 @@ int main (int argc, char* argv[])
     testit(ier);
 
     printf(" %3.1f  mrbhdr bufb \n",7.1);
-    ier = c_mrbhdr((uint32_t *)bufb,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+    ier = c_mrbhdr(bufb,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                    &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
 
     printf(" temps  = %d\n",temps);
@@ -329,7 +329,7 @@ int main (int argc, char* argv[])
     testit(ier);
 
     printf(" %3.1f  mrbhdr bufc \n",7.2);
-    ier = c_mrbhdr((uint32_t *)bufc,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+    ier = c_mrbhdr(bufc,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                    &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
 
     printf(" temps  = %d\n",temps);
@@ -917,7 +917,7 @@ int main (int argc, char* argv[])
     ier1 = c_mrbini(10,bufa,1123,0377,"station12",2,1800,3600,
                    0,0,975,42,901024,65535,1,sup,0,xaux,0);
 
-    ier = c_mrbhdr((uint32_t *)bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+    ier = c_mrbhdr(bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                    &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
     printf(" temps  = %d\n",temps);
     printf(" flgs  = %d\n",flgs);
@@ -951,7 +951,7 @@ int main (int argc, char* argv[])
     ier = c_mrfget(ier1,bufa);
    
 
-    ier = c_mrbhdr((uint32_t *)bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
+    ier = c_mrbhdr(bufa,&temps,&flgs,stnid,&idtyp,&lati,&longi,&dx,&dy,
                    &elev,&drcv,&date,&oars,&run,&nblk,(uint32_t *)sup,0,(uint32_t *)xaux,0);
     printf(" temps  = %d\n",temps);
     printf(" flgs  = %d\n",flgs);

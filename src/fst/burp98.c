@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include <App.h>
-#include <rmn/burp.h>
+#include "rmn/burp.h"
 #include "primitives/fnom_internal.h"
 #include "qstdir.h"
 #include "xdf98.h"
@@ -435,23 +435,23 @@ int c_mrbadd(
     //! [out] Number of blocks in buf
     int *bkno,
     //! [in] Number of meteorogical elements in block
-    int nele,
+    const int nele,
     //! [in] Number of data per elements
-    int nval,
+    const int nval,
     //! [in] Number of group of nele*nval values in block
-    int nt,
+    const int nt,
     //! [in] Block family (12 bits, bdesc no more used)
-    int bfam,
+    const int bfam,
     //! [in] Kept for backward compatibility
-    int bdesc,
+    const int bdesc,
     //! [in] Block type
-    int btyp,
+    const int btyp,
     //! [in] Number of bit to keep per values
-    int nbit,
+    const int nbit,
     // [out] Position of first bit of the report
     int *bit0,
     //! [in] Data type for packing
-    int datyp,
+    const int datyp,
     //! [in] List of nele meteorogical elements
     uint32_t *lstele,
     //! [in] Array of values to write (nele*nval*nt)
@@ -544,11 +544,11 @@ int c_mrbadd(
     }
 
     buf->nbits += (bits_added +63) / 64 * 64;
-    err = c_xdfins((uint32_t *)buf, (uint32_t *)&entete, buf->buf9, DIMENT,
+    err = c_xdfins(buf, (uint32_t *)&entete, buf->buf9, DIMENT,
         8 * sizeof(uint32_t), 0);
     if (err < 0) return err;
 
-    err = c_xdfadd((uint32_t *)buf, tblval, nombre, inbit, idatyp);
+    err = c_xdfadd(buf, tblval, nombre, inbit, idatyp);
     if (err < 0) return err;
 
     buf->buf78.buf8++;
@@ -571,7 +571,7 @@ int c_mrbdel(
     //! [in,out] Vector to contain the report
     void *buffer,
     //! [in] Block number to be deleted
-    int number
+    const int number
 ) {
     buffer_interface_ptr buf = ( buffer_interface_ptr) buffer;
     int err, bitpos, bit0, prebit, difbit, nele, nval, nt, nbit;
@@ -585,7 +585,7 @@ int c_mrbdel(
     }
 
    bitpos = NBENTB * (number -1);
-   err = c_xdfxtr((uint32_t *)buf,(uint32_t *)&entete,bitpos,DIMENT,8*sizeof(uint32_t),0);
+   err = c_xdfxtr(buf,(uint32_t *)&entete,bitpos,DIMENT,8*sizeof(uint32_t),0);
    if (err < 0) return err;
 
     if (entete.flag != 0) {
@@ -639,7 +639,7 @@ int c_mrbdel(
 //! Get the description parameters of a data block
 int c_mrbhdr(
     //! [in] Buffer containing the report
-    uint32_t *buf,
+    void *buf,
     int *temps,
     int *flgs,
     char *stnid,
@@ -656,9 +656,9 @@ int c_mrbhdr(
     //! [in] Block number
     int *nblk,
     uint32_t *sup,
-    int nsup,
+    const int nsup,
     uint32_t *xaux,
-    int nxaux
+    const int nxaux
 ) {
     buffer_interface_ptr buffer = (buffer_interface_ptr)buf;
     burp_record *burprec;
@@ -716,7 +716,7 @@ int c_mrbhdr(
 //! \return Always 0
 int c_mrblen(
     // [in] Buffer containing the report
-    void *buffer,
+    const void *buffer,
     //! [out] Number of bits used
     int *bitsUsed,
     //! [out] Number of bits left
@@ -733,17 +733,17 @@ int c_mrblen(
 
 //! Search for a specific block in the buffer
 //! \return Index of the block if found, -1 otherwise
-int c_mrbloc(
+int32_t c_mrbloc(
     //! [in] Buffer containing the report
     void *buffer,
     //! [in] Block family (12 bits, bdesc no more used)
-    int bfam,
+    const int bfam,
     //! [in] Kept for backward compatibility
-    int bdesc,
+    const int bdesc,
     //! [in] Block type
-    int btyp,
+    const int btyp,
     //! [in] Index of the block from which to start the search (0 to start from the beginning)
-    int blkno
+    const int blkno
 ) {
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
     int bfamho, bfamdesc;
@@ -815,9 +815,9 @@ int c_mrbloc(
 //! \return 0 on success, error code otherwise
 int c_mrbprm(
     //! [in] Buffer containing the report
-    uint32_t *buf,
+    void *buf,
     //! [in] Index of the block from which to get the parameters
-    int  bkno,
+    const int  bkno,
     //! [out] Number of elements
     int *nele,
     //! [out] Number of values per element
@@ -870,7 +870,7 @@ int c_mrbrep(
     //! [in,out] Buffer containing the report
     void *buffer,
     //! [in] Index of the block to be replaced
-    int blkno,
+    const int blkno,
     //! [in] Array of values to write (nele * nval * nt)
     uint32_t *tblval
 ) {
@@ -928,7 +928,7 @@ int c_mrbrep(
         /* insertion by 32 bit slices */
         new_nmots = diff_nmots * 2;
         if (new_nmots > 0) {
-            err = c_xdfins((uint32_t *)buf, tblval, bitpos, new_nmots, 32, 0);
+            err = c_xdfins(buf, tblval, bitpos, new_nmots, 32, 0);
             for (i = blkno; i < buf->buf78.buf8; i++) {
                 block[i].bit0 += diff_nmots;
             }
@@ -965,7 +965,7 @@ int c_mrbxtr(
     }
 
     bitpos = NBENTB * (bkno - 1);
-    err = c_xdfxtr((uint32_t *)buf, (uint32_t *)&entete, bitpos, DIMENT, 8 * sizeof(uint32_t), 0);
+    err = c_xdfxtr(buf, (uint32_t *)&entete, bitpos, DIMENT, 8 * sizeof(uint32_t), 0);
     if (err < 0) return err;
 
     if (entete.flag != 0) {
@@ -995,14 +995,14 @@ int c_mrbxtr(
 
     /* extract list of elements */
     if (nelements > 0) {
-        err = c_xdfxtr((uint32_t *)buf, lstele, bitpos, nelements, 16, 2);
+        err = c_xdfxtr(buf, lstele, bitpos, nelements, 16, 2);
     }
 
     /* extract array of values */
     nnbits = (((nele - done) * 16 + 63) / 64) * 64;
     bitpos = bitpos + nnbits;
     nombre = nele * nval * nt;
-    err = c_xdfxtr((uint32_t *)buf, tblval, bitpos, nombre, nbit, datyp);
+    err = c_xdfxtr(buf, tblval, bitpos, nombre, nbit, datyp);
 
     if ((datyp == 2) || (datyp == 4) || (datyp == 6)) {
         /* set all bits of missing values to 1 */
@@ -1079,7 +1079,7 @@ int c_mrfbfl(
 //! Read a report from a file
 int c_mrfget(
     //! [in] Handle the record
-    int handle,
+    const int handle,
     //! [out] Pointer to the buffer where the report will be written
     void *buffer
 ) {
@@ -1108,9 +1108,9 @@ int c_mrfget(
 */
 int c_mrfput(
     //! [in] Unit number associated with the file in which to write
-    int iun,
+    const int iun,
     //! [in] Handle of the record
-    int handle,
+    const int handle,
     //! [in] Buffer containing the report
     void *buffer
 ) {
@@ -1129,7 +1129,7 @@ int c_mrfput(
     if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_INFO) {
         nsup = 0;
         nxaux = 0;
-        c_mrbhdr((uint32_t *)buf, &temps, &flgs, stnid, &idtyp, &lat, &lon,
+        c_mrbhdr(buf, &temps, &flgs, stnid, &idtyp, &lat, &lon,
                 &dx, &dy, &elev, &drnd, &date, &oars, &runn, &nblk,
                 (uint32_t *)&sup, nsup, (uint32_t *)&xaux, nxaux);
         stnid[9] = '\0';
@@ -1243,14 +1243,14 @@ int32_t f77name(mrbadd)(
 
 int32_t f77name(mrbdel)(
     uint32_t *buf,
-    int32_t *f_number
+    const int32_t *f_number
 ) {
     return (int32_t) c_mrbdel(buf, *f_number);
 }
 
 
 int32_t f77name(mrbhdr)(
-    uint32_t *buf,
+    int32_t *buf,
     int32_t *f_temps,
     int32_t *f_flgs,
     char *f_stnid,
@@ -1302,7 +1302,7 @@ int32_t f77name(mrbhdr)(
 
 
 int32_t f77name(mrblen)(
-    uint32_t *buf,
+    const int32_t *buf,
     int32_t *f_lbits,
     int32_t *f_left
 ) {
@@ -1311,28 +1311,28 @@ int32_t f77name(mrblen)(
 
 
 int32_t f77name(mrbloc)(
-    uint32_t *buf,
-    int32_t *f_bfam,
-    int32_t *f_bdesc,
-    int32_t *f_btyp,
-    int32_t *f_blkno
+    int32_t * const buf,
+    const int32_t* const f_bfam,
+    const int32_t* const f_bdesc,
+    const int32_t* const f_btyp,
+    const int32_t* const f_blkno
 ) {
     return (int32_t) c_mrbloc(buf, *f_bfam, *f_bdesc, *f_btyp, *f_blkno);
 }
 
 
 int32_t f77name(mrbrep)(
-    uint32_t *buf,
-    int32_t *f_blkno,
-    uint32_t *tblval
+    int32_t *buf,
+    const int32_t *f_blkno,
+    int32_t *tblval
 ) {
-    return (int32_t) c_mrbrep(buf, *f_blkno, tblval);
+    return (int32_t) c_mrbrep(buf, *f_blkno, (uint32_t*)tblval);
 }
 
 
 int32_t f77name(mrbxtr)(
-    uint32_t *buf,
-    int32_t *f_bkno,
+    int32_t *buf,
+    const int32_t *f_bkno,
     int32_t *lstele,
     int32_t *tblval
 ) {
@@ -1348,17 +1348,17 @@ int32_t f77name(mrfapp)(
 
 
 int32_t f77name(mrfget)(
-    int32_t *f_handle,
-    uint32_t *buf
+    const int32_t *f_handle,
+    int32_t *buf
 ) {
     return (int32_t) c_mrfget(*f_handle, buf);
 }
 
 
 int32_t f77name(mrfput)(
-    int32_t *f_iun,
-    int32_t *f_handle,
-    uint32_t *buf
+    const int32_t *f_iun,
+    const int32_t *f_handle,
+    int32_t *buf
 ) {
     return (int32_t) c_mrfput(*f_iun, *f_handle, buf);
 }

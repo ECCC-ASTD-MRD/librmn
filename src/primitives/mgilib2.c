@@ -59,17 +59,11 @@ static channel chn[MAX_CHANNELS];
 static int ichan = 0;
 static int init = 0;
 static int SIG_ACTIVE = 1;
-static char PID_file[MAX_STR];
-static char *mgidir;
 static int *intBuffer;
 //! Number of connexion retries
 int USER_TRY_CONNECT = 10;
 
-static void getmgidir();
-static int makepidfile();
-static void removepidfile();
 static void strcopy(char *s, const char *t, const int charlen);
-static int validchan(int chan);
 static int bwrite(int chan, void *buffer, int nelem, char *dtype);
 int retry_connect(int chan);
 int32_t f77name (mgi_init) (const char * const channel_name, F2Cl lname);
@@ -91,80 +85,6 @@ void f77name (mgi_nosig)() {
     Lib_Log(APP_LIBRMN,APP_WARNING,"%s: deprecated call\n",__func__);
 }
 
-
-//! Copy a string given by a fortran routine
-//! The space character is ignored, it is taken here as the end of the string
-static void strcopy_(
-    //! Destination string
-    char *srcStr,
-    //! Source string
-    char *dstStr,
-    //! Unsused
-    int lengthsrcStr,
-    //! Length of the source string
-    int lengthdstStr
-) {
-    int i = 0;
-
-    while ( (*srcStr++ = *dstStr++) != ' ' && i++ < lengthdstStr );
-}
-
-
-//! Utility function for f_strcmp
-static int check_ends(
-    char *s1,
-    char *s2,
-    int s2Len,
-    int equalLen
-) {
-    if (*s2 == ' ' ) {
-        return *(s1 - 1) - *(s2 - 1);
-    } else {
-        if (equalLen == s2Len) {
-            return *(s1 - 1) - *(s2 - 1);
-        } else {
-            return -1;
-        }
-    }
-}
-
-
-//! Compare two strings given by a fortran routine, considering the space character as the end of the string
-static int f_strcmp(
-    unsigned char *s1,
-    unsigned char *s2,
-    int s1Len,
-    int s2Len
-) {
-    int equalLen = 0;
-    int length;
-
-    if (s1Len <= s2Len) {
-        length = s1Len;
-    } else {
-        length = s2Len;
-    }
-
-    while( equalLen < length && *s1 != ' ' && *s2 != ' ' && *s1 == *s2 && *s1 != '\0' && *s2 != '\0') {
-        s1++;
-        s2++;
-        equalLen++;
-    }
-
-
-    if (*s1 == ' ') {
-        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: before return if (*s1 == ' '), s1 => %s\n",__func__,s1);
-        return check_ends((char *)s1, (char *)s2, s2Len, equalLen);
-    } else if (*s2 == ' ') {
-        Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: before return if (*s2 == ' '), s2 => %s\n",__func__,s2);
-        return 2 + check_ends((char *)s2, (char *)s1, s1Len, equalLen);
-    }
-
-    return *s1 - *s2;
-}
-
-
-
 //! Copy a string given by a fortran routine and place the NULL character at the end of the true (charlen) length of the string
 static void strcopy(
     char *s,        //!< Dest string
@@ -180,40 +100,6 @@ static void strcopy(
         *s++ = '\0';
     }
 }
-
-
-//! Validate the channel number; it must be greater than zero and less than or equal to ICHAN
-static int validchan(
-    int chan
-) {
-    if ( chn[chan].buffer == NULL ) return -1;
-    return 0;
-}
-
-
-//! Get the value of the environment variable "MGI_DIR"
-static void getmgidir() {
-    if ( (mgidir = getenv("MGI_DIR")) == NULL) {
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Environment variable \"MGI_DIR\" undefined\n",__func__);
-    }
-}
-
-//! Make the PID file
-static int makepidfile() {
-    char stuff[MAX_STR];
-    sprintf( PID_file, "%s/%d", mgidir, getpid() );
-    sprintf( stuff, "%s/%s", mgidir, "PROCS" );
-    Lib_Log(APP_LIBRMN,APP_INFO,"%s: linking :%s: to :%s:\n",__func__,PID_file,stuff);
-    return link(stuff, PID_file);
-}
-
-
-//! Remove the PID file
-static void removepidfile() {
-    Lib_Log(APP_LIBRMN,APP_INFO,"%s: removing %s\n",__func__,PID_file);
-    unlink(PID_file);
-}
-
 
 //! Fill the write buffer of initialized channel "chan" on the server
 static int bwrite ( int chan, void *buffer, int nelem, char *dtype ) {

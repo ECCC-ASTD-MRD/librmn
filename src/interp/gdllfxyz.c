@@ -31,7 +31,7 @@ int32_t f77name(gdllfxyz)(int32_t *gdid, float *lat, float *lon, float *x, float
 
 
 int32_t c_gdllfxyz(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n) {
-  int32_t i,npts, hem, un;
+  int32_t i,npts, un;
 
   _Grille grEntree;
 
@@ -72,11 +72,6 @@ int32_t c_gdllfxyz(int32_t gdid, float *lat, float *lon, float *x, float *y, int
 
   case 'S':
   case 'N':
-    if (grEntree.grref[0] == 'N')
-      hem = 1;
-    else
-      hem = 2;
-
     un = 1;
     f77name(ez_vllfxy)(lat,lon,x,y,&npts,&un,&grEntree.fst.xgref[D60],
         &grEntree.fst.xgref[DGRW], &grEntree.fst.xgref[PI], &grEntree.fst.xgref[PJ],&grEntree.fst.hemisphere);
