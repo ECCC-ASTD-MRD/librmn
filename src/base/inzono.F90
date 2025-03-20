@@ -1,61 +1,69 @@
-!/* RMNLIB - Library of useful routines for C and FORTRAN programming
-! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-! *                          Environnement Canada
-! *
-! * This library is free software; you can redistribute it and/or
-! * modify it under the terms of the GNU Lesser General Public
-! * License as published by the Free Software Foundation,
-! * version 2.1 of the License.
-! *
-! * This library is distributed in the hope that it will be useful,
-! * but WITHOUT ANY WARRANTY; without even the implied warranty of
-! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! * Lesser General Public License for more details.
-! *
-! * You should have received a copy of the GNU Lesser General Public
-! * License along with this library; if not, write to the
-! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-! * Boston, MA 02111-1307, USA.
-! */
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
+!
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
+!
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
+!
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
+
+
+!> \file
 
 
 !> Initialisation des tables d'infomations de controle pour diagnostiques zonaux
-!
-!> @param[inout] poids   Poids relatifs des points de grille pour extraction
-!> @param[in]    rang    Numero de la bande pour position des accumulateurs
-!> @param[in]    theta   Angles de rotation de la grille p/r Greenwich
-!> @param[in]    ndeltat Nombre de pas de temps d'accumulations
-!> @param[in]    deltat  Nombre de seconde entre chaque pas de temps
-!> @param[in]    mode    Sauve les moyennes, la somme des moyennes, les deux
-!> @param[in]    dznsrf  Nombre de variables de surface
-!> @param[in]    zsurfac Variables de surface demandees
-!> @param[in]    dznprf  Nombre de variables de surface
-!> @param[in]    zprofil Variables de profil demandees
-!> @param[in]    latmin  Plus grand cercle de latitude inscrit dans la grille
-!> @param[in]    rot     Angle de rotation de l'axe des X de la grille
-!> @param[in]    iun     Numero de fichier standard ou l'on ecrit
-!> @param[in]    s       Niveaux du modele
-!> @param[in]    etikx   Etiket de l'experience
-!> @param[in]    idayo   Date stamp lu de analev
-!> @param[in]    ni      Dimension horizontale de la grille du modele
-!> @param[in]    nj      Deuxieme dimension horizontale de la grille
-!> @param[in]    nk      Nombre de niveaux du modele
-!
-!> @author G. Pellerin
-!> @date 1992-09-01
 subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
                   dznprf, zprofil, latmin, rot, iun, s, etikx, idayo, ni, nj, nk)
     use rmn_fst98
     implicit none
+    !> Numero de fichier standard ou l'on ecrit
     integer, intent(inout) :: iun
-    integer, intent(in) :: ni, nj, nk, latmin, rot
-    integer, intent(in) :: ndeltat, deltat, mode
+    !> Dimension horizontale de la grille du modele
+    integer, intent(in) :: ni
+    !> Deuxieme dimension horizontale de la grille
+    integer, intent(in) :: nj
+    !> Nombre de niveaux du modele
+    integer, intent(in) :: nk
+    !> Plus grand cercle de latitude inscrit dans la grille
+    integer, intent(in) :: latmin
+    !> Angle de rotation de l'axe des X de la grille
+    integer, intent(in) :: rot
+    !> Nombre de pas de temps d'accumulations
+    integer, intent(in) :: ndeltat
+    !> Nombre de seconde entre chaque pas de temps
+    integer, intent(in) :: deltat
+    !> Sauve les moyennes, la somme des moyennes, les deux
+    integer, intent(in) :: mode
 
-    integer, intent(in) :: rang(ni * nj), idayo
-    integer, intent(in) :: dznsrf, dznprf
-    integer, intent(in) :: zsurfac(dznsrf), zprofil(dznprf)
-    real, intent(inout) :: poids(ni * nj), theta(ni * nj), s(nk)
-
+    !> Numero de la bande pour position des accumulateurs
+    integer, intent(in) :: rang(ni * nj)
+    !> Date stamp lu de analev
+    integer, intent(in) :: idayo
+    !> Nombre de variables de surface
+    integer, intent(in) :: dznsrf
+    !> Nombre de variables de surface
+    integer, intent(in) :: dznprf
+    !> Variables de surface demandees
+    integer, intent(in) :: zsurfac(dznsrf)
+    !> Variables de profil demandees
+    integer, intent(in) :: zprofil(dznprf)
+    !> Poids relatifs des points de grille pour extraction
+    real, intent(inout) :: poids(ni * nj)
+    !> Angles de rotation de la grille p/r Greenwich
+    real, intent(in) :: theta(ni * nj)
+    !> Niveaux du modele
+    real, intent(in) :: s(nk)
+    !> Etiket de l'experience
     character(len = *), intent(in) :: etikx
 
     !---------------------------------------------------------------------------
@@ -390,46 +398,54 @@ end subroutine
 
 
 !> Initialisation des tables d'infomations de controle pour diagnostiques zonaux
-!
-!> @param[inout]  poids   Poids relatifs des points de grille pour extraction
-!> @param[in]     rang    Numero de la bande pour position des accumulateurs
-!> @param[in]     theta   Angles de rotation de la grille p/r Greenwich
-!> @param[in]     ndeltat Nombre de pas de temps d'accumulations
-!> @param[in]     deltat  Nombre de seconde entre chaque pas de temps
-!> @param[in]     mode    Sauve les moyennes, la somme des moyennes, les deux
-!> @param[in]     dznsrf  Nombre de variables de surface
-!> @param[in]     zsurfac Variables de surface demandees
-!> @param[in]     dznprf  Nombre de variables de surface
-!> @param[in]     zprofil Variables de profil demandees
-!> @param[in]     latmin  Plus grand cercle de latitude inscrit dans la grille
-!> @param[in]     rot     Angle de rotation de l'axe des X de la grille
-!> @param[out]    iun     Numero de fichier standard ou l'on ecrit
-!> @param[in]     s       Niveaux du modele
-!> @param[in]     etikx   Etiket de l'experience
-!> @param[in]     idayo   Date stamp lu de analev
-!> @param[in]     ni      Dimension horizontale de la grille du modele
-!> @param[in]     nj      Deuxieme dimension horizontale de la grille
-!> @param[in]     nk      Nombre de niveaux du modele
-!> @param[in]     lun_out Standard out
-!> @param[in]     noutzon Full pathname of the current output file
-!
-!> @author G. Pellerin
-!> @date 1992-09-01
 subroutine inzono2(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
                   dznprf, zprofil, latmin, rot, iun, s, etikx, idayo, ni, nj, nk, &
                   lun_out, noutzon)
     use rmn_fst98
     implicit none
-    integer, intent(in) :: ni, nj, nk, latmin, rot
+
+    !> Number of points along the X axis
+    integer, intent(in) :: ni
+    !> Number of points along the Y axis
+    integer, intent(in) :: nj
+    !> Number of vertical levels
+    integer, intent(in) :: nk
+    !> Biggest latitude circle within the grid
+    integer, intent(in) :: latmin
+    !> Rotation angle of the X axis
+    integer, intent(in) :: rot
+    !> Unit number of the file in which to write
     integer, intent(out) :: iun
-    integer, intent(in) :: ndeltat, deltat, mode, lun_out
-
-    integer, intent(in) :: rang(ni * nj), idayo
-    integer, intent(in) :: dznsrf, dznprf
-    integer, intent(in) :: zsurfac(dznsrf), zprofil(dznprf)
-    real, intent(inout) :: poids(ni * nj), theta(ni * nj), s(nk)
-
-    character(len = *), intent(in) :: etikx, noutzon
+    !> Number of timesteps for accumulation
+    integer, intent(in) :: ndeltat
+    !> Number of seconds between each timestep
+    integer, intent(in) :: deltat
+    !> Indicate what to save: averages, sum of averages, both
+    integer, intent(in) :: mode
+    !> Unit number for output messages
+    integer, intent(in) :: lun_out
+    !> Band number of the position of the accumulators
+    integer, intent(in) :: rang(ni * nj)
+    !> Date stamp read from analev
+    integer, intent(in) :: idayo
+    !> Number of surface variables
+    integer, intent(in) :: dznsrf
+    !> Number of profile variables
+    integer, intent(in) :: dznprf
+    !> Requested surface variables
+    integer, intent(in) :: zsurfac(dznsrf)
+    !> Requested profile variables
+    integer, intent(in) :: zprofil(dznprf)
+    !> Relative weight of the grid points for extraction
+    real, intent(inout) :: poids(ni * nj)
+    !> Grid rotation angle in regards to Greenwich
+    real, intent(in) :: theta(ni * nj)
+    !> Model levels
+    real, intent(in) :: s(nk)
+    !> Experience label
+    character(len = *), intent(in) :: etikx
+    !> Full pathname of the output file
+    character(len = *), intent(in) :: noutzon
 
     !---------------------------------------------------------------------------
     ! Declarations
@@ -774,47 +790,56 @@ end subroutine
 
 
 !> Initialisation des tables d'infomations de controle pour diagnostiques zonaux
-!
-!> @param[inout]  poids   Poids relatifs des points de grille pour extraction
-!> @param[in]     rang    Numero de la bande pour position des accumulateurs
-!> @param[in]     theta   Angles de rotation de la grille p/r Greenwich
-!> @param[in]     ndeltat Nombre de pas de temps d'accumulations
-!> @param[in]     deltat  Nombre de seconde entre chaque pas de temps
-!> @param[in]     mode    Sauve les moyennes, la somme des moyennes, les deux
-!> @param[in]     dznsrf  Nombre de variables de surface
-!> @param[in]     surfac  Variables de surface demandees
-!> @param[in]     dznprf  Nombre de variables de surface
-!> @param[in]     profil  Variables de profil demandees
-!> @param[in]     latmin  Plus grand cercle de latitude inscrit dans la grille
-!> @param[in]     rot     Angle de rotation de l'axe des X de la grille
-!> @param[out]    iun     Numero de fichier standard ou l'on ecrit
-!> @param[in]     s       Niveaux du modele
-!> @param[in]     etikx   Etiket de l'experience
-!> @param[in]     idayo   Date stamp lu de analev
-!> @param[in]     ni      Dimension horizontale de la grille du modele
-!> @param[in]     nj      Deuxieme dimension horizontale de la grille
-!> @param[in]     nk      Nombre de niveaux du modele
-!> @param[in]     lun_out Standard out
-!> @param[in]     noutzon Full pathname of the current output file
-!> @param[in]     nbin    Nombre de bandes zonales d'un pole a l'autre
-!
-!> @author G. Pellerin
-!> @date 1992-09-01
 subroutine inzono3(poids, rang, theta, ndeltat, deltat, mode, dznsrf, surfac, &
                   dznprf, profil, latmin, rot, iun, s, etikx, idayo, ni, nj, nk, &
                   nbin, lun_out, noutzon)
     use rmn_fst98
     implicit none
-    integer, intent(in) :: ni, nj, nk, nbin, latmin, rot
+
+    !> Number of points along the X axis
+    integer, intent(in) :: ni
+    !> Number of points along the Y axis
+    integer, intent(in) :: nj
+    !> Number of vertical levels
+    integer, intent(in) :: nk
+    !> Number of zone old bands from one pole to the other
+    integer, intent(in) :: nbin
+    !> Biggest latitude circle within the grid
+    integer, intent(in) :: latmin
+    !> Rotation angle of the X axis
+    integer, intent(in) :: rot
+    !> Unit number of the file in which to write
     integer, intent(out) :: iun
-    integer, intent(in) :: ndeltat, deltat, mode, lun_out
-
-    integer, intent(in) :: rang(ni * nj), idayo
-    integer, intent(in) :: dznsrf, dznprf
-    character(len = 6) :: surfac(dznsrf), profil(dznprf)
-    real, intent(inout) :: poids(ni * nj), theta(ni * nj), s(nk)
-
-    character(len = *), intent(in) :: etikx, noutzon
+    !> Number of timesteps for accumulation
+    integer, intent(in) :: ndeltat
+    !> Number of seconds between each timestep
+    integer, intent(in) :: deltat
+    !> Indicate what to save: averages, sum of averages, both
+    integer, intent(in) :: mode
+    !> Unit number for output messages
+    integer, intent(in) :: lun_out
+    !> Band number of the position of the accumulators
+    integer, intent(in) :: rang(ni * nj)
+    !> Date stamp read from analev
+    integer, intent(in) :: idayo
+    !> Number of surface variables
+    integer, intent(in) :: dznsrf
+    !> Number of profile variables
+    integer, intent(in) :: dznprf
+    !> Requested surface variables
+    character(len = 6), intent(in) :: surfac(dznsrf)
+    !> Requested profile variables
+    character(len = 6), intent(in) :: profil(dznprf)
+    !> Relative weight of the grid points for extraction
+    real, intent(inout) :: poids(ni * nj)
+    !> Grid rotation angle in regards to Greenwich
+    real, intent(in) :: theta(ni * nj)
+    !> Model levels
+    real, intent(in) :: s(nk)
+    !> Experience label
+    character(len = *), intent(in) :: etikx
+    !> Full pathname of the output file
+    character(len = *), intent(in) :: noutzon
 
     !---------------------------------------------------------------------------
     ! Declarations

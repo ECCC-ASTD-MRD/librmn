@@ -17,6 +17,8 @@
 ! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! Boston, MA 02111-1307, USA.
 
+!> \file
+
 
 !> Check if a value is in the provided range (min >= ichk <= max)
 logical function valide(nom, ichk, minv, maxv)

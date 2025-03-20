@@ -1,160 +1,134 @@
-!/* RMNLIB - Library of useful routines for C and FORTRAN programming
-! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-! *                          Environnement Canada
-! *
-! * This library is free software; you can redistribute it and/or
-! * modify it under the terms of the GNU Lesser General Public
-! * License as published by the Free Software Foundation,
-! * version 2.1 of the License.
-! *
-! * This library is distributed in the hope that it will be useful,
-! * but WITHOUT ANY WARRANTY; without even the implied warranty of
-! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! * Lesser General Public License for more details.
-! *
-! * You should have received a copy of the GNU Lesser General Public
-! * License along with this library; if not, write to the
-! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-! * Boston, MA 02111-1307, USA.
-! */
-!.S MRFOPN
-!**S/P MRFOPN - OUVRIR UN FICHIER BURP
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
 !
-      FUNCTION MRFOPN( IUN, INMODE)
-      use app
-      use rmn_burp_defi
-      use rmn_burpopt
-      IMPLICIT NONE
-      INTEGER  MRFOPN, IUN
-      CHARACTER(len = *) :: INMODE
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
 !
-!AUTEUR  J. CAVEEN   OCTOBRE 1990
-!REV 001 Y. BOURASSA MARS    1995 RATFOR @ FTN77
-!REV 002 M. Lepine   sept    1997 nouveau format de date AAAAMMJJ (an 2000)
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
 !
-!OBJET( MRFOPN )
-!     INITIALISER LES DESCRIPTEURS DE CLEFS ET CREER UN FICHIER
-!     BURP OU OUVRIR UN FICHIER BURP DEJA EXISTANT.
-!     MRFOPN RETOURNE LE NOMBRE D'ENREGISTREMENTS ACTIFS
-!     CONTENUS DANS LE FICHIER.
-!                                                                       
-!ARGUMENTS
-!
-!     IUN     ENTREE  NUMERO DU FICHIER A OUVRIR
-!     INMODE    "     MODE D'OUVERTURE (READ,CREATE,APPEND)
-!                                                         
-!IMPLICITES
-#include <rmn/codes.cdk>
-#include "bpl.cdk"
-#include "enforc8.cdk"
-!
-!MODULES 
-      EXTERNAL XDFOPN, XDFCLE, XDFSTA, MRFOPR, MRFOPC
-      external genvdt8
-      INTEGER  XDFOPN, XDFCLE, XDFSTA, MRFOPR, MRFOPC, IOUT,  &
-     &         NOMBRE, STAT,   PRII,   PRI(2,NPRITOT), AUX(2,NAUXTOT),  &
-     &         IER,    AUXX
-      logical initdone
-      CHARACTER(len = 4) :: APPL, VERSN
-      CHARACTER(len = 6) :: MODE
-      DATA        IOUT /6/
-      data initdone /.false./
-      SAVE initdone
-!
-!*
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
 
-!     VERIFIER SI LE FICHIER EST OUVERT DANS UN MODE PERMIS
-      if (.not. initdone) then
-!         call getenv('ENFORC8',STRICT8)
-!         lng = longueur(STRICT8)
-!         if (lng .gt. 0) then
-!            enforc8 = .true.
-!         else
-!            enforc8 = .false.
-!         endif
-         call genvdt8(enforc8)
-         initdone = .true.
-      endif
-      MRFOPN = -1
-      MODE   = INMODE
-      IF(INDEX(MODE, 'WRITE').NE.0 .OR. INDEX(MODE, 'R-W').NE.0) THEN
-         write(app_msg,*) 'MRFOPN: Seul les modes READ, CREATE et APPEND sont permis'
-         call Lib_Log(APP_LIBFST,APP_ERROR,app_msg)       
-         MRFOPN = ERFMOD
-         RETURN
-      ENDIF
 
-!     INITIALISER LES CLEF SI MODE = 'CREATE'
-      IF(INDEX(MODE, 'CREATE') .NE. 0) THEN
-         IER = 0
+!> \file
 
-!        DEFINITION DES CLEFS PRIMAIRES
-         IER=IER+XDFCLE('STI1', BPSTI1, LSTI1, 33, PRI(1,1),PRI(2,1))
-         IER=IER+XDFCLE('STI2', BPSTI2, LSTI2, 33, PRI(1,2),PRI(2,2))
-         IER=IER+XDFCLE('STI3', BPSTI3, LSTI3, 33, PRI(1,3),PRI(2,3))
-         IER=IER+XDFCLE('STI4', BPSTI4, LSTI4, 33, PRI(1,4),PRI(2,4))
-         IER=IER+XDFCLE('STI5', BPSTI5, LSTI5, 33, PRI(1,5),PRI(2,5))
-         IER=IER+XDFCLE('STI6', BPSTI6, LSTI6, 33, PRI(1,6),PRI(2,6))
-         IER=IER+XDFCLE('STI7', BPSTI7, LSTI7, 33, PRI(1,7),PRI(2,7))
-         IER=IER+XDFCLE('STI8', BPSTI8, LSTI8, 33, PRI(1,8),PRI(2,8))
-         IER=IER+XDFCLE('STI9', BPSTI9, LSTI9, 33, PRI(1,9),PRI(2,9))
-         IER=IER+XDFCLE('FLGS', BPFLGS, LFLGS, 00, PRI(1,10),PRI(2,10))
-         IER=IER+XDFCLE('LATI', BPLATI, LLATI, 00, PRI(1,11),PRI(2,11))
-         IER=IER+XDFCLE('LONG', BPLONG, LLONG, 00, PRI(1,12),PRI(2,12))
-         IER=IER+XDFCLE('DATE', BPDATE, LDATE, 00, PRI(1,13),PRI(2,13))
-         IER=IER+XDFCLE('DX',   BPDX,   LDX,   00, PRI(1,14),PRI(2,14))
-         IER=IER+XDFCLE('IDTP', BPIDTP, LIDTP, 00, PRI(1,15),PRI(2,15))
-         IER=IER+XDFCLE('DY',   BPDY,   LDY,   00, PRI(1,16),PRI(2,16))
-         IER=IER+XDFCLE('HEUR', BPHEUR, LHEUR, 00, PRI(1,17),PRI(2,17))
-         IER=IER+XDFCLE('MIN',  BPMIN,  LMIN,  00, PRI(1,18),PRI(2,18))
-         
-!        DEFINITION DES CLEFS AUXILIAIRES 
-         IER=IER+XDFCLE('NBLK', BPNBLK, LNBLK, 00, AUX(1,1),AUX(2,1))
-         IER=IER+XDFCLE('OARS', BPOARS, LOARS, 00, AUX(1,2),AUX(2,2))
-         IER=IER+XDFCLE('ELEV', BPELEV, LELEV, 00, AUX(1,3),AUX(2,3))
-         IER=IER+XDFCLE('DRCV', BPDRCV, LDRCV, 00, AUX(1,4),AUX(2,4))
-         IER=IER+XDFCLE('RUNN', BPRUNN, LRUNN, 00, AUX(1,5),AUX(2,5))
-         IF(IER .LT. 0) RETURN
-      ELSE
-         IF(INDEX(MODE, 'APPEND') .NE. 0) MODE='R-W'
-      ENDIF
 
-!     OUVERTURE DU FICHIER
-      NOMBRE = XDFOPN(IUN, MODE, PRI, NPRITOT, AUX, NAUXTOT, 'BRP0')
-      IF(NOMBRE .LT. 0) THEN
-         MRFOPN = NOMBRE
-         RETURN
-      ENDIF
+!> Open a burp file
+integer function mrfopn(iun, inmode)
+    use app
+    use rmn_burp, only: npritot, nauxtot, enforc8, erfmod, erfrap, nonoftb, &
+        bpdate, bpdrcv, bpdx, bpdy, bpelev, bpflgs, bpheur, bpidtp, bplati, bplong, bpmin, bpnblk, bpoars, bprunn, &
+        bpsti1, bpsti2, bpsti3, bpsti4, bpsti5, bpsti6, bpsti7, bpsti8, bpsti9, &
+        ldate, ldrcv, ldx, ldy, lelev, lflgs, lheur, lidtp, llati, llong, lmin, lnblk, loars, lrunn, &
+        lsti1, lsti2, lsti3, lsti4, lsti5, lsti6, lsti7, lsti8, lsti9
+    implicit none
 
-!     OBTENIR LES INFORMATIONS CONCERNANT LE FICHIER.
-      MRFOPN = XDFSTA(IUN, STAT, 0, PRII, 0, AUXX, 0, VERSN, APPL)
-      IF((INDEX(VERSN,'XDF').EQ.0) .OR. ((INDEX(APPL,'BRP0').EQ.0) .AND. (INDEX(APPL,'bRp0') .EQ. 0))) THEN
-         write(app_msg,*) 'MRFOPN: Le fichier n''est pas un fichier rapport'
-         call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
-         MRFOPN = ERFRAP
-         RETURN
-      ENDIF
+    !> Unit number
+    integer, intent(in) :: iun
+    !> Open mode (read, create, append)
+    character(len = *), intent(in) :: inmode
 
-!     S'ASSURER QUE LE FICHIER A ETE CREE EN UTILISANT LA BONNE 
-!     TABLE BURP
-      IF(INDEX(APPL,'bRp0') .NE. 0) THEN
-         write(app_msg,*) 'MRFOPN: Fichier cree avec TABLEBURP non-officielle'
-         call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
-         MRFOPN = NONOFTB
-      ENDIF
+    !     initialiser les descripteurs de clefs et creer un fichier
+    !     burp ou ouvrir un fichier burp deja existant.
+    !     mrfopn retourne le nombre d'enregistrements actifs
+    !     contenus dans le fichier.
 
-      IF(INDEX(MODE,'CREATE') .NE. 0) THEN
-         write(app_msg,300) IUN
-         call Lib_Log(APP_LIBFST,APP_TRIVIAL,app_msg)       
-      ENDIF
+    integer, external :: xdfopn, xdfcle, xdfsta, mrfopr, mrfopc
+    external genvdt8
+
+    integer :: nombre, stat, prii, pri(2,npritot), aux(2,nauxtot), ier, auxx
+    character(len = 4) :: appl, versn
+    character(len = 6) :: mode
+
+    logical, save :: initdone = .false.
+
+    !     verifier si le fichier est ouvert dans un mode permis
+    if (.not. initdone) then
+        call genvdt8(enforc8)
+        initdone = .true.
+    endif
+    mrfopn = -1
+    mode = inmode
+    if (index(mode, 'WRITE') .NE. 0 .OR. index(mode, 'R-W') .NE. 0) then
+        write(app_msg, *) 'MRFOPN: Seul les modes READ, CREATE et APPEND sont permis'
+        call lib_log(app_libfst, app_error, app_msg)
+        mrfopn = erfmod
+        return
+    endif
+
+    ! Initialiser les clef si mode = 'CREATE'
+    if (index(mode, 'CREATE') .ne. 0) then
+        ier = 0
+
+        ! Definition des clefs primaires
+        ier = ier + xdfcle('STI1', bpsti1, lsti1, 33, pri(1,1),  pri(2,1))
+        ier = ier + xdfcle('STI2', bpsti2, lsti2, 33, pri(1,2),  pri(2,2))
+        ier = ier + xdfcle('STI3', bpsti3, lsti3, 33, pri(1,3),  pri(2,3))
+        ier = ier + xdfcle('STI4', bpsti4, lsti4, 33, pri(1,4),  pri(2,4))
+        ier = ier + xdfcle('STI5', bpsti5, lsti5, 33, pri(1,5),  pri(2,5))
+        ier = ier + xdfcle('STI6', bpsti6, lsti6, 33, pri(1,6),  pri(2,6))
+        ier = ier + xdfcle('STI7', bpsti7, lsti7, 33, pri(1,7),  pri(2,7))
+        ier = ier + xdfcle('STI8', bpsti8, lsti8, 33, pri(1,8),  pri(2,8))
+        ier = ier + xdfcle('STI9', bpsti9, lsti9, 33, pri(1,9),  pri(2,9))
+        ier = ier + xdfcle('FLGS', bpflgs, lflgs, 00, pri(1,10), pri(2,10))
+        ier = ier + xdfcle('LATI', bplati, llati, 00, pri(1,11), pri(2,11))
+        ier = ier + xdfcle('LONG', bplong, llong, 00, pri(1,12), pri(2,12))
+        ier = ier + xdfcle('DATE', bpdate, ldate, 00, pri(1,13), pri(2,13))
+        ier = ier + xdfcle('DX',   bpdx,   ldx,   00, pri(1,14), pri(2,14))
+        ier = ier + xdfcle('IDTP', bpidtp, lidtp, 00, pri(1,15), pri(2,15))
+        ier = ier + xdfcle('DY',   bpdy,   ldy,   00, pri(1,16), pri(2,16))
+        ier = ier + xdfcle('HEUR', bpheur, lheur, 00, pri(1,17), pri(2,17))
+        ier = ier + xdfcle('MIN',  bpmin,  lmin,  00, pri(1,18), pri(2,18))
  
-      write(app_msg,400) IUN
-      call Lib_Log(APP_LIBFST,APP_TRIVIAL,app_msg)       
+        ! Definition des clefs auxiliaires
+        ier = ier + xdfcle('NBLK', bpnblk, lnblk, 00, aux(1,1), aux(2,1))
+        ier = ier + xdfcle('OARS', bpoars, loars, 00, aux(1,2), aux(2,2))
+        ier = ier + xdfcle('ELEV', bpelev, lelev, 00, aux(1,3), aux(2,3))
+        ier = ier + xdfcle('DRCV', bpdrcv, ldrcv, 00, aux(1,4), aux(2,4))
+        ier = ier + xdfcle('RUNN', bprunn, lrunn, 00, aux(1,5), aux(2,5))
+        if (ier .lt. 0) return
+    else
+        if (index(mode, 'APPEND') .ne. 0) mode = 'R-W'
+    endif
 
-      MRFOPN = NOMBRE
-        
- 300  FORMAT('MRFOPN: UNITE = ',I3,' Fichier rapport est cree')
- 400  FORMAT('MRFOPN: UNITE = ',I3,' Fichier rapport est ouvert')
+    ! Ouverture du fichier
+    nombre = xdfopn(iun, mode, pri, npritot, aux, nauxtot, 'BRP0')
+    if (nombre .lt. 0) then
+        mrfopn = nombre
+        return
+    endif
 
-      RETURN
-      END
+    ! Obtenir les informations concernant le fichier.
+    mrfopn = xdfsta(iun, stat, 0, prii, 0, auxx, 0, versn, appl)
+    IF ((INDEX(VERSN, 'XDF').EQ.0) .OR. ((INDEX(APPL,'BRP0').EQ.0) .AND. (INDEX(APPL,'bRp0') .EQ. 0))) THEN
+        write(app_msg,*) 'MRFOPN: Le fichier n''est pas un fichier rapport'
+        call lib_log(app_libfst,app_warning,app_msg)
+        mrfopn = erfrap
+        return
+    endif
+
+    ! S'assurer que le fichier a ete cree en utilisant la bonne table burp
+    if (index(appl,'bRp0') .ne. 0) then
+        write(app_msg,*) 'MRFOPN: Fichier cree avec TABLEBURP non-officielle'
+        call lib_log(app_libfst,app_warning,app_msg)
+        mrfopn = nonoftb
+    endif
+
+    if (index(mode, 'CREATE') .ne. 0) then
+        write(app_msg, "('MRFOPN: UNITE = ',I3,' Fichier rapport est cree')") iun
+        call lib_log(app_libfst,app_trivial,app_msg)
+    endif
+
+    write(app_msg, "('MRFOPN: UNITE = ',I3,' Fichier rapport est ouvert')") iun
+    call lib_log(app_libfst,app_trivial,app_msg)
+
+    mrfopn = nombre
+END

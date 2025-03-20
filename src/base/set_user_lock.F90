@@ -1,12 +1,18 @@
-!> Manage user locks
+!> \file
+
+
+!> Obtain or release a user lock
 subroutine set_user_lock(lockId, lock)
-! call set_user_lock(lock_variable, .true. ) to acquire lock
-! call set_user_lock(lock_variable, .false.) to release lock
     use app
     implicit none
 
     integer, intent(INOUT) :: lockId !< Id of the lock, MUST be negative
     logical, intent(IN) :: lock !< Try to acquire lock when .true., Otherwise, release
+
+    !> - Call `set_user_lock(lock_variable, .true. )` to acquire lock
+    !> - Call `set_user_lock(lock_variable, .false.)` to release lock
+
+    !> \note This function has no effect if OpenMP isn't enabled
 
 #if defined(_OPENMP)
     integer, external :: omp_get_thread_num

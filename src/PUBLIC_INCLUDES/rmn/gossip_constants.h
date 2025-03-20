@@ -1,7 +1,8 @@
 #ifndef GOSSIP_CONSTANTS_H
 #define GOSSIP_CONSTANTS_H
 
-/*! \file gossip_constant.h Gossip constants meant to be used by C and Fortran applications */
+/*! \file 
+Gossip constants meant to be used by C and Fortran applications */
 
 #ifdef __cplusplus
 extern "C" {

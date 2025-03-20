@@ -1,96 +1,96 @@
-!/* RMNLIB - Library of useful routines for C and FORTRAN programming
-! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-! *                          Environnement Canada
-! *
-! * This library is free software; you can redistribute it and/or
-! * modify it under the terms of the GNU Lesser General Public
-! * License as published by the Free Software Foundation,
-! * version 2.1 of the License.
-! *
-! * This library is distributed in the hope that it will be useful,
-! * but WITHOUT ANY WARRANTY; without even the implied warranty of
-! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! * Lesser General Public License for more details.
-! *
-! * You should have received a copy of the GNU Lesser General Public
-! * License along with this library; if not, write to the
-! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-! * Boston, MA 02111-1307, USA.
-! */
-!.S MRBPRM
-!**S/P MRBPRM - EXTRAIRE LES PARAMETRES DESCRIPTEURS D'UN BLOC
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
 !
-      FUNCTION MRBPRM(BUF,  BKNO, NELE, NVAL, NT, BFAM, BDESC, BTYP, NBIT, BIT0, DATYP)
-      use rmn_burp_defi
-      IMPLICIT NONE
-      INTEGER  MRBPRM, BUF(*), BKNO, NELE, NVAL, NT, BFAM, BDESC, BTYP, NBIT,   BIT0,   DATYP
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
 !
-!AUTEUR  J. CAVEEN   OCTOBRE 1990
-!REV 001 Y. BOURASSA MARS    1995 RATFOR @ FTN77
-!rev 002 j. caveen   sept    1995 elimine bdsec et bfam passe a 12 bits
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
 !
-!OBJET( MRBPRM )
-!     FONCTION SERVANT A RETOURNER LES PARAMETRES DESCRIPTEURS
-!     DU BLOC DE DONNES DONT LE NUMERO D'ORDRE EST BKNO.
-!                                                                       
-!ARGUMENTS
-!     BUF     ENTREE  VECTEUR CONTENANT LE RAPPORT
-!     BKNO       "    NUMERO D'ORDRE DU BLOC
-!     NELE    SORTIE  NOMBRE D'ELEMENTS METEOROLOGIQUES
-!     NVAL       "    NOMBRE DE VALEURS PAR ELEMENTS
-!     NT         "    NOMBRE DE NELE*NVAL VALEURS
-!     BFAM       "    FAMILLE DU BLOC (12 bits)
-!     BDESC      "    DESCRIPTEUR DU BLOC (mis a zero)
-!     BTYP       "    TYPE DU BLOC
-!     NBIT       "    NOMBRE DE BITS CONSERVES PAR VALEUR
-!     BIT0       "    PREMIER BIT DU TABLEAU DE VALEURS
-!     DATYP      "    TYPE DE COMPACTION
-!
-!IMPLICITES
-#include "bpl.cdk"
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
+
+
+!> \file
+
+
+!> extraire les parametres descripteurs d'un bloc
+integer function mrbprm(buf, bkno, nele, nval, nt, bfam, bdesc, btyp, nbit, bit0, datyp)
+    use rmn_burp, only: diment, lfmdsc, bpnele16, bpbit0, bptyp, bpnbit, bpdatyp, bpfmdsc, bpnele, &
+        bpnt, bpnt16, bpnval, bpnval16, gronele, lbit0, ldatyp, lnbit, lnele, lnele16, lnt, lnt16, &
+        lnval, lnval16, ltyp, nbentb
+    implicit none
+
+    !> Array containing the block to be decoded
+    integer, intent(in) :: buf(*)
+    !> Block sequence number
+    integer, intent(in) :: bkno
+    !> Number of elements
+    integer, intent(out) :: nele
+    !> Number of values per element
+    integer, intent(out) :: nval
+    !> Number of nele*nval values
+    integer, intent(out) :: nt
+    !> Block family (12 bits)
+    integer, intent(out) :: bfam
+    !> Block descriptor (set to 0)
+    integer, intent(out) :: bdesc
+    !> Block type
+    integer, intent(out) :: btyp
+    !> Number of bits per value
+    integer, intent(out) :: nbit
+    !> First bit of the value array
+    integer, intent(out) :: bit0
+    !> Compaction type
+    integer, intent(out) :: datyp
+
+    !> \return 0 on success, error code otherwise
+
+    ! For BITMOT, GETBIT, RMASK
 #include <ftnmacros.hf>
-!
-!MODULE 
-      EXTERNAL XDFXTR
-      INTEGER  XDFXTR
-!
-!*
-      integer  ENTETE(DIMENT), BITPOS
-      integer famdesc
 
-      MRBPRM = -1
+    integer, external :: xdfxtr
 
-!     EXTRAIRE L'ENTETE DU BLOC
-      BITPOS = (BKNO-1)*NBENTB
-      MRBPRM = XDFXTR(BUF, ENTETE, BITPOS, DIMENT, BITMOT, 0)
+    integer  entete(diment), bitpos
+    integer famdesc
 
-!     EXTRAIRE DU BLOC LES DIFFERENTS PARAMETRES
-      famdesc= GETBIT(ENTETE, BPFMDSC,LFMDSC)
-      BTYP   = GETBIT(ENTETE, BPTYP,   LTYP)
-      NBIT   = GETBIT(ENTETE, BPNBIT,  LNBIT) + 1
-      BIT0   = GETBIT(ENTETE, BPBIT0,  LBIT0)
-      DATYP  = GETBIT(ENTETE, BPDATYP, LDATYP)
-      NELE   = GETBIT(ENTETE, BPNELE,  LNELE)
+    mrbprm = -1
 
-      IF(NELE .GE. GRONELE) THEN
-         NELE = GETBIT(ENTETE, BPNELE16, LNELE16)
-         NVAL = GETBIT(ENTETE, BPNVAL16, LNVAL16)
-         NT   = GETBIT(ENTETE, BPNT16,   LNT16)
-      ELSE
-         NVAL = GETBIT(ENTETE, BPNVAL, LNVAL)
-         NT   = GETBIT(ENTETE, BPNT,   LNT)
-      ENDIF
+    ! extraire l'entete du bloc
+    bitpos = (bkno - 1) * nbentb
+    mrbprm = xdfxtr(buf, entete, bitpos, diment, BITMOT, 0)
+    !> \todo Shoudln't the return value of xdfxtr be checked!?
 
-!
-!     construire bfam a partir de famdesc 
-!     (interchange 6 bits du bas avec 6 bits du haut)
-!
-      bfam = LSHIFT(IAND(famdesc,RMASK(6)),6)
-      bfam = IOR(bfam,(IAND(RSHIFT(famdesc,6),RMASK(6))))
+    ! extraire du bloc les differents parametres
+    famdesc = GETBIT(entete, bpfmdsc, lfmdsc)
+    btyp   = GETBIT(entete, bptyp,   ltyp)
+    nbit   = GETBIT(entete, bpnbit,  lnbit) + 1
+    bit0   = GETBIT(entete, bpbit0,  lbit0)
+    datyp  = GETBIT(entete, bpdatyp, ldatyp)
+    nele   = GETBIT(entete, bpnele,  lnele)
 
-      bdesc = 0
+    if(nele .ge. gronele) then
+        nele = GETBIT(entete, bpnele16, lnele16)
+        nval = GETBIT(entete, bpnval16, lnval16)
+        nt   = GETBIT(entete, bpnt16,   lnt16)
+    else
+        nval = GETBIT(entete, bpnval, lnval)
+        nt   = GETBIT(entete, bpnt,   lnt)
+    endif
 
-      MRBPRM = 0
+    ! construire bfam a partir de famdesc 
+    ! (interchange 6 bits du bas avec 6 bits du haut)
+    bfam = lshift(iand(famdesc, RMASK(6)),6)
+    bfam = ior(bfam, iand(rshift(famdesc, 6), RMASK(6)))
 
-      RETURN
-      END
+    bdesc = 0
+
+    mrbprm = 0
+end

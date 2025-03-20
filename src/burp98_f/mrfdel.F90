@@ -1,81 +1,57 @@
-!/* RMNLIB - Library of useful routines for C and FORTRAN programming
-! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-! *                          Environnement Canada
-! *
-! * This library is free software; you can redistribute it and/or
-! * modify it under the terms of the GNU Lesser General Public
-! * License as published by the Free Software Foundation,
-! * version 2.1 of the License.
-! *
-! * This library is distributed in the hope that it will be useful,
-! * but WITHOUT ANY WARRANTY; without even the implied warranty of
-! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! * Lesser General Public License for more details.
-! *
-! * You should have received a copy of the GNU Lesser General Public
-! * License along with this library; if not, write to the
-! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-! * Boston, MA 02111-1307, USA.
-! */
-!.S MRFDEL
-!**S/P MRFDEL - EFFACER UN ENREGISTREMENT D'UN FICHIER BURP
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
 !
-      FUNCTION MRFDEL( HANDLE )
-      use app
-      use rmn_burp_defi
-      use rmn_burpopt
-      IMPLICIT NONE
-      INTEGER  MRFDEL, HANDLE
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
 !
-!AUTEUR  J. CAVEEN   NOVEMBRE 1990
-!REV 001 Y. BOURASSA MARS     1995 RATFOR @ FTN77
-!rev 002 j. caveen   sept     1995 ajout d' appel a mrfprm pour
-!                                  produire un message plus explicite
-!REV 003 M. Lepine   sept    1997 nouveau format de date AAAAMMJJ (an 2000)
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
 !
-!OBJET( MRFDEL )
-!     EFFACER L'ENREGISTREMENT CONTENU DANS UN FICHIER BURP DONT
-!     LE POINTEUR EST HANDLE.
-!                                                                       
-!ARGUMENT
-!     HANDLE  ENTREE  POINTEUR A L'ENREGISTREMENT A EFFACER
-!                                                         
-!IMPLICITES
-#include <rmn/codes.cdk>
-!
-!MODULE 
-      EXTERNAL XDFDEL, mrfprm
-      INTEGER  XDFDEL,mrfprm
-!
-!*
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
 
-      integer IOUT
-      DATA     IOUT /6/
-!
-      CHARACTER(len = 9) :: ISTNID
-      INTEGER IIDTYP, ILAT, ILON, IDATE, ITEMPS, ISUP(1), INSUP
-      INTEGER IDX,IDY,IFLGS,ILNGR,irien
 
-      MRFDEL = -1
+!> \file
 
-!
-!     Obtenir les parametres descripteurs de l'enregistrement
-!
-      IF (lib_loglevel(APP_LIBFST,' ') .GE. APP_INFO) THEN
-         IRIEN = handle
-         INSUP = 0
-         IRIEN = MRFPRM(IRIEN,ISTNID, IIDTYP, ILAT, ILON, IDX,IDY, IDATE, ITEMPS,IFLGS, ISUP, INSUP,ILNGR)
-      ENDIF
 
-!     EFFACER L'ENREGISTREMENT
-      MRFDEL = XDFDEL( HANDLE )
+!> Delete a record from if burp file
+integer function mrfdel( handle )
+    use app
+    implicit none
 
-      IF(MRFDEL.GE.0) THEN
-         WRITE(app_msg,1100) ISTNID, IIDTYP, ILAT, ILON, IDX,IDY, IDATE, ITEMPS,IFLGS,ILNGR
-         call Lib_Log(APP_LIBFST,APP_DEBUG,app_msg)       
-      ENDIF
+    !> Handle of the record to delete
+    integer, intent(in) :: handle
 
- 1100 FORMAT('MRFDEL: Efface - STNID=',A9,' IDTYP=',I3, ' LAT=',I5,' LON=',I5,' DX=',i4,' DY=',i4,' DATE=',I8, ' TEMPS=',I4,' FLGS=',i8,' LNGR=',i6)
+    integer, external :: xdfdel, mrfprm
 
-      RETURN
-      END
+    character(*), parameter :: fmt = &
+        "('MRFDEL: Efface - STNID=',A9,' IDTYP=',I3, ' LAT=',I5,' LON=',I5,' DX=',i4,' DY=',i4,' DATE=',I8, ' TEMPS=',I4,' FLGS=',i8,' LNGR=',i6)"
+
+    character(len = 9) :: istnid
+    integer :: iidtyp, ilat, ilon, idate, itemps, isup(1), insup
+    integer :: idx, idy, iflgs, ilngr, irien
+
+    mrfdel = -1
+
+    ! obtenir les parametres descripteurs de l'enregistrement
+    if (lib_loglevel(app_libfst,' ') >= app_info) then
+        irien = handle
+        insup = 0
+        irien = mrfprm(irien, istnid, iidtyp, ilat, ilon, idx, idy, idate, itemps, iflgs, isup, insup, ilngr)
+    endif
+
+    ! effacer l'enregistrement
+    mrfdel = xdfdel( handle )
+
+    if (mrfdel >= 0) then
+        write(app_msg, fmt) istnid, iidtyp, ilat, ilon, idx,idy, idate, itemps, iflgs, ilngr
+        call lib_log(app_libfst, app_debug, app_msg)
+    endif
+end

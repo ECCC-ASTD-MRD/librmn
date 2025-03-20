@@ -1304,7 +1304,6 @@ int c_xdfget(
 
 
 //! Get different options settings values.
-//! \return 0 on success. ERR_BAD_OPT if the option name is unknown
 int c_xdfgop(
     //! [in] Name of option to get
     char *optname,
@@ -1313,7 +1312,10 @@ int c_xdfgop(
     //! [out] Value of option if type is integer
     int *optv
 ) {
-    Lib_Log(APP_LIBFST,APP_INFO,"%s: Theses options are deprecated\n",__func__);
+    //! \return Always 0
+    //! \deprecated This function no longer does anything except print a warning
+
+    Lib_Log(APP_LIBFST, APP_INFO, "%s: Theses options are deprecated\n", __func__);
     return 0;
 }
 

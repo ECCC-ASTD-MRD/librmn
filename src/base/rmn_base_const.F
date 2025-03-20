@@ -1,3 +1,6 @@
+!> \file
+
+!> Base constants
       module rmn_base_const
 !         Care must be taken with the indentation and line continuation
 !         in this file since it must be compatible both with fixed form
@@ -9,11 +12,11 @@
 
 !         rdtodg = 180 / pie, dgtord = pie / 180
 
-!>        PI Mathematical constant
+!> PI Mathematical constant
           real, parameter :: pie = 3.1415926535898
-!>        Radian to degree conversion factor
+!> Radian to degree conversion factor
           real, parameter :: rdtodg = 57.295779513082
-!>        Degree to radian conversion factor
+!> Degree to radian conversion factor
           real, parameter :: dgtord = 1.7453292519943e-2
 
            integer, parameter :: global = 0

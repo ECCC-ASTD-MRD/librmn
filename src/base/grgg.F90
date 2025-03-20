@@ -21,33 +21,42 @@
 !> \file
 
 
-!> Sort element table
-subroutine qbrptri(tableau, ni, nj)
+!> Compute latitude and longitude of each point of a gaussian grid
+subroutine grgg(xlat, xlon, ni, nj, roots, mode)
+    use rmn_base_const, only: global, rdtodg
     implicit none
 
-    !> First array dimension
+    !> Number of points on the X axis
     integer, intent(in) :: ni
-    !> Second array dimension
+    !> Number of points on the Y axis
     integer, intent(in) :: nj
-    !> Array to sort
-    integer, intent(inout) :: tableau(ni, nj)
+    !> Area on which to operate (GLOBAL, NORTH, SOUTH)
+    integer, intent(in) :: mode
 
-    integer :: i, j, k, m, num
+    !> Latitude field
+    real, intent(out) :: xlat(ni, nj)
+    !> Longitude field
+    real, intent(out) :: xlon(ni, nj)
+    !> Legendre polynomial roots used to compute the latitude of points of gaussian grids
+    real, intent(out) :: roots(nj)
 
-    m = nj
-    !> \todo Implement this without goto
- 10   if(m .gt. 1) then
-         m = (m + 2) / 3
-         do 40 i = m + 1, nj
-            do j = i, m + 1, -m
-               if (tableau(1, j - m) .lt. tableau(1, j)) go to 40
-               do k = 1, ni
-                  num = tableau(k, j)
-                  tableau(k, j) = tableau(k, j - m)
-                  tableau(k, j - m) = num
-               end do
-            end do
- 40         continue
-         go to 10
-      endif
+    integer :: i, j, npoly
+    real :: dlon, xla
+
+    dlon = 360.0 / ni
+
+    if (mode /= global) then
+        npoly = nj * 2
+    else
+        npoly = nj
+    end if
+    call dgauss(npoly, roots, mode)
+
+    do j = 1, nj
+        xla = 90.0 - rdtodg * acos(roots(nj + 1 - j))
+        do i = 1, ni
+            xlat(i, j) = xla
+            xlon(i, j) = (i - 1) * dlon
+        end do
+    end do
 end

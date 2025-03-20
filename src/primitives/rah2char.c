@@ -18,18 +18,33 @@
  * Boston, MA 02111-1307, USA.
  */
 
+
+//! \file
+
+
 #include <stdint.h>
 #include <stdio.h>
 
 #include <App.h>
 #include <rmn/rpnmacros.h>
 
-void f77name(rah2char)(char *chaine, int32_t *f_entier, const int32_t * const f_nc, F2Cl lng) {
+
+//! Decode string from integer
+void f77name(rah2char)(
+    //! [out] Output string
+    char *chaine,
+    //! [in] Input integer
+    int32_t *f_entier,
+    //! [in] Number of characters
+    const int32_t * const f_nc,
+    //! [in] String length (implicit Fortran parameter)
+    F2Cl lng
+) {
     int nc = *f_nc;
     int entier = *f_entier;
 
     if (nc > lng) {
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: nc(%d) > lng(%d) using lng\n",__func__,nc,lng);
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: nc(%d) > lng(%d) using lng\n", __func__, nc, lng);
         nc = lng;
     }
     for (int i = 0; i < nc; i++) {
@@ -45,7 +60,7 @@ void f77name(char2rah)(char *chaine, int32_t *entier, const int32_t * const f_nc
     int nc = *f_nc;
 
     if (nc > lng) {
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: nc(%d) > lng(%d) using lng\n",__func__,nc,lng);
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: nc(%d) > lng(%d) using lng\n", __func__, nc, lng);
         nc = lng;
     }
 
