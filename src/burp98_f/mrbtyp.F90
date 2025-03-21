@@ -22,29 +22,27 @@
 
 
 !> Convert bknat, bktyp, bkstp to/from btyp
-function mrbtyp(bknat, bktyp, bkstp, btyp)
+integer function mrbtyp(bknat, bktyp, bkstp, btyp)
     use app
     use rmn_burp, only: erbtyp, bkstpmsk, bktypmsk, bpbktyp, bpbknat, bknatmsk
     implicit none
 
-    !> Composite key indicating the block type
-    !> btyp = -1 - Convert bknat, bktyp, bkstp -> btyp
-    !> btyp >= 0 - Convert btyp -> bknat, bktyp, bkstp
-    integer, intent(inout) :: btyp
     !> Portion nature du btyp de bloc recherche
     integer, intent(inout) :: bknat
     !> Portion type du btyp de bloc recherche
     integer, intent(inout) :: bktyp
     !> Portion sous-type du btyp de bloc recherche
     integer, intent(inout) :: bkstp
+    !> Composite key indicating the block type
+    !> btyp = -1 - Convert bknat, bktyp, bkstp -> btyp (return value)
+    !> btyp >= 0 - Convert btyp -> bknat, bktyp, bkstp
+    integer, intent(in) :: btyp
 
-    !> \return btyp if btyp == -1, 0 if btyp >= 0
+    !> \return 0 on success, erbtyp if btyp < -1
 
     !     fonction servant a batir une clef de recherche btyp a
     !     partir de bknat, bktyp et bkstp ou a extraire
     !     bknat, bktyp et bkstp de btyp
-
-    integer :: mrbtyp
 
     if (btyp < -1) then
         write(app_msg, *) 'mrbtyp: valeur de btyp invalide'
@@ -54,8 +52,8 @@ function mrbtyp(bknat, bktyp, bkstp, btyp)
     endif
 
     ! construire la clef btyp
+    mrbtyp = 0
     if (btyp == -1) then
-        mrbtyp = 0
         mrbtyp = iand(bkstp, bkstpmsk)
         mrbtyp = ior(mrbtyp, lshift(iand(bktyp, bktypmsk), bpbktyp))
         mrbtyp = ior(mrbtyp, lshift(iand(bknat, bknatmsk), bpbknat))
@@ -63,6 +61,5 @@ function mrbtyp(bknat, bktyp, bkstp, btyp)
         bkstp  = iand(btyp, bkstpmsk)
         bktyp  = iand(rshift(btyp, bpbktyp), bktypmsk)
         bknat  = iand(rshift(btyp, bpbknat), bknatmsk)
-        mrbtyp = 0
     endif
 end
