@@ -120,12 +120,12 @@ int c_fsteff_xdf(int handle);
 int32_t c_fstlnk(const int32_t *liste, const int32_t n);
 
 // Signatures from fstd98_rsf.c
-int32_t is_rsf(const int32_t iun, int32_t* out_index_fnom);
+int32_t is_rsf(const int32_t iun, int32_t * const out_index_fnom);
 int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const search_params);
 int c_fstecr_rsf(void *field_in, void *work, int npak, int iun, int index_fnom, int date, int deet, int npas, int ni,
                  int nj, int nk, int ip1, int ip2, int ip3, char *in_typvar, char *in_nomvar, char *in_etiket,
                  char *in_grtyp, int ig1, int ig2, int ig3, int ig4, int in_datyp_ori, int rewrit);
-int c_fstfrm_rsf(int iun, const int index_fnom);
+int c_fstfrm_rsf(const int iun, const int index_fnom);
 int c_fstinfx_rsf(const int handle, const int iun, const int index_fnom, int * const ni, int * const nj,
                   int * const nk, const int datev, const char * const in_etiket, const int ip1, const int ip2,
                   const int ip3, const char * const in_typvar, const char * const in_nomvar, const int skip_filter);

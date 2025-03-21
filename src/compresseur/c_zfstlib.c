@@ -469,7 +469,7 @@ void c_fstunzip_sample(unsigned short *fld, unsigned int *zfld, int ni, int nj, 
 void packTokensMinimum(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, uint32_t *header)
 {
   unsigned int i, j, k, m, n;
-  unsigned int lastWordShifted, spaceInLastWord, lastSlot;
+  unsigned int lastWordShifted, spaceInLastWord;
   int lcl_m, lcl_n;
 
   float entropie;
@@ -479,7 +479,6 @@ void packTokensMinimum(unsigned int z[], int *zlng, unsigned short ufld[], int n
   unsigned char debug;
 
   debug = 0;
-  lastSlot = 0;
   cur = z;
 
    if (debug)
@@ -666,7 +665,6 @@ static void packTokensParallelogram(
     int *ufld_dst;
 
     unsigned int *cur = z;
-    unsigned int lastSlot = 0;
 
     if (once == 0) {
         rlog2 = 1.0/log(2.0);
@@ -977,7 +975,7 @@ static void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], i
 void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoarse, int njcoarse, int diffs[], int ni, int nj, int nbits, int step, uint32_t *header, int start, int end)
 {
   int i, j, k, m, n;
-  static unsigned int lastWordShifted, spaceInLastWord, lastSlot;
+  static unsigned int lastWordShifted, spaceInLastWord;
   static unsigned int *cur;
   int lcl_m, lcl_n;
 
@@ -990,7 +988,6 @@ void packTokensSample(unsigned int z[], int *zlng, unsigned int zc[], int nicoar
 
   if (start == 1)
     {
-    lastSlot = 0;
     cur = z;
     memset(z, 0, ni*nj*sizeof(unsigned int));
     for (i=0; i <= 20; i++)

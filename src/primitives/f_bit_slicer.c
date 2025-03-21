@@ -91,7 +91,7 @@ void f77name(f_bits_put)(int32_t *bit_array, int32_t *bits_per_slice, int32_t *s
 
     if(current > 32) current=32;
     if(current <= 0)                     /* 0 bit slice, do nothing */
-      mybits = mybits;
+      {}
     else if((current==32) && (left==32))  /* easy case, 32 bit token to insert into empty reservoir */
       *bit_array++ = *slices;
     else if(left >= current){            /* enough space in reservoir to satisfy request */

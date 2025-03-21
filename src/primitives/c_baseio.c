@@ -279,18 +279,17 @@ static void reset_file_entry(
 }
 
 //! Find index position in master file table (fnom file table).
-//! \return Index of the provided unit number in the file table or -1 if not found.
 int get_fnom_index(
     //! [in] Unit number associated to the file
     const int iun
 ) {
+    //! \return Index of the provided unit number in the file table or -1 if not found.
     if (iun < MAX_FNOM_FILES) {
         const int entry = unit_entries[iun];
         if (entry >= 0 && FGFDT[entry].iun == iun) {
             return unit_entries[iun];
         }
-    }
-    else {
+    } else {
         for (int i = 0; i < MAX_FNOM_FILES; i++) {
             if (FGFDT[i].iun == iun) {
                 return i;
@@ -395,6 +394,10 @@ static void finalize_fnom(void) {
 //! Open a file and make the connection with a unit number and process record file attributes
 int c_fnom(
     //! [in,out] Unit number
+    //! If the value given is in ]0; 1000[, it will be used as the unit number. Otherwise,
+    //! it will be interpreted as a pointer (memory address). If the value of the target
+    //! memory is 0, a unit number will be allocated automatically. Otherwise, the value
+    //! of the target memory will be used as the unit number.
     int * const iun,
     //! [in] File path
     //! - If the file name contains the special character @ then it refers to a CMCARC file.
@@ -1770,7 +1773,6 @@ int c_sqputw(
     //! [in] Number of words to write
     const int nwords
 ) {
-    int aecrit = 0;
     int aecrire = sizeof(uint32_t) * nwords;
     int necrit = 1;
     int fd = c_getfdsc(iun);
@@ -1780,7 +1782,6 @@ int c_sqputw(
     while (aecrire && (necrit > 0)) {
         necrit = write(fd, pbuf, aecrire);
         aecrire -= necrit;
-        aecrit += necrit;
         pbuf += (necrit / sizeof(uint32_t));
     }
     return (aecrire == 0) ? necrit / (int)sizeof(uint32_t) : -1;
@@ -2229,7 +2230,7 @@ static int qqcopen(
     const int ind = get_free_wafile_slot();
     if (ind < 0) return -1; // Error message already printed
 
-    int fd;
+    int fd = 0;
     int subfile_length = 0;
     if (FGFDT[indf].subname) {
         // cmcarc file

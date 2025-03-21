@@ -1103,7 +1103,6 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
         if (amatch == 0) continue;  /* requete non satisfaite pour nomvars */
       }
 
-    Typvars:
       if (Requests[set_nb].typvars.in_use) {
         amatch = 0;
         if(Requests[set_nb].typvars.pdata[0][0] == ' ') amatch = 1;

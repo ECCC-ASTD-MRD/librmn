@@ -37,7 +37,7 @@ int32_t f77name(gdllvval)(int32_t *gdid, float *uuout, float *vvout, float *uuin
 int32_t c_gdllvval(int32_t gdid, float *uuout, float *vvout, float *uuin, float *vvin,
                float *lat, float *lon, int32_t n) {
     float *x, *y;
-    int32_t ier,gdrow_id,gdcol_id;
+    int32_t gdrow_id,gdcol_id;
 
     c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
     if (Grille[gdrow_id][gdcol_id].nsubgrids > 0 ) {
@@ -48,11 +48,11 @@ int32_t c_gdllvval(int32_t gdid, float *uuout, float *vvout, float *uuin, float 
         x = (float *) malloc(n * sizeof(float));
         y = (float *) malloc(n * sizeof(float));
 
-        ier = c_gdxyfll_orig(gdid, x, y, lat, lon, n);
+        int ier = c_gdxyfll_orig(gdid, x, y, lat, lon, n);
         ier = c_gdxyvval(gdid, uuout, vvout, uuin, vvin, x, y, n);
 
         free(x);
         free(y);
-        return 0;
+        return ier;
     }
 }

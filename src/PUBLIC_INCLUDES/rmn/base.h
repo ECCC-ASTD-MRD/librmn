@@ -1,24 +1,27 @@
 #ifndef RMN_RMN_BASE_H__
 #define RMN_RMN_BASE_H__
 
+#include <stdint.h>
 #include <rmn/rpnmacros.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void f77name(cxgaig)(char *grtyp, int32_t *ig1n, int32_t *ig2n, int32_t *ig3n, int32_t *ig4n,
-                     float *pi, float *pj, float *d60, float *dgrw, F2Cl l);
+void f77name(cxgaig)(const char * const grtyp,
+                     int32_t * const ig1, int32_t * const ig2 , int32_t * const ig3, int32_t * const ig4,
+                     const float * const xg1, const float * const xg2, const float * const xg3, const float * const xg4,
+                     F2Cl l);
 void f77name(cigaxg)(char *grtyp, float *xlat1, float *xlon1, float *xlat2, float *xlon2,
                      const int32_t *ig1,  const int32_t *ig2, const int32_t *ig3, const int32_t *ig4, F2Cl l);
 
 void f77name(difdatr)(int32_t *fdat1,int32_t *fdat2,double *fnhours);
 void f77name(incdatr)(int32_t *fdat1,int32_t *fdat2,double *fnhours);
-int f77name(newdate)(int32_t *fdat1,int32_t *fdat2,int32_t *fdat3,int32_t *fmode);
+int f77name(newdate)(int32_t * const fdat1, int32_t * const fdat2, int32_t * const fdat3, const int32_t * const fmode);
 
 void difdatr_c(int32_t *fdat1,int32_t *fdat2,double *fnhours);
 void incdatr_c(int32_t *fdat1,int32_t *fdat2,double *fnhours);
-int newdate_c(int32_t *fdat1,int32_t *fdat2,int32_t *fdat3,int32_t *fmode);
+int newdate_c(int32_t * const fdat1, int32_t * const fdat2, int32_t * const fdat3, const int32_t * const fmode);
 
 int f77name(rmnlib_version)(char *rmn,int *print,int len);
 int f77name(r8ipsort)      (int32_t  *ip,double *a,int32_t *n);

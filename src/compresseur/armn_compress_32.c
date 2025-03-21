@@ -475,12 +475,11 @@ void packTokensParallelogram32(
     int local_max;
     unsigned int *cur;
     unsigned int k;
-    unsigned int lastWordShifted, spaceInLastWord, lastSlot;
+    unsigned int lastWordShifted, spaceInLastWord;
     unsigned int nbits2;
     unsigned int lcl, nbits_needed;
     unsigned int nbits_req_container, token;
 
-    lastSlot = 0;
     cur = z;
 
     ufld_dst = (int *) malloc(ni * nj * sizeof(int));
@@ -653,12 +652,11 @@ void packTokensParallelogram_8(unsigned int z[], unsigned int *zlng, unsigned ch
     int local_max;
     unsigned int *cur;
     unsigned int k;
-    unsigned int lastWordShifted, spaceInLastWord, lastSlot;
+    unsigned int lastWordShifted, spaceInLastWord;
     unsigned int nbits2;
     unsigned int lcl, nbits_needed;
     unsigned int nbits_req_container, token;
 
-    lastSlot = 0;
     cur = z;
 
     if (once == 0) {
@@ -836,8 +834,6 @@ void pack1bitRLE(unsigned int z[], unsigned int *zlng, unsigned char ufld[], int
     unsigned char lcl_count;
     int count, limite;
 
-    unsigned int lastSlot = 0;
-
     unsigned int lastWordShifted = 0;
     unsigned int spaceInLastWord = 32;
 
@@ -1001,8 +997,6 @@ void pack_stream_nbits_32(unsigned int z[], unsigned int *zlng, unsigned int ufl
     unsigned int lcl = 0;
     unsigned int lastWordShifted = 0;
     unsigned int spaceInLastWord = 32;
-    // Used by the stuff function like macro!
-    unsigned int lastSlot = 0;
 
     *cur = 0;
     for (unsigned int i = 0; i < npts; i++) {
@@ -1033,8 +1027,6 @@ void pack_stream_nbits_16(unsigned int z[], unsigned int *zlng, unsigned short u
     unsigned int lcl = 0;
     unsigned int lastWordShifted = 0;
     unsigned int spaceInLastWord = 32;
-    // Used by the stuff function like macro!
-    unsigned int lastSlot = 0;
 
     *cur = 0;
     for (unsigned int i = 0; i < npts; i++) {
@@ -1065,8 +1057,6 @@ void pack_stream_nbits_8(unsigned int z[], unsigned int *zlng, unsigned char ufl
     unsigned int lcl = 0;
     unsigned int lastWordShifted = 0;
     unsigned int spaceInLastWord = 32;
-    // Used by the stuff function like macro!
-    unsigned int lastSlot = 0;
 
     *cur = 0;
     for (unsigned int i = 0; i < npts; i++) {

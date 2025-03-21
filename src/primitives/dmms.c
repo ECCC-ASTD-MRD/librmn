@@ -104,7 +104,7 @@ static int dmms_noabort = 0;
 struct blocmem *bloc_alloc(int nbytes, int mode) {
     struct blocmem *ptbloc;
     intptr_t errptr;
-    int lng, nitem, n;
+    int lng, nitem;
     char *value;
 
     single();
@@ -147,7 +147,7 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
 
         value = getenv("BAD_POINTER");
         if (value != NULL) {
-            n = sscanf(value,"%lx", &errptr);
+            sscanf(value,"%lx", &errptr);
             badptr = (struct blocmem *) errptr;
             Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: bad_pointer to look for is %#p\n",__func__,badptr);
         } else {
@@ -161,7 +161,7 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
             if (strcmp(value,"ON") == 0) {
                 con = 0xFFFA5A5A;
             } else {
-                n = sscanf(value,"%lx",&con);
+                sscanf(value,"%lx",&con);
             }
         }
 
