@@ -8,6 +8,8 @@ variables:
 .env:
    build:
       - echo "No specific environment"
+   variables:
+      ALLOW_FAILURE_ARCHS: ""
 
 include:
    - project: 'RPN-SI/ci-admin'
@@ -21,7 +23,6 @@ include:
 #       - concurrent
 #    script:
 #       - find ${ECCI_BUILD_DIR}/precaution -type d -mtime +7 -exec rm -rfv {} \; || true
-
 
 deploy:staging:
    stage: deploy
