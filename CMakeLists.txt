@@ -18,6 +18,8 @@ set(rmn_VERSION ${PROJECT_VERSION} CACHE INTERNAL "rmn version" FORCE) # Needed 
 message(STATUS "(EC) ${PROJECT_NAME} version = ${PROJECT_VERSION}")
 string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 
+ec_build_info()            # Generate build information
+
 include(ec_compiler_presets)
 
 # Need to add HAVE_RMN definition for auto-registering librmn within App
@@ -293,11 +295,9 @@ install(
     DESTINATION "${CONFIG_INSTALL_DIR}"
 )
 
-ec_build_config()          # Create build configuration script
-ec_build_info()            # Generate build information
-
 # Packaging
 ec_package_name()                 # Define package prefix  
+ec_build_config()                 # Create build configuration script
 ec_prepare_ssm()                  # Prepare ssm packaging files
 
 set(CPACK_GENERATOR "TGZ")
