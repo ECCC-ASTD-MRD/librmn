@@ -7,7 +7,7 @@ variables:
    
 .env:
    build:
-      - . r.load.dot ${ECCI_PROCESS_SSM}/libs
+      - echo "No specific environment"
 
 include:
    - project: 'RPN-SI/ci-admin'
