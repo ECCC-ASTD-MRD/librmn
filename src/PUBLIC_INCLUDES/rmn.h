@@ -1,6 +1,7 @@
 #ifndef _RMN_H
 #define _RMN_H
 
+#include "rmn/base.h"
 #include "rmn/fnom.h"
 #include "rmn/fstd98.h"
 #include "rmn/fstdsz.h"
