@@ -2,18 +2,18 @@
 #define _List_h
 
 typedef struct TList {
-   void         *Data;
-   struct TList *Next;
-   struct TList *Prev;
+    void * Data;
+    struct TList * Next;
+    struct TList * Prev;
 } TList;
 
-typedef int (TList_CompareProc)(void *Data0,void *Data1);
-typedef int (TList_FreeProc)(void *Data0);
+typedef int (TList_CompareProc)(const void * const item1, const void * const item2);
+typedef int (TList_FreeProc)(void * item);
 
-TList* TList_Add(TList *List,void *Data);
-TList* TList_AddSorted(TList *List,TList_CompareProc *Proc,void *Data);
-TList* TList_Del(TList *List,void *Data);
-TList* TList_Find(TList *List,TList_CompareProc *Proc,void *Data);
-void   TList_Clear(TList *List,TList_FreeProc *Proc);
+TList * TList_Add(TList * const list, void * const item);
+TList * TList_AddSorted(TList * const list, TList_CompareProc * const compare, void * const item);
+TList * TList_Del(TList * list, const void * const item);
+TList * TList_Find(const TList * const list, TList_CompareProc * const compare, const void * const item);
+void TList_Clear(TList * list, TList_FreeProc * const freeItem);
 
 #endif
