@@ -29,13 +29,12 @@ The type of the argument is implementation specific and can be different
 according to the compiler
 */
 
-
 #ifdef __x86_64__
 #   ifndef Little_Endian
 #       define Little_Endian
 #   endif
 
-#   ifdef __INTEL_COMPILER
+#if defined (__INTEL_COMPILER) || defined (__INTEL_LLVM_COMPILER)
 #       define F2Cl const int64_t
 #   elif __clang__
 #       define F2Cl const int32_t
