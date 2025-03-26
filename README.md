@@ -82,11 +82,6 @@ architecture.  This will load the specified compiler, set the
 . $ECCI_ENV/latest/ubuntu-22.04-amd-64/gnu.sh
 ```
 
-Since the default version of CMake available on ECCC systems is probably too
-old, you need to load a version newer than 3.20.  For example: `. ssmuse-sh
--d main/opt/cmake/cmake-3.21.1`.
-
-
 ### Example of compiling the dev branch on a system outside ECCC:
 ```bash
 git clone -b dev https://github.com/ECCC-ASTD-MRD/librmn.git
