@@ -753,111 +753,65 @@ void Dict_AddVar(TDictVar *Var) {
    Dict.Vars=TList_AddSorted(Dict.Vars,Dict_SortVar,Var);
 }
 
-/*----------------------------------------------------------------------------
- * Nom      : <Dict_SortVar>
- * Creation : Mai 2014 - J.P. Gauthier
- *
- * But      : Order two variables.
- *
- * Parametres  :
- *  <Data0>    : Metvar to compare to
- *  <Data1>    : Metvar to compare
- *
- * Retour:
- *   0 si egal, -1 si plus petit 1 si plus grand
- *
- * Remarques :
- *----------------------------------------------------------------------------
-*/
-int Dict_SortVar(void *Data0,void *Data1){
 
-   TDictVar *v0 = Data0;
-   TDictVar *v1 = Data1;
-   int cmp;
+//! Compare to variables to order them
+int Dict_SortVar(
+    //! [in] First variable to compare
+    const void * const var0,
+    //! [in] Second variable to compare
+    const void * const var1
+) {
+    //! \return 0 if variables are equal, negative if var0 is smaller than var1, one or greater otherwise
+    const TDictVar * const v0 = var0;
+    const TDictVar * const v1 = var1;
+    const int cmp = strcasecmp(v0->Name, v1->Name);
 
-   // If we don't have a tie, then return the result of the comparison
-   if( (cmp=strcasecmp(v0->Name,v1->Name)) )
-      return cmp;
+    // If we don't have a tie, then return the result of the comparison
+    if (cmp) return cmp;
 
-   // We are in tiebreaker mode, place any status that is current above other statuses
-   // so that they are returned first when searching for that variable
-   return (v1->Nature&DICT_STATE) - (v0->Nature&DICT_STATE);
+    // We are in tiebreaker mode, place any status that is current above other statuses
+    // so that they are returned first when searching for that variable
+    return (v1->Nature & DICT_STATE) - (v0->Nature & DICT_STATE);
 }
 
-/*----------------------------------------------------------------------------
- * Nom      : <Dict_CheckVar>
- * Creation : Mai 2014 - J.P. Gauthier
- *
- * But      : Check if a var satisfies search parameters
- *
- * Parametres  :
- *  <Data0>    : Metvar to compare to
- *  <Data1>    : Metvar to compare
- *
- * Retour:
- *   0 = no, 1 = yes
- *
- * Remarques :
- *----------------------------------------------------------------------------
-*/
-int Dict_CheckVar(void *Data0,void *Data1){
+//! Check if a var satisfies search parameters
+int Dict_CheckVar(
+    //! [in] First variable to compare
+    const void * const var0,
+    //! [in] Variable name. Handled as a glob pattern if DictSearch.Mode == DICT_GLOB
+    const void * const str
+) {
+    //! \return 1 if search parameters are satisfied, 0 otherwise
+    if (!var0) return 0;
 
-   if (!Data0) {
-      return(0);
-   }
+    if (DictSearch.State && !(((TDictVar*)var0)->Nature & DictSearch.State)) return 0;
 
-   if (DictSearch.State && !(((TDictVar*)Data0)->Nature&DictSearch.State)) {
-      return(0);
-   }
+    if (DictSearch.Origin && strcasecmp(((TDictVar*)var0)->Origin, DictSearch.Origin)) return 0;
 
-   if (DictSearch.Origin && strcasecmp(((TDictVar*)Data0)->Origin,DictSearch.Origin)) {
-      return(0);
-   }
+    if (DictSearch.ETIKET && strcasecmp(((TDictVar*)var0)->ETIKET, DictSearch.ETIKET)) return 0;
 
-   if (DictSearch.ETIKET && strcasecmp(((TDictVar*)Data0)->ETIKET,DictSearch.ETIKET)) {
-      return(0);
-   }
+    if (DictSearch.IP1 > 0 && ((TDictVar*)var0)->IP1 != DictSearch.IP1 && ((TDictVar*)var0)->IP1 != DictSearch.AltIP1) return 0;
 
-   if (DictSearch.IP1>0 && ((TDictVar*)Data0)->IP1!=DictSearch.IP1 && ((TDictVar*)Data0)->IP1!=DictSearch.AltIP1) {
-      return(0);
-   }
+    if (DictSearch.IP2 > 0 && ((TDictVar*)var0)->IP2 != DictSearch.IP2) return 0;
 
-   if (DictSearch.IP2>0 && ((TDictVar*)Data0)->IP2!=DictSearch.IP2) {
-      return(0);
-   }
+    if (DictSearch.IP3 > 0 && ((TDictVar*)var0)->IP3 != DictSearch.IP3) return 0;
 
-   if (DictSearch.IP3>0 && ((TDictVar*)Data0)->IP3!=DictSearch.IP3) {
-      return(0);
-   }
-
-   if (DictSearch.Mode==DICT_GLOB) {
-      return(Data1?(!strmatch(((TDictVar*)Data0)->Name,(char*)Data1)):1);
-   } else {
-      return(Data1?(!strcasecmp(((TDictVar*)Data0)->Name,(char*)Data1)):0);
-   }
+    if (DictSearch.Mode == DICT_GLOB) {
+        return str ? (!strmatch(((TDictVar*)var0)->Name, (char*)str)) : 1;
+    } else {
+        return str ? (!strcasecmp(((TDictVar*)var0)->Name, (char*)str)) : 0;
+    }
 }
 
-/*----------------------------------------------------------------------------
- * Nom      : <Dict_GetVar>
- * Creation : Mai 2014 - J.P. Gauthier
- *
- * But      : Search for a var
- *
- * Parametres  :
- *  <Var>      : Variable name
- *
- * Retour:
- *  <TDictVar> : Variable info
- *
- * Remarques :
- *----------------------------------------------------------------------------
-*/
-TDictVar *Dict_GetVar(char *Var) {
 
-   TList *list;
-
-   list=TList_Find(Dict.Vars,Dict_CheckVar,Var);
-   return(list?(TDictVar*)(list->Data):NULL);
+//! Search for a variable
+TDictVar * Dict_GetVar(
+    //! [in] Variable name
+    const char * const varName
+) {
+    //! \return Variable if found, NULL otherwise
+    TList * const node = TList_Find(Dict.Vars, Dict_CheckVar, varName);
+    return node ? (TDictVar*)(node->Data) : NULL;
 }
 
 /*----------------------------------------------------------------------------
@@ -915,61 +869,39 @@ void Dict_AddType(TDictType *Type) {
    Dict.Vars=TList_AddSorted(Dict.Types,Dict_SortType,Type);
 }
 
-/*----------------------------------------------------------------------------
- * Nom      : <Dict_SortType>
- * Creation : Mai 2014 - J.P. Gauthier
- *
- * But      : Order two types.
- *
- * Parametres  :
- *  <Data0>    : Typevar to compare to
- *  <Data1>    : Typevar to compare
- *
- * Retour:
- *   0 si egal, -1 si plus petitm 1 si plus grand
- *
- * Remarques :
- *----------------------------------------------------------------------------
-*/
-int Dict_SortType(void *Data0,void *Data1){
-   return(strcasecmp(((TDictType*)Data0)->Name,((TDictType*)Data1)->Name));
+
+//! Compare to types to ordered them
+int Dict_SortType(
+    //! [in] First type to compare
+    const void * const type0,
+    //! [in] Second type to compare
+    const void * const type1
+) {
+    //! \return 0 if both types are equal, negative if type0 should go before type1, 1 or greather otherwise
+    return strcasecmp(((TDictType*)type0)->Name, ((TDictType*)type1)->Name);
 }
 
-/*----------------------------------------------------------------------------
- * Nom      : <Dict_CheckType>
- * Creation : Mai 2014 - J.P. Gauthier
- *
- * But      : Check if a type satisfies search parameters
- *
- * Parametres  :
- *  <Data0>    : Metvar to compare to
- *  <Data1>    : Metvar to compare
- *
- * Retour:
- *   0 = no, 1 = yes
- *
- * Remarques :
- *----------------------------------------------------------------------------
-*/
-int Dict_CheckType(void *Data0,void *Data1){
 
-   if (!Data0) {
-      return(0);
-   }
+//! Check if a type satisfies search parameters
+int Dict_CheckType(
+    //! [in] Type to check
+    const void * const type0,
+    //! [in] Type name. Handled as a glob pattern if DictSearch.Mode == DICT_GLOB
+    const void * const str
+) {
+    //! \return 1 if type0 satisfies parameters, 0 otherwise
 
-   if (DictSearch.State && !(((TDictType*)Data0)->Nature&DictSearch.State)) {
-      return(0);
-   }
+    if (!type0) return 0;
 
-   if (DictSearch.Origin && strcasecmp(((TDictType*)Data0)->Origin,DictSearch.Origin)) {
-      return(0);
-   }
+    if (DictSearch.State && !(((TDictType*)type0)->Nature & DictSearch.State)) return 0;
 
-   if (DictSearch.Mode==DICT_GLOB) {
-      return(Data1?(!strmatch(((TDictType*)Data0)->Name,(char*)Data1)):1);
-   } else {
-      return(Data1?(!strcasecmp(((TDictType*)Data0)->Name,(char*)Data1) || !strcasecmp(&((TDictType*)Data0)->Name[1],(char*)Data1)) :0);
-   }
+    if (DictSearch.Origin && strcasecmp(((TDictType*)type0)->Origin, DictSearch.Origin)) return 0;
+
+    if (DictSearch.Mode == DICT_GLOB) {
+        return str ? (!strmatch(((TDictType*)type0)->Name, (char*)str)) : 1;
+    } else {
+        return str ? (!strcasecmp(((TDictType*)type0)->Name, (char*)str) || !strcasecmp(&((TDictType*)type0)->Name[1], (char*)str)) : 0;
+    }
 }
 
 /*----------------------------------------------------------------------------

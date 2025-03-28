@@ -1,187 +1,201 @@
-#include <malloc.h>
+//! \file
+//! Implementation of a generic doubly linked list
 
+#include <malloc.h>
 #include "rmn/List.h"
 
-/**----------------------------------------------------------------------------
- * @brief  Add a node to the a doubly linked list
- * @date   Aout 1998
- *    @param[in]   List           List to add a node to
- *    @param[in]   Data           Pointer to associated data to add
- *   
- *    @return                     Pointer to the list head (new node)
- *
- * @remark
- *   - This is a doubly linked list
- *   - Adding will be done on the head of the list, which allows to use as a queue or even stack as well
- */
-TList* TList_Add(TList *List,void *Data) {
 
-   TList *node=(TList*)malloc(sizeof(TList));
+//! Add a node to a doubly linked list
+TList * TList_Add(
+    //! [inout] List to which to add an item
+    TList * const list,
+    //! [inout] Item to add
+    void * const item
+) {
+    //! \return List's head (new node)
+    //! - These lists are doubly linked
+    //! - Adding will be done on the head of the list, which allows to use as a queue or even stack as well
 
-   if (node) {
-      node->Next=List;
-      node->Prev=NULL;
-      node->Data=Data;
+    TList * const node = (TList*)malloc(sizeof(TList));
+    if (node) {
+        node->Next = list;
+        node->Prev = NULL;
+        node->Data = item;
 
-      if (List)
-         List->Prev=node;
-   }
-   
-   return(node);
+        if (list) list->Prev = node;
+    }
+
+    return node;
 }
 
-TList* TList_Push(TList *List,void *Data) {
 
-   return (TList_Add(List,Data));
+//! \copydoc TList_Add
+TList * TList_Push(
+    TList * const list,
+    void * const item
+) {
+    return TList_Add(list, item);
 }
 
-TList* TList_Pop(TList *List) {
-   
-   TList *node=List;
 
-   if (node && node->Next) {
-      node->Next->Prev=NULL;
-   }
-   return(node->Next);
+//! \copydoc TList_Add
+TList * TList_Queue(
+    TList * const list,
+    void * const item
+) {
+    return TList_Add(list, item);
 }
 
-TList* TList_Queue(TList *List,void *Data) {
 
-   return (TList_Add(List,Data));
+//! Remove the node at the head of the list
+TList * TList_Pop(
+    //! [inout] List from which to remove the first item
+    TList * const list
+) {
+    //! \return New list head
+
+    TList * const node = list;
+
+    if (node && node->Next) {
+        node->Next->Prev = NULL;
+    }
+    return node->Next;
 }
 
-void* TList_Dequeue(TList *List) {
-   
-   TList *node=List;
-   void *data=NULL;
 
-   while(node) {
-      if (!node->Next) {
-         node->Prev->Next=NULL;
-         data=node->Data;
-         free(node);
-         break;
-      }
-      node=node->Next;
-   }
-   return(data);
-}
+//! Remove last item from list
+void * TList_Dequeue(
+    //! [inout] List from which to remove the last item
+    TList * const list
+) {
+    //! \return Last item
 
-/**----------------------------------------------------------------------------
- * @brief  Add a node to the list in an ordonated way
- * @date   Mai 2014 
- *    @param[in]   List           List to add a node to
- *    @param[in]   Proc           Pointer to comparison function
- *    @param[in]   Data           Pointer to associated data to add
- *   
- *    @return                     Pointer to the list head
- *
- */
-TList* TList_AddSorted(TList *List,TList_CompareProc *Proc,void *Data) {
+    TList * node = list;
+    void * item = NULL;
 
-   TList *insert,*prev=NULL,*node=(TList*)calloc(1,sizeof(TList));
-
-   if (node) {
-      node->Data=Data;      
-      
-      insert=List;
-      
-      while (insert) {
-         if (Proc(insert->Data,Data)>=0) {
-            node->Next=insert;
-            node->Prev=insert->Prev;
-            if (insert->Prev) {
-               insert->Prev->Next=node;
-            } else {
-               List=node;               
-            }  
-            insert->Prev=node;
+    while (node) {
+        if (!node->Next) {
+            node->Prev->Next = NULL;
+            item = node->Data;
+            free(node);
             break;
-         }
-         prev=insert;
-         insert=insert->Next;
-      }
-
-      if (!insert) {
-         if (prev) {
-            prev->Next=node;
-            node->Prev=prev;           
-         } else {
-            List=node;
-         }
-      }
-   }
-   
-   return(List);
+        }
+        node = node->Next;
+    }
+    return item;
 }
 
-/**----------------------------------------------------------------------------
- * @brief  Delete a node from the list
- * @date   Aout 1998
- *    @param[in]   List           List to delete the node from
- *    @param[in]   Data           Pointer to data of the node to delete
- *   
- *    @return                     Pointer to the list head
- */
-TList* TList_Del(TList *List,void *Data) {
 
-  TList *node=List;
+//! Add a node to the list in an ordered way
+TList * TList_AddSorted(
+    //! [inout] List to which to add the item
+    TList * const list,
+    //! [in] Comparison function
+    TList_CompareProc * const compare,
+    //! [in] Item to add
+    void * const item
+) {
+    //! \return List's head
 
-  while(node) {
-      if (node->Data==Data) {
-         if (node->Prev)
-            node->Prev->Next=node->Next;
-         if (node->Next)
-            node->Next->Prev=node->Prev;
-         if (node==List) {
-            List=List->Next;
-         }
-         free(node);
-         
-         break;
-      }
-      node=node->Next;
-   }
-   return(List);
+    TList * head = list;
+    TList * node = (TList*)calloc(1, sizeof(TList));
+    if (node) {
+        node->Data = item;
+        TList * prev = NULL;
+
+        TList * insert = list;
+        while (insert) {
+            if (compare(insert->Data, item) >= 0) {
+                node->Next = insert;
+                node->Prev = insert->Prev;
+                if (insert->Prev) {
+                    insert->Prev->Next = node;
+                } else {
+                    head = node;
+                }
+                insert->Prev = node;
+                break;
+            }
+            prev = insert;
+            insert = insert->Next;
+        }
+
+        if (!insert) {
+            if (prev) {
+                prev->Next = node;
+                node->Prev = prev;
+            } else {
+                head = node;
+            }
+        }
+    }
+
+    return head;
 }
 
-/**----------------------------------------------------------------------------
- * @brief  Rechercher un noeud contenant la donnee specifie
- * @date   Aout 1998 
- *    @param[in]   List           List to be searched
- *    @param[in]   Proc           Pointer to comparison function (must return 1 if found)
- *    @param[in]   Data           Pointer to data to be found
- *   
- *    @return                     Pointer on the found node or NULL
- */
-TList* TList_Find(TList *List,TList_CompareProc *Proc,void *Data) {
 
-   if (Proc && List && Data) {
-      while(List) {
-         if (Proc(List->Data,Data)) {
-            return(List);
-         }
-         List=List->Next;
-      }
-   }
-   return(NULL);
+//! Delete a node from the list
+TList * TList_Del(
+    //! [inout] List form which to remove an item
+    TList * list,
+    //! [in] Item to remove from the list
+    const void * const item
+) {
+
+    TList * node = list;
+    while (node) {
+        if (node->Data == item) {
+            if (node->Prev)
+                node->Prev->Next = node->Next;
+            if (node->Next)
+                node->Next->Prev = node->Prev;
+            if (node == list) {
+                list = list->Next;
+            }
+            free(node);
+            break;
+        }
+        node = node->Next;
+    }
+    return list;
 }
 
-/**----------------------------------------------------------------------------
- * @brief  Free a list
- * @date   Aout 1998 
- *    @param[in]   List           List to be freed
- *    @param[in]   Proc           Pointer to function to free the nodes associated data
- */
-void TList_Clear(TList *List,TList_FreeProc *Proc) {
 
-   TList *tmp;
+//! Find the node corresponding to the provided item
+TList * TList_Find(
+    //! [in] List in which to search
+    const TList * const list,
+    //! [in] Comparison function. Must return 1 when items match.
+    TList_CompareProc * const compare,
+    //! [in] Item to search for
+    const void * const item
+) {
+    //! \return Item's node if found, NULL otherwise
 
-   while(List) {
-      tmp=List;
-      List=List->Next;
-      if (Proc)
-         Proc(tmp->Data);
-      free(tmp);
-   }
+    if (compare && list && item) {
+        TList * node = list;
+        while (node) {
+            if (compare(node->Data, item)) {
+                return node;
+            }
+            node = node->Next;
+        }
+    }
+    return NULL;
+}
+
+
+//! Free a list
+void TList_Clear(
+    //! [inout] List to be freed
+    TList * list,
+    //! [in] Optional function to free each node's item. Provide NULL if not required.
+    TList_FreeProc * const freeItem
+) {
+    while (list) {
+        TList * tmp = list;
+        list = list->Next;
+        if (freeItem) freeItem(tmp->Data);
+        free(tmp);
+    }
 }

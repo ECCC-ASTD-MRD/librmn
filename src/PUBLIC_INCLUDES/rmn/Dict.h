@@ -110,7 +110,7 @@ void       Dict_SetSearch(int SearchMode, int SearchState, char *SearchOrigin, i
 void       Dict_SetModifier(char *Modifier);
 void       Dict_AddVar(TDictVar *Var);
 void       Dict_AddType(TDictType *Type);
-TDictVar  *Dict_GetVar(char *Var);
+TDictVar  *Dict_GetVar(const char * const varName);
 TDictType *Dict_GetType(char *Type);
 TDictVar  *Dict_IterateVar(TList **Iterator, char *Var);
 TDictType *Dict_IterateType(TList **Iterator, char *Type);
@@ -118,10 +118,10 @@ void       Dict_PrintVar(TDictVar *DVar, int Format, TApp_Lang Lang);
 void       Dict_PrintVars(char *Var, int Format, TApp_Lang Lang);
 void       Dict_PrintType(TDictType *DType, int Format, TApp_Lang Lang);
 void       Dict_PrintTypes(char *Type, int Format, TApp_Lang Lang);
-int        Dict_SortVar(void *Data0, void *Data1);
-int        Dict_SortType(void *Data0, void *Data1);
-int        Dict_CheckVar(void *Data0, void *Data1);
-int        Dict_CheckType(void *Data0, void *Data1);
+int        Dict_SortVar(const void * const var0, const void * const var1);
+int        Dict_SortType(const void * const type0, const void * const type1);
+int        Dict_CheckVar(const void * const var0, const void * const str);
+int        Dict_CheckType(const void * const type0, const void * const str);
 TDictVar*  Dict_ApplyModifier(TDictVar *Var, char *Modifier);
 
 #endif
