@@ -83,6 +83,9 @@ class fst24_file(ctypes.Structure):
             self.closed = True
             self._c_ref = None
 
+    def __repr__(self):
+        return f"rmn.fst24_file(filename='{self.filename}', options='{self.options}')"
+
     def __enter__(self):
         """ Context manager enter method on fst24_file """
         logging.debug(f"Context Manager __enter__: fst24_file {self.filename}")
