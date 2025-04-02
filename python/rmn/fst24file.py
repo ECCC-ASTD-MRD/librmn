@@ -2,6 +2,7 @@ import ctypes
 import logging
 import os
 import sys
+import numpy
 from typing import Union, Generator, Optional, Iterable, Sequence
 
 from ._sharedlib import librmn
@@ -116,8 +117,17 @@ class fst24_file(ctypes.Structure):
         # some data so this check is more important than just verifying.
         if record.data is None:
             raise ValueError("The record has no data")
+        record_original_data = record.data
+        data_to_write = record.data
+        if not data_to_write.flags['F_CONTIGUOUS']:
+            # Maybe this long warning could be reduced but at least it's clear.
+            logging.warn(f"The data of the record is not Fortran contiguous.  It will need to be converted to write in the file.  Because this conversion may entail significant memory manipulation, consider using working arrays that are already in fortran order (ex: wk = np.empty((ni,nj,nk), order='F'), np.zeros((ni,nj,nk), order='F'))")
+            data_to_write = numpy.asfortranarray(data_to_write)
 
-        result = _fst24_write(self._c_ref, ctypes.byref(record), 1 if rewrite else 0)
+        record.data = data_to_write
+        result = _fst24_write(self._c_ref, ctypes.byref(record), (1 if rewrite else 0))
+        record.data = record_original_data
+
         if result != 1:
             raise FstFileError("Error calling C function fst24_write()")
     def __del__(self):
