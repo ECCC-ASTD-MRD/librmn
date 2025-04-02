@@ -42,7 +42,7 @@ class fst24_file(ctypes.Structure):
     >>>     for rec in q:
     >>>         print(rec)
     """
-    def __init__(self, filename: Union[str,os.PathLike] , options: str = ""):
+    def __init__(self, filename: Union[bytes,str,os.PathLike] , options: str = ""):
         """ Opens an fst24 file `filename` with options """
         # Use '*' to enforce that next arguments must be passed as
         # keyword args.
@@ -54,10 +54,15 @@ class fst24_file(ctypes.Structure):
             _filename = filename.encode('utf-8')
         elif isinstance(filename, os.PathLike):
             _filename = filename.__fspath__()
+        elif isinstance(filename, bytes):
+            _filename = filename
+        else:
+            raise TypeError("Argument 'filename' should be of type 'str', 'bytes', or 'os.PathLike', not '{type(filename).__name__}'")
 
         self._c_ref = _fst24_open(_filename, options.encode('utf-8'))
         if self._c_ref is None:
             raise FstFileError(f"Could not open file '{filename}'")
+
     def close(self):
         """ Closes an fst24 file.
 
