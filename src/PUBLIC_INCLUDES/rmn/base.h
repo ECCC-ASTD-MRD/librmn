@@ -12,8 +12,10 @@ void f77name(cxgaig)(const char * const grtyp,
                      int32_t * const ig1, int32_t * const ig2 , int32_t * const ig3, int32_t * const ig4,
                      const float * const xg1, const float * const xg2, const float * const xg3, const float * const xg4,
                      F2Cl l);
-void f77name(cigaxg)(char *grtyp, float *xlat1, float *xlon1, float *xlat2, float *xlon2,
-                     const int32_t *ig1,  const int32_t *ig2, const int32_t *ig3, const int32_t *ig4, F2Cl l);
+void f77name(cigaxg)(const char * const grtyp,
+                     float * const xlat1, float * const xlon1, float * const xlat2, float * const xlon2,
+                     const int32_t * const ig1,  const int32_t * const ig2, const int32_t * const ig3, const int32_t * const ig4,
+                     F2Cl l);
 
 void f77name(difdatr)(int32_t *fdat1,int32_t *fdat2,double *fnhours);
 void f77name(incdatr)(int32_t *fdat1,int32_t *fdat2,double *fnhours);
