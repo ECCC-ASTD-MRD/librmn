@@ -1,159 +1,155 @@
 #include <math.h>
 #include "Vector.h"
 
-/**----------------------------------------------------------------------------
- * @brief  Normalizes a vector of double
- * @date   January 2000 
- *    @param[inout]   V          Vector
- */
-void Vect_Normalize(Vect3d V){
 
-   double norm;
+//! \file
+//! Implementation of vector functions
+//! \addtogroup genericDataStructures
+//! @{
 
-   norm=1.0/sqrt(V[0]*V[0]+V[1]*V[1]+V[2]*V[2]);
 
-   if (norm==0.0) {
-      V[0]=V[1]=V[2]=0.0;
-   } else {
-      V[0]*=norm;
-      V[1]*=norm;
-      V[2]*=norm;
-   }
-}
+//! Normalize a vector of double
+void Vect_Normalize(
+    //! [inout] Vector
+    Vect3d vect
+) {
+    const double norm = 1.0 / sqrt(vect[0] * vect[0] + vect[1] * vect[1] + vect[2] * vect[2]);
 
-/**----------------------------------------------------------------------------
- * @brief  Normalizes a vector of floats
- * @date   January 2000 
- *    @param[inout]   V          Vector
- */
-void Vect3f_Normalize(Vect3f V){
-
-   double norm;
-
-   norm=1.0/sqrt(V[0]*V[0]+V[1]*V[1]+V[2]*V[2]);
-
-   if (norm==0.0) {
-      V[0]=V[1]=V[2]=0.0;
-   } else {
-      V[0]*=norm;
-      V[1]*=norm;
-      V[2]*=norm;
-   }
-}
-
-/**----------------------------------------------------------------------------
- * @brief  Calculates a double vector cross product
- * @date   January 2000  
- *    @param[out]  V1           result vector
- *    @param[in]   V2           first vector
- *    @param[in]   V3           second vector
- */
-void Vect_CrossProduct(Vect3d V1,Vect3d V2,Vect3d V3){
-
-   V1[0]=V2[1]*V3[2]-V2[2]*V3[1];
-   V1[1]=V2[2]*V3[0]-V2[0]*V3[2];
-   V1[2]=V2[0]*V3[1]-V2[1]*V3[0];
-}
-
-/**----------------------------------------------------------------------------
- * @brief  Calculates a float vector cross product
- * @date   January 2000  
- *    @param[out]  V1           result vector
- *    @param[in]   V2           first vector
- *    @param[in]   V3           second vector
- */
-void Vect3f_CrossProduct(Vect3f V1,Vect3f V2,Vect3f V3){
-
-   V1[0]=V2[1]*V3[2]-V2[2]*V3[1];
-   V1[1]=V2[2]*V3[0]-V2[0]*V3[2];
-   V1[2]=V2[0]*V3[1]-V2[1]*V3[0];
-}
-
-/**----------------------------------------------------------------------------
- * @brief  Calculates vector's norm to a plan
- * @date   January 2000  
- *    @param[out]  V1           result vector
- *    @param[in]   V2           first vector
- *    @param[in]   V3           second vector
- */
-void Vect_Normal(Vect3d V1,Vect3d V2,Vect3d V3){
-
-   double norm;
-
-   V1[0]=V2[1]*V3[2]-V2[2]*V3[1];
-   V1[1]=V2[2]*V3[0]-V2[0]*V3[2];
-   V1[2]=V2[0]*V3[1]-V2[1]*V3[0];
-
-   norm=1.0/sqrt(V1[0]*V1[0]+V1[1]*V1[1]+V1[2]*V1[2]);
-
-   V1[0]*=norm;
-   V1[1]*=norm;
-   V1[2]*=norm;
-}
-
-/**----------------------------------------------------------------------------
- * @brief  Calculates intersection of a vector into a plan
- * @date   January 2000  
- *    @param[in]   Dir         Vector
- *    @param[out]  Pixel       Intersection coordinate
- *    @param[in]   R           Plan distance
- * 
- *    @return                  intersection validity (no intersection:0, else:1) 
- */
-int Vect_InterPlane(Vect3d Dir,Vect3d Pix,double R){
-
-   double t;
-
-   if (Dir[2]!=0) {
-      t=(Pix[2]-R)/Dir[2];
-
-      Pix[0]-=Dir[0]*t;
-      Pix[1]-=Dir[1]*t;
-    //Pix[2]-=Dir[2]*t;
-
-      return 1;
-   } else {
-      Pix[0]=999.0;
-      Pix[1]=999.0;
-    //Pix[2]=999.0;
-
-      return 0;
-   }
+    if (norm == 0.0) {
+        vect[0] = vect[1] = vect[2] = 0.0;
+    } else {
+        vect[0] *= norm;
+        vect[1] *= norm;
+        vect[2] *= norm;
+    }
 }
 
 
-/**----------------------------------------------------------------------------
- * @brief  Calculates intersection of a vector with a sphere
- * @date   January 2000  
- *    @param[in]   Dir         Vector
- *    @param[in]   A           Quadratic constant factor x2
- *    @param[out]  Pixel       Intersection coordinate
- *    @param[in]   R           Sphere radius
- * 
- *    @return                  intersection validity (no intersection:0, else:1) 
- */
-int Vect_InterSphere(Vect3d Dir,double A,Vect3d Pix,double R){
+//! Normalize a vector of floats
+void Vect3f_Normalize(
+    //! [inout] Vector
+    Vect3f vect
+) {
+    const double norm = 1.0 / sqrt(vect[0] * vect[0] + vect[1] * vect[1] + vect[2] * vect[2]);
 
-   double b,c,t,delta;
-
-   b=2*(Dir[0]*Pix[0]+Dir[1]*Pix[1]+Dir[2]*Pix[2]);
-   c=Pix[0]*Pix[0]+Pix[1]*Pix[1]+Pix[2]*Pix[2]-R;
-
-   delta=b*b-2*A*c;
-
-   if (delta>0) {
-      t=(b+sqrt(delta))/A;
-
-      Pix[0]-=Dir[0]*t;
-      Pix[1]-=Dir[1]*t;
-    //Pix[2]-=Dir[2]*t;
-
-      return 1;
-   } else {
-      Pix[0]=999.0;
-      Pix[1]=999.0;
-    //Pix[2]=999.0;
-
-      return 0;
-   }
+    if (norm == 0.0) {
+        vect[0] = vect[1] = vect[2] = 0.0;
+    } else {
+        vect[0] *= norm;
+        vect[1] *= norm;
+        vect[2] *= norm;
+    }
 }
+
+
+//! Calculate a double vector cross product
+void Vect_CrossProduct(
+    //! [out] Result vector
+    Vect3d vOut,
+    //! [in] First input vector
+    const Vect3d vIn1,
+    //! [in] Second input vector
+    const Vect3d vIn2
+) {
+    vOut[0] = vIn1[1] * vIn2[2] - vIn1[2] * vIn2[1];
+    vOut[1] = vIn1[2] * vIn2[0] - vIn1[0] * vIn2[2];
+    vOut[2] = vIn1[0] * vIn2[1] - vIn1[1] * vIn2[0];
+}
+
+
+//! Calculate a float vector cross product
+void Vect3f_CrossProduct(
+    //! [out] Result vector
+    Vect3f vOut,
+    //! [in] First input vector
+    const Vect3f vIn1,
+    //! [in] Second input vector
+    const Vect3f vIn2
+){
+    vOut[0] = vIn1[1] * vIn2[2] - vIn1[2] * vIn2[1];
+    vOut[1] = vIn1[2] * vIn2[0] - vIn1[0] * vIn2[2];
+    vOut[2] = vIn1[0] * vIn2[1] - vIn1[1] * vIn2[0];
+}
+
+
+//! Calculate vector's norm to a plane
+void Vect_Normal(
+    //! [out] Result vector
+    Vect3d vOut,
+    //! [in] First input vector
+    Vect3d vIn1,
+    //! [in] Second input vector
+    Vect3d vIn2
+) {
+    vOut[0] = vIn1[1] * vIn2[2] - vIn1[2] * vIn2[1];
+    vOut[1] = vIn1[2] * vIn2[0] - vIn1[0] * vIn2[2];
+    vOut[2] = vIn1[0] * vIn2[1] - vIn1[1] * vIn2[0];
+
+    const double norm = 1.0 / sqrt(vOut[0] * vOut[0] + vOut[1] * vOut[1] + vOut[2] * vOut[2]);
+
+    vOut[0] *= norm;
+    vOut[1] *= norm;
+    vOut[2] *= norm;
+}
+
+
+//! Calculate intersection of a vector into a plane
+int Vect_InterPlane(
+    //! [in] Vector
+    const Vect3d vect,
+    //! [inout] Intersection position
+    Vect3d intersectPos,
+    //! [in] Plane distance
+    const double dist
+) {
+    //! \return 1 if the vector intersects the plane, 0 otherwise
+
+    if (vect[2] != 0) {
+        const double t = (intersectPos[2] - dist) / vect[2];
+
+        intersectPos[0] -= vect[0] * t;
+        intersectPos[1] -= vect[1] * t;
+
+        return 1;
+    } else {
+        intersectPos[0] = 999.0;
+        intersectPos[1] = 999.0;
+
+        return 0;
+    }
+}
+
+
+//! Calculate intersection of a vector with a sphere
+int Vect_InterSphere(
+    //! [in] Vector
+    const Vect3d vect,
+    //! [in] Quadratic constant factor x2
+    const double quadConstFact,
+    //! [inout] Intersection position
+    Vect3d intersectPos,
+    //! [in] Sphere radius
+    const double radius
+) {
+    //! \return 1 if the vector intersects the sphere, 0 otherwise
+
+    const double b = 2 * (vect[0] * intersectPos[0] + vect[1] * intersectPos[1] + vect[2] * intersectPos[2]);
+    const double c = intersectPos[0] * intersectPos[0] + intersectPos[1] * intersectPos[1] + intersectPos[2] * intersectPos[2] - radius;
+    const double delta = b * b - 2 * quadConstFact * c;
+
+    if (delta > 0) {
+        const double t = (b + sqrt(delta)) / quadConstFact;
+
+        intersectPos[0] -= vect[0] * t;
+        intersectPos[1] -= vect[1] * t;
+
+        return 1;
+    } else {
+        intersectPos[0] = 999.0;
+        intersectPos[1] = 999.0;
+
+        return 0;
+    }
+}
+
+//! @}

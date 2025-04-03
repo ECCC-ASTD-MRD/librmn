@@ -1,8 +1,18 @@
+#include <malloc.h>
+#include "rmn/List.h"
+
+
 //! \file
 //! Implementation of a generic doubly linked list
 
-#include <malloc.h>
-#include "rmn/List.h"
+//! \defgroup genericDataStructures Generic Data Structures
+//! @{
+//! An implementation of generic data structures
+//!
+//! Provided data structures:
+//! - Doubly linked lists
+//! - Quad trees
+//! - Vectors
 
 
 //! Add a node to a doubly linked list
@@ -199,3 +209,5 @@ void TList_Clear(
         free(tmp);
     }
 }
+
+//! @}
