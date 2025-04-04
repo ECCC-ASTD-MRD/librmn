@@ -327,12 +327,12 @@ class fst_record(ctypes.Structure):
             'file_index': self.file_index,
         }
 
-    def _str_base():
+    def _str_base(self):
         return f"nomvar='{self.nomvar}', typvar='{self.typvar}', ni={self.ni}, nj={self.nj}, nk={self.nk}, dateo={self.dateo}, ip1={self.ip1}, ip2={self.ip2}, ip3={self.ip3}, deet={self.deet}, npas={self.npas}, data_type={self.data_type}, data_bits={self.data_bits}, grtyp='{self.grtyp}', ig1={self.ig1}, ig2={self.ig2}, ig3={self.ig3}, ig4={self.ig4}"
 
     def __str__(self):
         data_str = 'None'
-        if self._data_array is not None:
+        if hasattr(self, "_data_array") and self._data_array is not None:
             t = type(self._data_array)
             data_str = f"<{t.__module__}.{t.__name__} object at 0x{id(self._data_array):x}>"
         return f"rmn.fst_record({self._str_base()}, data={data_str})"
