@@ -168,7 +168,7 @@ class TestRMNPackage(unittest.TestCase):
         to_write = self.create_record_with_data()
         filename = f"{self.tmpdir}/new_file.std"
         with rmn.fst24_file(filename=filename, options="R/W") as f:
-            f.write(to_write, rewrite=True)
+            f.write(to_write, rewrite=rmn.FstRewriteOpt.YES)
 
         with rmn.fst24_file(filename=filename, options="R/O") as f:
             read_from_file = next(iter(f))

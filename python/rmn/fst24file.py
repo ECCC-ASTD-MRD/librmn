@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import numpy
+import enum
 from typing import Union, Generator, Optional, Iterable, Sequence
 
 from ._sharedlib import librmn
@@ -32,6 +33,11 @@ _fst24_get_record_by_index.restype = ctypes.c_int32
 # PYTHON VERSION:
 # 3.9+: Generator[fst_record, None, None]
 # 3.8-: Iterable[fst_record]
+
+class FstRewriteOpt(enum.IntEnum):
+    NO = 0
+    YES = 1
+    SKIP = 2
 
 class fst24_file(ctypes.Structure):
     """ Object encapsulating an RPN fst24 file
@@ -114,12 +120,27 @@ class fst24_file(ctypes.Structure):
         c_query = _fst24_new_query(self._c_ref, ctypes.byref(criteria), 0)
         return fst_query(c_query, self)
 
-    def write(self, record: fst_record, rewrite: bool):
-        """ Write a record to the file """
+    def write(self, record: fst_record, rewrite: Union[bool,FstRewriteOpt]):
+        """ Write a record to the file.
+            Arguments:
+                - record: An rmn.fst_record object.  The record must have data
+                          or come from a file in which case the data will be read.
+                - rewrite: An rmn.FstRewriteOpt instance: rmn.FstRewriteOpt.(YES|NO|SKIP)
+                           or True (equivalent to rmn.FstRewriteOpt.YES)
+                           or False (equivalent to rmn.FstRewriteOpt.NO).
+        """
         if self.closed:
             raise ValueError("I/O operation on closed file")
         if not isinstance(record, fst_record):
             raise TypeError(f"First argumnent should be fst_record, not '{type(record)}'")
+
+        try:
+            # Converts int, and bool and throws value error
+            # for invalid int values or objects of other types.
+            c_rewrite = FstRewriteOpt(rewrite)
+        except ValueError as e:
+            # Swallow traceback from the implementation of enum.IntEnum
+            raise ValueError(e) from None
 
         # Note: Accessing the property causes the data to be read if there is
         # some data so this check is more important than just verifying.
@@ -133,7 +154,7 @@ class fst24_file(ctypes.Structure):
             data_to_write = numpy.asfortranarray(data_to_write)
 
         record.data = data_to_write
-        result = _fst24_write(self._c_ref, ctypes.byref(record), (1 if rewrite else 0))
+        result = _fst24_write(self._c_ref, ctypes.byref(record), c_rewrite)
         record.data = record_original_data
 
         if result != 1:
