@@ -1,6 +1,7 @@
 import ctypes
 from .fstrecord import fst_record, _get_default_fst_record
 from ._sharedlib import librmn
+from typing import Iterator
 
 _fst24_find_next = librmn.fst24_find_next
 _fst24_find_next.argtypes = (ctypes.c_void_p, ctypes.POINTER(fst_record))
@@ -15,17 +16,18 @@ class fst_query:
     >>>     print(rec)
     """
 
-    def __init__(self, _c_ref, _file_ref):
+    # Note: Users should not instanciate queries
+    def __init__(self, _c_ref: ctypes.c_void_p, _file_ref):
         """ Queries should only be created by users through the
         new_query method of fst24_file."""
         self._c_ref = _c_ref
         # Keep the file object alive as long as this query is alive
         self._file_ref = _file_ref
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[fst_record]:
         return self
 
-    def __next__(self):
+    def __next__(self) -> fst_record:
         if self._file_ref.closed:
             raise ValueError(f"Query {self} references closed file")
         rec = _get_default_fst_record()
