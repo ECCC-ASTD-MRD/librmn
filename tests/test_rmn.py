@@ -40,6 +40,17 @@ class TestRMNPackage(unittest.TestCase):
         else:
             self.tmpdir_obj.cleanup()
 
+    def basic_keyword_args(self):
+        return {
+            "dateo": 1, "datev": 2,
+            "data_type": 5, "data_bits": 32, "pack_bits": 32,
+            "ni": 8, "nj": 9, "nk": 1,
+            "ip1": 1,"ip2": 2,"ip3": 3,
+            "ig1": 1, "ig2": 2, "ig3": 3, "ig4": 4,
+            "nomvar": "RPN", "typvar": "Y", "grtyp": "X",
+            "deet": 0, "npas": 0, "etiket": "unittest"
+        }
+
     def create_record(self):
         rec = rmn.fst_record(
             dateo=1, datev=2,
@@ -157,7 +168,7 @@ class TestRMNPackage(unittest.TestCase):
         to_write = self.create_record_with_data()
         filename = f"{self.tmpdir}/new_file.std"
         with rmn.fst24_file(filename=filename, options="R/W") as f:
-            f.write(to_write, rewrite=True)
+            f.write(to_write, rewrite=rmn.FstRewriteOpt.YES)
 
         with rmn.fst24_file(filename=filename, options="R/O") as f:
             read_from_file = next(iter(f))
@@ -286,6 +297,61 @@ class TestRMNPackage(unittest.TestCase):
             for rec in q:
                 pass
         self.assertRaisesRegex(ValueError, "references closed file", query_closed_file)
+
+    def test_copy_file(self):
+        output_file = f"{self.tmpdir}/copied_file.std"
+        with rmn.fst24_file(self.input_file) as f:
+            with rmn.fst24_file(output_file, options="R/W") as g:
+                for rec in f:
+                    g.write(rec, rewrite=True)
+
+    def test_record_invalid_keyword_args(self):
+
+        # Probably not necessary but the __init__ of fst_record
+        # has a check to prevent us from touching private attributes
+        # (those starting with underscores).
+        def bad_record_creation_private_attributes():
+            rec = rmn.fst_record(_etiket="ETIKET", _nomvar="UU")
+        self.assertRaises(ValueError, bad_record_creation_private_attributes)
+
+        # They can still be set and I don't think it's worth it to prevent that
+        # because the underscore is clearly marking them as private anyway.
+        rec = rmn.fst_record()
+        rec._deleted = True
+
+        # Because fst_record has a __slots__ class attribute, this makes it a
+        # so-called "data class" which cannot receive any new attributes.
+        def bad_record_creation_inexistatn_attributes():
+            rec = rmn.fst_record(new_attribute=True)
+        self.assertRaises(AttributeError, bad_record_creation_inexistatn_attributes)
+
+        def set_new_attribute():
+            rec = rmn.fst_record()
+            rec.new_attribute = True
+        self.assertRaises(AttributeError, set_new_attribute)
+
+
+    # Since data is a property, setting it runs some code that looks at the
+    # values of other attributes.  In record initialization, those attributes
+    # need to be set first.  All other properties simply wrap a single private
+    # attribute so they do not have this problem
+    def test_record_kwargs_data_before_others(self):
+        data = self.create_record_with_data().data
+        rec = rmn.fst_record(data=data, **self.basic_keyword_args())
+
+    # Create records with legal attributes with invalid values.  It will raise
+    # an exception because settin data will fail.  The exception message could
+    # be better but it indicates what is wrong clearly enough.
+    def test_invalid_kwarg_combination(self):
+        def invalid_kwarg_combination():
+            data = self.create_record_with_data().data
+            kwargs = self.basic_keyword_args()
+            kwargs['data_bits'] = 3 # Invalid
+            # Create a record where setting the data will fail because we gave a
+            # bad value for data_bits.
+            rec = rmn.fst_record(**kwargs, data=data)
+        self.assertRaisesRegex(NotImplementedError, "No numpy data type known for .* with .*", invalid_kwarg_combination)
+
 
 if __name__ == "__main__":
     unittest.main()

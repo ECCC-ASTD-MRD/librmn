@@ -35,5 +35,6 @@ Create a file with a single record with random data:
 >>> with rmn.fst24_file(<filename>, options="R/W") as f:
 >>>     f.write(rec, rewrite=True)
 """
-from .fst24file import fst24_file, FstFileError
+from .fst24file import fst24_file, FstFileError, FstRewriteOpt
 from .fstrecord import fst_record, FstDataType
+# from .fst_index import get_index_data_frame, get_index_columns, read_fst_data_at_index, get_opdict_metadata

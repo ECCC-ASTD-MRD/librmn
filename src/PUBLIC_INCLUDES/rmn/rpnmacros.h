@@ -35,7 +35,7 @@ according to the compiler
 #       define Little_Endian
 #   endif
 
-#   ifdef __INTEL_COMPILER
+#if defined (__INTEL_COMPILER) || defined (__INTEL_LLVM_COMPILER)
         typedef const int64_t F2Cl;
 #   elif __clang__
         typedef const int32_t F2Cl;

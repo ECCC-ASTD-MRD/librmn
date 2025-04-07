@@ -24,7 +24,7 @@
 #   define ExtraAttributes
 #endif
 
-#if defined(__GFORTRAN__) || defined(__INTEL_COMPILER)
+#if defined(__GFORTRAN__) || defined(__INTEL_COMPILER) || defined (__INTEL_LLVM_COMPILER)
       type(*), dimension(*) ExtraAttributes :: IgnoreTypeKindRank
 #else
       ! Cray compiler, PGI/Nvidia, flang, xlf, SunStudio
@@ -34,7 +34,7 @@
 ! Ignore type, kind, and rank through the use of compiler directives (pragmas)
 #if defined(WITH_GNU) || defined(__GFORTRAN__)
 !GCC$ ATTRIBUTES NO_ARG_CHECK :: IgnoreTypeKindRank
-#elif defined(WITH_INTEL) || defined(__INTEL_COMPILER)
+#elif defined(WITH_INTEL) || defined(__INTEL_COMPILER) || defined (__INTEL_LLVM_COMPILER)
 !DIR$ ATTRIBUTES NO_ARG_CHECK :: IgnoreTypeKindRank
 #elif defined(WITH_PGI) || defined(WITH_NVIDIA) || defined(WITH_CRAY) || defined(_CRAYFTN) || defined(__PGI)
 !DIR$ ignore_tkr IgnoreTypeKindRank
