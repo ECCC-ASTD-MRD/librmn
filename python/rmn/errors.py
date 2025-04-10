@@ -1,0 +1,4 @@
+
+
+class FstFileError(Exception):
+    pass
