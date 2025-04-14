@@ -23,7 +23,7 @@ typedef void (TList_FreeProc)(void * item);
 TList * TList_Add(TList * const list, void * const item);
 TList * TList_AddSorted(TList * const list, TList_CompareProc * const compare, void * const item);
 TList * TList_Del(TList * list, const void * const item);
-TList * TList_Find(const TList * const list, TList_CompareProc * const compare, const void * const item);
+TList * TList_Find(TList * const list, TList_CompareProc * const compare, const void * const item);
 void TList_Clear(TList * list, TList_FreeProc * const freeItem);
 
 //! @}

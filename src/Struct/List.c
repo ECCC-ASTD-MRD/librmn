@@ -174,7 +174,7 @@ TList * TList_Del(
 //! Find the node corresponding to the provided item
 TList * TList_Find(
     //! [in] List in which to search
-    const TList * const list,
+    TList * const list,
     //! [in] Comparison function. Must return 1 when items match.
     TList_CompareProc * const compare,
     //! [in] Item to search for
