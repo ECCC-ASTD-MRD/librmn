@@ -72,7 +72,6 @@ int32_t c_ezyy_calcxy(int32_t gdout,int32_t gdin)
         nj = Grille[gdrow_out][gdcol_out].nj;
     }
 
-    &(Grille[gdrow_in ][gdcol_in ]);
     _Grille * lgdout = &(Grille[gdrow_out][gdcol_out]);
 
     /* Masquer les grilles YY input pour enlever overlap si OUI */

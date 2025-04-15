@@ -45,7 +45,6 @@ int32_t ez_corrval_ausud(float *zout, float *zin, int32_t gdin, int32_t gdout)
   idx_gdin = c_find_gdin(gdin, gdout);
 
   lgdin = &(Grille[gdrow_in][gdcol_in]);
-  &(Grille[gdrow_out][gdcol_out]);
 
   gset = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin]);
   npts = gset->zones[AU_SUD].npts;
