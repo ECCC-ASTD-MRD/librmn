@@ -232,6 +232,9 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
     endif()
 endif()
 
+# Check for f_c_string and c_f_strpointer availability
+check_source_compiles(Fortran "use, intrinsic :: iso_c_binding, only: c_f_strpointer; end" C_F_STRPOINTER_AVAILABLE SRC_EXT F90)
+
 foreach(TARGET IN ITEMS ${TARGETS})
 
     target_compile_options(${TARGET} PUBLIC
@@ -271,8 +274,6 @@ foreach(TARGET IN ITEMS ${TARGETS})
         target_link_options(${TARGET} PUBLIC -ldl)
     endif()
 
-    # Check for f_c_string and c_f_strpointer availability
-    check_source_compiles(Fortran "use, intrinsic :: iso_c_binding, only: c_f_strpointer; end" C_F_STRPOINTER_AVAILABLE SRC_EXT F90)
     if (${C_F_STRPOINTER_AVAILABLE})
         target_compile_definitions(${TARGET} PRIVATE FORTRAN_202X_SUPPORTED)
     endif()
