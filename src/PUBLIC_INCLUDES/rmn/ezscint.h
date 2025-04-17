@@ -183,6 +183,9 @@ void c_ez_calcarea_rect(float *area,     float lat1, float lon1, float lat2, flo
 void c_ez_calcarea(float *area, float lats[], float lons[]);
 void c_ez_calcarea2(double *area, float lats[], float lons[]);
 
+int32_t c_ezgetgdin();
+int32_t c_ezgetgdout();
+
 #ifdef __cplusplus
 }
 #endif
