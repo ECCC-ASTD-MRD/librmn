@@ -75,9 +75,6 @@
 #include "fst/burp98.h"
 #include "fst/fst98_internal.h"
 
-static int endian_int = 1;
-static char *little_endian = (char *)&endian_int;
-
 typedef struct {
     int ftn1;
     int nbits;
