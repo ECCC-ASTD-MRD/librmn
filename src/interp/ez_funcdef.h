@@ -87,10 +87,6 @@ int32_t find_gdin_in_gset(int32_t gdin, int32_t gdout);
 
 int32_t ftnstrclean(char *str, int32_t lenstr);
 
-int32_t c_ezgetgdin();
-
-int32_t c_ezgetgdout();
-
 void c_ezgfllfxy(float *lonp, float *latp,
                  float *lon, float *lat,
                  float *r, float *ri, int32_t *npts,
