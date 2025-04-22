@@ -24,7 +24,7 @@
 
 #include "ez_funcdef.h"
 #include "base/base.h"
-#include "rmn/f_ezscint.h"
+#include <rmn/f_ezscint.h>
 
 int32_t c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n);
 

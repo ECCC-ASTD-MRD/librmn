@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include "ez_funcdef.h"
-#include "rmn/f_ezscint.h"
+#include <rmn/f_ezscint.h>
 
 
 int32_t c_gdlluvfuv_orig(int32_t gdid, float *uullout, float *vvllout, float *uuin, float *vvin,

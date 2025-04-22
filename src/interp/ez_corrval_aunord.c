@@ -21,7 +21,7 @@
 #include <stdlib.h>
 
 #include "rmn/ezscint.h"
-#include "rmn/f_ezscint.h"
+#include <rmn/f_ezscint.h>
 #include "ez_funcdef.h"
 
 

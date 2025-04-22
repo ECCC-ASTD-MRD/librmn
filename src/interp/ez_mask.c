@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include "ez_funcdef.h"
-#include "rmn/f_ezscint.h"
+#include <rmn/f_ezscint.h>
 
 int f77name(gdsetmask)(int *gdid, int *mask) {
     return c_gdsetmask(*gdid, mask);
