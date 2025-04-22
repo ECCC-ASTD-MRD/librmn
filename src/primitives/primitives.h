@@ -1,7 +1,7 @@
 #ifndef RMN_PRIMITIVES_H__
 #define RMN_PRIMITIVES_H__
 
-#include <rmn/rpnmacros.h>
+#include "rmn/primitives.h"
 
 int get_appl_var(char* varname, char *value, int ln, int lng);
 int get_client_timeout(const int fclient);

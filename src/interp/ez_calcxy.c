@@ -20,9 +20,9 @@
 
 #include <stdlib.h>
 
-#include <rmn/ezscint.h>
+#include "rmn/ezscint.h"
+#include "rmn/f_ezscint.h"
 #include "ez_funcdef.h"
-#include "f_ezscint.h"
 
 
 int32_t ez_calcxy(int32_t gdin, int32_t gdout)

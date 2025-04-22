@@ -25,7 +25,7 @@
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
 #include "base/base.h"
-#include "interp/f_ezscint.h"
+#include "rmn/f_ezscint.h"
 
 
 int32_t ez_calclatlon(int32_t gdid) {

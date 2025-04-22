@@ -20,9 +20,10 @@
 
 
 #include <stdlib.h>
-#include <rmn/ezscint.h>
+
+#include "rmn/ezscint.h"
+#include "rmn/f_ezscint.h"
 #include "ez_funcdef.h"
-#include "f_ezscint.h"
 
 
 int32_t ez_corrvec_aunord(float *uuout, float *vvout, float *uuin, float *vvin, int32_t gdin, int32_t gdout) {

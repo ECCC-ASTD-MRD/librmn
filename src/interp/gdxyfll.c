@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include "ez_funcdef.h"
-#include "f_ezscint.h"
+#include "rmn/f_ezscint.h"
 
 
 int32_t c_gdxyfll_new(

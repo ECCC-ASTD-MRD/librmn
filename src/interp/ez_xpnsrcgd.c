@@ -18,9 +18,9 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#include <rmn/ezscint.h>
+#include "rmn/ezscint.h"
+#include "rmn/f_ezscint.h"
 #include "ez_funcdef.h"
-#include "f_ezscint.h"
 
 
 void ez_xpnsrcgd(int32_t gdid, float *zout, float *zin) {
