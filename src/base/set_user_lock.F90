@@ -14,7 +14,7 @@ subroutine set_user_lock(lockId, lock)
 
     !> \note This function has no effect if OpenMP isn't enabled
 
-#if defined(_OPENMP)
+#ifdef _OPENMP
     integer, external :: omp_get_thread_num
     integer :: current_pid, owner_pid, owner_count
     logical :: ok

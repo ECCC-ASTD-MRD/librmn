@@ -81,14 +81,14 @@ int c_ez_findgrid(int grid_index, _Grille *gr) {
                         // resax = memcmp(refgd->ax, gr->ax, (size_t)(gr->ni*sizeof(float)));
                         // resay = memcmp(refgd->ay, gr->ay, (size_t)(gr->nj*sizeof(float)));
                     } else {
-                        for (i=0; i < gr->ni*gr->nj; i++) {
+                        for (i=0; i < gr->ni * gr->nj; i++) {
                             if (refgd->ax[i] != gr->ax[i]) {
                                 resax=1;
                                 break;
                             }
                         }
                         if (resax == 0) {
-                            for (j=0; j < gr->ni*gr->nj; j++) {
+                            for (j=0; j < gr->ni * gr->nj; j++) {
                                 if (refgd->ay[j] != gr->ay[j]) {
                                     resay=1;
                                     break;
@@ -140,15 +140,13 @@ int c_ez_findgrid(int grid_index, _Grille *gr) {
 
 
 void dump_gr_list() {
-    int gd_row, gd_col;
-    _Grille *gr;
-
     for (int i = 0; i < chunks[cur_log_chunk]; i++) {
         if (gr_list[i] != NULL) {
-            gr = gr_list[i];
+            const _Grille * gr = gr_list[i];
             printf("%d %d -> ", i, gr->index);
             while (gr->next_gd != -1) {
                 printf("%d ->", gr->next_gd);
+                int gd_row, gd_col;
                 c_gdkey2rowcol(gr->next_gd, &gd_row, &gd_col);
                 gr = &Grille[gd_row][gd_col];
             }

@@ -22,13 +22,13 @@ subroutine ez_genpole(vpolnor, vpolsud, fld, ni, nj, vecteur, grtyp, hem, x, y, 
     use iso_fortran_env, only: real32, real64
     implicit none
 
-    real vpolnor, vpolsud
-    integer ni, nj
-    real fld(ni, nj)
-    character(len = 1) :: grtyp
-    logical vecteur
-    integer hem, ordint
-    real x(2, ni), y(2, ni), z(2, ni), lat(2, ni), lon(2, ni), glat(*)
+    real, intent(out) :: vpolnor, vpolsud
+    integer, intent(in) :: ni, nj
+    real, intent(in) :: fld(ni, nj)
+    character(len = 1), intent(in) :: grtyp
+    logical, intent(in) :: vecteur
+    integer, intent(in) :: hem, ordint
+    real, intent(out) :: x(2, ni), y(2, ni), z(2, ni), lat(2, ni), lon(2, ni), glat(*)
 
 #include "ez_def_shared.h"
 

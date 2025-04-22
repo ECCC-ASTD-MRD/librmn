@@ -47,7 +47,7 @@ int32_t ez_corrval_ausud(float *zout, float *zin, int32_t gdin, int32_t gdout)
         float * temp = (float *) malloc(4 * ni * sizeof(float));
         float * vals = (float *) malloc(npts * sizeof(float));
         float vpolesud;
-        f77name(ez_calcpoleval)(&vpolesud, zin, &ni, lgdin->ax,lgdin->grtyp, lgdin->grref,1,1);
+        f77name(ez_calcpoleval)(&vpolesud, zin, &ni, lgdin->ax,lgdin->grtyp, lgdin->grref, 1, 1);
         f77name(ez_fillspole)(temp, zin, &ni, &lgdin->j1, &lgdin->j2, &vpolesud);
 
         switch (groptions.degre_interp) {

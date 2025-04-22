@@ -44,6 +44,8 @@ int32_t c_ezgdef_supergrid(
     //! [in] Array of subgrid ids
     const int32_t * const subgrid
 ) {
+    //! \ingroup ezscint
+
     //! This 'U' grid contains information for the concatenated 'Z' grids such as the Yin-Yang grid.
     //! The information can be obtained from a function or from the record '^>' that exists in some FST files.
 

@@ -26,40 +26,42 @@ subroutine rgll2gd(spdo, psio, xlon, li, lj, grtyp, ig1, ig2, ig3, ig4)
     use rmn_base_const, only: dgtord
     implicit none
 
-    integer li, lj
-    real spdo(li, lj), psio(li, lj), xlon(li, lj)
-    character(len = 1) :: grtyp
-    integer ig1, ig2, ig3, ig4
+    !> First dimension of the spgo, psio fields
+    integer, intent(in) :: li
+    !> Second dimension of the spgo, psio fields
+    integer, intent(in) :: lj
+    !> Must contain the speed when called. Will contain to U component on return.
+    real, intent(inout) :: spdo(li, lj)
+    !> Must contain the direction when called. Will contain to V component on return.
+    real, intent(inout) :: psio(li, lj)
+    real, intent(in) :: xlon(li, lj)
+    !> Grid type
+    character(len = 1), intent(in) :: grtyp
+    !> First integer grid descriptor
+    integer, intent(in) :: ig1
+    !> Second integer grid descriptor
+    integer, intent(in) :: ig2
+    !> Third integer grid descriptor
+    integer, intent(in) :: ig3
+    !> Forth integer grid descriptor
+    integer, intent(in) :: ig4
+
+    !> \ingroup ezscint
 
     external cigaxg
-
-!arguments
-!  in/out - spd   - a l'entree contient la vitesse du vent et
-!                   a la sortie la composante u.
-!  in/out - psi   - a l'entree contient la direction du vent et
-!                   a la sortie la composante v.
-!   in    - li    - premiere dimension des champs spd et psi
-!   in    - lj    - deuxieme dimension des champs spd et psi
-!   in    - igtyp  - type de grille (voir ouvrir)
-!   in    - xg1   - ** descripteur de grille (reel),
-!   in    - xg2   -    igtyp = 'n', pi, pj, d60, dgrw
-!   in    - xg3   -    igtyp = 'l', lat0, lon0, dlat, dlon,
-!   in    - xg4   -    igtyp = 'a', 'b', 'g', xg1 = 0. global,
-!                                                 = 1. nord
-!                                                 = 2. sud **
 
     integer i, j
     real psi, u, v
     real xg1, xg2, xg3, xg4
 
-    if (grtyp .eq. 'N') then
+    if (grtyp == 'N') then
         call cigaxg(grtyp, xg1, xg2, xg3, xg4, ig1, ig2, ig3, ig4)
 
-        do i=1, li
-            do j=1, lj
-                psi =xlon(i, j)+xg4-psio(i, j)
-                u = cos(psi*dgtord)*spdo(i, j)
-                v = sin(psi*dgtord)*spdo(i, j)
+        do i = 1, li
+            do j = 1, lj
+                psi = xlon(i, j) + xg4 - psio(i, j)
+                u = cos(psi * dgtord) * spdo(i, j)
+                v = sin(psi * dgtord) * spdo(i, j)
                 spdo(i, j) = u
                 psio(i, j) = v
             end do
@@ -67,13 +69,13 @@ subroutine rgll2gd(spdo, psio, xlon, li, lj, grtyp, ig1, ig2, ig3, ig4)
         return
     endif
 
-    if (grtyp .eq. 'S') then
+    if (grtyp == 'S') then
         call cigaxg(grtyp, xg1, xg2, xg3, xg4, ig1, ig2, ig3, ig4)
-        do i=1, li
-            do j=1, lj
-                psi =180.0 - xlon(i, j)+xg4-psio(i, j)
-                u = cos(psi*dgtord)*spdo(i, j)
-                v = sin(psi*dgtord)*spdo(i, j)
+        do i = 1, li
+            do j = 1, lj
+                psi = 180.0 - xlon(i, j) + xg4 - psio(i, j)
+                u = cos(psi * dgtord) * spdo(i, j)
+                v = sin(psi * dgtord) * spdo(i, j)
                 spdo(i, j) = u
                 psio(i, j) = v
             end do
@@ -81,12 +83,12 @@ subroutine rgll2gd(spdo, psio, xlon, li, lj, grtyp, ig1, ig2, ig3, ig4)
         return
     endif
 
-    if (grtyp .eq. 'A' .or. grtyp .eq. 'B' .or. grtyp .eq. 'G' .or. grtyp .eq. 'L') then
-        do i=1, li
-            do j=1, lj
+    if (grtyp == 'A' .or. grtyp == 'B' .or. grtyp == 'G' .or. grtyp == 'L') then
+        do i = 1, li
+            do j = 1, lj
                 psi = 270.0 - psio(i, j)
-                u = cos(psi*dgtord)*spdo(i, j)
-                v = sin(psi*dgtord)*spdo(i, j)
+                u = cos(psi * dgtord) * spdo(i, j)
+                v = sin(psi * dgtord) * spdo(i, j)
                 spdo(i, j) = u
                 psio(i, j) = v
             end do

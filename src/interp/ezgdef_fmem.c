@@ -49,6 +49,8 @@ int32_t c_ezgdef_fmem(
     //! [in] Positional axis mapped to the '^^' record
     const float * const ay
 ) {
+    //! \ingroup ezscint
+
     //! Can be used with regular and irregular ('Y', 'Z') grids, although it is not very useful for regular grids.
 
     //! If the grid type corresponds to a regular grid type (eg. 'A', 'G', 'N', etc.),

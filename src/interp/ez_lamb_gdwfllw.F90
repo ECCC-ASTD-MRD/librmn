@@ -50,6 +50,8 @@ subroutine ez_lamb_gdwfllw(z1, z2, xlon, li, lj, grtyp, ig1, ig2, ig3, ig4, x1, 
     real, intent(out) :: y1(li * lj, 2)
     real, intent(out) :: xlat(li * lj, 2)
 
+    !> \ingroup ezscint
+
     real :: delx, dely, uuu, vvv, alpha, psi
 
     integer :: i

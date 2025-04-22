@@ -18,6 +18,9 @@
 ! Boston, MA 02111-1307, USA.
 
 
+!> \file
+
+
 !> Convert speed and psi components to u, v according to the grid type
 subroutine ez_gdwfllw(z1, z2, xlon, li, lj, grtyp, ig1, ig2, ig3, ig4)
     use rmn_base_const, only: dgtord
@@ -43,6 +46,8 @@ subroutine ez_gdwfllw(z1, z2, xlon, li, lj, grtyp, ig1, ig2, ig3, ig4)
     integer, intent(in) :: ig3
     !> Fourth integer grid parameter
     integer, intent(in) :: ig4
+
+    !> \ingroup ezscint
 
     external cigaxg
 

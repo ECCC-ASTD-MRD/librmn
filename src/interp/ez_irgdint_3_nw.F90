@@ -49,6 +49,8 @@ subroutine ez_irgdint_3_nw(zo, px, py, npts, ax, ay, cx, cy, z, i1, i2, j1, j2)
     !> Values on the source grid
     real z(i1:i2, j1:j2)
 
+    !> \ingroup ezscint
+
     !     *   *   *   *
     !
     !     *   *   *   *

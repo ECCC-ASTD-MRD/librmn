@@ -48,6 +48,8 @@ subroutine ez_vllfxy(dlat, dlon, x, y, ni, nj, d60, dgrw, pi, pj, nhem)
     !> Hemisphere, 1 for North 2 for South
     integer, intent(in) :: nhem
 
+    !> \ingroup ezscint
+
 #include "ez_def_shared.h"
 
     real(kind = real64) :: x1, y1

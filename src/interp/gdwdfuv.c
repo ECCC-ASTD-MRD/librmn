@@ -18,7 +18,6 @@
  * Boston, MA 02111-1307, USA.
  */
 
-//! \file
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +25,10 @@
 
 #include "ez_funcdef.h"
 #include "f_ezscint.h"
+
+
+//! \file
+
 
 int32_t c_gdwdfuv_orig(int32_t gdid, float *spd_out, float *wd_out, float *uuin, float *vvin,
               float *latin, float *lonin, int32_t npts)
@@ -120,6 +123,8 @@ int32_t c_gdwdfuv(
     //! [in] Number of points
     int32_t npts
 ) {
+    //! \ingroup ezscint
+
     //! \note The lat/lon coordinates of each points have to be present.
 
     int32_t gdrow_id, gdcol_id;

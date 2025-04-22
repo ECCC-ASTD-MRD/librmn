@@ -21,38 +21,40 @@
 !> \file
 
 
-!> Compute the grid coordinates of a point on a gaussian grid
-subroutine ez_ggll2gd(x, y, xlat, xlon, npts, ni, nj, hem, lroots)
+!> Compute the latitude and longitude of a polar stereographic grid
+subroutine grps(xlat, xlon, ni, nj, pi, pj, d60, dgrw, hem)
     implicit none
 
-    integer, intent(in) :: npts
+    !> Number of points along the X axis
     integer, intent(in) :: ni
+    !> Number of points along the Y axis
     integer, intent(in) :: nj
-    real, intent(out) :: x(npts)
-    real, intent(out) :: y(npts)
-    real, intent(in) :: xlat(npts)
-    real, intent(in) :: xlon(npts)
+    !> Latitudes
+    real, intent(out) :: xlat(ni, nj)
+    ! Greater done Longitudes
+    real, intent(out) :: xlon(ni, nj)
+    !> X coordinates of the pole
+    real, intent(in) :: pi
+    !> Y coordinates of the pole
+    real, intent(in) :: pj
+    !> Distance in meters between the grid points at 60 degrees of latitude
+    real, intent(in) :: d60
+    !> Angle between the X axis and greenwhich meridian
+    real, intent(in) :: dgrw
+    !> Hemisphere: 1 for North, 2 for South
     real, intent(in) :: hem
-    real, intent(in) :: lroots(nj)
 
-    !> \ingroup ezscint
+    integer :: i, j
+    real :: y, xla, xlo
 
-    integer, external :: ez_cherche
+    do j = 1, nj
+        y = j - pj
 
-    integer :: i, indy
-    real :: dellon, xlon0
-
-    dellon = 360.0 / real(ni)
-    xlon0 = 0.0
-
-    do i = 1, npts
-        x(i) = (xlon(i) - xlon0) / dellon + 1.0
+        do i = 1, ni
+            call llfxy(xla, xlo, i - pi, y, d60, dgrw, hem)
+            xlat(i, j) = xla
+            if (xlo < 0) xlo = xlo + 360.0
+            xlon(i, j) = xlo
+        end do
     end do
-
-    do i = 1, npts
-        indy = ez_cherche(xlat(i), lroots, nj)
-        if (indy >= nj) indy = nj - 1
-
-        y(i) = real(indy) + (xlat(i) - lroots(indy)) / (lroots(indy + 1) - lroots(indy))
-    enddo
 end

@@ -17,6 +17,7 @@
 ! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ! Boston, MA 02111-1307, USA.
 
+
 !> \file
 
 
@@ -24,12 +25,16 @@
 subroutine ez_ll2ergd(px, py, xlat, xlon, npts, ni, nj, grtyp, ig1, ig2, ig3, ig4)
     implicit none
 
+    integer, intent(in) :: npts, ni, nj
+    real, intent(out) :: px(npts), py(npts)
+    real, intent(out) :: xlat(npts), xlon(npts)
+    character(len = 1), intent(in) :: grtyp
+    integer, intent(in) :: ig1, ig2, ig3, ig4
+
+    !> \ingroup ezscint
+
     external cigaxg, ez_llll2gd, permut
 
-    integer npts, ni, nj
-    real px(npts), py(npts), xlat(npts), xlon(npts)
-    character(len = 1) :: grtyp
-    integer ig1, ig2, ig3, ig4
     real dellat, dellon, xlat0, xlon0
     real xlat1, xlat2, xlon1, xlon2
     real xlatgf(npts), xlongf(npts)
@@ -37,7 +42,7 @@ subroutine ez_ll2ergd(px, py, xlat, xlon, npts, ni, nj, grtyp, ig1, ig2, ig3, ig
     call cigaxg(grtyp, xlat1, xlon1, xlat2, xlon2, ig1, ig2, ig3, ig4)
     call ez_gfxyfll(xlon, xlat, xlongf, xlatgf, npts, xlat1, xlon1, xlat2, xlon2)
 
-    if (grtyp .eq. 'E') then
+    if (grtyp == 'E') then
         dellon = 360.0 / real(ni - 1)
         xlon0 = 0.0
 

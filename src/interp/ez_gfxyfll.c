@@ -27,31 +27,45 @@
 
 
 void f77name(ezgfxyfll)(
-    float *lonp, float *latp,
-    float *lon, float *lat,
-    float *r, float *ri, int32_t *npts,
-    float *xlat1, float *xlon1, float *xlat2, float *xlon2
+    const float * const lonp,
+    const float * const latp,
+    float * const lon,
+    float * const lat,
+    float * const r,
+    float * const ri,
+    const int32_t * const npts,
+    const float * const xlat1,
+    const float * const xlon1,
+    const float * const xlat2,
+    const float * const xlon2
 ) {
-  c_ezgfxyfll(lonp, latp, lon, lat, r, ri, npts, xlat1, xlon1, xlat2, xlon2);
+    c_ezgfxyfll(lonp, latp, lon, lat, r, ri, npts, xlat1, xlon1, xlat2, xlon2);
 }
 
+
 void c_ezgfxyfll(
-    float *lonp, float *latp,
-    float *lon, float *lat,
-    float *r, float *ri, int32_t *npts,
-    float *xlat1, float *xlon1, float *xlat2, float *xlon2
+    const float * const lonp,
+    const float * const latp,
+    float * const lon,
+    float * const lat,
+    float * const r,
+    float * const ri,
+    const int32_t * const npts,
+    const float * const xlat1,
+    const float * const xlon1,
+    const float * const xlat2,
+    const float * const xlon2
 ) {
-  float *cart, *carot;
-  int32_t trois = 3;
+    int32_t trois = 3;
 
-  cart = (float *) malloc(3* *npts*sizeof(float));
-  carot = (float *) malloc(3* *npts*sizeof(float));
+    float * const cart = (float *) malloc(3* *npts*sizeof(float));
+    float * const carot = (float *) malloc(3* *npts*sizeof(float));
 
-  f77name(ez_crot)( r, ri, xlon1, xlat1, xlon2, xlat2);
-  f77name(ez_lac) (cart,lonp,latp, npts);
-  f77name(mxm)(r,&trois,cart,&trois,carot,npts);
-  f77name(ez_cal)(lon,lat,carot,npts);
+    f77name(ez_crot)(r, ri, xlon1, xlat1, xlon2, xlat2);
+    f77name(ez_lac)(cart, lonp, latp, npts);
+    f77name(mxm)(r, &trois, cart, &trois, carot, npts);
+    f77name(ez_cal)(lon, lat, carot, npts);
 
-  free(cart);
-  free(carot);
+    free(cart);
+    free(carot);
 }

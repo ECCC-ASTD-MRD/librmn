@@ -23,28 +23,22 @@
 #include "f_ezscint.h"
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+void ez_xpnsrcgd(int32_t gdid, float *zout, float *zin) {
+    int32_t gdrow_id, gdcol_id;
+    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+    const _Grille gr = Grille[gdrow_id][gdcol_id];
 
-void ez_xpnsrcgd(int32_t gdid, float *zout, float *zin)
-{
-   _Grille gr;
-  int32_t gdrow_id, gdcol_id;
-    
-  c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
-   gr = Grille[gdrow_id][gdcol_id];
-   
-   switch (gr.grtyp[0])
-     {
-     case 'A':
-     case 'G':
-       f77name(ez_xpngdag2)(zout,zin,&gr.ni,&gr.nj,&gr.j1,&gr.j2,&gr.fst.ig[IG1],&groptions.symmetrie);
-       break;
+    switch (gr.grtyp[0]) {
+        case 'A':
+        case 'G':
+            f77name(ez_xpngdag2)(zout, zin, &gr.ni, &gr.nj, &gr.j1, &gr.j2, &gr.fst.ig[IG1], &groptions.symmetrie);
+            break;
 
-     case 'B':
-       f77name(ez_xpngdb2)(zout,zin,&gr.ni,&gr.nj,&gr.j1,&gr.j2,&gr.fst.ig[IG1],&groptions.symmetrie);
-       break;
+        case 'B':
+            f77name(ez_xpngdb2)(zout, zin, &gr.ni, &gr.nj, &gr.j1, &gr.j2, &gr.fst.ig[IG1], &groptions.symmetrie);
+            break;
 
-     default:
-       break;
-     }
+        default:
+            break;
+    }
 }

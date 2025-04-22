@@ -27,8 +27,6 @@ subroutine ez_vxyfll(x, y, dlat, dlon, npts, d60, dgrw, pi, pj, nhem)
     use rmn_base_const, only: dgtord, nord, sud
     implicit none
 
-    !> \see llfxy which computes the latitude and longitude given the grid-coordinates
-
     integer, intent(in) :: npts
     !> X coordinate of the point as measured with pole as origin
     real, intent(out) :: x(npts)
@@ -46,6 +44,10 @@ subroutine ez_vxyfll(x, y, dlat, dlon, npts, d60, dgrw, pi, pj, nhem)
     real, intent(in) :: pj
     ! Hemisphere : 1 = north, 2 = south
     integer, intent(in) :: nhem
+
+    !> \ingroup ezscint
+
+    !> \see llfxy which computes the latitude and longitude given the grid-coordinates
 
     real(kind = real64) :: re, rlon, rlat, sinlat, r
     integer :: i

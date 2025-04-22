@@ -25,8 +25,7 @@
 
 //! \file
 
-int32_t c_gdll_orig(int32_t gdid, float *lat, float *lon)
-{
+int32_t c_gdll_orig(int32_t gdid, float *lat, float *lon) {
     int32_t gdrow_id, gdcol_id;
     c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
@@ -55,6 +54,8 @@ int32_t c_gdll(
     //! [out] Array of grid point longitudes. Must be allocated by client with a dimension corresponding to the grid.
     float *lon
 ) {
+    //! \ingroup ezscint
+
     int32_t icode;
     int32_t gdrow_id, gdcol_id;
     c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);

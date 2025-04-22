@@ -21,23 +21,36 @@
 !> \file
 
 
-!> Compute spherical coordinates from cartesian coordinates
-subroutine ez_cal(lon, lat, xyz, n)
+!> Compute the latitude and longitude of a lat-lon grid
+subroutine grll(xlat, xlon, ni, nj, xla0, xlo0, dla0, dlo0)
     implicit none
 
-    integer, intent(in) :: n
-    real, intent(in) :: xyz(3, n)
-    real, intent(out) :: lon(n), lat(n)
+    !> Number of points per latitude circle
+    integer, intent(in) :: ni
+    !> Number of latitude circles
+    integer, intent(in) :: nj
+    !> Latitudes
+    real, intent(out) :: xlat(ni, nj)
+    !> Longitudes
+    real, intent(out) :: xlon(ni, nj)
+    !> Lower left corner latitude (degrees)
+    real, intent(in) :: xla0
+    !> Lower left corner longitude (degrees)
+    real, intent(in) :: xlo0
+    !> Latitude spacing (degrees)
+    real, intent(in) :: dla0
+    !> Longitude spacing (degrees)
+    real, intent(in) :: dlo0
 
-    !> \ingroup ezscint
+    integer :: i, j
+    real :: xla
 
-    real, parameter :: rad = 180.0 / acos(-1.00)
-    integer i
+    do j = 1, nj
+        xla = xla0 + (j - 1) * dla0
 
-        do i = 1, n
-            lat(i) = asin(max(-1.00, min(1.0, xyz(3, i)))) * rad
-            lon(i) = atan2( xyz(2, i), xyz(1, i) ) * rad
-            lon(i) = amod( lon(i), 360.0 )
-            if (lon(i) < 0.0) lon(i) = lon(i) + 360.0
+        do i = 1, ni
+            xlat(i, j) = xla
+            xlon(i, j) = amod(xlo0 + (i - 1) * dlo0, 360.0)
+        end do
     end do
-end 
+end

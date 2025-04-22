@@ -44,6 +44,8 @@ int32_t c_ezqkdef(
     //! This parameters is not considered for the other grid types. Use 0 if you don't know what to enter.
     const int32_t iunit
 ) {
+    //! \ingroup ezscint
+
     //! \deprecated Use \ref c_ezgdef_ffile or its Fortran equivalent instead
 
     //! Inserts a grid entry into the list of grids managed by the ezscint package.

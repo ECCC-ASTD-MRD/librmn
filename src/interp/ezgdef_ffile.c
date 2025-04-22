@@ -48,6 +48,8 @@ int32_t c_ezgdef_ffile(
     //! This parameters is not considered for the other grid types. Use 0 if you don't know what to enter.
     const int32_t iunit
 ) {
+    //! \ingroup ezscint
+
     //! Inserts a grid entry into the list of grids managed by the ezscint package.
 
     //! If the grid type is 'Y' or 'Z', the associated positional records ('^^') and ('>>') are automatically loaded.
@@ -65,9 +67,6 @@ int32_t c_ezgdef_ffile(
     //! not the dimensions of '^>' grid descriptor field. If in doubt, give the values -1 for ni and nj (this is only allowed for U grids)
 
     //! \return Grid identifier token that can be used in later calls to other ezscint functions
-
-    _Grille *gr, newgr;
-    int32_t read;
 
     char typeGrille = (char)grtyp[0];
     if (typeGrille != '#' && typeGrille != 'Y' && typeGrille != 'Z' && typeGrille != 'U' && typeGrille != ' ') {
@@ -87,6 +86,7 @@ int32_t c_ezgdef_ffile(
         }
     }
 
+    _Grille newgr;
     memset(&newgr, (int)0, sizeof(_Grille));
     strcpy(newgr.grtyp, grtyp);
     // incoming ni,nj specified by the user
@@ -97,7 +97,7 @@ int32_t c_ezgdef_ffile(
     newgr.fst.ig[IG3] = ig3;
     newgr.fst.ig[IG4] = ig4;
     newgr.idx_last_gdin = -1;
-    read = 0;
+    int32_t read = 0;
     int32_t found = LireEnrPositionnels(&newgr, iunit, ig1, ig2, ig3, ig4, read);
     if (found < 0) {
         // problems with finding grid descriptors
@@ -125,13 +125,14 @@ int32_t c_ezgdef_ffile(
     read = 1;
     switch(newgr.grtyp[0]) {
         case '#':
-        case 'U':
-            gr = &Grille[gdrow_in][gdcol_in];
-            found=LireEnrPositionnels(gr, iunit, ig1, ig2, ig3, ig4, read);
+        case 'U': {
+            _Grille * const gr = &Grille[gdrow_in][gdcol_in];
+            found = LireEnrPositionnels(gr, iunit, ig1, ig2, ig3, ig4, read);
             break;
+        }
 
         default:
-            found=LireEnrPositionnels(&(Grille[gdrow_in][gdcol_in]),iunit, ig1, ig2, ig3, 0,read);
+            found = LireEnrPositionnels(&(Grille[gdrow_in][gdcol_in]),iunit, ig1, ig2, ig3, 0,read);
             break;
     }
     if (found < 0) {

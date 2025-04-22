@@ -126,9 +126,9 @@ int32_t c_ezidentify_irreg_grid(
     //! [in] Fourth grid parameter
     const int32_t ig4,
     //! [in] 
-    const float * const ax,
+    float * const ax,
     //! [in] 
-    const float * const ay
+    float * const ay
 ) {
     if (nGrilles == 0) {
         gr_list = calloc(chunks_sq[cur_log_chunk], sizeof(_Grille *));

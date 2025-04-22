@@ -18,6 +18,8 @@
 ! Boston, MA 02111-1307, USA.
 
 
+!> \file
+
 
 !> Compute latitudes of a gaussian grid
 subroutine ez_glat(latroots, groots, nj, hem)
@@ -27,7 +29,9 @@ subroutine ez_glat(latroots, groots, nj, hem)
     integer, intent(in) :: nj
     integer, intent(in) :: hem
     real, intent(out) :: latroots(*)
-    real :: groots(*)
+    real, intent(out) :: groots(*)
+
+    !> \ingroup ezscint
 
     external dgauss
 
@@ -59,6 +63,6 @@ subroutine ez_glat(latroots, groots, nj, hem)
     if (hem .eq. NORD) then
         do j = 1, nj
             latroots(j) = 90.0 - rdtodg * acos(groots(j + nj))
-    end do
+        end do
     endif
 end

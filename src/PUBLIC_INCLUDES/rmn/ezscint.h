@@ -3,6 +3,8 @@
 
 #include "rpnmacros.h"
 
+//! \addtogroup ezscint
+
 #ifdef __cplusplus
 extern "C" {
 #endif

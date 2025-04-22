@@ -121,17 +121,17 @@ integer, parameter :: CB_DATA_ELEMENT_KIND = CB_KIND_INTEGER_8
 #undef DCB_CLIENT_BOUND_TYPE_val
 #undef DCB_CHANNEL_TYPE_val
 
-#undef CB_SUCCESS_val             
-#undef CB_ERROR_val         
-#undef CB_INVALID_POINTER_val     
-#undef CB_INVALID_VERSION_val     
-#undef CB_INVALID_FIRST_val       
-#undef CB_INVALID_FULL_IN_val     
-#undef CB_INVALID_FULL_OUT_val    
-#undef CB_INVALID_PARTIAL_IN_val  
-#undef CB_INVALID_PARTIAL_OUT_val 
+#undef CB_SUCCESS_val
+#undef CB_ERROR_val
+#undef CB_INVALID_POINTER_val
+#undef CB_INVALID_VERSION_val
+#undef CB_INVALID_FIRST_val
+#undef CB_INVALID_FULL_IN_val
+#undef CB_INVALID_FULL_OUT_val
+#undef CB_INVALID_PARTIAL_IN_val
+#undef CB_INVALID_PARTIAL_OUT_val
 #undef CB_INSUFFICIENT_SPACE_val
-#undef CB_TIMEOUT_val             
+#undef CB_TIMEOUT_val
 #undef CB_NOT_ALLOWED_val
 
 #undef DCB_INVALID_CAPACITY_val

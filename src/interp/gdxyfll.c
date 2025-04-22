@@ -26,29 +26,22 @@
 #include "f_ezscint.h"
 
 
-int32_t c_gdxyfll_new(int32_t gdid, float *x, float *y, float *lat, float *lon, int32_t n) {
-    float *tmplons;
-
-    int32_t j,ni_in, nj_in;
-    int32_t sym=groptions.symmetrie;
-
-
-    _Grille gr;
-    int32_t npts;
-    int32_t coordonnee;
-
+int32_t c_gdxyfll_new(
+    const int32_t gdid,
+    float * const x,
+    float * const y,
+    float * const lat,
+    float * const lon,
+    const int32_t npts
+) {
     int32_t gdrow_id, gdcol_id;
+    c_gdkey2rowcol(gdid, &gdrow_id, &gdcol_id);
+    _Grille gr = Grille[gdrow_id][gdcol_id];
 
-    c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
+    int32_t ni_in = gr.ni;
+    int32_t nj_in = gr.nj;
 
-    gr =  Grille[gdrow_id][gdcol_id];
-    npts = n;
-
-    ni_in =  gr.ni;
-    nj_in =  gr.nj;
-
-    switch(gr.grtyp[0])
-        {
+    switch(gr.grtyp[0]) {
         case 'A':
         case 'B':
         case 'E':
@@ -56,9 +49,10 @@ int32_t c_gdxyfll_new(int32_t gdid, float *x, float *y, float *lat, float *lon, 
         case 'N':
         case 'S':
         case 'T':
-        case '!':
-            tmplons = (float *)malloc(npts * sizeof(float));
-            memcpy(tmplons,lon,sizeof(float)*npts);
+        case '!': {
+            float * const tmplons = (float *)malloc(npts * sizeof(float));
+            memcpy(tmplons, lon, sizeof(float) * npts);
+            int32_t sym = groptions.symmetrie;
 
             f77name(ez_ll2rgd)(x, y,
                 lat, tmplons, &npts,
@@ -67,39 +61,34 @@ int32_t c_gdxyfll_new(int32_t gdid, float *x, float *y, float *lat, float *lon, 
                 &sym, gr.ay, 1);
             free(tmplons);
             break;
+        }
 
         case '#':
         case 'Z':
-        case 'G':
-            coordonnee = RELATIF;
-            nj_in =  gr.j2;
+        case 'G': {
+            int32_t coordonnee = RELATIF;
+            nj_in = gr.j2;
             f77name(ez_ll2igd)(x, y, lat, lon, &npts,
-                &ni_in,&nj_in,gr.grtyp, gr.grref,
+                &ni_in, &nj_in, gr.grtyp, gr.grref,
                 &gr.fst.igref[IG1], &gr.fst.igref[IG2],
                 &gr.fst.igref[IG3], &gr.fst.igref[IG4],
-                gr.ax, gr.ay,&coordonnee, 1, 1);
-            if (gr.grtyp[0] == 'G' && gr.fst.ig[IG1] == 1)
-                {
-                for  (j=0; j < npts; j++)
-                        {
+                gr.ax, gr.ay, &coordonnee, 1, 1);
+            if (gr.grtyp[0] == 'G' && gr.fst.ig[IG1] == 1) {
+                for (int32_t j = 0; j < npts; j++) {
                     y[j] = y[j] - nj_in;
-                    }
                 }
-            if (gr.grtyp[0] == 'G' && gr.fst.ig[IG2] == 1)
-        {
-                for  (j=0; j < npts; j++)
-                        {
-                    y[j] = nj_in +1.0 - y[j];
-                    }
+            }
+            if (gr.grtyp[0] == 'G' && gr.fst.ig[IG2] == 1) {
+                for (int32_t j = 0; j < npts; j++) {
+                    y[j] = nj_in + 1.0 - y[j];
                 }
-        break;
+            }
+            break;
+        }
 
-
-    default:
-        break;
+        default:
+            break;
     }
-
-
     return 0;
 }
 
@@ -142,7 +131,7 @@ int32_t c_gdxyfll_orig(int32_t gdid, float *x, float *y, float *lat, float *lon,
         case 'G':
             nj_in =  gr.j2;
             f77name(ez_ll2igd)(x, y, lat, lon, &npts,
-                &ni_in,&nj_in,gr.grtyp, gr.grref,
+                &ni_in, &nj_in, gr.grtyp, gr.grref,
                 &gr.fst.igref[IG1], &gr.fst.igref[IG2],
                 &gr.fst.igref[IG3], &gr.fst.igref[IG4],
                 gr.ax, gr.ay, &coordonnee, 1, 1);
@@ -206,7 +195,7 @@ int32_t c_gdxyfll(int32_t gdid, float *x, float *y, float *lat, float *lon, int3
         }
         free(xyin); free(xyan); free(yyin); free(yyan);
     } else {
-        icode = c_gdxyfll_new(gdid,x,y,lat,lon,n);
+        icode = c_gdxyfll_new(gdid, x, y, lat, lon, n);
     }
     return icode;
 }
