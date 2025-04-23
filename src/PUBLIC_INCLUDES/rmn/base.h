@@ -78,7 +78,11 @@ void f77name(extrap1d_lapserate)(
     const int32_t* extrapEnableDown, const int32_t* extrapEnableUp,
     const float* extrapGuideDown, const float* extrapGuideUp);
 
-void f77name(permut)(float *lat, int32_t *ni, int32_t *nj);
+void f77name(permut)(
+    const float * const z,
+    const int32_t * const ni,
+    const int32_t * const nj
+);
 
 #ifdef __cplusplus
 }
