@@ -47,7 +47,7 @@ subroutine ez_irgdint_3_nw(zo, px, py, npts, ax, ay, cx, cy, z, i1, i2, j1, j2)
     !> Differences on Y
     real, intent(in) :: cy(j1:j2, 6)
     !> Values on the source grid
-    real z(i1:i2, j1:j2)
+    real, intent(in) :: z(i1:i2, j1:j2)
 
     !> \ingroup ezscint
 
@@ -146,7 +146,7 @@ subroutine ez_irgdint_3_nw(zo, px, py, npts, ax, ay, cx, cy, z, i1, i2, j1, j2)
         b12 = fa2(dble(cy(j, 1)), b1, b2)
         b13 = fa3(dble(cy(j, 1)), dble(cy(j, 2)), dble(cy(j, 3)), b1, b2, b3)
         b14 = fa4(dble(cy(j, 1)), dble(cy(j, 2)), dble(cy(j, 3)), dble(cy(j, 4)), dble(cy(j, 5)), dble(cy(j, 6)), b1, b2, b3, b4)
-        zo(n) = fa(b11, b12, b13, b14, y, y1, y2, y3)
+        zo(n) = real(fa(b11, b12, b13, b14, y, y1, y2, y3))
     enddo
 
     return

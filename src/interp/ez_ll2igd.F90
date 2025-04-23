@@ -21,7 +21,7 @@
 !> \file
 
 
-!> Conversion de coordonnees lat-lon a pts de grille
+!> Convert lat-lon coordinates to grid coordinates
 subroutine ez_ll2igd(px, py, xlat, xlon, npts, ni, nj, grtyp, grref, ig1, ig2, ig3, ig4, ax, ay, coordflag)
     implicit none
 

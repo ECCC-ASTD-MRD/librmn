@@ -219,7 +219,7 @@ subroutine ez_irgdint_3_wnnc(zo, px, py, npts, ax, ay, z, ni, j1, j2, wrap)
         b12 = fa2(cy(1), b1, b2)
         b13 = fa3(cy(1), cy(2), cy(3), b1, b2, b3)
         b14 = fa4(cy(1), cy(2), cy(3), cy(4),         cy(5), cy(6), b1, b2, b3, b4)
-        zo(n) = fa(b11, b12, b13, b14, y, y1, y2, y3)
+        zo(n) = real(fa(b11, b12, b13, b14, y, y1, y2, y3))
     enddo
 
     return

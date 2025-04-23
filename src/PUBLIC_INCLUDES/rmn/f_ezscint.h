@@ -3,7 +3,6 @@
 
 #include <rmn/rpnmacros.h>
 
-//! \todo Move to PUBLIC_INCLUDES?
 
 void f77name(ez_aminmax)(
     float * const fldmin,
@@ -213,46 +212,46 @@ void f77name(ez_irgdint_1_w)(
 );
 void f77name(ez_irgdint_3_nw)(
     float * const zo,
-    float * const px,
-    float * const py,
-    int32_t * const npts,
-    float * const ax,
-    float * const ay,
-    float * const cx,
-    float * const cy,
-    float * const z,
-    int32_t * const i1,
-    int32_t * const i2,
-    int32_t * const j1,
-    int32_t * const j2
+    const float * const px,
+    const float * const py,
+    const int32_t * const npts,
+    const float * const ax,
+    const float * const ay,
+    const float * const cx,
+    const float * const cy,
+    const float * const z,
+    const int32_t * const i1,
+    const int32_t * const i2,
+    const int32_t * const j1,
+    const int32_t * const j2
 );
 void f77name(ez_irgdint_3_w)(
     float * const zo,
-    float * const px,
-    float * const py,
-    int32_t * const npts,
-    float * const ax,
-    float * const ay,
-    float * const cx,
-    float * const cy,
-    float * const z,
-    int32_t * const ni,
-    int32_t * const j1,
-    int32_t * const j2,
-    int32_t * const wrap
+    const float * const px,
+    const float * const py,
+    const int32_t * const npts,
+    const float * const ax,
+    const float * const ay,
+    const float * const cx,
+    const float * const cy,
+    const float * const z,
+    const int32_t * const ni,
+    const int32_t * const j1,
+    const int32_t * const j2,
+    const int32_t * const wrap
 );
 void f77name(ez_irgdint_3_wnnc)(
     float * const zo,
-    float * const px,
-    float * const py,
-    int32_t * const npts,
-    float * const ax,
-    float * const ay,
-    float * const z,
-    int32_t * const ni,
-    int32_t * const j1,
-    int32_t * const j2,
-    int32_t * const wrap
+    const float * const px,
+    const float * const py,
+    const int32_t * const npts,
+    const float * const ax,
+    const float * const ay,
+    const float * const z,
+    const int32_t * const ni,
+    const int32_t * const j1,
+    const int32_t * const j2,
+    const int32_t * const wrap
 );
 void f77name(ez_lac)(
     float * const xyz,
@@ -262,21 +261,21 @@ void f77name(ez_lac)(
 );
 void f77name(ez_ll2igd)(
     float * const px,
-    float * const py,
-    float * const xlat,
-    float * const xlon,
-    int32_t * const npts,
-    int32_t * const ni,
-    int32_t * const nj,
-    char grtyp[],
-    char grref[],
-    int32_t * const ig1,
-    int32_t * const ig2,
-    int32_t * const ig3,
-    int32_t * const ig4,
-    float * const ax,
-    float * const ay,
-    int32_t * const coordflag,
+    const float * const py,
+    const float * const xlat,
+    const float * const xlon,
+    const int32_t * const npts,
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const char grtyp[],
+    const char grref[],
+    const int32_t * const ig1,
+    const int32_t * const ig2,
+    const int32_t * const ig3,
+    const int32_t * const ig4,
+    const float * const ax,
+    const float * const ay,
+    const int32_t * const coordflag,
     F2Cl,
     F2Cl
 );
@@ -285,16 +284,16 @@ void f77name(ez_ll2rgd)(
     float * const py,
     float * const xlat,
     float * const xlon,
-    int32_t * const npts,
-    int32_t * const ni,
-    int32_t * const nj,
-    char grtyp[],
-    int32_t * const ig1,
-    int32_t * const ig2,
-    int32_t * const ig3,
-    int32_t * const ig4,
-    int32_t * const sym,
-    float * const lroots,
+    const int32_t * const npts,
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const char grtyp[],
+    const int32_t * const ig1,
+    const int32_t * const ig2,
+    const int32_t * const ig3,
+    const int32_t * const ig4,
+    const int32_t * const sym,
+    const float * const lroots,
     F2Cl
 );
 void f77name(ez_llflamb)(
@@ -313,100 +312,100 @@ void f77name(ez_llflamb)(
 void f77name(ez_llwfgdw)(
     float * const z1,
     float * const z2,
-    float * const xlon,
-    int32_t * const li,
-    int32_t * const lj,
-    char grtyp[],
-    int32_t * const ig1,
-    int32_t * const ig2,
-    int32_t * const ig3,
-    int32_t * const ig4,
+    const float * const xlon,
+    const int32_t * const li,
+    const int32_t * const lj,
+    const char grtyp[],
+    const int32_t * const ig1,
+    const int32_t * const ig2,
+    const int32_t * const ig3,
+    const int32_t * const ig4,
     F2Cl
 );
 void f77name(ez_nwtncof)(
     float * const cx,
     float * const cy,
-    float * const ax,
-    float * const ay,
-    int32_t * const ni,
-    int32_t * const nj,
-    int32_t * const i1,
-    int32_t * const i2,
-    int32_t * const j1,
-    int32_t * const j2,
-    int32_t * const extension
+    const float * const ax,
+    const float * const ay,
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const int32_t * const i1,
+    const int32_t * const i2,
+    const int32_t * const j1,
+    const int32_t * const j2,
+    const int32_t * const extension
 );
 void f77name(ez_rgdint_0)(
     float * const zo,
-    float * const px,
-    float * const py,
-    int32_t * const npts,
-    float * const z,
-    int32_t * const ni,
-    int32_t * const j1,
-    int32_t * const j2
+    const float * const px,
+    const float * const py,
+    const int32_t * const npts,
+    const float * const z,
+    const int32_t * const ni,
+    const int32_t * const j1,
+    const int32_t * const j2
 );
 void f77name(ez_rgdint_1_nw)(
     float * const zo,
-    float * const px,
-    float * const py,
-    int32_t * const npts,
-    float * const z,
-    int32_t * const ni,
-    int32_t * const j1,
-    int32_t * const j2
+    const float * const px,
+    const float * const py,
+    const int32_t * const npts,
+    const float * const z,
+    const int32_t * const ni,
+    const int32_t * const j1,
+    const int32_t * const j2
 );
 void f77name(ez_rgdint_1_w)(
     float * const zo,
-    float * const px,
-    float * const py,
-    int32_t * const npts,
-    float * const z,
-    int32_t * const ni,
-    int32_t * const j1,
-    int32_t * const j2,
-    int32_t * const wrap
+    const float * const px,
+    const float * const py,
+    const int32_t * const npts,
+    const float * const z,
+    const int32_t * const ni,
+    const int32_t * const j1,
+    const int32_t * const j2,
+    const int32_t * const wrap
 );
 void f77name(ez_rgdint_3_nw)(
     float * const zo,
-    float * const px,
-    float * const py,
-    int32_t * const npts,
-    float * const z,
-    int32_t * const ni,
-    int32_t * const j1,
-    int32_t * const j2
+    const float * const px,
+    const float * const py,
+    const int32_t * const npts,
+    const float * const z,
+    const int32_t * const ni,
+    const int32_t * const j1,
+    const int32_t * const j2
 );
 void f77name(ez_rgdint_3_w)(
     float * const zo,
-    float * const px,
-    float * const py,
-    int32_t * const npts,
-    float * const z,
-    int32_t * const ni,
-    int32_t * const j1,
-    int32_t * const j2,
-    int32_t * const wrap
+    const float * const px,
+    const float * const py,
+    const int32_t * const npts,
+    const float * const z,
+    const int32_t * const ni,
+    const int32_t * const j1,
+    const int32_t * const j2,
+    const int32_t * const wrap
 );
 void f77name(ez_rgdint_3_wnnc)(
     float * const zo,
-    float * const px,
-    float * const py,
-    int32_t * const npts,
-    float * const z,
-    int32_t * const ni,
-    int32_t * const j1,
-    int32_t * const j2,
-    int32_t * const wrap
+    const float * const px,
+    const float * const py,
+    const int32_t * const npts,
+    const float * const z,
+    const int32_t * const ni,
+    const int32_t * const j1,
+    const int32_t * const j2,
+    const int32_t * const wrap
 );
 void f77name(ez_uvacart)(
     float * const xyz,
-    float * const u,
-    float * const v,
-    float * const lon,
-    float * const lat,
-    int32_t * const ni,
-    int32_t * const nj
+    const float * const u,
+    const float * const v,
+    const float * const lon,
+    const float * const lat,
+    const int32_t * const ni,
+    const int32_t * const nj
 );
 void f77name(ez_vllfxy)(
     float * const latp,
@@ -436,50 +435,50 @@ void f77name(ez_vtllfxy)(
 );
 void f77name(ez_xpngdag2)(
     float * const zout,
-    float * const zi,
-    int32_t * const ni,
-    int32_t * const nj,
-    int32_t * const j1,
-    int32_t * const j2,
-    int32_t * const hem,
-    int32_t * const symetrie
+    const float * const zi,
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const int32_t * const j1,
+    const int32_t * const j2,
+    const int32_t * const hem,
+    const int32_t * const symetrie
 );
 void f77name(ez_xpngdb2)(
     float * const zout,
-    float * const zi,
-    int32_t * const ni,
-    int32_t * const nj,
-    int32_t * const j1,
-    int32_t * const j2,
-    int32_t * const hem,
-    int32_t * const symetrie
+    const float * const zi,
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const int32_t * const j1,
+    const int32_t * const j2,
+    const int32_t * const hem,
+    const int32_t * const symetrie
 );
 void f77name(lorenzo_mask_fill)(
     float * const fld,
-    int32_t * const masque,
-    int32_t * const ni,
-    int32_t * const nj,
-    int32_t * const methode
+    const int32_t * const masque,
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const int32_t * const methode
 );
 void f77name(qqq_ezget_mask_zones)(
     int32_t * const mask_zones,
-    float * const x,
-    float * const y,
-    int32_t * const ni_out,
-    int32_t * const nj_out,
-    int32_t * const mask_in,
-    int32_t * const ni_in,
-    int32_t * const nj_in
+    const float * const x,
+    const float * const y,
+    const int32_t * const ni_out,
+    const int32_t * const nj_out,
+    const int32_t * const mask_in,
+    const int32_t * const ni_in,
+    const int32_t * const nj_in
 );
 void f77name(qqq_ezsint_mask)(
     int32_t * const mask_out,
-    float * const x,
-    float * const y,
-    int32_t * const ni_out,
-    int32_t * const nj_out,
-    int32_t * const mask_in,
-    int32_t * const ni_in,
-    int32_t * const nj_in
+    const float * const x,
+    const float * const y,
+    const int32_t * const ni_out,
+    const int32_t * const nj_out,
+    const int32_t * const mask_in,
+    const int32_t * const ni_in,
+    const int32_t * const nj_in
 );
 
 #endif // RMN_INTERP_F_EZSCINT_H__

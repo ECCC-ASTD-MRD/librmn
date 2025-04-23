@@ -1,63 +1,64 @@
-!/* RMNLIB - Library of useful routines for C and FORTRAN programming
-! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-! *                          Environnement Canada
-! *
-! * This library is free software; you can redistribute it and/or
-! * modify it under the terms of the GNU Lesser General Public
-! * License as published by the Free Software Foundation,
-! * version 2.1 of the License.
-! *
-! * This library is distributed in the hope that it will be useful,
-! * but WITHOUT ANY WARRANTY; without even the implied warranty of
-! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! * Lesser General Public License for more details.
-! *
-! * You should have received a copy of the GNU Lesser General Public
-! * License along with this library; if not, write to the
-! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-! * Boston, MA 02111-1307, USA.
-! */
-!**S/R UVACART  - compute the winds in the cartesian space from
-!                 the components
-
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
 !
-      SUBROUTINE EZ_UVACART( XYZ, U, V, LON, LAT, NI, NJ)
-          use rmn_common
-      implicit none
-      INTEGER NI, NJ 
-      REAL    U(NI,NJ), V(NI,NJ), XYZ(3,NI*NJ), LON(NI,NJ), LAT(NI,NJ)
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
 !
-!author michel roch - april 90
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
 !
-!arguments
-!    out    xyz   - unrotated winds in cartesian space
-!    IN     U     - unrotated component  U of the wind
-!           V     - unrotated component  V of the wind
-!           LON   - longitudes of the grid in the unrotated system of coordinates
-!           LAT   - latitudes  of the grid in the unrotated system of coordinates
-!           NI    - E-W DIMENSION of the grid
-!           NJ    - N-S dimension of the grid
-!
-!*
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
 
-      INTEGER             :: I, J, K 
-      REAL(kind = real64) :: A, B, C, D, DAR
 
-      DAR = ACOS(-1.)/180.
-      K   = 0
- 
-      DO 20 J=1,NJ
-         DO 10 I=1,NI
-            K        = K+1
-            A        = SIN(DAR*LON(I,J))
-            B        = COS(DAR*LON(I,J))
-            C        = SIN(DAR*LAT(I,J))
-            D        = COS(DAR*LAT(I,J))
-            XYZ(1,K) = -(U(I,J)*A) - (V(I,J)*B*C)
-            XYZ(2,K) =  (U(I,J)*B) - (V(I,J)*A*C)
-            XYZ(3,K) =   V(I,J)*D
- 10         CONTINUE
- 20      CONTINUE
+!> \file
 
-      RETURN
-      END 
+
+!> Compute the winds in the cartesian space from the components
+subroutine ez_uvacart(xyz, u, v, lon, lat, ni, nj)
+    use iso_fortran_env, only: real64
+    implicit none
+
+    !> E-W dimension of the grid
+    integer, intent(in) :: ni
+    !> N-S dimension of the grid
+    integer, intent(in) :: nj
+    !> Unrotated U component of the wind
+    real, intent(in) :: u(ni, nj)
+    !> Unrotated V component of the wind
+    real, intent(in) :: v(ni, nj)
+    !> Unrotated winds in cartesian space
+    real, intent(out) :: xyz(3, ni * nj)
+    !> Grid longitudes in the unrotated system of coordinates
+    real, intent(in) :: lon(ni, nj)
+    !> Grid latitudes in the unrotated system of coordinates
+    real, intent(in) :: lat(ni, nj)
+
+    !> \ingroup ezscint
+
+    integer :: i, j, k 
+    real(kind = real64) :: a, b, c, d, dar
+
+    dar = acos(-1.0) / 180.0
+    k = 0
+
+    do j = 1, nj
+        do i = 1, ni
+            k = k + 1
+            a = sin(dar * lon(i, j))
+            b = cos(dar * lon(i, j))
+            c = sin(dar * lat(i, j))
+            d = cos(dar * lat(i, j))
+            xyz(1, k) = real( -(u(i, j) * a) - (v(i, j) * b * c) )
+            xyz(2, k) = real( (u(i, j) * b) - (v(i, j) * a * c) )
+            xyz(3, k) = real( v(i, j) * d )
+        end do
+    end do
+end
