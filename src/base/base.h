@@ -16,6 +16,5 @@ void f77name(mxm)(
     const int32_t * const nac,
     float * const c,
     const int32_t * const nbc);
-void f77name(permut)(float *lat, int32_t *ni, int32_t *nj);
 
 #endif // RMN_BASE_BASE_H__

@@ -33,12 +33,48 @@ void f77name(llfxy)         (float *dlat,float *dlon,float *x,float *y,float *d6
 void f77name(mscale)        (float *r,float *d60,float *pi,float *pj,int32_t *ni,int32_t *nj);
 int f77name(hyb_to_pres)    (float *pres,float *hyb,float *ptop,float *rcoef,float *pref,int32_t *kind,float *ps,int32_t *NI,int32_t *NJ,int32_t *NK);
 
-void f77name(interp1d_findpos) ();
-void f77name(interp1d_nearestneighbour) ();
-void f77name(interp1d_linear) ();
-void f77name(interp1d_cubicwithderivs) ();
-void f77name(interp1d_cubiclagrange) ();
-void f77name(extrap1d_lapserate) ();
+void f77name(interp1d_findpos)(
+    const int32_t* numInterpSets, const int32_t* srcNumLevels, const int32_t* destNumLevels,
+    const int32_t* src_ijDim, const int32_t* dst_ijDim, 
+    const float* vLevelSource, int32_t* posnDestInSrc, const float* vLevelDestn);
+void f77name(interp1d_nearestneighbour)(
+    const int32_t* numInterpSets, const int32_t* srcNumLevels, const int32_t* destNumLevels,
+    const int32_t* src_ijDim, const int32_t* dst_ijDim,
+    const float* vLevelSource, const float* stateSource, const float* stateDerivSource,
+    const int32_t* posnDestInSrc, const float* vLevelDestn, float* stateDestn, float* stateDerivDestn,
+    const int32_t* extrapEnableDown, const int32_t* extrapEnableUp,
+    const float* extrapGuideDown, const float* extrapGuideUp);
+void f77name(interp1d_linear)(
+    const int32_t* numInterpSets, const int32_t* srcNumLevels, const int32_t* destNumLevels,
+    const int32_t* src_ijDim, const int32_t* dst_ijDim,
+    const float* vLevelSource, const float* stateSource, const float* stateDerivSource,
+    const int32_t* posnDestInSrc, const float* vLevelDestn, float* stateDestn, float* stateDerivDestn,
+    const int32_t* extrapEnableDown, const int32_t* extrapEnableUp,
+    const float* extrapGuideDown, const float* extrapGuideUp);
+void f77name(interp1d_cubicwithderivs)(
+    const int32_t* numInterpSets, const int32_t* srcNumLevels, const int32_t* destNumLevels,
+    const int32_t* src_ijDim, const int32_t* dst_ijDim,
+    const float* vLevelSource, const float* stateSource, const float* stateDerivSource,
+    const int32_t* posnDestInSrc, const float* vLevelDestn, float* stateDestn, float* stateDerivDestn,
+    const int32_t* extrapEnableDown, const int32_t* extrapEnableUp,
+    const float* extrapGuideDown, const float* extrapGuideUp);
+void f77name(interp1d_cubiclagrange)(
+    const int32_t* numInterpSets, const int32_t* srcNumLevels, const int32_t* destNumLevels,
+    const int32_t* src_ijDim, const int32_t* dst_ijDim,
+    const float* vLevelSource, const float* stateSource, const float* stateDerivSource,
+    const int32_t* posnDestInSrc, const float* vLevelDestn, float* stateDestn, float* stateDerivDestn,
+    const int32_t* extrapEnableDown, const int32_t* extrapEnableUp,
+    const float* extrapGuideDown, const float* extrapGuideUp);
+void f77name(extrap1d_lapserate)(
+    const int32_t* numInterpSets, const int32_t* srcNumLevels, const int32_t* destNumLevels,
+    const int32_t* src_ijDim, const int32_t* dst_ijDim,
+    const float* vLevelSource, const float* stateSource, const float* stateDerivSource,
+    const int32_t* posnDestInSrc, const float* vLevelDestn, float* stateDestn, float* stateDerivDestn,
+    const int32_t* extrapEnableDown, const int32_t* extrapEnableUp,
+    const float* extrapGuideDown, const float* extrapGuideUp);
+
+void f77name(permut)(float *lat, int32_t *ni, int32_t *nj);
+
 #ifdef __cplusplus
 }
 #endif
