@@ -2000,42 +2000,43 @@ static long long filepos(
     //! [in,out] Used to be a global var (without documentation)
     int* subfile_length
 ) {
-    char sign[25];
 
-    typedef struct {
-        unsigned char ntotal[4];
-        unsigned char ndata[4];
-        char code;
-        char header[MAX_NAME];
+    typedef union {
+        char sign[25];
+        struct {
+            unsigned char ntotal[4];
+            unsigned char ndata[4];
+            char code;
+            char header[MAX_NAME];
+        };
     } HEADER_CMCARC;
 
-    HEADER_CMCARC *cmcarc_file;
+    HEADER_CMCARC cmcarc_file;
 
     lseek64(FGFDT[indf].fd, 0, SEEK_SET);
-    int nblu = read(FGFDT[indf].fd, sign, 8);
-    if (strncmp(sign, CMCARC_SIGN, 8) != 0) {
+    int nblu = read(FGFDT[indf].fd, cmcarc_file.sign, 8);
+    if (strncmp(cmcarc_file.sign, CMCARC_SIGN, 8) != 0) {
         int version = 0;
-        nblu = read(FGFDT[indf].fd, &sign[8], 17);
-        if (strncmp(&sign[9], CMCARC_SIGN, 8) == 0) {
+        nblu = read(FGFDT[indf].fd, &(cmcarc_file.sign[8]), 17);
+        if (strncmp(&(cmcarc_file.sign[9]), CMCARC_SIGN, 8) == 0) {
             // skip to beginning of next file
             version = 4;
-        } else if (strncmp(&sign[17], CMCARC_SIGN_V5, 8) == 0) {
+        } else if (strncmp(&(cmcarc_file.sign[17]), CMCARC_SIGN_V5, 8) == 0) {
             version = 5;
         } else {
             Lib_Log(APP_LIBRMN,APP_ERROR,"%s: %s is not a CMCARC type file\n",__func__,FGFDT[indf].file_name);
             return -1;
         }
 
-        cmcarc_file = (HEADER_CMCARC *) &sign[0];
-        unsigned int nt = (cmcarc_file->ntotal[0] << 24) |
-            (cmcarc_file->ntotal[1] << 16) |
-            (cmcarc_file->ntotal[2] <<  8) |
-            (cmcarc_file->ntotal[3]);
+        unsigned int nt = (cmcarc_file.ntotal[0] << 24) |
+            (cmcarc_file.ntotal[1] << 16) |
+            (cmcarc_file.ntotal[2] <<  8) |
+            (cmcarc_file.ntotal[3]);
 
-        unsigned int nd = (cmcarc_file->ndata[0] << 24) |
-            (cmcarc_file->ndata[1] << 16) |
-            (cmcarc_file->ndata[2] <<  8) |
-            (cmcarc_file->ndata[3]);
+        unsigned int nd = (cmcarc_file.ndata[0] << 24) |
+            (cmcarc_file.ndata[1] << 16) |
+            (cmcarc_file.ndata[2] <<  8) |
+            (cmcarc_file.ndata[3]);
 
         if (version == 5) {
             nt = nd;

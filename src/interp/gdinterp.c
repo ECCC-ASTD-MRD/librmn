@@ -25,7 +25,7 @@
 #include <math.h>
 
 #include "ez_funcdef.h"
-#include "f_ezscint.h"
+#include "rmn/f_ezscint.h"
 
 int c_gd_isgridrotated(int gdid);
 

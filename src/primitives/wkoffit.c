@@ -75,9 +75,6 @@
 #include "fst/burp98.h"
 #include "fst/fst98_internal.h"
 
-static int endian_int = 1;
-static char *little_endian = (char *)&endian_int;
-
 typedef struct {
     int ftn1;
     int nbits;
@@ -193,42 +190,6 @@ static int retour(
 ) {
     fclose(pf);
     return code;
-}
-
-
-//! Reads nitems elements of data, each size bytes long and swap each bytes for each 4 bytes elements
-static size_t fread32(
-    //! Pointer to array into which to place data read
-    void *ptr,
-    //! Size in bytes of elements of data
-    size_t size,
-    //! Number of items to read
-    size_t nitems,
-    //! File pointer from whih to read data
-    FILE *stream
-) {
-    size_t nr;
-    int i;
-    int n4 = (size * nitems) / 4;    /* number of 4 bytes */
-    uint32_t *pt4 = (uint32_t *) ptr;
-
-    if (*little_endian) {
-        if ((size & 3) != 0) {
-            Lib_Log(APP_LIBRMN,APP_ERROR,"%f: size=%d must be a multiple of 4\n",__func__,size);
-            return -1;
-        }
-
-        nr = fread(ptr, size, nitems, stream);
-
-        for (i = 0; i < n4; i++) {
-            *pt4 = (*pt4 >> 24) | (*pt4 << 24) | ((*pt4 >> 8) & 0xFF00) | ((*pt4 & 0xFF00) << 8);
-            pt4++;
-        }
-    } else {
-        nr = fread(ptr, size, nitems, stream);
-    }
-
-    return (size_t)nr;
 }
 
 

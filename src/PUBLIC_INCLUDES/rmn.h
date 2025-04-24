@@ -7,6 +7,7 @@
 #include "rmn/c_wkoffit.h"
 #include "rmn/convert_ip.h"
 #include "rmn/ezscint.h"
+#include "rmn/f_ezscint.h"
 #include "rmn/fnom.h"
 #include "rmn/fst24_file.h"
 #include "rmn/fst98.h"
@@ -16,5 +17,6 @@
 #include "rmn/List.h"
 //#include "rmn/Dict.h"
 #include "rmn/Meta.h"
+#include "rmn/primitives.h"
 
 #endif

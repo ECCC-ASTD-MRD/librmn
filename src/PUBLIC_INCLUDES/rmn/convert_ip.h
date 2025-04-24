@@ -1,6 +1,8 @@
 #ifndef CONVERT_IP_DEFS
 #define CONVERT_IP_DEFS
 
+#include "rmn/rpnmacros.h"
+
 #define TO_IP 1
 #define TO_RP -1
 #define CONVERT_OK 0
