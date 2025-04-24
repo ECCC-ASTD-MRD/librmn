@@ -25,29 +25,28 @@
 #include "base/base.h"
 
 
-int32_t f77name(ezgdef_fll)(int32_t *ni, int32_t *nj, float *lat, float *lon)
-{
-    return c_ezgdef_fll(*ni, *nj, lat, lon);
-}
-
-
 int32_t c_ezgdef_fll(
-    int32_t ni,
-    int32_t nj,
+    const int32_t ni,
+    const int32_t nj,
     float * const lat,
     float * const lon
 ) {
-   float swlat = 0.0;
-   float swlon = 0.0;
-   float dlat  = 1.0;
-   float dlon  = 1.0;
+   const float swlat = 0.0;
+   const float swlon = 0.0;
+   const float dlat  = 1.0;
+   const float dlon  = 1.0;
 
-   char grtyp[2], grref[2];
-   strcpy(grtyp, "Y");
-   strcpy(grref, "L");
+   const char grtyp[] = "Y";
+   const char grref[] = "L";
 
    int32_t ig1, ig2, ig3, ig4;
    f77name(cxgaig)(grref, &ig1, &ig2, &ig3, &ig4, &swlat, &swlon, &dlat, &dlon, 1);
 
    return c_ezgdef_fmem(ni, nj, grtyp, grref, ig1, ig2, ig3, ig4, lon, lat);
+}
+
+
+int32_t f77name(ezgdef_fll)(int32_t *ni, int32_t *nj, float *lat, float *lon)
+{
+    return c_ezgdef_fll(*ni, *nj, lat, lon);
 }
