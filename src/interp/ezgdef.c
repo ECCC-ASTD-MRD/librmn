@@ -33,8 +33,8 @@ int32_t f77name(ezgdef)(
     const int32_t * const ig2,
     const int32_t * const ig3,
     const int32_t * const ig4,
-    const float * const ax,
-    const float * const ay,
+    float * const ax,
+    float * const ay,
     const F2Cl lengrtyp,
     const F2Cl lengrref
 ) {
@@ -54,8 +54,8 @@ int32_t c_ezgdef(
     const int32_t ig2,
     const int32_t ig3,
     const int32_t ig4,
-    const float * const ax,
-    const float * const ay
+    float * const ax,
+    float * const ay
 ) {
     char typeGrille = grtyp[0];
 

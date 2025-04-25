@@ -46,9 +46,9 @@ int32_t c_ezgdef_fmem(
     //! [in] ig4 value associated to the reference grid
     const int32_t ig4,
     //! [in] Positional axis mapped to the '>>' record
-    const float * const ax,
+    float * const ax,
     //! [in] Positional axis mapped to the '^^' record
-    const float * const ay
+    float * const ay
 ) {
     //! \ingroup ezscint
 
