@@ -28,13 +28,13 @@ subroutine ez_gfxyfll(lonp, latp, lon, lat, n, xlat1, xlon1, xlat2, xlon2)
     !> Number of points
     integer, intent(in) :: n
     !> Longitude on the unrotated coordinate system corresponding to the point (lat, lon) of the rotated coordinate system
-    real, intent(out) :: lonp(n)
+    real, intent(in) :: lonp(n)
     !> Latitude on the unrotated coordinate system corresponding to the point (lat, lon) of the rotated coordinate system
-    real, intent(out) :: latp(n)
+    real, intent(in) :: latp(n)
     !> Longitude on the rotated spherical coordinate system
-    real, intent(in) :: lon(n)
+    real, intent(out) :: lon(n)
     !> Latitude on the rotated spherical coordinate system
-    real, intent(in) :: lat(n)
+    real, intent(out) :: lat(n)
     !> Latitude on the unrotated coordinate system corresponding to the point (lat, lon)=(0, 180) of the rotated coordinate system
     real, intent(in) :: xlat1
     !> Longitude on the unrotated coordinate system corresponding to the point (lat, lon)=(0, 180) of the rotated coordinate system

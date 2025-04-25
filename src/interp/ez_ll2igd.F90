@@ -37,7 +37,8 @@ subroutine ez_ll2igd(px, py, xlat, xlon, npts, ni, nj, grtyp, grref, ig1, ig2, i
 
     !> \ingroup ezscint
 
-    external cigaxg, ez_vxyfll, ez_llll2gd, permut
+    integer, external :: ez_cherche
+    external cigaxg, ez_gfxyfll, ez_vxyfll, ez_llll2gd
 
     integer :: i
     real :: pi, pj, dgrw, d60
@@ -46,7 +47,6 @@ subroutine ez_ll2igd(px, py, xlat, xlon, npts, ni, nj, grtyp, grref, ig1, ig2, i
     real :: lonref
     integer :: indx, indy
 
-    integer, external :: ez_cherche
 
     if (grref == 'N') then
         call cigaxg(grref, PI, PJ, D60, DGRW, ig1, ig2, ig3, ig4)

@@ -32,7 +32,7 @@ subroutine ez_ggll2gd(x, y, xlat, xlon, npts, ni, nj, hem, lroots)
     real, intent(out) :: y(npts)
     real, intent(in) :: xlat(npts)
     real, intent(in) :: xlon(npts)
-    real, intent(in) :: hem
+    integer, intent(in) :: hem
     real, intent(in) :: lroots(nj)
 
     !> \ingroup ezscint

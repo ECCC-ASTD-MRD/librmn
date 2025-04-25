@@ -34,7 +34,7 @@ subroutine ez_ll2rgd(px, py, xlat, xlon, npts, ni, nj, grtyp, ig1, ig2, ig3, ig4
     integer, intent(in) :: ig1, ig2, ig3, ig4
     logical, intent(in) :: sym ! Unused
 
-    external cigaxg, ez_vxyfll, ez_llll2gd, permut
+    external cigaxg, ez_vxyfll, ez_llll2gd, ez_vtxyfll, ez_ggll2gd, ez_ll2ergd, ez_lambfll
 
     real pi, pj, d60, dgrw
     real dellat, dellon, xlat0, xlon0
