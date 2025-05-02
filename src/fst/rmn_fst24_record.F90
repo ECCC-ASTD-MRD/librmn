@@ -60,6 +60,9 @@ module rmn_fst24_record
         type(C_PTR) :: data     = C_NULL_PTR  !< Pointer to the data
         type(meta)  :: metadata               !< Metadata object
 
+        integer(C_INT64_T) :: file_offset = -1;      !< Offset of this record in its file (bytes)
+        integer(C_INT64_T) :: total_stored_bytes = 0 !< Size of this record in bytes (header + data)
+
         integer(C_INT32_T) :: file_index = -1   !< Permanent index of record within its file
 
         integer(C_INT32_T) :: dateo    = -1   !< Origin Date timestamp
@@ -213,6 +216,9 @@ contains
         end if
         this % c_self % metadata = this % metadata % json_obj
 
+        this % c_self % file_offset = this % file_offset
+        this % c_self % total_stored_bytes = this % total_stored_bytes
+
         this % c_self % file_index = this % file_index
 
         this % c_self % dateo = this % dateo
@@ -250,6 +256,9 @@ contains
 
         this % data     = this % c_self % data
         this % metadata % json_obj = this % c_self % metadata
+
+        this % file_offset = this % c_self % file_offset
+        this % total_stored_bytes = this % c_self % total_stored_bytes
 
         this % file_index = this % c_self % file_index
 

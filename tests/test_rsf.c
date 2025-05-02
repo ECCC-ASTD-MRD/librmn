@@ -80,7 +80,7 @@ int the_test(int argc, char **argv){
     for(i = 0 ; i < 5 ; i++) {
       key = i + 1 ;
       key += 0x100000000ul ;         // simulate file slot 0 for this file
-      p = RSF_Get_record(h1, key, 0, NULL) ;
+      p = RSF_Get_record(h1, key, 0, NULL, NULL) ;
       if(p) free(p) ;
     }
     RSF_Dump_vdir(h1) ;                                             // dump memory directoey
@@ -328,7 +328,7 @@ END1 :
 //       uint32_t *dirmeta;
       ndata = 100 + i ;
       if((rec_info.meta[0] & 0xFF) != RT_FILE) {      // not a file container
-        record = RSF_Get_record(h1, key) ;
+        record = RSF_Get_record(h1, key, NULL, NULL) ;
         errors += check_data(record->data, ndata, i, creator) ;
         fprintf(stderr," key = %16.16lx, status = %d, data = %p, ndata = %ld(%ld)\n", 
                       key, status, record->data, ndata * rec_info.elem_size, record->data_size) ;

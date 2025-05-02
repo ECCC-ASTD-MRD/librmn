@@ -1997,10 +1997,13 @@ RSF_record *RSF_Get_record(
     RSF_handle h,               //!< Handle to open file in which record is located
     const int64_t key,          //!< from RSF_Lookup, RSF_Scan_vdir
     const int32_t metadata_only,//!< [in] 1 if we only want to read the metadata, 0 otherwise
-    void* prealloc_space        //!< [in] [optional] If non-NULL, space in which the record will be read. *Must be large enough*
+    void* prealloc_space,       //!< [out] [optional] If non-NULL, space in which the record will be read. *Must be large enough*
+    RSF_record_info* info_out   //!< [out] [optional] If non-NULL, put record information here
 ){
     RSF_record_info info = RSF_Get_record_info(h, key);
     if (info.wa == 0) return NULL; // error detected by RSF_Get_record_info (should be printed already)
+
+    if (info_out != NULL) { *info_out = info; }
 
     // Determine size to read
     const uint64_t read_size = (metadata_only == 1) ?

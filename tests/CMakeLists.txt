@@ -302,6 +302,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst_edge_case_1 COMMAND $<TARGET_FILE:fst_edge_case_1>)
         add_dependencies(check fst_edge_case_1)
 
+        add_executable(fst24_record_offset_size EXCLUDE_FROM_ALL fst/fst24_record_offset_size.c)
+        target_link_libraries(fst24_record_offset_size rmn::rmn)
+        add_test(NAME fst24_record_offset_size COMMAND $<TARGET_FILE:fst24_record_offset_size>)
+        add_dependencies(check fst24_record_offset_size)
+
         # FST samples
         add_executable(fst24_open_close_f EXCLUDE_FROM_ALL fst/samples/fst24_open_close.F90)
         target_link_libraries(fst24_open_close_f rmn::rmn)
