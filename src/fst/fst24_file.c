@@ -656,7 +656,7 @@ int32_t fst24_write_rsf(
     }
 
     // Increment date by timestep size
-    const uint32_t valid_date = get_valid_date32(record->dateo, record->deet, record->npas);
+    record->datev = get_valid_date32(record->dateo, record->deet, record->npas);
 
     // allocate and initialize a buffer interface for RSF_Put
     // an extra 512 bytes are allocated for cluster alignment purpose (seq). Are they???
@@ -883,7 +883,7 @@ int32_t fst24_write_rsf(
         stdf_entry->pad5 = 0;
         stdf_entry->ip3 = record->ip3;
         stdf_entry->pad6 = 0;
-        stdf_entry->date_stamp = stamp_from_date(valid_date);
+        stdf_entry->date_stamp = stamp_from_date(record->datev);
         stdf_entry->dasiz = elem_size;
     }
 
