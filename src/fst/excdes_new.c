@@ -727,13 +727,19 @@ int ReadRequestTable(char *filename)
         return 0;
     }
     cptr=line;
-    while(*cptr != '\'' ) cptr++ ; cptr++ ;
+    while(*cptr != '\'' ) { cptr++ ; }
+    cptr++ ;
     sscanf(cptr, "%s", s1);
-    while(*cptr != ',' ) cptr++ ; while(*cptr != '\'' ) cptr++ ; cptr++ ;
+    while(*cptr != ',' ) { cptr++ ; }
+    while(*cptr != '\'' ) { cptr++ ; }
+    cptr++ ;
     sscanf(cptr, "%s", s2);
-    while(*cptr != ',' ) cptr++ ; while(*cptr != '\'' ) cptr++ ; cptr++ ;
+    while(*cptr != ',' ) { cptr++ ; }
+    while(*cptr != '\'' ) { cptr++ ; }
+    cptr++ ;
     sscanf(cptr, "%s", s3);
-    while(*cptr != ',' ) cptr++ ; cptr++ ;
+    while(*cptr != ',' ) { cptr++ ; }
+    cptr++ ;
     sscanf(cptr, "%d", &nvalues);
     //  fprintf(stderr, "%d, '%s', '%s', '%s', %d\n", dirset, s1, s2, s3, nvalues);
     rvd = 0 ; /* not used */
@@ -749,7 +755,8 @@ int ReadRequestTable(char *filename)
     if(s2[0]=='D') {                            /*  Date */
         sscanf(cptr, "%d", a);
         for (i=1;i<nvalues;i++) {
-        while(*cptr != ',' ) cptr++ ; cptr++ ;
+        while(*cptr != ',' ) { cptr++ ; }
+        cptr++ ;
         sscanf(cptr, "%d", a+i);
         }
         if(rvd == RANGE && a[0] >= 0 && a[1] >= 0) {
@@ -776,7 +783,8 @@ int ReadRequestTable(char *filename)
     }else if(s2[0]=='I') {                       /* IP1/2/3 */
         sscanf(cptr, "%d", a);
         for (i=1;i<nvalues;i++) {
-        while(*cptr != ',' ) cptr++ ; cptr++ ;
+        while(*cptr != ',' ) { cptr++ ; }
+        cptr++ ;
         sscanf(cptr, "%d", a+i);
         }
         if(rvd == RANGE) {
@@ -798,10 +806,12 @@ int ReadRequestTable(char *filename)
     }else if(s2[0]=='X'){                           /* Xtra  */
         sscanf(cptr, "%d", a);
         for (i=1;i<8;i++) {
-        while(*cptr != ',' ) cptr++ ; cptr++ ;
+        while(*cptr != ',' ) { cptr++ ; }
+        cptr++ ;
         sscanf(cptr, "%d", a+i);
         }
-        while(*cptr != '\'' ) cptr++ ; cptr++ ;
+        while(*cptr != '\'' ) { cptr++ ; }
+        cptr++ ;
         gtyp=*cptr;
         status = Xc_Select_suppl(dirset, dex, a[0], a[1], a[2], a[3], a[4], a[5], a[6], gtyp);
         if(status != 0) {
@@ -813,9 +823,11 @@ int ReadRequestTable(char *filename)
     }
     }else if(s2[0]=='N' || s2[0]=='T' || s2[0]=='E'){   /* Nomvar, Typvar or Etiket */
         for (i=0;i<nvalues;i++) {
-        while(*cptr != '\'' ) cptr++ ; cptr++ ;
+        while(*cptr != '\'' ) { cptr++ ; }
+        cptr++ ;
         j=0;
-        while(*cptr != '\'' ) sar[i][j++]=*cptr++; cptr++ ;
+        while(*cptr != '\'' ) { sar[i][j++]=*cptr++; }
+        cptr++ ;
         sar[i][j]='\000';
         sarp[i] = sar[i];
         }

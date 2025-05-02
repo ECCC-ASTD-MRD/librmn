@@ -3067,7 +3067,7 @@ void RSF_Dump(char *name, int verbose){
   nc = read(fd, &sor, sizeof(sor)); // Read first record
   int rec_index = 0;
   int in_segment = 0;
-  start_of_segment in_sos;
+  start_of_segment in_sos = SOS;
 
   // Print records 1 by 1
   while (nc > 0) {

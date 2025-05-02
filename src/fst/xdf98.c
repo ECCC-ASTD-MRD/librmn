@@ -911,17 +911,17 @@ int c_xdfcle(
     }
 
     bitpos = BPBIT1 - (64-bitmot);
-    shift_count = (bitmot-1) - bitpos & (bitmot-1);
+    shift_count = ((bitmot-1) - bitpos) & (bitmot-1);
     rmask = -1 >> (bitmot -LBIT1);
     *desc2 = *desc2 | ((bit1 & rmask) << shift_count);
 
     bitpos = BPLCLE - (64-bitmot);
-    shift_count = (bitmot-1) - bitpos & (bitmot-1);
+    shift_count = ((bitmot-1) - bitpos) & (bitmot-1);
     rmask = -1 >> (bitmot -LLCLE);
     *desc2 = *desc2 | (((lkey -1) & rmask) << shift_count);
 
     bitpos = BPTCLE - (64-bitmot);
-    shift_count = (bitmot-1) - bitpos & (bitmot-1);
+    shift_count = ((bitmot-1) - bitpos) & (bitmot-1);
     rmask = -1 >> (bitmot -LTCLE);
     *desc2 = *desc2 | ((tkey & rmask) << shift_count);
 
@@ -1094,10 +1094,10 @@ int c_xdfdel(
     }
 
     int idtyp;
-    int addr;
-    file_record *record;
+    int addr = 0;
+    file_record *record = NULL;
     xdf_record_header header;
-    page_ptr target_page;
+    page_ptr target_page = NULL;
     if (! fte->xdf_seq) {
         if (page_number < fte->npages) {
             // Page is in current file
@@ -1168,7 +1168,7 @@ int c_xdfdel(
 int c_xdfget2(
     //! [in] File index, page number and record number to record
     const int handle,
-    // [out] Buffer to contain record
+    // [in,out] Buffer to contain record. What to get is determined by what's in the header of that buffer
     buffer_interface_ptr buf,
     int * const aux_ptr
 ) {
@@ -1259,7 +1259,7 @@ int c_xdfget2(
             }
         }
     }
-    if (lngw > (nw - RECADDR +1)) {
+    if (lngw > (nw - RECADDR + 1)) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: dimension of buf (%d) < record size (%d)\n",__func__,nw,lngw);
         return(ERR_BAD_DIM);
     }
@@ -1711,8 +1711,8 @@ int c_xdfloc2(
         }
     }
 
-    int record;
-    int pageno;
+    int record = 0;
+    int pageno = 0;
     if (handle > 0) {
         // search begins from handle given position
         int index_h = INDEX_FROM_HANDLE(handle);
@@ -3302,7 +3302,8 @@ static int32_t next_match(
     int file_index
 ) {
     int match;
-    int nw, addr_match;
+    int nw;
+    int addr_match = 0;
     uint32_t *entry, *search, *mask, handle;
     stdf_dir_keys *stde;
     seq_dir_keys *seq_entry;

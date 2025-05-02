@@ -19,14 +19,14 @@ const char** fst24_record_get_descriptors(void) {
 //! \return TRUE (1) if it is, FALSE (0) otherwise
 int32_t fst24_record_is_descriptor(const fst_record* const record) {
 
-   const char *desc;
-   int         d=0;
+    const char *desc;
+    int         d=0;
 
-   while((desc=FST_DESCRIPTOR[d++])) {
-      if (!strncmp(record->nomvar,desc,FST_NOMVAR_LEN)) {
-         return(1);
-      }
-   }
+    while((desc=FST_DESCRIPTOR[d++])) {
+        if (!strncmp(record->nomvar,desc,FST_NOMVAR_LEN)) {
+            return(1);
+        }
+    }
 
    return(0);
 }
@@ -179,7 +179,7 @@ char* add_int(
     return buffer + length + 1;
 }
 
-//! Add a date (from a timestamp) to the line to be printed. See \ref fst24_record_print_short.
+//! Add a date (from a timestamp) to the line to be printed. See fst24_record_print_short.
 //! \return Pointer to after the (new) last character of the line to be printed
 char* add_date(
     char* buffer,           //!< [in,out] Buffer containing the line to be printed
@@ -697,7 +697,12 @@ void make_search_criteria(
     } // fst98 criteria
 }
 
-void fill_with_search_meta(fst_record* record, const search_metadata* meta, const fst_file_type type) {
+//! Update fst_record attributes from the given search metadata. The data and allocation status will remain untouched
+void fill_with_search_meta(
+    fst_record* record,             //!< [in,out] The record we want to update
+    const search_metadata* meta,    //!< The packed searched metadata
+    const fst_file_type type        //!< File type (RSF, XDF, other?)
+) {
 
     record->do_not_touch.fst_version = default_fst_record.do_not_touch.fst_version;
     record->do_not_touch.num_search_keys = sizeof(stdf_dir_keys) / sizeof(uint32_t); // Default for XDF

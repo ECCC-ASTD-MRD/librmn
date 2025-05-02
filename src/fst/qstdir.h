@@ -260,24 +260,24 @@
 /*       HANDLE RANDOM */
 /*       sign #page #record index */
 /*         1    12     9     10   */
-#define MAKE_RND_HANDLE(pageno, recno, file_index) ((file_index &0x3FF) | ((recno & 0x1FF) << 10) | ((pageno & 0xFFF) << 19))
+#define MAKE_RND_HANDLE(pageno, recno, file_index) (((file_index) &0x3FF) | (((recno) & 0x1FF) << 10) | (((pageno) & 0xFFF) << 19))
 
 /*       HANDLE SEQ */
 /*       sign cluster addr index */
 /*         1    2      22    7   */
-#define MAKE_SEQ_HANDLE(cluster, address, file_index) (file_index | ((address & 0x3FFFFF) << 7) | (cluster << 29))
+#define MAKE_SEQ_HANDLE(cluster, address, file_index) ((file_index) | (((address) & 0x3FFFFF) << 7) | ((cluster) << 29))
 
 //! Extract the file index, record number and page number from a handle
-#define INDEX_FROM_HANDLE(handle) ((STDSEQ_opened == 1) ? (0x7F & handle) : (0x3FF & handle))
+#define INDEX_FROM_HANDLE(handle) ((STDSEQ_opened == 1) ? (0x7F & (handle)) : (0x3FF & (handle)))
 
-#define RECORD_FROM_HANDLE(handle) (0x1FF & (handle >> 10))
+#define RECORD_FROM_HANDLE(handle) (0x1FF & ((handle) >> 10))
 
-#define PAGENO_FROM_HANDLE(handle) (0xFFF & (handle >> 19))
+#define PAGENO_FROM_HANDLE(handle) (0xFFF & ((handle) >> 19))
 
 //! Extract the record address from a sequential handle
-#define ADDRESS_FROM_HNDL(handle) (0x3FFFFF & (handle >> 7))
+#define ADDRESS_FROM_HNDL(handle) (0x3FFFFF & ((handle) >> 7))
 
-#define CLUSTER_FROM_HANDLE(handle) (0x3 & (handle >> 29))
+#define CLUSTER_FROM_HANDLE(handle) (0x3 & ((handle) >> 29))
 
 #define ADDRESS_FROM_HANDLE(handle) ( ADDRESS_FROM_HNDL(handle) << (2 * CLUSTER_FROM_HANDLE(handle)) )
 
@@ -288,24 +288,24 @@
 /*       HANDLE RANDOM */
 /*       sign #page #record index */
 /*         1    12     12     7   */
-#define MAKE_RND_HANDLE(pageno, recno, file_index) (file_index | (recno << 7) | (pageno << 19))
+#define MAKE_RND_HANDLE(pageno, recno, file_index) ((file_index) | ((recno) << 7) | ((pageno) << 19))
 
 /*       HANDLE SEQ */
 /*       sign cluster addr index */
 /*         1    2      22    7   */
-#define MAKE_SEQ_HANDLE(cluster, address, file_index) (file_index | ((address & 0x3FFFFF) << 7) | (cluster << 29))
+#define MAKE_SEQ_HANDLE(cluster, address, file_index) ((file_index) | (((address) & 0x3FFFFF) << 7) | ((cluster) << 29))
 
 //! Extract the file index, record number and page number from a handle
-#define INDEX_FROM_HANDLE(handle) (0x7F & handle)
+#define INDEX_FROM_HANDLE(handle) (0x7F & (handle))
 
-#define RECORD_FROM_HANDLE(handle) (0xFFF & (handle >> 7))
+#define RECORD_FROM_HANDLE(handle) (0xFFF & ((handle) >> 7))
 
-#define PAGENO_FROM_HANDLE(handle) (0xFFF & (handle >> 19))
+#define PAGENO_FROM_HANDLE(handle) (0xFFF & ((handle) >> 19))
 
 //! Extract the record address from a sequential handle
-#define ADDRESS_FROM_HNDL(handle) (0x3FFFFF & (handle >> 7))
+#define ADDRESS_FROM_HNDL(handle) (0x3FFFFF & ((handle) >> 7))
 
-#define CLUSTER_FROM_HANDLE(handle) (0x3 & (handle >> 29))
+#define CLUSTER_FROM_HANDLE(handle) (0x3 & ((handle) >> 29))
 
 #define ADDRESS_FROM_HANDLE(handle) ( ADDRESS_FROM_HNDL(handle) << (2 *CLUSTER_FROM_HANDLE(handle)) )
 
