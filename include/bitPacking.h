@@ -43,22 +43,16 @@ typedef union {
 } ALL_FLOAT;
 
 
-/*****************************************************************************
- *                                                                           *
- *  Objective : extract a token from a stream of packed token                *
- *  Arguments :                                                              *
- *      OUT     packedToken           token extracted                        *
- *   IN/OUT     packedWordPtr         pointer to the token to be extracted   *
- *   IN         wordSize              size of a word                         *
- *   IN         bitSizeOfPackedToken  size of a token in bit                 *
- *   IN/OUT     packedWord            word holding the desired token         *
- *   IN/OUT     bitPackInWord         no. of bits remained packed            *
- *                                    in the packedWord                      * 
- *                                                                           *
- ****************************************************************************/
-#define extract( packedToken, packedWordPtr, wordSize, bitSizeOfPackedToken, packedWord, bitPackInWord) {\
+//! \brief Extract a token from a stream of packed tokens
+//! \param [out] packedToken Extracted token
+//! \param [in,out] packedWordPtr Pointer to the token to be extracted
+//! \param [in] wordSize Size of words
+//! \param [in] bitSizeOfPackedToken Token size in bits
+//! \param [in,out] packedWord Word holding the desired token
+//! \param [in,out] bitPackInWord Number of remaining bits in packedWord
+#define extract(packedToken, packedWordPtr, wordSize, bitSizeOfPackedToken, packedWord, bitPackInWord) {\
     /* Obtain the integer representation */\
-    if (  bitPackInWord >= bitSizeOfPackedToken ) {\
+    if ( bitPackInWord >= bitSizeOfPackedToken ) {\
         packedToken = (packedWord >> ( wordSize - bitSizeOfPackedToken ) );\
         packedWord <<= bitSizeOfPackedToken;\
         bitPackInWord -= bitSizeOfPackedToken;\
@@ -69,28 +63,22 @@ typedef union {
         packedToken |= ( packedWord >> ( wordSize - (bitSizeOfPackedToken-bitPackInWord)));\
         packedWord <<= ( bitSizeOfPackedToken - bitPackInWord );\
         bitPackInWord = wordSize - (bitSizeOfPackedToken - bitPackInWord);\
-    };\
+    }\
     /* Special case */\
     if ( bitPackInWord == 0 ) {\
         packedWordPtr++;\
         packedWord = *packedWordPtr;\
         bitPackInWord = wordSize;\
-    };\
+    }\
 }\
 
 
-/*****************************************************************************
- *                                                                           *
- *  Objective : discard unwanted bits                                        *
- *  Arguments :                                                              *
- *   IN/OUT     packedWordPtr         pointer to the token to be extracted   *
- *   IN         wordSize              size of a word                         *
- *   IN         discardBit            bit to be discarded                    *
- *   IN/OUT     packedWord            word holding the desired token         *
- *   IN/OUT     bitPackInWord         no. of bits remained packed            *
- *                                    in the packedWord                      * 
- *                                                                           *
- ****************************************************************************/
+//! \brief Discard unwanted bits
+//! \param [in,out] packedWordPtr Pointer to the token to be extracted
+//! \param [in] wordSize Size of words
+//! \param [in] discardBit Bit to be discarded
+//! \param [in,out] packedWord Word holding the desired token
+//! \param [in,out] bitPackInWord Number of remaining bits in packedWord
 #define discard(packedWordPtr, wordSize, discardBit, packedWord, bitPackInWord) {\
     if ( bitPackInWord > discardBit ) {\
         packedWord <<= discardBit;\
@@ -110,19 +98,13 @@ typedef union {
 }\
 
 
-/*************************************************************************************
- *                                                                                   *
- *  Objective : pack a token into a stream of packed token                           *
- *  Arguments :                                                                      *
- *   IN         token                 token to be packed                             *
- *   IN/OUT     availableWordPtr      pointer to the word position available for     *
- *                                    packing                                        *
- *   IN         wordSize              size of a word                                 *
- *   IN         bitSizeOfPackedToken  bit size of the token                          *
- *   IN/OUT     lastWordShifted       word designated to hold the token              *
- *   IN/OUT     spaceInLastWord       no. of bits available for packing in last word *
- *                                                                                   *
- ************************************************************************************/
+//! \brief Pack a token into a stream of packed token
+//! \param [in] token Token to be packed
+//! \param [in,out] availableWordPtr Pointer to the word position available for packing
+//! \param [in] wordSize The word size in bits
+//! \param [in] bitSizeOfPackedToken Token size in bits
+//! \param [in,out] lastWordShifted Word designated to hold the token
+//! \param [in,out] spaceInLastWord Number of remaining bits available for packing in word
 #define stuff(token, availableWordPtr, wordSize, bitSizeOfPackedToken, lastWordShifted, spaceInLastWord) {\
     if ( spaceInLastWord >= bitSizeOfPackedToken ) {\
         /* integer token fits into space left */\
@@ -130,8 +112,8 @@ typedef union {
         spaceInLastWord = spaceInLastWord - bitSizeOfPackedToken;\
     } else {\
         /* integer token can not fit into space left */\
-        *availableWordPtr = ((lastWordShifted << spaceInLastWord) | ( token >> ( bitSizeOfPackedToken - spaceInLastWord)));\
-        lastWordShifted = token & ( -1 >> ( wordSize - ( bitSizeOfPackedToken - spaceInLastWord)));\
+        *availableWordPtr = ( lastWordShifted << spaceInLastWord ) | ( token >> ( bitSizeOfPackedToken - spaceInLastWord ) );\
+        lastWordShifted = token & ( -1 >> ( wordSize - ( bitSizeOfPackedToken - spaceInLastWord ) ) );\
         spaceInLastWord = wordSize - ( bitSizeOfPackedToken - spaceInLastWord );\
         availableWordPtr++;\
     };\
