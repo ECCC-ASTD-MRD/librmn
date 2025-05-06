@@ -163,6 +163,8 @@ int32_t f77name(fstprm)(int32_t *f_handle,
                         int32_t *f_extra2, int32_t *f_extra3,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4);
 
+uint32_t get_valid_date32(const int64_t origin_date, const int32_t timestep_size, const int32_t timestep_num);
+
 #ifdef __cplusplus
 }
 #endif
