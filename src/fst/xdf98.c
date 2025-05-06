@@ -2966,7 +2966,6 @@ int c_xdfxtr(
 ) {
     int nbwords, index_word, i, mode;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
-    int ier = 0;
 
     if ((bitpos % 64) != 0) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: bitpos must be a multiple of 64\n",__func__);
@@ -3010,12 +3009,12 @@ int c_xdfxtr(
 
         case 2:
             mode = 2;
-            ier = compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, mode);
+            compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, mode);
             break;
 
         case 4:
             mode = 4;
-            ier = compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, mode);
+            compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, mode);
             break;
 
         default:
@@ -3023,7 +3022,7 @@ int c_xdfxtr(
             return(ERR_BAD_DATYP);
     } // End switch (datyp)
 
-    return ier;
+    return 0;
 }
 
 
