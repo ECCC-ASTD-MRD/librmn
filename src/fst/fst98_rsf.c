@@ -352,7 +352,7 @@ int c_fstinfx_rsf(
     }
 
     // If we got out, it's because we didn't find anything
-    Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: (unit=%d) record not found, errcode=%ld\n", __func__, iun, rsf_key);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) record not found, errcode=%ld\n", __func__, iun, rsf_key);
     return (int32_t)rsf_key;
 }
 

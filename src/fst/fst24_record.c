@@ -529,6 +529,18 @@ int32_t fst24_record_validate_params(const fst_record* record) {
     return 0;
 }
 
+static inline void get_all_ips(const int initial_ip, int* new_ip, int* old_ip) {
+    int ip = initial_ip;
+    float val;
+    int kind;
+    ConvertIp(&ip, &val, &kind, -1); // Retrieve value
+    ConvertIp(new_ip, &val, &kind, 2); // Encode with new encoding
+    *old_ip = -9999;
+    if (kind < 4) {
+        ConvertIp(old_ip, &val, &kind, 3); // Encode with old encoding
+    }
+}
+
 //! Encode the information of the given record into a directory metadata struct, that
 //! will directly be used for searching in a file
 void make_search_criteria(
@@ -609,30 +621,15 @@ void make_search_criteria(
             if ((record->ip3 == default_fst_record.ip3)) fst98_mask->ip3 = 0;
 
             if (query->options.ip1_all > 0) {
-                int ip1 = record->ip1;
-                float val;
-                int kind;
-                ConvertIp(&ip1, &val, &kind, -1); // Retrieve value
-                ConvertIp(&query->ip1s[0], &val, &kind, 2); // Encode with new encoding
-                ConvertIp(&query->ip1s[1], &val, &kind, 3); // Encode with old encoding
+                get_all_ips(record->ip1, &query->ip1s[0], &query->ip1s[1]);
                 fst98_mask->ip1 = 0;
             }
             if (query->options.ip2_all > 0) {
-                float val;
-                int kind;
-                int ip2 = record->ip2;
-                ConvertIp(&ip2, &val, &kind, -1); // Retrieve value
-                ConvertIp(&query->ip2s[0], &val, &kind, 2); // Encode with new encoding
-                ConvertIp(&query->ip2s[1], &val, &kind, 3); // Encode with old encoding
+                get_all_ips(record->ip2, &query->ip2s[0], &query->ip2s[1]);
                 fst98_mask->ip2 = 0;
             }
             if (query->options.ip3_all > 0) {
-                float val;
-                int kind;
-                int ip3 = record->ip3;
-                ConvertIp(&ip3, &val, &kind, -1); // Retrieve value
-                ConvertIp(&query->ip3s[0], &val, &kind, 2); // Encode with new encoding
-                ConvertIp(&query->ip3s[1], &val, &kind, 3); // Encode with old encoding
+                get_all_ips(record->ip3, &query->ip3s[0], &query->ip3s[1]);
                 fst98_mask->ip3 = 0;
             }
         }
