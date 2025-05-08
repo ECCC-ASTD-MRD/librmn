@@ -3,22 +3,36 @@
 #include <stdlib.h>
 #include <string.h>
 
-int compact_integer(
-    void *unpackedArrayOfInt,
-    void *packedHeader,
-    void *packedArrayOfInt,
-    int elementCount,
+int compact_p_integer(
+    const void * const unpackedArrayOfInt,
+    void * const packedHeader,
+    void * const packedArrayOfInt,
+    int intCount,
     int bitSizeOfPackedToken,
     int offset,
     int stride,
-    int opCode
+    const int sign
+);
+
+int compact_u_integer(
+    void * const unpackedArrayOfInt,
+    const void * const packedHeader,
+    const void * const packedArrayOfInt,
+    int intCount,
+    int bitSizeOfPackedToken,
+    int offset,
+    int stride,
+    const int sign
 );
 
 int main() {
     const uint32_t ni = 4111;
     const uint32_t nj = 4093;
-    const uint32_t nbits = 5;
+    const uint32_t nbits = 3;
 
+    printf("nbits = %d\n", nbits);
+
+    printf("\nUnsigned with width auto detection\n");
     {
         uint32_t (* const orig)[nj] = malloc(sizeof(uint32_t[ni][nj]));
 
@@ -38,11 +52,11 @@ int main() {
         //! This is certainly too much, but we will have to check what compact_integer actually uses.
         uint32_t * const packed = malloc(sizeof(uint32_t[ni][nj]));
 
-        int bitsNeeded = compact_integer(orig, NULL, packed, ni * nj, -1, 0, 1, 1);
+        int bitsNeeded = compact_p_integer(orig, NULL, packed, ni * nj, -1, 0, 1, 0);
         printf("compact_integer(pack) = %d\n", bitsNeeded);
 
         uint32_t (* const unpacked)[nj] = malloc(sizeof(uint32_t[ni][nj]));
-        int retVal = compact_integer(unpacked, NULL, packed, ni * nj, bitsNeeded, 0, 1, 2);
+        int retVal = compact_u_integer(unpacked, NULL, packed, ni * nj, bitsNeeded, 0, 1, 0);
         printf("compact_integer(unpack) = %d\n", retVal);
 
         int same = 1;
@@ -63,6 +77,7 @@ int main() {
     }
 
 
+    printf("\nSigned with width auto detection\n");
     {
         int32_t (* const orig)[nj] = malloc(sizeof(int32_t[ni][nj]));
 
@@ -82,11 +97,23 @@ int main() {
         //! This is certainly too much, but we will have to check what compact_integer actually uses.
         uint32_t * const packed = malloc(sizeof(uint32_t[ni][nj]));
 
-        int bitsNeeded = compact_integer(orig, NULL, packed, ni * nj, -1, 0, 1, 3);
+#ifndef NDEBUG
+        for (uint32_t j = 0; j < 16; j++) {
+            printf("orig[0][%d] = 0x%08x\n", j, orig[0][j]);
+        }
+#endif
+
+        int bitsNeeded = compact_p_integer(orig, NULL, packed, ni * nj, -1, 0, 1, 1);
         printf("compact_integer(pack) = %d\n", bitsNeeded);
 
+#ifndef NDEBUG
+        for (uint32_t j = 0; j < 2; j++) {
+            printf("packed[%d] = 0x%x\n", j, packed[j]);
+        }
+#endif
+
         int32_t (* const unpacked)[nj] = malloc(sizeof(int32_t[ni][nj]));
-        int retVal = compact_integer(unpacked, NULL, packed, ni * nj, bitsNeeded, 0, 1, 4);
+        int retVal = compact_u_integer(unpacked, NULL, packed, ni * nj, bitsNeeded, 0, 1, 1);
         printf("compact_integer(unpack) = %d\n", retVal);
 
         int same = 1;

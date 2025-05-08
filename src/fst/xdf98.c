@@ -836,11 +836,11 @@ int c_xdfadd(
             break;
 
         case 2:
-            compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, 1);
+            compact_p_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, 0);
             break;
 
         case 4:
-            compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, 3);
+            compact_p_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, 1);
             break;
 
         default:
@@ -1584,17 +1584,15 @@ int c_xdfins(
             break;
 
         case 2:
-            mode = 1;
-            ier = compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, mode);
+            ier = compact_p_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, 0);
             break;
 
         case 4:
-            mode = 3;
-            ier = compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, mode);
+            ier = compact_p_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, 1);
          break;
 
         default:
-            Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid datyp=%d\n",__func__,datyp);
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid datyp=%d\n", __func__, datyp);
             return(ERR_BAD_DATYP);
 
     } /* end switch */
@@ -2579,17 +2577,15 @@ int c_xdfrep(
             break;
 
         case 2:
-            mode = 1;
-            ier = compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, mode);
+            ier = compact_p_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, 0);
             break;
 
         case 4:
-            mode = 3;
-            ier = compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, mode);
+            ier = compact_p_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, 1);
             break;
 
         default:
-            Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid datyp=%d\n",__func__,datyp);
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid datyp=%d\n", __func__, datyp);
             return(ERR_BAD_DATYP);
     }
 
@@ -3011,17 +3007,15 @@ int c_xdfxtr(
             break;
 
         case 2:
-            mode = 2;
-            ier = compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, mode);
+            ier = compact_u_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, 0);
             break;
 
         case 4:
-            mode = 4;
-            ier = compact_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, mode);
+            ier = compact_u_integer(donnees, (void *) NULL, &(buf->data[index_word]), nelm, nbits, 0, xdf_stride, 1);
             break;
 
         default:
-            Lib_Log(APP_LIBFST,APP_ERROR,"%s: invalid datyp=%d\n",__func__,datyp);
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid datyp=%d\n", __func__, datyp);
             return(ERR_BAD_DATYP);
     } // End switch (datyp)
 

@@ -928,57 +928,57 @@ int c_fst_data_length(
 //! XDF version
 int c_fstecr_xdf(
     //! [in] Field to write to the file
-    void *field_in,
+    const void * const field_in,
     //! [in] Work field (kept for backward compatibility)
-    void *work,
+    const void * const work,
     //! [in] Number of bits kept for the elements of the field
-    int npak,
+    const int npak,
     //! [in] Unit number associated to the file in which to write the field
-    int iun,
+    const int iun,
     //! [in] Origin date timestamp
-    int dateo,
+    const int dateo,
     //! [in] Length of the time steps in seconds
-    int deet,
+    const int deet,
     //! [in] Time step number
-    int npas,
+    const int npas,
     //! [in] First dimension of the data field
-    int ni,
+    const int ni,
     //! [in] Second dimension of the data field
-    int nj,
+    const int nj,
     //! [in] Third dimension of the data field
-    int nk,
+    const int nk,
     //! [in] Vertical level
-    int ip1,
+    const int ip1,
     //! [in] Forecast hour
-    int ip2,
+    const int ip2,
     //! [in] User defined identifier
-    int ip3,
+    const int ip3,
     //! [in] Type of field (forecast, analysis, climatology)
-    char *in_typvar,
+    const char * const in_typvar,
     //! [in] Variable name
-    char *in_nomvar,
+    const char * const in_nomvar,
     //! [in] Label
-    char *in_etiket,
+    const char * const in_etiket,
     //! [in] Type of geographical projection
-    char *in_grtyp,
+    const char * const in_grtyp,
     //! [in] First grid descriptor
-    int ig1,
+    const int ig1,
     //! [in] Second grid descriptor
-    int ig2,
+    const int ig2,
     //! [in] Third grid descriptor
-    int ig3,
+    const int ig3,
     //! [in] Fourth grid descriptor
-    int ig4,
+    const int ig4,
     //! [in] Data type of elements
-    int in_datyp_ori,
+    const int in_datyp_ori,
     //! [in] Rewrite existing record, skip or append otherwise
-    int rewrit
+    const int rewrit
 ) {
     (void)work; // unused
 
     // Pointer to the data to be written. The data may be processed before encoding/compression, so this pointer
     // could change. This avoids modifying the original data.
-    void* field = field_in;
+    const void * field = field_in;
     float* field_f = NULL; // float version of the data
     uint32_t* field_missing = NULL; // data with missing values transformed
 
@@ -1000,14 +1000,9 @@ int c_fstecr_xdf(
     // 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags
     int datyp = in_datyp == FST_TYPE_MAGIC ? 1 : in_datyp;
 
-    PackFunctionPointer packfunc;
+    PackFunctionPointer packfunc = (xdf_double) || (in_datyp == FST_TYPE_MAGIC) ? &compact_p_double : &compact_p_float;
     double dmin = 0.0;
     double dmax = 0.0;
-    if ((xdf_double) || (in_datyp == FST_TYPE_MAGIC)) {
-        packfunc = (PackFunctionPointer) &compact_double;
-    } else {
-        packfunc = (PackFunctionPointer) &compact_float;
-    }
 
     int index_fnom = get_fnom_index(iun);
     if (index_fnom == -1) {
@@ -1044,7 +1039,7 @@ int c_fstecr_xdf(
     } else {
         nbits = (npak < 0) ? -npak : Max(1, FTN_Bitmot / Max(1, npak));
     }
-    nk = Max(1, nk);
+    int _nk = Max(1, nk);
 
     if (base_fst_type(datyp) == FST_TYPE_REAL_IEEE && nbits < 16) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Writing a truncated IEEE float with less than 16 bits is not allowed\n",
@@ -1061,7 +1056,7 @@ int c_fstecr_xdf(
         datyp = in_datyp;
     }
 
-    if (is_type_turbopack(datyp) && nk > 1) {
+    if (is_type_turbopack(datyp) && _nk > 1) {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data. We will disable it.\n", __func__);
         datyp &= FST_TYPE_TURBOPACK;
     }
@@ -1083,7 +1078,7 @@ int c_fstecr_xdf(
     // validate range of arguments
     VALID(ni, 1, NI_MAX, "ni")
     VALID(nj, 1, NJ_MAX, "nj")
-    VALID(nk, 1, NK_MAX, "nk")
+    VALID(_nk, 1, NK_MAX, "nk")
     VALID(deet, 0, DEET_MAX, "deet")
     VALID(npas, 0, NPAS_MAX, "npas")
     VALID(nbits, 1, NBITS_MAX, "nbits")
@@ -1094,7 +1089,7 @@ int c_fstecr_xdf(
     VALID(ip1, 0, IP1_MAX, "ip1")
     VALID(ip2, 0, IP2_MAX, "ip2")
     VALID(ip3, 0, IP3_MAX, "ip3")
-    VALID(ni * nj * nk * nbits / FTN_Bitmot, 0, MAX_RECORD_LENGTH, "record length > 128MB");
+    VALID(ni * nj * _nk * nbits / FTN_Bitmot, 0, MAX_RECORD_LENGTH, "record length > 128MB");
 
     const uint32_t datev = get_valid_date32(dateo, deet, npas);
 
@@ -1149,9 +1144,9 @@ int c_fstecr_xdf(
             if (nbits <= 32) {
                 // We convert now from double to float
                 data_nbits = 32;
-                field_f = malloc(ni * nj * nk * sizeof(float));
-                double* field_d = field_in;
-                for (int i = 0; i < ni * nj * nk; i++) {
+                field_f = malloc(ni * nj * _nk * sizeof(float));
+                const double * const field_d = field_in;
+                for (int i = 0; i < ni * nj * _nk; i++) {
                     field_f[i] = (float)field_d[i];
                 }
                 field = field_f;
@@ -1162,8 +1157,7 @@ int c_fstecr_xdf(
                 nbits = 64;
             }
         }
-    }
-    else if (is_type_integer(datyp)) {
+    } else if (is_type_integer(datyp)) {
         data_nbits = xdf_byte   ?  8 :
                      xdf_short  ? 16 :
                      xdf_double ? 64 :
@@ -1178,39 +1172,39 @@ int c_fstecr_xdf(
         case FST_TYPE_REAL: {
             int p1out;
             int p2out;
-            c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, ni * nj * nk);
-            nw = ((header_size+stream_size) * 8 + 63) / 64;
+            c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, ni * nj * _nk);
+            nw = ((header_size + stream_size) * 8 + 63) / 64;
             header_size /= sizeof(int32_t);
             stream_size /= sizeof(int32_t);
             break;
         }
 
         case FST_TYPE_COMPLEX:
-            nw = 2 * ((ni * nj * nk *nbits + 63) / 64);
+            nw = 2 * ((ni * nj * _nk * nbits + 63) / 64);
             break;
 
         case FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK:
             // 120 bits (floatpack header)+8, 32 bits (extra header)
-            nw = (ni * nj * nk * Max(nbits, 16) + 128 + 32 + 63) / 64;
+            nw = (ni * nj * _nk * Max(nbits, 16) + 128 + 32 + 63) / 64;
             break;
 
         case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK:
             // 32 bits (extra header)
-            nw = (ni * nj * nk * Max(nbits, 16) + 32 + 63) / 64;
+            nw = (ni * nj * _nk * Max(nbits, 16) + 32 + 63) / 64;
             break;
 
         case FST_TYPE_REAL | FST_TYPE_TURBOPACK: {
             int p1out;
             int p2out;
-            c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, ni * nj * nk);
-            nw = ((header_size+stream_size) * 8 + 32 + 63) / 64;
+            c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, ni * nj * _nk);
+            nw = ((header_size + stream_size) * 8 + 32 + 63) / 64;
             stream_size /= sizeof(int32_t);
             header_size /= sizeof(int32_t);
             break;
         }
 
         default:
-            nw = (ni * nj * nk * nbits + 120 + 63) / 64;
+            nw = (ni * nj * _nk * nbits + 120 + 63) / 64;
             break;
     }
 
@@ -1257,7 +1251,7 @@ int c_fstecr_xdf(
     // propagate missing values flag
     stdf_entry->datyp = datyp | is_missing;
     // this value may be changed later in the code to eliminate improper flags
-    stdf_entry->nk = nk;
+    stdf_entry->nk = _nk;
     stdf_entry->ubc = 0;
     stdf_entry->npas = npas;
     stdf_entry->pad7 = 0;
@@ -1322,7 +1316,7 @@ int c_fstecr_xdf(
         }
     }
 
-    uint32_t * field_u32 = field_in;
+    const uint32_t * field_u32 = field_in;
     if (image_mode_copy) {
         // no pack/unpack, used by editfst
         if (is_type_turbopack(datyp)) {
@@ -1338,10 +1332,10 @@ int c_fstecr_xdf(
             if (datyp == FST_TYPE_REAL) {
                 int p1out;
                 int p2out;
-                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, ni * nj * nk);
+                c_float_packer_params(&header_size, &stream_size, &p1out, &p2out, ni * nj * _nk);
                 lngw = (header_size + stream_size) * 8;
             } else {
-                lngw = ni * nj * nk * nbits;
+                lngw = ni * nj * _nk * nbits;
             }
             if (datyp == FST_TYPE_REAL_OLD_QUANT) lngw += 120;
             if (datyp == FST_TYPE_CHAR) lngw = ni * nj * 8;
@@ -1361,11 +1355,10 @@ int c_fstecr_xdf(
         if (xdf_double | IEEE_64) sizefactor = 8;
         // put appropriate values into field after allocating it
         if (is_missing) {
-            field_missing = malloc(ni * nj * nk * sizefactor);
-            if (EncodeMissingValue(field_missing, field_in, ni * nj * nk, in_datyp, sizefactor*8, nbits) > 0) {
+            field_missing = malloc(ni * nj * _nk * sizefactor);
+            if (EncodeMissingValue(field_missing, field_in, ni * nj * _nk, in_datyp, sizefactor*8, nbits) > 0) {
                 field_u32 = field_missing;
-            }
-            else {
+            } else {
                 field_u32 = field_in;
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: NO missing value, data type %d reset to %d\n", __func__, stdf_entry->datyp, datyp);
                 // cancel missing data flag in data type
@@ -1384,7 +1377,7 @@ int c_fstecr_xdf(
                     datyp = FST_TYPE_BINARY;
                     stdf_entry->datyp = datyp;
                 }
-                int lngw = ((ni * nj * nk * nbits) + bitmot - 1) / bitmot;
+                int lngw = ((ni * nj * _nk * nbits) + bitmot - 1) / bitmot;
                 for (int i = 0; i < lngw; i++) {
                     buffer->data[keys_len+i] = field_u32[i];
                 }
@@ -1399,12 +1392,12 @@ int c_fstecr_xdf(
                     // use an additional compression scheme
                     // nbits>64 flags a different packing
                     packfunc(field_u32, &(buffer->data[keys_len+1]), &(buffer->data[keys_len+5]),
-                        ni * nj * nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
-                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, nk, nbits, 1, 1);
+                        ni * nj * _nk, nbits + 64 * Max(16, nbits), 0, xdf_stride, 0, &tempfloat, &dmin, &dmax);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+5]), ni, nj, _nk, nbits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL_OLD_QUANT;
                         packfunc(field_u32, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
-                            ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
+                            ni * nj * _nk, nbits, 24, xdf_stride, 0, &tempfloat, &dmin, &dmax);
                     } else {
                         int nbytes = 16 + compressed_lng;
                         // fprintf(stderr, "Debug+ apres armn_compress nbytes=%d\n", nbytes);
@@ -1416,7 +1409,7 @@ int c_fstecr_xdf(
                     }
                 } else {
                     packfunc(field_u32, &(buffer->data[keys_len]), &(buffer->data[keys_len+3]),
-                        ni * nj * nk, nbits, 24, xdf_stride, 1, 0, &tempfloat, &dmin, &dmax);
+                        ni * nj * _nk, nbits, 24, xdf_stride, 0, &tempfloat, &dmin, &dmax);
                 }
                 break;
             }
@@ -1429,19 +1422,19 @@ int c_fstecr_xdf(
                     if (xdf_short) {
                         stdf_entry->nbits = Min(16, nbits);
                         nbits = stdf_entry->nbits;
-                        memcpy(&(buffer->data[keys_len+offset]), field_u32, ni * nj * nk * 2);
+                        memcpy(&(buffer->data[keys_len+offset]), field_u32, ni * nj * _nk * 2);
                     } else if (xdf_byte) {
                         stdf_entry->nbits = Min(8, nbits);
                         nbits = stdf_entry->nbits;
-                        memcpy_8_16((int16_t *)&(buffer->data[keys_len+offset]), (int8_t *)field_u32, ni * nj * nk);
+                        memcpy_8_16((int16_t *)&(buffer->data[keys_len+offset]), (int8_t *)field_u32, ni * nj * _nk);
                     } else {
-                        memcpy_32_16((short *)&(buffer->data[keys_len+offset]), (const int32_t *)field_u32, nbits, ni * nj * nk);
+                        memcpy_32_16((short *)&(buffer->data[keys_len+offset]), (const int32_t *)field_u32, nbits, ni * nj * _nk);
                     }
-                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+offset]), ni, nj, nk, nbits, 1, 0);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+offset]), ni, nj, _nk, nbits, 1, 0);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_UNSIGNED;
-                        compact_integer(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
-                            ni * nj * nk, nbits, 0, xdf_stride, 1);
+                        compact_p_integer(field_u32, (void *) NULL, &(buffer->data[keys_len + offset]),
+                            ni * nj * _nk, nbits, 0, xdf_stride, 0);
                     } else {
                         int nbytes = 4 + compressed_lng;
                         // fprintf(stderr, "Debug+ fstecr armn_compress compressed_lng=%d\n", compressed_lng);
@@ -1455,15 +1448,15 @@ int c_fstecr_xdf(
                         stdf_entry->nbits = Min(16, nbits);
                         nbits = stdf_entry->nbits;
                         compact_short(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
-                            ni * nj * nk, nbits, 0, xdf_stride, 5);
+                            ni * nj * _nk, nbits, 0, xdf_stride, 5);
                     } else if (xdf_byte) {
                         compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]),
-                            ni * nj * nk, Min(8, nbits), 0, xdf_stride, 9);
+                            ni * nj * _nk, Min(8, nbits), 0, xdf_stride, 9);
                         stdf_entry->nbits = Min(8, nbits);
                         nbits = stdf_entry->nbits;
                     } else {
-                        compact_integer(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
-                            ni * nj * nk, nbits, 0, xdf_stride, 1);
+                        compact_p_integer(field_u32, (void *) NULL, &(buffer->data[keys_len + offset]),
+                            ni * nj * _nk, nbits, 0, xdf_stride, 0);
                     }
                 }
                 break;
@@ -1481,8 +1474,7 @@ int c_fstecr_xdf(
                         datyp = FST_TYPE_CHAR;
                         stdf_entry->datyp = datyp;
                     }
-                    compact_integer(field_u32, (void *) NULL, &(buffer->data[keys_len]), nc,
-                        32, 0, xdf_stride, 1);
+                    compact_p_integer(field_u32, (void *) NULL, &(buffer->data[keys_len]), nc, 32, 0, xdf_stride, 0);
                     stdf_entry->nbits = 8;
                 }
                 break;
@@ -1500,26 +1492,26 @@ int c_fstecr_xdf(
                 // fprintf(stderr, "OLD PACK CODE======================================\n");
                 int32_t* field3 = (int32_t *)field_u32;
                 if (xdf_short || xdf_byte) {
-                    field3 = (int *)malloc(ni * nj * nk*sizeof(int));
+                    field3 = (int *)malloc(ni * nj * _nk*sizeof(int));
                     short * s_field = (short *)field_u32;
                     signed char * b_field = (signed char *)field_u32;
-                    if (xdf_short) for (int i = 0; i < ni * nj * nk;i++) { field3[i] = s_field[i]; };
-                    if (xdf_byte)  for (int i = 0; i < ni * nj * nk;i++) { field3[i] = b_field[i]; };
+                    if (xdf_short) for (int i = 0; i < ni * nj * _nk;i++) { field3[i] = s_field[i]; };
+                    if (xdf_byte)  for (int i = 0; i < ni * nj * _nk;i++) { field3[i] = b_field[i]; };
                 }
-                compact_integer(field3, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
-                    nbits, 0, xdf_stride, 3);
+                compact_p_integer(field3, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk,
+                    nbits, 0, xdf_stride, 1);
                 if (field3 != (int32_t*)field_u32) free(field3);
 #else
                 // fprintf(stderr, "NEW PACK CODE======================================\n");
                 if (xdf_short) {
-                    compact_short(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
+                    compact_short(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk,
                         nbits, 0, xdf_stride, 7);
                 } else if (xdf_byte) {
-                    compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
+                    compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk,
                         nbits, 0, xdf_stride, 11);
                 } else {
-                    compact_integer(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk,
-                        nbits, 0, xdf_stride, 3);
+                    compact_p_integer(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk,
+                        nbits, 0, xdf_stride, 1);
                 }
 #endif
                 break;
@@ -1531,7 +1523,7 @@ int c_fstecr_xdf(
                 // IEEE and IEEE complex representation
                 {
                     int32_t f_ni = (int32_t) ni;
-                    int32_t f_njnk = nj * nk;
+                    int32_t f_njnk = nj * _nk;
                     int32_t f_zero = 0;
                     int32_t f_one = 1;
                     int32_t f_minus_nbits = (int32_t) minus_nbits;
@@ -1543,7 +1535,7 @@ int c_fstecr_xdf(
                     }
                     if (datyp == (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK)) {
                         // use an additionnal compression scheme
-                        int compressed_lng = c_armn_compress32((unsigned char *)&(buffer->data[keys_len+1]), (float *)field_u32, ni, nj, nk, nbits);
+                        int compressed_lng = c_armn_compress32((unsigned char *)&(buffer->data[keys_len+1]), (float *)field_u32, ni, nj, _nk, nbits);
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = FST_TYPE_REAL_IEEE;
                             f77name(ieeepak)((int32_t *)field_u32, (int32_t *)&(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
@@ -1570,12 +1562,12 @@ int c_fstecr_xdf(
                 if (is_type_turbopack(datyp) && (nbits <= 16)) {
                     // use an additional compression scheme
                     c_float_packer((float *)field_u32, nbits, (int32_t *)&(buffer->data[keys_len+1]),
-                                   (int32_t *)&(buffer->data[keys_len+1+header_size]), ni * nj * nk);
-                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, nk, nbits, 1, 1);
+                                   (int32_t *)&(buffer->data[keys_len+1+header_size]), ni * nj * _nk);
+                    int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+1+header_size]), ni, nj, _nk, nbits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = FST_TYPE_REAL;
                         c_float_packer((float *)field_u32, nbits, (int32_t *)&(buffer->data[keys_len]),
-                                        (int32_t *)&(buffer->data[keys_len+header_size]), ni * nj * nk);
+                                        (int32_t *)&(buffer->data[keys_len+header_size]), ni * nj * _nk);
                     } else {
                         int nbytes = 16 + (header_size*4) + compressed_lng;
                         // fprintf(stderr, "Debug+ apres armn_compress nbytes=%d\n", nbytes);
@@ -1587,7 +1579,7 @@ int c_fstecr_xdf(
                     }
                 } else {
                     c_float_packer((float *)field_u32, nbits, (int32_t *)&(buffer->data[keys_len]),
-                                   (int32_t *)&(buffer->data[keys_len+header_size]), ni * nj * nk);
+                                   (int32_t *)&(buffer->data[keys_len+header_size]), ni * nj * _nk);
                     // fprintf(stderr, "Debug+ fstecr apres float_packer buffer->data=%8X\n", buffer->data[keys_len]);
                 }
                 break;
@@ -1602,7 +1594,7 @@ int c_fstecr_xdf(
                     datyp = FST_TYPE_STRING;
                     stdf_entry->datyp = datyp;
                 }
-                compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * nk, 8, 0, xdf_stride, 9);
+                compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk, 8, 0, xdf_stride, 9);
                 break;
 
             default:
@@ -1633,47 +1625,47 @@ int c_fstecr_xdf(
 //! Write a field into a rpn file
 int c_fstecr(
     //! [in] Field to write to the file
-    void *field_in,
+    const void * const field_in,
     //! [in] Work field (kept for backward compatibility)
-    void *work,
+    const void * const work,
     //! [in] Number of bits kept for the elements of the field
-    int npak,
+    const int npak,
     //! [in] Unit number associated to the file in which to write the field
-    int iun,
+    const int iun,
     //! [in] Origin date timestamp
-    int dateo,
+    const int dateo,
     //! [in] Length of the time steps in seconds
-    int deet,
+    const int deet,
     //! [in] Time step number
-    int npas,
+    const int npas,
     //! [in] First dimension of the data field
-    int ni,
+    const int ni,
     //! [in] Second dimension of the data field
-    int nj,
+    const int nj,
     //! [in] Thierd dimension of the data field
-    int nk,
+    const int nk,
     //! [in] Vertical level
-    int ip1,
+    const int ip1,
     //! [in] Forecast hour
-    int ip2,
+    const int ip2,
     //! [in] User defined identifier
-    int ip3,
+    const int ip3,
     //! [in] Type of field (forecast, analysis, climatology)
-    char *in_typvar,
+    const char * const in_typvar,
     //! [in] Variable name
-    char *in_nomvar,
+    const char * const in_nomvar,
     //! [in] Label
-    char *in_etiket,
+    const char * const in_etiket,
     //! [in] Type of geographical projection
-    char *in_grtyp,
+    const char * const in_grtyp,
     //! [in] First grid descriptor
-    int ig1,
+    const int ig1,
     //! [in] Second grid descriptor
-    int ig2,
+    const int ig2,
     //! [in] Third grid descriptor
-    int ig3,
+    const int ig3,
     //! [in] Fourth grid descriptor
-    int ig4,
+    const int ig4,
     //! [in] Data type of elements
     //! | datyp | Description                                  |
     //! | ----: | :------------------------------------------- |
@@ -1691,10 +1683,10 @@ int c_fstecr(
     //! |   134 | Compressed floating point (128+6)            |
     //! | +128  | Second stage packer active                   |
     //! | +64   | Missing value convention used                |
-    int datyp,
+    const int datyp,
     //! [in] Rewrite existing record, append otherwise
     //! If true, records match if all metadata is the same with the exception of \p dateo and **datev** (\p dateo + \p deet * \p npas) which are not checked for this purpose
-    int rewrit
+    const int rewrit
 ) {
     int index_fnom;
     const int rsf_status = is_rsf(iun, &index_fnom);
@@ -2856,17 +2848,12 @@ int c_fstluk_xdf(
     stdf_entry.datyp = stdf_entry.datyp & ~FSTD_MISSING_FLAG;
     xdf_datatyp = stdf_entry.datyp;
 
-    PackFunctionPointer packfunc;
+    UnpackFunctionPointer packfunc = xdf_double ? &compact_u_double : &compact_u_float;
     double dmin=0.0, dmax=0.0;
-    if (xdf_double) {
-        packfunc = (PackFunctionPointer) &compact_double;
-    } else {
-        packfunc = (PackFunctionPointer) &compact_float;
-    }
 
     lng = W64TOWD(lng);
     if ((xdf_datatyp == FST_TYPE_REAL_OLD_QUANT) || (xdf_datatyp == FST_TYPE_REAL_IEEE)) {
-        lng = (xdf_double) ? 2*lng : lng;
+        lng = (xdf_double) ? 2 * lng : lng;
     }
 
     int lng2;
@@ -2964,9 +2951,9 @@ int c_fstluk_xdf(
                     armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2, 1);
                     // fprintf(stderr, "Debug+ buf->data + 4 + (nbytes / 4) - 1 = %X buf->data + 4 + (nbytes / 4) = %X \n", *(buf->data + 4 + (nbytes / 4) - 1), *(buf->data + 4 + (nbytes / 4)));
                     packfunc(field, buf->data + 1, buf->data + 5, nelm, stdf_entry.nbits + 64 * Max(16, stdf_entry.nbits),
-                             0, xdf_stride, FLOAT_UNPACK, 0, &tempfloat, &dmin, &dmax);
+                             0, xdf_stride, 0, &tempfloat, &dmin, &dmax);
                 } else {
-                    packfunc(field, buf->data, buf->data + 3, nelm, stdf_entry.nbits, 24, xdf_stride, FLOAT_UNPACK, 0, &tempfloat, &dmin , &dmax);
+                    packfunc(field, buf->data, buf->data + 3, nelm, stdf_entry.nbits, 24, xdf_stride, 0, &tempfloat, &dmin , &dmax);
                 }
                 break;
             }
@@ -2999,7 +2986,7 @@ int c_fstluk_xdf(
                             // printf("Debug+ fstluk mode int compress nbytes=%d\n", nbytes);
                             memcpy_16_32((int32_t *)field, (int16_t *)(buf->data + offset), stdf_entry.nbits, nelm);
                         } else {
-                            ier = compact_integer(field, (void *) NULL, buf->data + offset, nelm, stdf_entry.nbits, 0, xdf_stride, 2);
+                            ier = compact_u_integer(field, (void *) NULL, buf->data + offset, nelm, stdf_entry.nbits, 0, xdf_stride, 0);
                         }
                     }
                     break;
@@ -3009,7 +2996,7 @@ int c_fstluk_xdf(
                 // Character
                 // printf("Debug+ fstluk - Character\n");
                 int nc = (nelm + 3) / 4;
-                ier = compact_integer(field, (void *) NULL, buf->data, nc, 32, 0, xdf_stride, 2);
+                ier = compact_u_integer(field, (void *) NULL, buf->data, nc, 32, 0, xdf_stride, 0);
                 break;
             }
 
@@ -3027,7 +3014,7 @@ int c_fstluk_xdf(
                 } else {
                     field_out = (int32_t *)field;
                 }
-                ier = compact_integer(field_out, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 4);
+                ier = compact_u_integer(field_out, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 1);
                 if (xdf_short) {
                     for (int i = 0; i < nelm; i++) {
                         s_field_out[i] = field_out[i];
@@ -3046,7 +3033,7 @@ int c_fstluk_xdf(
                 } else if (xdf_byte) {
                     ier = compact_char(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 12);
                 } else {
-                    ier = compact_integer(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 4);
+                    ier = compact_u_integer(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 1);
                 }
 #endif
                 break;

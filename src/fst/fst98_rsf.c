@@ -33,53 +33,53 @@ int32_t is_rsf(
 //! RSF version
 int c_fstecr_rsf(
     //! [in] Field to write to the file
-    void *field_in,
+    const void * const field_in,
     //! [in] Work field (kept for backward compatibility)
-    void *work,
+    const void * const work,
     //! [in] Number of bits kept for the elements of the field
-    int npak,
+    const int npak,
     //! [in] Unit number associated to the file in which to write the field
-    int iun,
+    const int iun,
     //! [in] Index of the file given by fnom
-    int index_fnom,
+    const int index_fnom,
     //! [in] Date timestamp
-    int date,
+    const int date,
     //! [in] Length of the time steps in seconds
-    int deet,
+    const int deet,
     //! [in] Time step number
-    int npas,
+    const int npas,
     //! [in] First dimension of the data field
-    int ni,
+    const int ni,
     //! [in] Second dimension of the data field
-    int nj,
-    //! [in] Thierd dimension of the data field
-    int nk,
+    const int nj,
+    //! [in] Third dimension of the data field
+    const int nk,
     //! [in] Vertical level
-    int ip1,
+    const int ip1,
     //! [in] Forecast hour
-    int ip2,
+    const int ip2,
     //! [in] User defined identifier
-    int ip3,
+    const int ip3,
     //! [in] Type of field (forecast, analysis, climatology)
-    char *in_typvar,
+    const char * const in_typvar,
     //! [in] Variable name
-    char *in_nomvar,
+    const char * const in_nomvar,
     //! [in] Label
-    char *in_etiket,
+    const char * const in_etiket,
     //! [in] Type of geographical projection
-    char *in_grtyp,
+    const char * const in_grtyp,
     //! [in] First grid descriptor
-    int ig1,
+    const int ig1,
     //! [in] Second grid descriptor
-    int ig2,
+    const int ig2,
     //! [in] Third grid descriptor
-    int ig3,
+    const int ig3,
     //! [in] Fourth grid descriptor
-    int ig4,
+    const int ig4,
     //! [in] Data type of elements
-    int in_datyp_ori,
+    const int in_datyp_ori,
     //! [in] Rewrite existing record, append otherwise
-    int rewrit
+    const int rewrit
 ) {
     (void)work; // Unused
 

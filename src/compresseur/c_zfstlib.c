@@ -57,9 +57,11 @@ static void calcul_ajusxy(int *ajus_x, int *ajus_y, int ni, int nj, int istep);
 static void packTokensParallelogram(unsigned int z[], int *zlng, unsigned short ufld[], int ni, int nj, int nbits, int istep, uint32_t *header);
 static void unpackTokensParallelogram(unsigned short ufld[], unsigned int z[], int ni, int nj, int nbits, int istep, uint32_t *header);
 
+
 static int fstcompression_level = -1;
 static unsigned char fastlog[256];
 static int once = 0;
+
 
 //! Main entry point to the compression routines
 int armn_compress(
@@ -78,24 +80,9 @@ int armn_compress(
     unsigned int *zfld_lle;
     int zlng_minimum;
     int zlng_lle;
-    int lng_origin;
     // int debug = 0;
     // float entropie;
     float rlog2;
-
-#if defined (Little_Endian)
-    int limite;
-#endif
-
-    int initial_compression_level;
-
-    initial_compression_level = c_armn_compress_getlevel();
-    lng_origin = (1 + ni * nj * nk * 16 / 8);
-
-    if (initial_compression_level == -1) {
-        fstcompression_level = BEST;
-    }
-
 
     if (once == 0) {
         rlog2 = 1.0 / log(2.0);
@@ -105,8 +92,15 @@ int armn_compress(
         once = 1;
     }
 
+    int lng_origin = (1 + ni * nj * nk * 16 / 8);
+
+    int initial_compression_level = c_armn_compress_getlevel();
+    if (initial_compression_level == -1) {
+        fstcompression_level = BEST;
+    }
+
     switch (op_code) {
-        case COMPRESS:
+        case COMPRESS: {
             if (nbits > 16 || ni == 1 || nj == 1) {
                 Lib_Log(APP_LIBFST,APP_WARNING,"%s: Cannot compress if nbits>16 or ni=1 or nj=1. Returning original field\n",__func__);
                 return -1;
@@ -117,6 +111,7 @@ int armn_compress(
             zfld_lle     = (unsigned int *) malloc(sizeof(unsigned int) * ni * nj * nk);
 
 #if defined (Little_Endian)
+            int limite;
             if (swap_stream == 1) {
                 limite = (1 + ni * nj) / 2;
                 for (int i = 0; i < limite; i++) {
@@ -177,27 +172,29 @@ int armn_compress(
 
             return zlng_lle;
             break;
+        }
 
-        case UNCOMPRESS:
+        case UNCOMPRESS: {
             if (nbits > 16 || ni == 1 || nj == 1) {
                 return 1 + ni * nj * nk * nbits / 8;
             }
 
             us_fld = (unsigned int *) fld;
-            unzfld = (unsigned short *)malloc(sizeof(unsigned int)*ni*nj);
+            unzfld = (unsigned short *)malloc(ni * nj * sizeof(unsigned int));
             c_fstunzip((unsigned int *)unzfld, (unsigned int *)fld, ni, nj, nbits);
-            memcpy(fld, unzfld, (1+ni*nj/2)*sizeof(unsigned int));
+            memcpy(fld, unzfld, (1 + ni * nj / 2) * sizeof(unsigned int));
 #if defined (Little_Endian)
             if (swap_stream == 1) {
-                limite = (1 + ni * nj) / 2;
+                int limite = (1 + ni * nj) / 2;
                 for (int i = 0; i < limite; i++) {
                     us_fld[i] = (us_fld[i] >> 16) | (us_fld[i] << 16);
                 }
             }
 #endif
             free(unzfld);
-            return ni*nj*sizeof(short);
+            return ni * nj * sizeof(short);
             break;
+        }
     } // switch(mode)
     return 0;
 }

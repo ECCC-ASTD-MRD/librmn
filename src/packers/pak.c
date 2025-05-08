@@ -21,9 +21,13 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <rmn/rpnmacros.h>
 #include <armn_compress.h>
+
+
+//! \file
 
 
 //! FORTRAN interface to integer packer/unpacker written in C
@@ -96,21 +100,24 @@ void f77name(iipak)(
         loffset = 0;
     }
 
-    uint32_t  *ptrXpacked = xpacked;
 
     if ( xunpacked == xpacked ) {
         // In place
         int lengthOfPackedArray = ((ninj * lnBits) + 31) / 32;
         if (packHeaderUsed) lengthOfPackedArray += 4;
 
-        uint32_t *tempPackedArray = ( uint32_t *) malloc(lengthOfPackedArray*sizeof(uint32_t));
+        uint32_t * const ptrXpacked = xpacked;
+        uint32_t * const tempPackedArray = ( uint32_t *) malloc(lengthOfPackedArray * sizeof(uint32_t));
+
+        printf("%s(...), oper = %d, oper == 3 = %d, oper == 4 = %d\n", __func__, oper, oper == 3, oper == 4);
+        fflush(stdout);
 
         if ( (oper == 1) || (oper == 3) ) {
             // Pack
             if ( packHeaderUsed ) {
-                compact_integer(xunpacked, tempPackedArray, tempPackedArray, ninj, lnBits, 128, stride, oper);
+                compact_p_integer(xunpacked, tempPackedArray, tempPackedArray, ninj, lnBits, 128, stride, oper == 3);
             } else {
-                compact_integer(xunpacked, NULL, tempPackedArray, ninj, lnBits, loffset, stride, oper);
+                compact_p_integer(xunpacked, NULL, tempPackedArray, ninj, lnBits, loffset, stride, oper == 3);
             }
 
             for (int i = 0; i < lengthOfPackedArray; i++) {
@@ -123,20 +130,27 @@ void f77name(iipak)(
             }
 
             if ( packHeaderUsed ){
-                compact_integer(xunpacked, tempPackedArray, tempPackedArray, ninj, lnBits, 128, stride, oper);
+                compact_u_integer(xunpacked, tempPackedArray, tempPackedArray, ninj, lnBits, 128, stride, oper == 4);
             } else {
-                compact_integer(xunpacked, NULL, tempPackedArray, ninj, lnBits, loffset, stride, oper);
+                compact_u_integer(xunpacked, NULL, tempPackedArray, ninj, lnBits, loffset, stride, oper == 4);
             }
         }
 
         free(tempPackedArray);
-        tempPackedArray = NULL;
     } else {
         // Not in place
         if ( packHeaderUsed ) {
-            compact_integer(xunpacked, xpacked, xpacked, ninj, lnBits, 128, stride, oper);
+            if ( (oper == 1) || (oper == 3) ) {
+                compact_p_integer(xunpacked, xpacked, xpacked, ninj, lnBits, 128, stride, oper == 3);
+            } else {
+                compact_u_integer(xunpacked, xpacked, xpacked, ninj, lnBits, 128, stride, oper == 4);
+            }
         } else {
-            compact_integer(xunpacked, NULL, xpacked, ninj, lnBits, loffset, stride, oper);
+            if ( (oper == 1) || (oper == 3) ) {
+                compact_p_integer(xunpacked, NULL, xpacked, ninj, lnBits, loffset, stride, oper == 3);
+            } else {
+                compact_u_integer(xunpacked, NULL, xpacked, ninj, lnBits, loffset, stride, oper == 4);
+            }
         }
     }
 }
@@ -168,7 +182,8 @@ void f77name(xxpak) (
     const int ninj = ((*ni) * (*nj));
     int oper = *mode;
     const double tempFloat = 9999.0000;
-    double dmin=0.0,dmax=0.0;
+    double dmin = 0.0;
+    double dmax = 0.0;
 
     int lnBits = (*nBits);
     if (*nBits > 1) {
@@ -183,34 +198,37 @@ void f77name(xxpak) (
         lnBits = 32;
     }
 
-    // determine function pointer and make oper uniform for pack and unpack
-    PackFunctionPointer pfp = oper > 3 ? &compact_double : &compact_float;
-    oper = oper > 3 ? oper - 4 : oper;
+    uint32_t * ptrXpacked = xpacked;
 
-    uint32_t *ptrXpacked = xpacked;
-
-    // call the appropriate pack/unpack routine written in C
     if ( xunpacked == ptrXpacked ) {
         // In place
-        int lengthOfIntArray = (ninj * lnBits) / 32 + 6;
-        uint32_t *tempIntArray = ( uint32_t *) malloc(lengthOfIntArray * sizeof(uint32_t));
+        const int lengthOfIntArray = (ninj * lnBits) / 32 + 6;
+        uint32_t * const tempIntArray = ( uint32_t *) malloc(lengthOfIntArray * sizeof(uint32_t));
 
-      if (oper == 1) {
+        if (oper % 2) {
             // Pack
-            (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits, offset, stride, oper, 0, &tempFloat, &dmin, &dmax);
+            PackFunctionPointer pfp = oper > 2 ? &compact_p_double : &compact_p_float;
+            (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits, offset, stride, 0, &tempFloat, &dmin, &dmax);
             for (int i = 0; i < lengthOfIntArray; i++) {
                 ptrXpacked[i] = tempIntArray[i];
             }
-        } else if ( oper == 2 ) {
+        } else {
             // Unpack
+            UnpackFunctionPointer ufp = oper > 2 ? &compact_u_double : &compact_u_float;
+            (*ufp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits, offset, stride, 0, &tempFloat, &dmin, &dmax);
             for (int i = 0; i < lengthOfIntArray; i++) {
                 tempIntArray[i] = ptrXpacked[i] ;
             }
-            (*pfp)(xunpacked, &tempIntArray[0], &tempIntArray[3], ninj, lnBits, offset, stride, oper, 0, &tempFloat, &dmin, &dmax);
         }
 
         free(tempIntArray);
     } else {
-        (*pfp)(xunpacked, &ptrXpacked[0], &ptrXpacked[3], ninj, lnBits, offset, stride, oper, 0, &tempFloat, &dmin, &dmax);
+        if (oper % 2) {
+            PackFunctionPointer pfp = oper > 2 ? &compact_p_double : &compact_p_float;
+            (*pfp)(xunpacked, &ptrXpacked[0], &ptrXpacked[3], ninj, lnBits, offset, stride, 0, &tempFloat, &dmin, &dmax);
+        } else {
+            UnpackFunctionPointer ufp = oper > 2 ? &compact_u_double : &compact_u_float;
+            (*ufp)(xunpacked, &ptrXpacked[0], &ptrXpacked[3], ninj, lnBits, offset, stride, 0, &tempFloat, &dmin, &dmax);
+        }
     }
 }

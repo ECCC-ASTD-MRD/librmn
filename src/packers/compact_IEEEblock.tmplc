@@ -28,13 +28,13 @@
 #include <App.h>
 
 // Pack IEEE floating point numbers( float and double ) into a reduced bit size "IEEE" floating point numbers
-void *compact_IEEEblock_FLOAT_TYPE(
+void * compact_IEEEblock_FLOAT_TYPE(
     //! [in.out] Array of floating point numbers
-    void *unpackedArrayOfFloat,
+    void * unpackedArrayOfFloat,
     //! [in.out] Format information of packed integer numbers
-    void *packedHeader,
+    void * packedHeader,
     //! [in.out] Array Of Integers
-    void *packedArrayOfInt,
+    void * packedArrayOfInt,
     //! [in] Total count of element in floating point array
     int elementCount,
     //! [in] Token size in bit
@@ -50,7 +50,7 @@ void *compact_IEEEblock_FLOAT_TYPE(
     //! [in] 1 to indicate the presence of missing values in the floating point array, 0 otherwise
     int hasMissing,
     //! [in] Missing value identifier
-    void *missingTag
+    const void * const missingTag
 ) {
 
     typedef struct {

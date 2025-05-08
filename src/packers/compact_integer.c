@@ -27,6 +27,9 @@
 #include <App.h>
 
 
+//! \file
+
+
 typedef struct {
 #if defined(Little_Endian)
     uint32_t numOfBitsPerToken : 6, SHIFT : 6, unused : 12, ID : 8;
@@ -205,10 +208,10 @@ typedef struct {
 }\
 
 
-//! Transform integer array between pack and unpacked format
-int compact_integer(
+//! Pack integers
+int compact_p_integer(
     //! [in,out] Unpacked integers array
-    void * const unpackedArrayOfInt,
+    const void * const unpackedArrayOfInt,
     //! [in,out] Compaction header
     void * const packedHeader,
     //! [in,out] Packed integer array
@@ -221,10 +224,17 @@ int compact_integer(
     int offset,
     //! [in] Unpack integer spacing
     int stride,
-    //! [in] Operation mode: 1 pack unsigned, 2 unpack unsigned, 3 pack signed, 4 unpack signed
-    int opCode
+    //! [in] 0 for unsigned, 1 for signed
+    // Used to be Operation mode: 1 pack unsigned, 2 unpack unsigned, 3 pack signed, 4 unpack signed
+    const int sign
 ) {
     //! \return Number of bits needed for each packed integer
+
+#ifndef NDEBUG
+    printf("%s(%p, %p, %p, %d, %d, %d, %d, %d)\n", __func__, unpackedArrayOfInt, packedHeader, packedArrayOfInt,
+        intCount, bitSizeOfPackedToken, offset, stride, sign);
+    fflush(stdout);
+#endif
 
     if ( bitSizeOfPackedToken != -1 && (bitSizeOfPackedToken < 1 || bitSizeOfPackedToken > 32) ) {
         Lib_Log(APP_LIBRMN, APP_ERROR,
@@ -237,94 +247,156 @@ int compact_integer(
     uint32_t * const packHeader = (uint32_t *)packedHeader;
     uint32_t * arrayOfUnsignedUnpacked = (uint32_t *)unpackedArrayOfInt;
     int32_t * arrayOfSignedUnpacked = (int32_t *)unpackedArrayOfInt;
-    uint32_t cleanupMask = ((uint32_t)(~0) >> (wordSize - bitSizeOfPackedToken));
     uint32_t * arrayOfPacked = (uint32_t  *)packedArrayOfInt;
 
-    if ( (opCode == 1) || (opCode == 3) ) {
-        // Pack
-        uint32_t minUnsignedInteger = 0, maxUnsignedInteger = 0;
-        int minSignedInteger = 0, maxSignedInteger = 0;
-        int shiftRequired = 0;
-        if ( packHeader != NULL ) {
-            if ( opCode == 1 ) {
-                constructHeader(arrayOfUnsignedUnpacked, minUnsignedInteger, maxUnsignedInteger, intCount, stride, packHeader, shiftRequired, bitSizeOfPackedToken);
-            } else {
-                constructHeader(arrayOfSignedUnpacked, minSignedInteger, maxSignedInteger, intCount, stride, packHeader, shiftRequired, bitSizeOfPackedToken);
-            }
+    uint32_t minUnsignedInteger = 0, maxUnsignedInteger = 0;
+    int minSignedInteger = 0, maxSignedInteger = 0;
+    int shiftRequired = 0;
+    if ( packHeader != NULL ) {
+        if ( sign ) {
+            constructHeader(arrayOfSignedUnpacked, minSignedInteger, maxSignedInteger, intCount, stride, packHeader, shiftRequired, bitSizeOfPackedToken);
         } else {
-            // pack header not required, X itself is used as packInt, determines bitSizeOfPackedToken, if not available
-            if ( bitSizeOfPackedToken == -1 ) {
-                // obtain minimum, maximun, span
-                uint32_t maxSpan = 0;
-                if ( opCode == 3 ) {
-                    // signed integer number
-                    FindMinMax(arrayOfSignedUnpacked, minSignedInteger, maxSignedInteger, intCount, stride);
-                    maxSpan = ( abs(minSignedInteger) > maxSignedInteger ) ? abs(minSignedInteger) : maxSignedInteger;
-                } else if ( opCode == 1 ) {
-                    // unsigned integer number
-                    maxSpan = arrayOfUnsignedUnpacked[0];
-                    for(int i = stride; i < intCount * stride ; i += stride) {
-                        maxSpan |= arrayOfUnsignedUnpacked[i];
-                    }
-                }
-
-                bitSizeOfPackedToken = 0;
-                while ( maxSpan != 0 ) {
-                    maxSpan = maxSpan >> 1;
-                    bitSizeOfPackedToken++;
-                }
-                if ( opCode == 3 ) {
-                    // accomodate the signed bit
-                    bitSizeOfPackedToken++;
-                }
-                cleanupMask = ((uint32_t)(~0) >> (wordSize - bitSizeOfPackedToken));
-            }
-        }
-        // compute signed int adjustment, since 1,2,3,4 without header all needs it
-        int positiveMask = ( opCode < 3 ) ? 0 : ( 1 << ( bitSizeOfPackedToken - 1 ));
-        if ( opCode == 1 ) {
-            Pack(arrayOfUnsignedUnpacked, arrayOfPacked, minUnsignedInteger, intCount, offset, stride, wordSize, bitSizeOfPackedToken, packHeader, shiftRequired, positiveMask, cleanupMask);
-        } else {
-            Pack(arrayOfSignedUnpacked, arrayOfPacked, minSignedInteger, intCount, offset, stride, wordSize, bitSizeOfPackedToken, packHeader, shiftRequired, positiveMask, cleanupMask);
-        }
-    } else if ( opCode == 2 || opCode == 4) {
-        // Unpack
-        int tokenSize, ShiftIntended;
-        int minSigned;
-        uint32_t minUnsigned;
-        if ( packedHeader != NULL ) {
-            integer_header * const theHeader = (integer_header *)packedHeader;
-            tokenSize     = theHeader->numOfBitsPerToken;
-            ShiftIntended = theHeader->SHIFT;
-            intCount      = theHeader->numOfPackedToken;
-            minSigned     = theHeader->minValue;
-            minUnsigned   = theHeader->minValue;
-        } else {
-            if ( (bitSizeOfPackedToken < 1 || bitSizeOfPackedToken > 32) ) {
-                Lib_Log(APP_LIBRMN, APP_ERROR,
-                        "%s: Can not uncompact integers without header without 0 < bitSizeOfPackedToken size <= 32 (bitSizeOfPackedToken = %d)!\n",
-                        __func__, bitSizeOfPackedToken);
-                return 0;
-            }
-
-            tokenSize     = bitSizeOfPackedToken;
-            ShiftIntended = 0;
-            minSigned     = 0;
-            minUnsigned   = 0;
-        }
-        // compute signed int adjustment, since 1,2,3,4 without header all needs it
-        int positiveMask = ( opCode < 3 ) ? 0 : ( 1 << ( bitSizeOfPackedToken - 1 ));
-        if ( opCode == 2 ) {
-            Unpack(arrayOfUnsignedUnpacked, arrayOfPacked, ShiftIntended, tokenSize, minUnsigned, intCount, offset, stride, wordSize, positiveMask, packHeader, bitSizeOfPackedToken);
-        } else {
-            Unpack(arrayOfSignedUnpacked, arrayOfPacked, ShiftIntended, tokenSize, minSigned, intCount, offset, stride, wordSize, positiveMask, packHeader, bitSizeOfPackedToken);
+            constructHeader(arrayOfUnsignedUnpacked, minUnsignedInteger, maxUnsignedInteger, intCount, stride, packHeader, shiftRequired, bitSizeOfPackedToken);
         }
     } else {
-        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: opCode (%d) is not defined\n", __func__, opCode);
-        return 0;
+        // pack header not required, X itself is used as packInt, determines bitSizeOfPackedToken, if not available
+        if ( bitSizeOfPackedToken == -1 ) {
+            // obtain minimum, maximun, span
+            uint32_t maxSpan = 0;
+            if ( sign ) {
+                // signed integer number
+                FindMinMax(arrayOfSignedUnpacked, minSignedInteger, maxSignedInteger, intCount, stride);
+                maxSpan = ( abs(minSignedInteger) > maxSignedInteger ) ? abs(minSignedInteger) : maxSignedInteger;
+            } else {
+                // unsigned integer number
+                maxSpan = arrayOfUnsignedUnpacked[0];
+                for(int i = stride; i < intCount * stride ; i += stride) {
+                    maxSpan |= arrayOfUnsignedUnpacked[i];
+                }
+            }
+
+            bitSizeOfPackedToken = 0;
+            while ( maxSpan != 0 ) {
+                maxSpan = maxSpan >> 1;
+                bitSizeOfPackedToken++;
+            }
+            if ( sign ) {
+                // accomodate the signed bit
+                bitSizeOfPackedToken++;
+            }
+        }
+    }
+    uint32_t cleanupMask = ((uint32_t)(~0) >> (wordSize - bitSizeOfPackedToken));
+    int32_t positiveMask = sign ? ( 1 << ( bitSizeOfPackedToken - 1 )) : 0;
+    if ( sign ) {
+        Pack(arrayOfSignedUnpacked, arrayOfPacked, minSignedInteger, intCount, offset, stride, wordSize, bitSizeOfPackedToken, packHeader, shiftRequired, positiveMask, cleanupMask);
+    } else {
+        Pack(arrayOfUnsignedUnpacked, arrayOfPacked, minUnsignedInteger, intCount, offset, stride, wordSize, bitSizeOfPackedToken, packHeader, shiftRequired, positiveMask, cleanupMask);
     }
 }
 
+
+
+//! Unpack integers
+int compact_u_integer(
+    //! [in,out] Unpacked integers array
+    void * const unpackedArrayOfInt,
+    //! [in,out] Compaction header
+    const void * const packedHeader,
+    //! [in,out] Packed integer array
+    const void * const packedArrayOfInt,
+    //! [in] Number of unpacked integers
+    int intCount,
+    //! [in] Packed integer size in bits. -1 for auto detection
+    int bitSizeOfPackedToken,
+    //! [in] packing : the last bit of integer packed inside array, unpacking : the first bit of integer packed inside array
+    int offset,
+    //! [in] Unpack integer spacing
+    int stride,
+    //! [in] 0 for unsigned, 1 for signed
+    // Used to be Operation mode: 1 pack unsigned, 2 unpack unsigned, 3 pack signed, 4 unpack signed
+    const int sign
+) {
+    //! \return Number of bits needed for each packed integer
+
+#ifndef NDEBUG
+    printf("%s(%p, %p, %p, %d, %d, %d, %d, %d)\n", __func__, unpackedArrayOfInt, packedHeader, packedArrayOfInt,
+        intCount, bitSizeOfPackedToken, offset, stride, sign);
+    fflush(stdout);
+#endif
+
+    if ( bitSizeOfPackedToken != -1 && (bitSizeOfPackedToken < 1 || bitSizeOfPackedToken > 32) ) {
+        Lib_Log(APP_LIBRMN, APP_ERROR,
+                "%s: Can only (un)compact integers with size <= 32 bits (bitSizeOfPackedToken = %d)\n",
+                __func__, bitSizeOfPackedToken);
+        return 0;
+    }
+
+    const int wordSize = 8 * sizeof(uint32_t);
+    const uint32_t * const packHeader = (uint32_t *)packedHeader;
+    uint32_t * arrayOfUnsignedUnpacked = (uint32_t *)unpackedArrayOfInt;
+    int32_t * arrayOfSignedUnpacked = (int32_t *)unpackedArrayOfInt;
+    uint32_t cleanupMask = ((uint32_t)(~0) >> (wordSize - bitSizeOfPackedToken));
+    uint32_t * arrayOfPacked = (uint32_t  *)packedArrayOfInt;
+
+    int tokenSize, ShiftIntended;
+    int minSigned;
+    uint32_t minUnsigned;
+    if ( packedHeader != NULL ) {
+        const integer_header * const theHeader = (integer_header *)packedHeader;
+        tokenSize     = theHeader->numOfBitsPerToken;
+        ShiftIntended = theHeader->SHIFT;
+        intCount      = theHeader->numOfPackedToken;
+        minSigned     = theHeader->minValue;
+        minUnsigned   = theHeader->minValue;
+    } else {
+        if ( (bitSizeOfPackedToken < 1 || bitSizeOfPackedToken > 32) ) {
+            Lib_Log(APP_LIBRMN, APP_ERROR,
+                    "%s: Can not uncompact integers without header without 0 < bitSizeOfPackedToken size <= 32 (bitSizeOfPackedToken = %d)!\n",
+                    __func__, bitSizeOfPackedToken);
+            return 0;
+        }
+
+        tokenSize     = bitSizeOfPackedToken;
+        ShiftIntended = 0;
+        minSigned     = 0;
+        minUnsigned   = 0;
+    }
+    int32_t positiveMask = sign ? ( 1 << ( bitSizeOfPackedToken - 1 )) : 0;
+    if ( sign ) {
+#ifndef NDEBUG
+        printf("Unpacked signed\n");
+        printf("ShiftIntended = %d\n", ShiftIntended);
+        printf("tokenSize = %d\n", tokenSize);
+        printf("minSigned = %d\n", minSigned);
+        printf("intCount = %d\n", intCount);
+        printf("offset = %d\n", offset);
+        printf("stride = %d\n", stride);
+        printf("wordSize = %d\n", wordSize);
+        printf("positiveMask = 0x%08x\n", positiveMask);
+        printf("packHeader = %p\n", packHeader);
+        printf("bitSizeOfPackedToken = %d\n", bitSizeOfPackedToken);
+        fflush(stdout);
+#endif
+        Unpack(arrayOfSignedUnpacked, arrayOfPacked, ShiftIntended, tokenSize, minSigned, intCount, offset, stride, wordSize, positiveMask, packHeader, bitSizeOfPackedToken);
+    } else {
+#ifndef NDEBUG
+        printf("Unpacked unsigned\n");
+        printf("ShiftIntended = %d\n", ShiftIntended);
+        printf("tokenSize = %d\n", tokenSize);
+        printf("minUnsigned = %d\n", minUnsigned);
+        printf("intCount = %d\n", intCount);
+        printf("offset = %d\n", offset);
+        printf("stride = %d\n", stride);
+        printf("wordSize = %d\n", wordSize);
+        printf("positiveMask = 0x%08x\n", positiveMask);
+        printf("packHeader = %p\n", packHeader);
+        printf("bitSizeOfPackedToken = %d\n", bitSizeOfPackedToken);
+        fflush(stdout);
+#endif
+        Unpack(arrayOfUnsignedUnpacked, arrayOfPacked, ShiftIntended, tokenSize, minUnsigned, intCount, offset, stride, wordSize, positiveMask, packHeader, bitSizeOfPackedToken);
+    }
+}
 
 //! Pack or unpacked short integers
 int compact_short(
@@ -453,6 +525,7 @@ int compact_char(
                     maxSpan = arrayOfUnsignedChar[0];
 
                     for (int i = stride; i < intCount * stride; i += stride) {
+
                         maxSpan |= arrayOfUnsignedChar[i];
                     }
                 }

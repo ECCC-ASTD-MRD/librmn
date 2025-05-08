@@ -104,9 +104,10 @@ void crack_std_parms(const stdf_dir_keys * const stdf_entry, stdf_special_parms 
 int32_t c_fstunl(void);
 int c_fstnbr_xdf(const int iun);
 int c_fstnbrv_xdf(const int iun);
-int c_fstecr_xdf(void *field_in, void *work, int npak, int iun, int date, int deet, int npas, int ni,
-    int nj, int nk, int ip1, int ip2, int ip3, char *in_typvar, char *in_nomvar, char *in_etiket,
-    char *in_grtyp, int ig1, int ig2, int ig3, int ig4, int in_datyp_ori, int rewrit);
+int c_fstecr_xdf(const void * const field_in, const void * const work, const int npak, const int iun, const int date,
+            const int deet, const int npas, const int ni, const int nj, const int nk, const int ip1, const int ip2, const int ip3,
+            const char * const typvar, const char * const nomvar, const char * const etiket, const char * const grtyp,
+            const int ig1, const int ig2, const int ig3, const int ig4, const int datyp, const int rewrit);
 int c_fstluk_xdf(void * const vfield, const int handle, int * const ni, int * const nj, int * const nk);
 int c_fstprm_xdf(int handle, int *dateo, int *deet, int *npas, int *ni, int *nj, int *nk, int *nbits, int *datyp,
     int *ip1, int *ip2, int *ip3, char *typvar, char *nomvar, char *etiket, char *grtyp, int *ig1, int *ig2, int *ig3,
@@ -122,9 +123,32 @@ int32_t c_fstlnk(const int32_t *liste, const int32_t n);
 // Signatures from fstd98_rsf.c
 int32_t is_rsf(const int32_t iun, int32_t * const out_index_fnom);
 int64_t find_next_rsf(const RSF_handle file_handle, fst_query* const search_params);
-int c_fstecr_rsf(void *field_in, void *work, int npak, int iun, int index_fnom, int date, int deet, int npas, int ni,
-                 int nj, int nk, int ip1, int ip2, int ip3, char *in_typvar, char *in_nomvar, char *in_etiket,
-                 char *in_grtyp, int ig1, int ig2, int ig3, int ig4, int in_datyp_ori, int rewrit);
+int c_fstecr_rsf(
+    const void * const field_in,
+    const void * const work,
+    const int npak,
+    const int iun,
+    const int index_fnom,
+    const int date,
+    const int deet,
+    const int npas,
+    const int ni,
+    const int nj,
+    const int nk,
+    const int ip1,
+    const int ip2,
+    const int ip3,
+    const char * const in_typvar,
+    const char * const in_nomvar,
+    const char * const in_etiket,
+    const char * const in_grtyp,
+    const int ig1,
+    const int ig2,
+    const int ig3,
+    const int ig4,
+    const int in_datyp_ori,
+    const int rewrit
+);
 int c_fstfrm_rsf(const int iun, const int index_fnom);
 int c_fstinfx_rsf(const int handle, const int iun, const int index_fnom, int * const ni, int * const nj,
                   int * const nk, const int datev, const char * const in_etiket, const int ip1, const int ip2,

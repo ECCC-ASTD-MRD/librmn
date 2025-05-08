@@ -544,9 +544,9 @@ int32_t fst24_write_rsf(
     double dmin = 0.0;
     double dmax = 0.0;
     if (elem_size == 64 || in_data_type == FST_TYPE_MAGIC) {
-        packfunc = (PackFunctionPointer) &compact_double;
+        packfunc = (PackFunctionPointer) &compact_p_double;
     } else {
-        packfunc = (PackFunctionPointer) &compact_float;
+        packfunc = (PackFunctionPointer) &compact_p_float;
     }
 
     if ( (record->data_type == (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK)) && (record->pack_bits > 32) ) {
@@ -871,13 +871,13 @@ int32_t fst24_write_rsf(
                     // nbits>64 flags a different packing
                     // Use data pointer as uint32_t for compatibility with XDF format
                     packfunc(field_u32, (void *)&((uint32_t *)new_record->data)[1], (void *)&((uint32_t *)new_record->data)[5],
-                        num_elements, record->pack_bits + 64 * Max(16, record->pack_bits), 0, stride, 1, 0, &tempfloat ,&dmin ,&dmax);
+                        num_elements, record->pack_bits + 64 * Max(16, record->pack_bits), 0, stride, 0, &tempfloat, &dmin, &dmax);
                     const int compressed_lng = armn_compress((unsigned char *)((uint32_t *)new_record->data + 5),
                                                              record->ni, record->nj, record->nk, record->pack_bits, 1, 1);
                     if (compressed_lng < 0) {
                         stdf_entry->datyp = 1;
                         packfunc(field_u32, (void*)new_record->data, (void*)&((uint32_t*)new_record->data)[3],
-                            num_elements, record->pack_bits, 24, stride, 1, 0, &tempfloat ,&dmin ,&dmax);
+                            num_elements, record->pack_bits, 24, stride, 0, &tempfloat, &dmin, &dmax);
                     } else {
                         int nbytes = 16 + compressed_lng;
                         const uint32_t num_word64 = (nbytes * 8 + 63) / 64;
@@ -887,7 +887,7 @@ int32_t fst24_write_rsf(
                     }
                 } else {
                     packfunc(field_u32, (void*)new_record->data, (void*)&((uint32_t*)new_record->data)[3],
-                        num_elements, record->pack_bits, 24, stride, 1, 0, &tempfloat ,&dmin ,&dmax);
+                        num_elements, record->pack_bits, 24, stride, 0, &tempfloat, &dmin, &dmax);
                 }
                 break;
             }
@@ -911,8 +911,8 @@ int32_t fst24_write_rsf(
                                                                  record->ni, record->nj, record->nk, record->pack_bits, 1, 0);
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = FST_TYPE_UNSIGNED;
-                            compact_integer((void *)field_u32, (void *) NULL, &((uint32_t *)new_record->data)[offset],
-                                num_elements, record->pack_bits, 0, stride, 1);
+                            compact_p_integer((void *)field_u32, (void *) NULL, &((uint32_t *)new_record->data)[offset],
+                                num_elements, record->pack_bits, 0, stride, 0);
                         } else {
                             const int nbytes = 4 + compressed_lng;
                             const uint32_t num_word64 = (nbytes * 8 + 63) / 64;
@@ -932,8 +932,8 @@ int32_t fst24_write_rsf(
                         } else if (record->data_bits == 64) {
                             memcpy(new_record->data, field_u32, num_elements * sizeof(uint64_t));
                         } else {
-                            compact_integer((void *)field_u32, (void *) NULL, &((uint32_t *)new_record->data)[offset],
-                                num_elements, record->pack_bits, 0, stride, 1);
+                            compact_p_integer((void *)field_u32, (void *) NULL, &((uint32_t *)new_record->data)[offset],
+                                num_elements, record->pack_bits, 0, stride, 0);
                         }
                     }
                 }
@@ -952,7 +952,7 @@ int32_t fst24_write_rsf(
                         data_type = FST_TYPE_CHAR;
                         stdf_entry->datyp = data_type;
                     }
-                    compact_integer(field_u32, (void *) NULL, new_record->data, nc, 32, 0, stride, 1);
+                    compact_p_integer(field_u32, (void *) NULL, new_record->data, nc, 32, 0, stride, 0);
                     stdf_entry->nbits = 8;
                 }
                 break;
@@ -973,8 +973,7 @@ int32_t fst24_write_rsf(
 
                 if (record->data_bits == 64) {
                     memcpy(new_record->data, field_u32, num_elem * sizeof(int64_t));
-                }
-                else {
+                } else {
                     if (record->data_bits == 16 || record->data_bits == 8) {
                         if (num_elem > (1 << 30)) {
                             Lib_Log(APP_LIBFST, APP_ERROR,
@@ -991,7 +990,7 @@ int32_t fst24_write_rsf(
                         if (record->data_bits == 16) for (int i = 0; i < num_elem;i++) { field3[i] = s_field[i]; };
                         if (record->data_bits == 8)  for (int i = 0; i < num_elem;i++) { field3[i] = b_field[i]; };
                     }
-                    compact_integer(field3, (void *) NULL, new_record->data, num_elem, record->pack_bits, 0, stride, 3);
+                    compact_p_integer(field3, (void *) NULL, new_record->data, num_elem, record->pack_bits, 0, stride, 1);
                 }
                 if (field3 != (int32_t*)field_u32) free(field3);
 
@@ -1738,12 +1737,7 @@ int32_t fst24_unpack_data(
     const int32_t simple_data_type = record->data_type & ~FSTD_MISSING_FLAG;
 
     // Unpack function son output element size
-    PackFunctionPointer packfunc;
-    if (original_num_bits == 64) {
-        packfunc = &compact_double;
-    } else {
-        packfunc = &compact_float;
-    }
+    UnpackFunctionPointer unpackfunc = original_num_bits == 64 ? &compact_u_double : &compact_u_float;
 
     // const size_t record_size_32 = record->rsz / 4;
     // size_t record_size = record_size_32;
@@ -1796,11 +1790,10 @@ int32_t fst24_unpack_data(
                 double tempfloat = 99999.0;
                 if (is_type_turbopack(record->data_type)) {
                     armn_compress((unsigned char *)(source_u32+ 5), record->ni, record->nj, record->nk, record->pack_bits, 2, 1);
-                    packfunc(dest_u32, source_u32 + 1, source_u32 + 5, nelm, record->pack_bits + 64 * Max(16, record->pack_bits),
-                             0, stride, FLOAT_UNPACK, 0, &tempfloat, &dmin, &dmax);
+                    unpackfunc(dest_u32, source_u32 + 1, source_u32 + 5, nelm, record->pack_bits + 64 * Max(16, record->pack_bits),
+                             0, stride, 0, &tempfloat, &dmin, &dmax);
                 } else {
-                    packfunc(dest_u32, source_u32, source_u32 + 3, nelm, record->pack_bits, 24, stride, FLOAT_UNPACK,
-                             0, &tempfloat, &dmin, &dmax);
+                    unpackfunc(dest_u32, source_u32, source_u32 + 3, nelm, record->pack_bits, 24, stride, 0, &tempfloat, &dmin, &dmax);
                 }
                 break;
             }
@@ -1832,25 +1825,23 @@ int32_t fst24_unpack_data(
                         armn_compress((unsigned char *)(source_u32 + offset), record->ni, record->nj, record->nk, record->pack_bits, 2, 0);
                         memcpy_16_32((int32_t *)dest, (int16_t *)(source_u32 + offset), record->pack_bits, nelm);
                     } else {
-                        compact_ier = compact_integer(dest, (void *)NULL, source_u32 + offset, nelm, record->pack_bits, 0, stride, 2);
+                        compact_ier = compact_u_integer(dest, (void *)NULL, source_u32 + offset, nelm, record->pack_bits, 0, stride, 0);
                     }
                 }
                 break;
             }
 
-            case FST_TYPE_CHAR:
-            {
+            case FST_TYPE_CHAR: {
                 // Character
                 const int num_ints = (nelm + 3) / 4;
-                compact_ier = compact_integer(dest, (void *)NULL, source, num_ints, 32, 0, stride, 2);
+                compact_ier = compact_u_integer(dest, (void *)NULL, source, num_ints, 32, 0, stride, 0);
                 break;
             }
 
             case FST_TYPE_SIGNED: {
                 if (original_num_bits == 64) {
                     memcpy(dest, source, nelm * sizeof(int64_t));
-                }
-                else {
+                } else {
                     const int use32 = (record->data_bits == 32);
                     int32_t* field_out = dest;
                     if (!use32) {
@@ -1860,20 +1851,18 @@ int32_t fst24_unpack_data(
                             return ERR_MEM_FULL;
                         }
                     }
-                    compact_ier = compact_integer(field_out, (void *) NULL, source, nelm, record->pack_bits, 0, stride, 4);
+                    compact_ier = compact_u_integer(field_out, (void *) NULL, source, nelm, record->pack_bits, 0, stride, 1);
                     if (record->data_bits == 16) {
                         int16_t* field_out_16 = (int16_t*)dest;
                         for (int i = 0; i < nelm; i++) {
                             field_out_16[i] = field_out[i];
                         }
-                    }
-                    else if (record->data_bits == 8) {
+                    } else if (record->data_bits == 8) {
                         int8_t* field_out_8 = (int8_t*)dest;
                         for (int i = 0; i < nelm; i++) {
                             field_out_8[i] = field_out[i];
                         }
-                    }
-                    else if (record->data_bits == 64) {
+                    } else if (record->data_bits == 64) {
                         int64_t* field_out_64 = (int64_t*)dest;
                         for (int i = 0; i < nelm; i++) {
                             field_out_64[i] = field_out[i];
