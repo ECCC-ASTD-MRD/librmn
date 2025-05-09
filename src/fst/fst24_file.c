@@ -461,15 +461,19 @@ void fst24_bounds(
     }
 }
 
-//! Write a record to an RSF file.
-//! Sometimes the requested writing parameters are not compatible and are changed. If that is
-//! the case, the given fst_record struct will be updated.
-//! \return TRUE (1) if writing was successful, 0 or a negative number otherwise
+//! Write a record in an RSF file
 int32_t fst24_write_rsf(
-    RSF_handle rsf_file,    //!< RSF handle to the file where we are writing
-    fst_record* record,     //!< [in,out] Record we want to write. Will be updated as we adjust some parameters
-    const int32_t stride    //!< Compaction parameter. When in doubt, leave at 1
+    //! RSF handle to the file where we are writing
+    RSF_handle rsf_file,
+    //! [in,out] Record we want to write. Will be updated as we adjust some parameters
+    fst_record * const record,
+    //! Compaction parameter. When in doubt, leave at 1
+    const int32_t stride
 ) {
+    //! Sometimes the requested writing parameters are not compatible and are changed. If that is
+    //! the case, the given fst_record struct will be updated.
+    //! \return TRUE (1) if writing was successful, 0 or a negative number otherwise
+
     if (rsf_file.p == NULL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: file is not open\n", __func__);
         return ERR_NO_FILE;
