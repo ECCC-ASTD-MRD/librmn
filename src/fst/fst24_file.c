@@ -188,9 +188,9 @@ int32_t fst24_close(fst_file* const file) {
         const float num_written_mb = file->num_bytes_written / (1024.0f * 1024.0f);
         Lib_Log(APP_LIBFST, APP_TRIVIAL,
             "%s: Closing file %s\n"
-            "Read %.2f MB in %.3f seconds\n"
-            "Wrote %.2f MB in %.3f seconds\n"
-            "Found %d records in %.2f ms\n",
+            "\tRead  %.2f MB in %.3f seconds\n"
+            "\tWrote %.2f MB in %.3f seconds\n"
+            "\tFound %d records in %.2f ms\n",
             __func__, file->path, num_read_mb, read_time, num_written_mb, write_time,
             file->num_records_found, find_time);
     }
