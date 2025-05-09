@@ -453,9 +453,10 @@ int compact_u_short(
 }
 
 
-int compact_char(
+//! Pack unsigned char (8 bits) integers
+int compact_p_char(
     //! [in,out] Unpacked bytes array
-    void * const unpackedArrayOfBytes,
+    const void * const unpackedArrayOfBytes,
     //! [in,out] Compaction header
     void * const packedHeader,
     //! [in,out] Packed integer array
@@ -467,9 +468,7 @@ int compact_char(
     //! [in] For packing, the last bit of integer packed inside the array. For unpacking, the first bit of integer packed inside the array
     const int offset,
     //! [in] Unpack integer spacing
-    const int stride,
-    //! [in] 9: unsigned char pack, 10: unsigned char unpack
-    const int opCode
+    const int stride
 ) {
     if ( bitSizeOfPackedToken == 0 || bitSizeOfPackedToken > 8 || bitSizeOfPackedToken < -1 ) {
         Lib_Log(APP_LIBRMN, APP_ERROR, "%s: bitSizeOfPackedToken (%d given) must be between 1 and 8 or -1 for auto detection!\n", __func__, bitSizeOfPackedToken);
@@ -482,55 +481,69 @@ int compact_char(
     uint32_t cleanupMask = ((uint32_t)(~0) >> (wordSize - bitSizeOfPackedToken));
     uint32_t * arrayOfPacked = (uint32_t  *)packedArrayOfInt;
 
-    if (opCode == 9) {
-        int shiftRequired = 0;
-        if ( packedHeader != NULL ) {
-            uint32_t minUnsignedInteger = 0, maxUnsignedInteger = 0;
-            constructHeader(arrayOfUnsignedChar, minUnsignedInteger, maxUnsignedInteger, intCount, stride, packHeader, shiftRequired, bitSizeOfPackedToken);
-        } else {
-            // pack header not required, X itself is used as packInt, determines bitSizeOfPackedToken, if not available
-            if ( bitSizeOfPackedToken == -1 ) {
-                // obtain minimum, maximun, span
-                uint32_t maxSpan = 0;
-                if ( opCode == 9 ) {
-                    // unsigned integer number
-                    maxSpan = arrayOfUnsignedChar[0];
-
-                    for (int i = stride; i < intCount * stride; i += stride) {
-
-                        maxSpan |= arrayOfUnsignedChar[i];
-                    }
-                }
-
-                bitSizeOfPackedToken = 0;
-                while ( maxSpan != 0 ) {
-                    maxSpan = maxSpan >> 1;
-                    bitSizeOfPackedToken++;
-                }
-                if ( opCode == 3 ) {
-                    // accomodate the signed bit
-                    bitSizeOfPackedToken++;
-                }
-                cleanupMask = ((uint32_t)(~0) >> (wordSize - bitSizeOfPackedToken));
-            }
-        }
-        uint32_t positiveMask = ( opCode < 11 ) ? 0 : ( 1 << ( bitSizeOfPackedToken - 1 ));
-        Pack(arrayOfUnsignedChar, arrayOfPacked, 0, intCount, offset, stride, wordSize, bitSizeOfPackedToken, packHeader, shiftRequired, positiveMask, cleanupMask);
-    } else if ( opCode == 10 ) {
-        int tokenSize, ShiftIntended;
-        if ( packHeader != NULL ) {
-            integer_header * const theHeader = (integer_header *)packedHeader;
-            tokenSize     = theHeader->numOfBitsPerToken;
-            ShiftIntended = theHeader->SHIFT;
-            intCount      = theHeader->numOfPackedToken;
-        } else {
-            tokenSize     = bitSizeOfPackedToken;
-            ShiftIntended = 0;
-        }
-        uint32_t positiveMask = ( opCode < 11 ) ? 0 : ( 1 << ( tokenSize - 1 ));
-        Unpack(arrayOfUnsignedChar, arrayOfPacked, ShiftIntended, tokenSize, 0, intCount, offset, stride, wordSize, positiveMask, packHeader);
+    int shiftRequired = 0;
+    if ( packedHeader != NULL ) {
+        uint32_t minUnsignedInteger = 0, maxUnsignedInteger = 0;
+        constructHeader(arrayOfUnsignedChar, minUnsignedInteger, maxUnsignedInteger, intCount, stride, packHeader, shiftRequired, bitSizeOfPackedToken);
     } else {
-        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: opCode (%d) is not defined\n", __func__, opCode);
+        if ( bitSizeOfPackedToken == -1 ) {
+            uint32_t maxSpan = 0;
+            maxSpan = arrayOfUnsignedChar[0];
+            for (int i = stride; i < intCount * stride; i += stride) {
+                maxSpan |= arrayOfUnsignedChar[i];
+            }
+
+            bitSizeOfPackedToken = 0;
+            while ( maxSpan != 0 ) {
+                maxSpan = maxSpan >> 1;
+                bitSizeOfPackedToken++;
+            }
+            cleanupMask = ((uint32_t)(~0) >> (wordSize - bitSizeOfPackedToken));
+        }
+    }
+    uint32_t positiveMask = 0;
+    Pack(arrayOfUnsignedChar, arrayOfPacked, 0, intCount, offset, stride, wordSize, bitSizeOfPackedToken, packHeader, shiftRequired, positiveMask, cleanupMask);
+}
+
+
+//! Unpack unsigned char (8 bits) integers
+int compact_u_char(
+    //! [in,out] Unpacked bytes array
+    void * const unpackedArrayOfBytes,
+    //! [in,out] Compaction header
+    const void * const packedHeader,
+    //! [in,out] Packed integer array
+    const void * const packedArrayOfInt,
+    //! [in] Number of elements in array
+    int intCount,
+    //! [in] Packed integer size in bits. -1 for auto detection
+    int bitSizeOfPackedToken,
+    //! [in] For packing, the last bit of integer packed inside the array. For unpacking, the first bit of integer packed inside the array
+    const int offset,
+    //! [in] Unpack integer spacing
+    const int stride
+) {
+    if ( bitSizeOfPackedToken == 0 || bitSizeOfPackedToken > 8 || bitSizeOfPackedToken < -1 ) {
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: bitSizeOfPackedToken (%d given) must be between 1 and 8 or -1 for auto detection!\n", __func__, bitSizeOfPackedToken);
         return 0;
     }
+
+    int wordSize = 8 * sizeof(uint32_t);
+    unsigned char * arrayOfUnsignedChar = (unsigned char *)unpackedArrayOfBytes;
+    uint32_t * const packHeader = (uint32_t *)packedHeader;
+    uint32_t cleanupMask = ((uint32_t)(~0) >> (wordSize - bitSizeOfPackedToken));
+    uint32_t * arrayOfPacked = (uint32_t  *)packedArrayOfInt;
+
+    int tokenSize, ShiftIntended;
+    if ( packHeader != NULL ) {
+        integer_header * const theHeader = (integer_header *)packedHeader;
+        tokenSize     = theHeader->numOfBitsPerToken;
+        ShiftIntended = theHeader->SHIFT;
+        intCount      = theHeader->numOfPackedToken;
+    } else {
+        tokenSize     = bitSizeOfPackedToken;
+        ShiftIntended = 0;
+    }
+    uint32_t positiveMask = 0;
+    Unpack(arrayOfUnsignedChar, arrayOfPacked, ShiftIntended, tokenSize, 0, intCount, offset, stride, wordSize, positiveMask, packHeader);
 }

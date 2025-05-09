@@ -926,8 +926,8 @@ int32_t fst24_write_rsf(
                             compact_p_short((void *)field_u32, (void *) NULL, &((uint32_t *)new_record->data)[offset],
                                 num_elements, record->pack_bits, 0, stride);
                         } else if (record->data_bits == 8) { // byte
-                            compact_char((void *)field_u32, (void *) NULL, new_record->data,
-                                num_elements, Min(8, record->pack_bits), 0, stride, 9);
+                            compact_p_char((void *)field_u32, (void *) NULL, new_record->data,
+                                num_elements, Min(8, record->pack_bits), 0, stride);
                             stdf_entry->nbits = Min(8, record->pack_bits);
                         } else if (record->data_bits == 64) {
                             memcpy(new_record->data, field_u32, num_elements * sizeof(uint64_t));
@@ -1076,7 +1076,7 @@ int32_t fst24_write_rsf(
                     data_type = FST_TYPE_STRING;
                     stdf_entry->datyp = data_type;
                 }
-                compact_char(field_u32, (void *) NULL, new_record->data, num_elements, 8, 0, stride, 9);
+                compact_p_char(field_u32, (void *) NULL, new_record->data, num_elements, 8, 0, stride);
                 break;
 
             default:
@@ -1816,7 +1816,7 @@ int32_t fst24_unpack_data(
                         armn_compress((unsigned char *)(source_u32 + offset), record->ni, record->nj, record->nk, record->pack_bits, 2, 0);
                         memcpy_16_8((int8_t *)dest, (int16_t *)(source_u32 + offset), nelm);
                     } else {
-                        compact_ier = compact_char(dest, (void *)NULL, (void *)source, nelm, 8, 0, stride, 10);
+                        compact_ier = compact_u_char(dest, (void *)NULL, (void *)source, nelm, 8, 0, stride);
                     }
                 } else if (original_num_bits == 64) {
                     memcpy(dest, source, nelm * sizeof(uint64_t));
@@ -1923,7 +1923,7 @@ int32_t fst24_unpack_data(
 
             case FST_TYPE_STRING:
                 // Character string
-                compact_ier = compact_char(dest, (void *)NULL, source, nelm, 8, 0, stride, 10);
+                compact_ier = compact_u_char(dest, (void *)NULL, source, nelm, 8, 0, stride);
                 break;
 
             default:

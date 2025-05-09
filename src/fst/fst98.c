@@ -1450,8 +1450,8 @@ int c_fstecr_xdf(
                         compact_p_short(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
                             ni * nj * _nk, nbits, 0, xdf_stride);
                     } else if (xdf_byte) {
-                        compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]),
-                            ni * nj * _nk, Min(8, nbits), 0, xdf_stride, 9);
+                        compact_p_char(field_u32, (void *) NULL, &(buffer->data[keys_len]),
+                            ni * nj * _nk, Min(8, nbits), 0, xdf_stride);
                         stdf_entry->nbits = Min(8, nbits);
                         nbits = stdf_entry->nbits;
                     } else {
@@ -1507,7 +1507,7 @@ int c_fstecr_xdf(
                     compact_p_short(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk,
                         nbits, 0, xdf_stride, 7);
                 } else if (xdf_byte) {
-                    compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk,
+                    compact_p_char(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk,
                         nbits, 0, xdf_stride, 11);
                 } else {
                     compact_p_integer(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk,
@@ -1594,7 +1594,7 @@ int c_fstecr_xdf(
                     datyp = FST_TYPE_STRING;
                     stdf_entry->datyp = datyp;
                 }
-                compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk, 8, 0, xdf_stride, 9);
+                compact_p_char(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk, 8, 0, xdf_stride);
                 break;
 
             default:
@@ -2978,7 +2978,7 @@ int c_fstluk_xdf(
                             // printf("Debug+ fstluk xdf_byte armn_compress nbytes=%d nelm=%d\n", nbytes, nelm);
                             memcpy_16_8((int8_t *)field, (int16_t *)(buf->data + offset), nelm);
                         } else {
-                            ier = compact_char(field, (void *) NULL, buf->data, nelm, 8, 0, xdf_stride, 10);
+                            ier = compact_u_char(field, (void *) NULL, buf->data, nelm, 8, 0, xdf_stride);
                         }
                     } else {
                         if (is_type_turbopack(stdf_entry.datyp)) {
@@ -3031,7 +3031,7 @@ int c_fstluk_xdf(
                 if (xdf_short) {
                     ier = compact_u_short(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 8);
                 } else if (xdf_byte) {
-                    ier = compact_char(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 12);
+                    ier = compact_u_char(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 12);
                 } else {
                     ier = compact_u_integer(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 1);
                 }
@@ -3096,8 +3096,8 @@ int c_fstluk_xdf(
             case FST_TYPE_STRING:
                 // Character string
                 // printf("Debug+ fstluk - Character string\n");
-                // printf("Debug fstluk compact_char xdf_stride=%d nelm =%d\n", xdf_stride, nelm);
-                ier = compact_char(field, (void *) NULL, buf->data, nelm, 8, 0, xdf_stride, 10);
+                // printf("Debug fstluk compact_u_char xdf_stride=%d nelm =%d\n", xdf_stride, nelm);
+                ier = compact_u_char(field, (void *) NULL, buf->data, nelm, 8, 0, xdf_stride);
                 break;
 
             default:

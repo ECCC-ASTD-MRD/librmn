@@ -1,8 +1,8 @@
 #ifndef RMN_PACKERS_H__
 #define RMN_PACKERS_H__
 
-int compact_char(void *unpackedArrayOfBytes, void *packedHeader, void *packedArrayOfInt, int elementCount,
-                  int bitSizeOfPackedToken, int off_set, int stride, int opCode);
+#include <stdint.h>
+
 int compact_p_integer(
     const void * const unpackedArrayOfInt,
     void * const packedHeader,
@@ -38,6 +38,24 @@ int compact_u_short(
     const void * const packedArray,
     int intCount,
     const int bitSizeOfPackedToken,
+    const int offset,
+    const int stride
+);
+int compact_p_char(
+    const void * const unpackedArrayOfBytes,
+    void * const packedHeader,
+    void * const packedArrayOfInt,
+    int intCount,
+    int bitSizeOfPackedToken,
+    const int offset,
+    const int stride
+);
+int compact_u_char(
+    void * const unpackedArrayOfBytes,
+    const void * const packedHeader,
+    const void * const packedArrayOfInt,
+    int intCount,
+    int bitSizeOfPackedToken,
     const int offset,
     const int stride
 );
