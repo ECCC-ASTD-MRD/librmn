@@ -115,6 +115,11 @@ int c_fstecr_rsf(
         rec.pack_bits = rec.data_bits;
     }
 
+    //! \bug field_in should be const in a function that's meant only to write data to a file.
+    //! Unfortunately fst24_write_rsf modifies the record object (not the actual field's data).
+    //! We therefore cannot have it to const here. Since rec.data is an const, compilers throw
+    //! a warning saying that the const attribute of field_in is discarded.
+    //! I see no obvious way to fix this at this time.
     rec.data  = field_in;
     rec.dateo = date;
     rec.deet  = deet;
