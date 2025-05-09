@@ -1447,8 +1447,8 @@ int c_fstecr_xdf(
                     if (xdf_short) {
                         stdf_entry->nbits = Min(16, nbits);
                         nbits = stdf_entry->nbits;
-                        compact_short(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
-                            ni * nj * _nk, nbits, 0, xdf_stride, 5);
+                        compact_p_short(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
+                            ni * nj * _nk, nbits, 0, xdf_stride);
                     } else if (xdf_byte) {
                         compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]),
                             ni * nj * _nk, Min(8, nbits), 0, xdf_stride, 9);
@@ -1504,7 +1504,7 @@ int c_fstecr_xdf(
 #else
                 // fprintf(stderr, "NEW PACK CODE======================================\n");
                 if (xdf_short) {
-                    compact_short(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk,
+                    compact_p_short(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk,
                         nbits, 0, xdf_stride, 7);
                 } else if (xdf_byte) {
                     compact_char(field_u32, (void *) NULL, &(buffer->data[keys_len]), ni * nj * _nk,
@@ -2970,7 +2970,7 @@ int c_fstluk_xdf(
                             // printf("Debug+ fstluk mode short compress nbytes=%d\n", nbytes);
                             memcpy(field, buf->data + offset, nbytes);
                         } else {
-                            ier = compact_short(field, (void *) NULL, buf->data + offset, nelm, stdf_entry.nbits, 0, xdf_stride, 6);
+                            ier = compact_u_short(field, (void *) NULL, buf->data + offset, nelm, stdf_entry.nbits, 0, xdf_stride);
                         }
                     }  else if (xdf_byte) {
                         if (is_type_turbopack(stdf_entry.datyp)) {
@@ -3029,7 +3029,7 @@ int c_fstluk_xdf(
 #else
                 // fprintf(stderr, "NEW UNPACK CODE ======================================\n");
                 if (xdf_short) {
-                    ier = compact_short(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 8);
+                    ier = compact_u_short(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 8);
                 } else if (xdf_byte) {
                     ier = compact_char(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride, 12);
                 } else {

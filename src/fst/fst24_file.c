@@ -923,8 +923,8 @@ int32_t fst24_write_rsf(
                     } else {
                         if (record->data_bits == 16) { // short
                             stdf_entry->nbits = Min(16, record->pack_bits);
-                            compact_short((void *)field_u32, (void *) NULL, &((uint32_t *)new_record->data)[offset],
-                                num_elements, record->pack_bits, 0, stride, 5);
+                            compact_p_short((void *)field_u32, (void *) NULL, &((uint32_t *)new_record->data)[offset],
+                                num_elements, record->pack_bits, 0, stride);
                         } else if (record->data_bits == 8) { // byte
                             compact_char((void *)field_u32, (void *) NULL, new_record->data,
                                 num_elements, Min(8, record->pack_bits), 0, stride, 9);
@@ -1809,7 +1809,7 @@ int32_t fst24_unpack_data(
                             record->nk, record->pack_bits, 2, 0);
                         memcpy(dest, source_u32 + offset, nbytes);
                     } else {
-                        compact_ier = compact_short(dest, (void *) NULL, (void *)(source_u32 + offset), nelm, record->pack_bits, 0, stride, 6);
+                        compact_ier = compact_u_short(dest, (void *) NULL, (void *)(source_u32 + offset), nelm, record->pack_bits, 0, stride);
                     }
                 }  else if (original_num_bits == 8) {
                     if (is_type_turbopack(record->data_type)) {

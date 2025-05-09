@@ -23,8 +23,24 @@ int compact_u_integer(
     int stride,
     const int sign
 );
-int compact_short(void *unpackedArrayOfShort, void *packedHeader, void *packedArrayOfInt, int elementCount,
-                   int bitSizeOfPackedToken, int off_set, int stride, int opCode);
+int compact_p_short(
+    const void * const unpackedArray,
+    void * const packedHeader,
+    void * const packedArray,
+    int intCount,
+    const int bitSizeOfPackedToken,
+    const int offset,
+    const int stride
+);
+int compact_u_short(
+    void * const unpackedArray,
+    void * const packedHeader,
+    const void * const packedArray,
+    int intCount,
+    const int bitSizeOfPackedToken,
+    const int offset,
+    const int stride
+);
 int compact_rle(void *unpackedArrayOfInt, void *packedHeader, void *packedArrayOfInt, int max, int min,
                  int elementCount, int bitSizeOfPackedToken, int off_set, int stride, int opCode);
 
