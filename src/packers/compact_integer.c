@@ -174,15 +174,14 @@ typedef struct {
 //! Unpack an array
 //! \param [out] arrayOfUnpacked Unpacked array
 //! \param [in] requiredShift Shift required
-//! \param [in] tokenSize Packed token size
+//! \param [in] tokenSize Packed token size in bits
 //! \param [in] min Minimum value in array
 //! \param [in] intCount Number of elements in the packed array
 //! \param [in] offset Unpack integer spacing
 //! \param [in] wordSize Word size
 //! \param [in,out] positiveMask Mask for sign bit
 //! \param [in] packHeader Pack header
-//! \param [in] bitSizeOfPackedToken Size of packed token in bits
-#define Unpack(arrayOfUnpacked, arrayOfPacked, requiredShift, tokenSize, min, intCount, offset, stride, wordSize, positiveMask, packHeader, bitSizeOfPackedToken)\
+#define Unpack(arrayOfUnpacked, arrayOfPacked, requiredShift, tokenSize, min, intCount, offset, stride, wordSize, positiveMask, packHeader)\
 {\
     int firstPackBit = offset;\
     int bitPackInFirstWord =  wordSize - ( firstPackBit % wordSize );\
@@ -204,7 +203,7 @@ typedef struct {
         }\
         arrayOfUnpacked[i] = packHeader != NULL ? (packInt << requiredShift) + min : packInt + positiveMask;\
     }\
-    return bitSizeOfPackedToken;\
+    return tokenSize;\
 }\
 
 
@@ -349,11 +348,11 @@ int compact_u_integer(
         minSigned     = 0;
         minUnsigned   = 0;
     }
-    int32_t positiveMask = sign ? ( 1 << ( bitSizeOfPackedToken - 1 )) : 0;
+    int32_t positiveMask = sign ? ( 1 << ( tokenSize - 1 )) : 0;
     if ( sign ) {
-        Unpack(arrayOfSignedUnpacked, arrayOfPacked, ShiftIntended, tokenSize, minSigned, intCount, offset, stride, wordSize, positiveMask, packHeader, bitSizeOfPackedToken);
+        Unpack(arrayOfSignedUnpacked, arrayOfPacked, ShiftIntended, tokenSize, minSigned, intCount, offset, stride, wordSize, positiveMask, packHeader);
     } else {
-        Unpack(arrayOfUnsignedUnpacked, arrayOfPacked, ShiftIntended, tokenSize, minUnsigned, intCount, offset, stride, wordSize, positiveMask, packHeader, bitSizeOfPackedToken);
+        Unpack(arrayOfUnsignedUnpacked, arrayOfPacked, ShiftIntended, tokenSize, minUnsigned, intCount, offset, stride, wordSize, positiveMask, packHeader);
     }
 }
 
@@ -450,7 +449,7 @@ int compact_u_short(
     }
 
     int positiveMask = 0;
-    Unpack(arrayOfUnsignedShort, arrayOfPacked, ShiftIntended, tokenSize, 0, intCount, offset, stride, wordSize, positiveMask, packHeader, bitSizeOfPackedToken);
+    Unpack(arrayOfUnsignedShort, arrayOfPacked, ShiftIntended, tokenSize, 0, intCount, offset, stride, wordSize, positiveMask, packHeader);
 }
 
 
@@ -528,8 +527,8 @@ int compact_char(
             tokenSize     = bitSizeOfPackedToken;
             ShiftIntended = 0;
         }
-        uint32_t positiveMask = ( opCode < 11 ) ? 0 : ( 1 << ( bitSizeOfPackedToken - 1 ));
-        Unpack(arrayOfUnsignedChar, arrayOfPacked, ShiftIntended, tokenSize, 0, intCount, offset, stride, wordSize, positiveMask, packHeader, bitSizeOfPackedToken);
+        uint32_t positiveMask = ( opCode < 11 ) ? 0 : ( 1 << ( tokenSize - 1 ));
+        Unpack(arrayOfUnsignedChar, arrayOfPacked, ShiftIntended, tokenSize, 0, intCount, offset, stride, wordSize, positiveMask, packHeader);
     } else {
         Lib_Log(APP_LIBRMN, APP_ERROR, "%s: opCode (%d) is not defined\n", __func__, opCode);
         return 0;
