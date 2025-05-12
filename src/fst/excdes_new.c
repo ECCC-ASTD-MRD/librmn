@@ -1,20 +1,3 @@
-/*****************************************************************************
- *                        E X C D E S . C                                    *
- *                                                                           *
- *Auteur                                                                     *
- *   Mario L�pine  -  Mai  2004                                              *
- *   Michel Valin  -  Mars 2014                                              *
- *                                                                           *
- *Objet                                                                      *
- *   Definir pour le logiciel des fichiers standards des criteres            *
- *   supplementaires de selection en plus de ceux utilises par fstinf.       *
- *                                                                           *
- *   Les criteres de selection a la desire/exclure de editfst peuvent        *
- *   etres definis directement avec des appels aux fonctions ou a l'aide     *
- *   de directives provenant d'un fichier identifie par la variable          *
- *   d'environnement FST_FILTER_FILE                                         *
- *                                                                           *
- *****************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -29,12 +12,6 @@
 #include "FC_string.h"
 #include "fst/fst98_internal.h"
 
-#if defined (DEBUG)
-  #define dbprint fprintf
-#else
-  #define dbprint ;
-#endif
-
 void RequetesInit(void) {
     C_requetes_init(NULL, NULL);
 }
@@ -43,15 +20,9 @@ void RequetesInit(void) {
 void f_requetes_init__();
 #pragma weak f_requetes_init_ = f_requetes_init
 void f_requetes_init_();
-void f_requetes_init()
-{
-  RequetesInit();
+void f_requetes_init() {
+    RequetesInit();
 }
-
-#ifdef NOTUSED
-enum cquoica {unused, entier, reel, deb_fin_entier, deb_fin_reel, deb_fin_entier_delta,
-              deb_fin_reel_delta} parametre;
-#endif
 
 #define DESIRE 1
 #define EXCLURE -1
@@ -62,10 +33,10 @@ enum cquoica {unused, entier, reel, deb_fin_entier, deb_fin_reel, deb_fin_entier
 #define DELTA 3
 #define USED 255
 
-static char *in_use[] = { "unused", "value ", "range ", "delta " };
+static const char * in_use[] = { "unused", "value ", "range ", "delta " };
 static int first_R = 0;
-static int last_R = MAX_requetes-1;
-static FILE *stddebug;
+static int last_R = MAX_requetes - 1;
+static FILE * stddebug;
 static int bundle_nb = -1;
 static int desire_exclure = 1;
 
@@ -81,6 +52,7 @@ typedef struct {
     int nelm;
     char pdata[MAX_Nlist][13];
 } DE_char;
+
 typedef struct {
     int hit;   /* hit count for this request (number of times it was satisfied) */
     int in_use;
@@ -103,28 +75,28 @@ typedef struct {
     char grdtyps;    /* "supplementary" criterion grid type, ' ' means do not use */
 } DesireExclure;
 
-static DesireExclure  Requests[MAX_requetes];
+static DesireExclure Requests[MAX_requetes];
 static int package_not_initialized = 1;
 static int DeactivateAllFilters = 0;
 
-#pragma weak fst_deactivate_filters__=fst_deactivate_filters
-#pragma weak fst_deactivate_filters_=fst_deactivate_filters
+#pragma weak fst_deactivate_filters__ = fst_deactivate_filters
+#pragma weak fst_deactivate_filters_ = fst_deactivate_filters
 int fst_deactivate_filters__();
 int fst_deactivate_filters_();
 int fst_deactivate_filters(){
-  int old=DeactivateAllFilters;
-  DeactivateAllFilters = 1;
-  return old;
+    int old = DeactivateAllFilters;
+    DeactivateAllFilters = 1;
+    return old;
 }
 
-#pragma weak fst_reactivate_filters__=fst_reactivate_filters
-#pragma weak fst_reactivate_filters_=fst_reactivate_filters
+#pragma weak fst_reactivate_filters__ = fst_reactivate_filters
+#pragma weak fst_reactivate_filters_ = fst_reactivate_filters
 int fst_reactivate_filters__();
 int fst_reactivate_filters_();
 int fst_reactivate_filters(){
-  int old=DeactivateAllFilters;
-  DeactivateAllFilters = 0;
-  return old;
+    int old = DeactivateAllFilters;
+    DeactivateAllFilters = 0;
+    return old;
 }
 
 
@@ -162,7 +134,7 @@ static void WriteRequestTable(
                 char* ptr = buffer;
                 ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
                 ptr += sprintf(ptr, "'IP1       ', '%6s', %2d%s %d", in_use[Requests[i].ip1s.in_use], Requests[i].ip1s.nelm, sep, Requests[i].ip1s.data[0]);
-                for (int j = 1 ; j < Requests[i].ip1s.nelm ; j++) {
+                for (int j = 1; j < Requests[i].ip1s.nelm; j++) {
                     ptr += sprintf(ptr, ", %d", Requests[i].ip1s.data[j]);
                 }
                 Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
@@ -171,7 +143,7 @@ static void WriteRequestTable(
                 char* ptr = buffer;
                 ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
                 ptr += sprintf(ptr, "'IP2       ', '%6s', %2d%s %d", in_use[Requests[i].ip2s.in_use], Requests[i].ip2s.nelm, sep, Requests[i].ip2s.data[0]);
-                for (int j = 1 ; j < Requests[i].ip2s.nelm ; j++) {
+                for (int j = 1; j < Requests[i].ip2s.nelm; j++) {
                     ptr += sprintf(ptr, ", %d", Requests[i].ip2s.data[j]);
                 }
                 Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
@@ -180,7 +152,7 @@ static void WriteRequestTable(
                 char* ptr = buffer;
                 ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
                 ptr += sprintf(ptr, "'IP3       ', '%6s', %2d%s %d", in_use[Requests[i].ip3s.in_use], Requests[i].ip3s.nelm, sep, Requests[i].ip3s.data[0]);
-                for (int j = 1 ; j < Requests[i].ip3s.nelm ; j++) {
+                for (int j = 1; j < Requests[i].ip3s.nelm; j++) {
                     ptr += sprintf(ptr, ", %d", Requests[i].ip3s.data[j]);
                 }
                 Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
@@ -189,7 +161,7 @@ static void WriteRequestTable(
                 char* ptr = buffer;
                 ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
                 ptr += sprintf(ptr, "'Dates     ', '%6s', %2d%s %d", in_use[Requests[i].dates.in_use], Requests[i].dates.nelm, sep, Requests[i].dates.data[0]);
-                for (int j = 1 ; j < Requests[i].dates.nelm ; j++) {
+                for (int j = 1; j < Requests[i].dates.nelm; j++) {
                     ptr += sprintf(ptr, ", %d", Requests[i].dates.data[j]);
                 }
                 Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
@@ -198,7 +170,7 @@ static void WriteRequestTable(
                 char* ptr = buffer;
                 ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
                 ptr += sprintf(ptr, "'Nomvar    ', '%6s', %2d%s '%-4s'", in_use[Requests[i].nomvars.in_use], Requests[i].nomvars.nelm, sep, Requests[i].nomvars.pdata[0]);
-                for (int j = 1 ; j < Requests[i].nomvars.nelm ; j++) {
+                for (int j = 1; j < Requests[i].nomvars.nelm; j++) {
                     ptr += sprintf(ptr, ", '%-4s'", Requests[i].nomvars.pdata[j]);
                 }
                 Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
@@ -207,7 +179,7 @@ static void WriteRequestTable(
                 char* ptr = buffer;
                 ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
                 ptr += sprintf(ptr, "'Typvar    ', '%6s', %2d%s '%-2s'", in_use[Requests[i].typvars.in_use], Requests[i].typvars.nelm, sep, Requests[i].typvars.pdata[0]);
-                for (int j = 1 ; j < Requests[i].typvars.nelm ; j++) {
+                for (int j = 1; j < Requests[i].typvars.nelm; j++) {
                     ptr += sprintf(ptr, ", '%-2s'", Requests[i].typvars.pdata[j]);
                 }
                 Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
@@ -216,7 +188,7 @@ static void WriteRequestTable(
                 char* ptr = buffer;
                 ptr += sprintf(ptr, "%2d, '%c', ", i, Requests[i].exdes == DESIRE ? 'D' : 'E');
                 ptr += sprintf(ptr, "'Etiket    ', '%6s', %2d%s '%-12s'", in_use[Requests[i].etiquettes.in_use], Requests[i].etiquettes.nelm, sep, Requests[i].etiquettes.pdata[0]);
-                for (int j = 1 ; j < Requests[i].etiquettes.nelm ; j++) {
+                for (int j = 1; j < Requests[i].etiquettes.nelm; j++) {
                     ptr += sprintf(ptr, ", '%-12s'", Requests[i].etiquettes.pdata[j]);
                 }
                 Lib_Log(APP_LIBFST, APP_INFO, "%s\n", buffer);
@@ -237,21 +209,25 @@ static void WriteRequestTable(
 }
 
 
-void DumpRequestTable()
-{
-  WriteRequestTable(1);
+void DumpRequestTable() {
+    WriteRequestTable(1);
 }
 
 
-/*
- * basic validation of requests
- * do we exceed the max number of request sets ?
- * do we have a value list that is too long ?
- * check for special case where nelm is negative
- * are we consistent (desire/exclure) for this request set ?
- */
-static int ValidateRequestForSet(int set_nb, int des_exc, int nelm, int nelm_lt, char *msg)
-{
+//! Validate a request
+static int ValidateRequestForSet(
+    const int set_nb,
+    const int des_exc,
+    const int nelm,
+    const int nelm_lt,
+    const char * const msg
+) {
+    //! Perform the following basic checks:
+    //! - Number request sets
+    //! - Length of the value list
+    //! - Number of element negative
+    //! - Consitency of the desire/exclure of the set
+
     if (package_not_initialized) RequetesInit();
 
     if (set_nb > MAX_requetes-1) {
@@ -266,14 +242,14 @@ static int ValidateRequestForSet(int set_nb, int des_exc, int nelm, int nelm_lt,
 
     if (nelm <= 0) {
         if (nelm != nelm_lt) {   /* if nelm <= 0, it must be equal to nelm_lt */
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: (C_select_%s) nelm invalid = %d\n",__func__,msg,nelm);
-        return -3;
+            Lib_Log(APP_LIBFST,APP_ERROR,"%s: (C_select_%s) nelm invalid = %d\n",__func__,msg,nelm);
+            return -3;
         }
     }
 
     if ((Requests[set_nb].in_use) && (((des_exc == 1) ? DESIRE : EXCLURE) != Requests[set_nb].exdes)) {
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: (C_select_%s) des_exc value differs from previous call for set number=%d,expected %s, got %s \n",__func__,
-           msg,set_nb, (Requests[set_nb].exdes==DESIRE) ? "desire":"exclure", (des_exc == 1) ? "desire":"exclure");
+           msg,set_nb, (Requests[set_nb].exdes == DESIRE) ? "desire":"exclure", (des_exc == 1) ? "desire":"exclure");
         return -4;
     }
 
@@ -339,35 +315,30 @@ int Xc_Select_ip1(
 }
 
 
-/*****************************************************************************
- *                    X C _ S E L E C T _ I P 2                              *
- *                                                                           *
- *Objet                                                                      *
- *   Definir la liste des IP2 desires                                        *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  set_nb  numero associe a un groupe d'elements desire/exclure         *
- *  IN  des_exc 0=exclure 1=desire                                           *
- *  IN  iplist  liste de 1 ou plusieurs IP2 a rechercher ou exclure          *
- *      iplist(1) = -1                                     toute valeur de x *
- *      iplist(1) = -2 , iplist(2) = v2  (nelm = 2)              x <= v2     *
- *      iplist(1) = v1 , iplist(2) = -2  (nelm = 2)        v1 <= x           *
- *      iplist(1) = v1 , iplist(2) = -2 , iplist(3) = v2   v1 <= x <= v2     *
- *  IN  nelm    nombre d'elements de la liste                                *
- *                                                                           *
- *****************************************************************************/
-int Xc_Select_ip2(const int set_nb, const int des_exc, const void *iplist, int nelm)
-{
-    int i;
-    const int *ip_entier=(const int *)iplist;
-    int valid;
+//! Set the desired IP2
+int Xc_Select_ip2(
+    //! [in] desire/exclure group number
+    const int set_nb,
+    //! [in] 0 to exclude, 1 to include
+    const int des_exc,
+    //! [in] List of IP2 to include or exclude
+    const void * const iplist,
+    //! [in] Number of elements in the list
+    int nelm
+) {
+    //! \return 0 on success, -1 otherwise
 
-    valid = ValidateRequestForSet(set_nb, des_exc, nelm, 1, "ip2");
-    if (valid < 0) {
+    // iplist(1) = -1                                     toute valeur de x
+    // iplist(1) = -2 , iplist(2) = v2  (nelm = 2)              x <= v2
+    // iplist(1) = v1 , iplist(2) = -2  (nelm = 2)        v1 <= x
+    // iplist(1) = v1 , iplist(2) = -2 , iplist(3) = v2   v1 <= x <= v2
+
+    if (ValidateRequestForSet(set_nb, des_exc, nelm, 1, "ip2") < 0) {
         Requests[set_nb].dates.in_use = UNUSED;
         return -1;
     }
+
+    const int * const ip_entier = (const int *)iplist;
 
     if (ip_entier[0] == -1) nelm = 1;        /* universal value, rest of values if any is irrelevant */
     Requests[set_nb].in_use = USED;          /* set is in use */
@@ -377,22 +348,28 @@ int Xc_Select_ip2(const int set_nb, const int des_exc, const void *iplist, int n
     Requests[set_nb].ip2s.nelm = nelm;     /* if range, the value of nelm does not matter, the first 2 values are used */
     Requests[set_nb].ip2s.data[0] = ip_entier[0];  /* first value from list */
 
-    if (nelm == 1 ) return 0;               /* one value, cannot be a range */
+    if (nelm == 1) return 0;               /* one value, cannot be a range */
 
     if(ip_entier[1] == READLX_RANGE && ip_entier[3] == READLX_DELTA && nelm == 5) {
         Requests[set_nb].ip2s.data[1] = ip_entier[2];
         Requests[set_nb].ip2s.data[2] = ip_entier[4];
         Requests[set_nb].ip2s.in_use = DELTA;
-    // printf("RANGE+DELTA detected %d %d %d\n", Requests[set_nb].ip2s.data[0], Requests[set_nb].ip2s.data[1], Requests[set_nb].ip2s.data[2]);
+        // printf("RANGE+DELTA detected %d %d %d\n", Requests[set_nb].ip2s.data[0], Requests[set_nb].ip2s.data[1], Requests[set_nb].ip2s.data[2]);
         return 0;
     }
-    Requests[set_nb].ip2s.data[2] = READLX_RANGE ;   /* open interval by default for case value @*/
-    for (i=1; i<nelm; i++) {                       /* rest of values */
+    Requests[set_nb].ip2s.data[2] = READLX_RANGE;   /* open interval by default for case value @*/
+    for (int i = 1; i<nelm; i++) {                       /* rest of values */
         Requests[set_nb].ip2s.data[i] = ip_entier[i];
     }
 
-    if (ip_entier[0] == READLX_RANGE || ip_entier[1] == READLX_RANGE) { Requests[set_nb].ip2s.in_use = RANGE;; Requests[set_nb].ip2s.nelm = 2 ; }
-    if (ip_entier[1] == READLX_RANGE) Requests[set_nb].ip2s.data[1] = Requests[set_nb].ip2s.data[2];   /* value @ value  or value @  or @ @ */
+    if (ip_entier[0] == READLX_RANGE || ip_entier[1] == READLX_RANGE) {
+        Requests[set_nb].ip2s.in_use = RANGE;
+        Requests[set_nb].ip2s.nelm = 2;
+    }
+    if (ip_entier[1] == READLX_RANGE) {
+        // value @ value  or value @  or @ @
+        Requests[set_nb].ip2s.data[1] = Requests[set_nb].ip2s.data[2];
+    }
     return 0;
 }
 
@@ -406,7 +383,7 @@ int Xc_Select_ip2(const int set_nb, const int des_exc, const void *iplist, int n
  *Arguments                                                                  *
  *                                                                           *
  *  IN  set_nb  numero associe a un groupe d'elements desire/exclure         *
- *  IN  des_exc 0=exclure 1=desire                                           *
+ *  IN  des_exc 0 = exclure 1 = desire                                           *
  *  IN  iplist  liste de 1 ou plusieurs IP3 a rechercher ou exclure          *
  *      iplist(1) = -1                                     toute valeur de x *
  *      iplist(1) = -2 , iplist(2) = v2  (nelm = 2)              x <= v2     *
@@ -415,17 +392,13 @@ int Xc_Select_ip2(const int set_nb, const int des_exc, const void *iplist, int n
  *  IN  nelm    nombre d'elements de la liste                                *
  *                                                                           *
  *****************************************************************************/
-int Xc_Select_ip3(const int set_nb, const int des_exc, const void *iplist, int nelm)
-{
-    int i;
-    const int *ip_entier=(const int *)iplist;
-    int valid;
-
-    valid = ValidateRequestForSet(set_nb, des_exc, nelm, 1, "ip3");
-    if (valid < 0) {
+int Xc_Select_ip3(const int set_nb, const int des_exc, const void *iplist, int nelm) {
+    if (ValidateRequestForSet(set_nb, des_exc, nelm, 1, "ip3") < 0) {
         Requests[set_nb].dates.in_use = UNUSED;
         return -1;
     }
+
+    const int * const ip_entier = (const int *)iplist;
 
     if (ip_entier[0] == -1) nelm = 1;        /* universal value, rest of values if any is irrelevant */
     Requests[set_nb].in_use = USED;          /* set is in use */
@@ -441,15 +414,18 @@ int Xc_Select_ip3(const int set_nb, const int des_exc, const void *iplist, int n
         Requests[set_nb].ip3s.data[1] = ip_entier[2];
         Requests[set_nb].ip3s.data[2] = ip_entier[4];
         Requests[set_nb].ip3s.in_use = DELTA;
-    // printf("RANGE+DELTA detected %d %d %d\n", Requests[set_nb].ip3s.data[0], Requests[set_nb].ip3s.data[1], Requests[set_nb].ip3s.data[2]);
+        // printf("RANGE+DELTA detected %d %d %d\n", Requests[set_nb].ip3s.data[0], Requests[set_nb].ip3s.data[1], Requests[set_nb].ip3s.data[2]);
         return 0;
     }
-    Requests[set_nb].ip3s.data[2] = READLX_RANGE ;   /* open interval by default for case value @*/
-    for (i=1; i<nelm; i++) {                       /* rest of values */
+    Requests[set_nb].ip3s.data[2] = READLX_RANGE;   /* open interval by default for case value @*/
+    for (int i = 1; i<nelm; i++) {                       /* rest of values */
         Requests[set_nb].ip3s.data[i] = ip_entier[i];
     }
 
-    if (ip_entier[0] == READLX_RANGE || ip_entier[1] == READLX_RANGE) { Requests[set_nb].ip3s.in_use = RANGE;; Requests[set_nb].ip3s.nelm = 2 ; }
+    if (ip_entier[0] == READLX_RANGE || ip_entier[1] == READLX_RANGE) {
+        Requests[set_nb].ip3s.in_use = RANGE;
+        Requests[set_nb].ip3s.nelm = 2;
+    }
     if (ip_entier[1] == READLX_RANGE) Requests[set_nb].ip3s.data[1] = Requests[set_nb].ip3s.data[2];   /* value @ value  or value @  or @ @ */
     return 0;
 }
@@ -463,7 +439,7 @@ int Xc_Select_ip3(const int set_nb, const int des_exc, const void *iplist, int n
  *Arguments                                                                  *
  *                                                                           *
  *  IN  set_nb     numero associe a un groupe d'elements desire/exclure      *
- *  IN  des_exc    0=exclure 1=desire                                        *
+ *  IN  des_exc    0 = exclure 1 = desire                                        *
  *  IN  date_list  liste de 1 ou plusieurs DATE a rechercher ou exclure      *
  *      date_list = [-1]                 (nelm = 1)  toute valeur de x       *
  *      date_list = [-2, v2]             (nelm = 2)  x  <= v2                *
@@ -473,17 +449,16 @@ int Xc_Select_ip3(const int set_nb, const int des_exc, const void *iplist, int n
  *  IN  nelm       nombre d'elements de la liste                             *
  *                                                                           *
  *****************************************************************************/
-int Xc_Select_date(int set_nb, int des_exc, int *date_list, int nelm)
-{
-  int i, range=0;
-  int valid, delta=0;
+int Xc_Select_date(int set_nb, int des_exc, int *date_list, int nelm) {
+  int i, range = 0;
+  int valid, delta = 0;
   union {
     int i;
     float f;
   }i_or_f;
 
   valid = ValidateRequestForSet(set_nb, des_exc, nelm, 1, "date");
-  if(valid < 0) goto error ;
+  if(valid < 0) goto error;
 
   if (date_list[0] == -1) nelm = 1;        /* universal value, rest of values if any is irrelevant */
   Requests[set_nb].in_use = USED;          /* set is in use */
@@ -496,13 +471,13 @@ int Xc_Select_date(int set_nb, int des_exc, int *date_list, int nelm)
   if (nelm == 1 ) return 0;               /* one value, cannot be a range */
 
   Requests[set_nb].dates.nelm = nelm;      /* irrelevant if we have a range of dates */
-  for (i=0; i<nelm; i++) {
+  for (i = 0; i<nelm; i++) {
     Requests[set_nb].dates.data[i] = date_list[i];
     if(date_list[i] == READLX_DELTA) {                 /* DELTA keyword */
       delta++;
-      if(delta > 1 || range == 0 ) goto error ;           /* more than one delta keyword or delta encountered before @  */
-      if(i >= nelm-1) goto error ;                        /* no value follows delta */
-      if(i != 3) goto error ;                             /* must be date1 @ date2 delta hours */
+      if(delta > 1 || range == 0 ) goto error;           /* more than one delta keyword or delta encountered before @  */
+      if(i >= nelm-1) goto error;                        /* no value follows delta */
+      if(i != 3) goto error;                             /* must be date1 @ date2 delta hours */
       Requests[set_nb].dates.in_use = DELTA;
       Requests[set_nb].dates.nelm = 3;
       i_or_f.i = date_list[i+1];
@@ -513,12 +488,12 @@ int Xc_Select_date(int set_nb, int des_exc, int *date_list, int nelm)
     }
     if(date_list[i] == READLX_RANGE) {   /* @  keyword   */
       range++;
-      if(range>1 || i>1) goto error ;           /* more than one @ keyword or @ keyword too far in line */
-//      if(i > 1) goto error ;                    /*  @ cannot be found beyond position 2 */
-      Requests[set_nb].dates.in_use = RANGE ;
+      if(range>1 || i>1) goto error;           /* more than one @ keyword or @ keyword too far in line */
+//      if(i > 1) goto error;                    /*  @ cannot be found beyond position 2 */
+      Requests[set_nb].dates.in_use = RANGE;
 //      if(i==0) Requests[set_nb].dates.data[0] = 0;              /* @ date .... */
-      if(i==1 && nelm>2) {                                            /* date @ date  or date @ delta */
-        Requests[set_nb].dates.data[1] = date_list[2] ;
+      if(i == 1 && nelm>2) {                                            /* date @ date  or date @ delta */
+        Requests[set_nb].dates.data[1] = date_list[2];
       }
       Requests[set_nb].dates.nelm = 2;
     }
@@ -540,24 +515,23 @@ error:
  *Arguments                                                                  *
  *                                                                           *
  *  IN  set_nb     numero associe a un groupe d'elements desire/exclure      *
- *  IN  des_exc    0=exclure 1=desire                                        *
+ *  IN  des_exc    0 = exclure 1 = desire                                        *
  *  IN  etiq_list  liste de 1 ou plusieurs ETIQUETTE a rechercher ou exclure *
  *  IN  nelm       nombre d'elements de la liste                             *
  *                                                                           *
  *****************************************************************************/
-int Xc_Select_etiquette(int set_nb, int des_exc, char *etiq_list[], int nelm)
-{
+int Xc_Select_etiquette(int set_nb, int des_exc, char *etiq_list[], int nelm) {
   int i;
   int valid;
 
   valid = ValidateRequestForSet(set_nb, des_exc, nelm, 1, "etiquette");
-  if(valid < 0) goto error ;
+  if(valid < 0) goto error;
 
   Requests[set_nb].in_use = 1;
   Requests[set_nb].etiquettes.in_use = 1;
   Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
   Requests[set_nb].etiquettes.nelm = nelm;
-  for (i=0; i<nelm; i++) {
+  for (i = 0; i<nelm; i++) {
     strncpy(Requests[set_nb].etiquettes.pdata[i], etiq_list[i], 13);
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Requests[%i].etiquettes.pdata[%i]=%s\n",
             __func__, set_nb, i, Requests[set_nb].etiquettes.pdata[i]);
@@ -577,24 +551,23 @@ error:
  *Arguments                                                                  *
  *                                                                           *
  *  IN  set_nb     numero associe a un groupe d'elements desire/exclure      *
- *  IN  des_exc    0=exclure 1=desire                                        *
+ *  IN  des_exc    0 = exclure 1 = desire                                        *
  *  IN  etiq_list  liste de 1 ou plusieurs NOMVAR a rechercher ou exclure    *
  *  IN  nelm       nombre d'elements de la liste                             *
  *                                                                           *
  *****************************************************************************/
-int Xc_Select_nomvar(int set_nb, int des_exc, char *nomv_list[], int nelm)
-{
+int Xc_Select_nomvar(int set_nb, int des_exc, char *nomv_list[], int nelm) {
   int i;
   int valid;
 
   valid = ValidateRequestForSet(set_nb, des_exc, nelm, 1, "nomvar");
-  if(valid < 0) goto error ;
+  if(valid < 0) goto error;
 
   Requests[set_nb].in_use = 1;
   Requests[set_nb].nomvars.in_use = 1;
   Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
   Requests[set_nb].nomvars.nelm = nelm;
-  for (i=0; i<nelm; i++) {
+  for (i = 0; i<nelm; i++) {
     strncpy(Requests[set_nb].nomvars.pdata[i], nomv_list[i], 5);
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Requests[%i].nomvars.pdata[%i]=%s\n",
             __func__, set_nb, i, Requests[set_nb].nomvars.pdata[i]);
@@ -614,19 +587,18 @@ error:
  *Arguments                                                                  *
  *                                                                           *
  *  IN  set_nb     numero associe a un groupe d'elements desire/exclure      *
- *  IN  des_exc    0=exclure 1=desire                                        *
+ *  IN  des_exc    0 = exclure 1 = desire                                        *
  *  IN      ni, nj, nk, ig1, ig2, ig3, ig4, grtyp                                   *
  *          dimension et grille horizontale                                  *
  *          -1 : pas de selection   (ni, nj, nk, ig1, ig2, ig3, ig4)               *
  *          ' ': pas de selection (grtyp)                                    *
  *                                                                           *
  *****************************************************************************/
-int Xc_Select_suppl(int set_nb, int des_exc, int ni, int nj, int nk, int ig1, int ig2, int ig3, int ig4, char gtyp)
-{
+int Xc_Select_suppl(int set_nb, int des_exc, int ni, int nj, int nk, int ig1, int ig2, int ig3, int ig4, char gtyp) {
   int valid;
 
   valid = ValidateRequestForSet(set_nb, des_exc, 1, 1, "suppl");
-  if(valid < 0) goto error ;
+  if(valid < 0) goto error;
 
   Requests[set_nb].in_use = 1;
   Requests[set_nb].in_use_supp = 1;
@@ -646,65 +618,41 @@ error:
   return -1;
 }
 
-/*****************************************************************************
- *                    X C _ S E L E C T _ T Y P V A R                        *
- *                                                                           *
- *Objet                                                                      *
- *   Definir la liste des TYPVAR desirees                                    *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  set_nb     numero associe a un groupe d'elements desire/exclure      *
- *  IN  des_exc    0=exclure 1=desire                                        *
- *  IN  etiq_list  liste de 1 ou plusieurs TYPVAR a rechercher ou exclure    *
- *  IN  nelm       nombre d'elements de la liste                             *
- *                                                                           *
- *****************************************************************************/
-int Xc_Select_typvar(int set_nb, int des_exc, char *typv_list[], int nelm)
-{
-  int i;
-  int valid;
 
-  valid = ValidateRequestForSet(set_nb, des_exc, nelm, 1, "typvar");
-  if(valid < 0) goto error ;
+//! Set the list of desired TYPVAR
+int Xc_Select_typvar(
+    //! [in] desire/exclure group element number
+    const int set_nb,
+    //! [in] 0 for exclude, 1 for desire
+    const int des_exc,
+    //! [in]
+    char * const typv_list[],
+    //! [in] Number of elements in the list
+    const int nelm
+) {
+    //! \return 0 on success, -1 otherwise
+    if (ValidateRequestForSet(set_nb, des_exc, nelm, 1, "typvar") < 0) {
+        Requests[set_nb].dates.in_use = UNUSED;
+        return -1;
+    }
 
-  Requests[set_nb].in_use = 1;
-  Requests[set_nb].typvars.in_use = 1;
-  Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
-  Requests[set_nb].typvars.nelm = nelm;
-  for (i=0; i<nelm; i++) {
-    strncpy(Requests[set_nb].typvars.pdata[i], typv_list[i], 3);
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Requests[%i].typvars.pdata[%i]=%s\n",
-            __func__, set_nb, i, Requests[set_nb].typvars.pdata[i]);
-  }
-  return 0;
-error:
-  Requests[set_nb].dates.in_use = UNUSED;
-  return -1;
+    Requests[set_nb].in_use = 1;
+    Requests[set_nb].typvars.in_use = 1;
+    Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
+    Requests[set_nb].typvars.nelm = nelm;
+    for (int i = 0; i < nelm; i++) {
+        strncpy(Requests[set_nb].typvars.pdata[i], typv_list[i], 3);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Requests[%i].typvars.pdata[%i]=%s\n",
+                __func__, set_nb, i, Requests[set_nb].typvars.pdata[i]);
+    }
+    return 0;
 }
 
-int ReadRequestTable(char *filename)
-{
-    char line[4096];
-    FILE *input=NULL;
-    char *cptr;
-    int dirset;
-    char s1[16], s2[16], s3[16];
-    char sar[40][13];
-    char *sarp[41];
-    int nvalues;
-    int a[100];
-    int i, j;
-    char gtyp;
-    int rvd; /* range, value, delta */
-    int dex ; /* desire / exclure */
-    int status;
-    union {
-        int i;
-        float f;
-    }i_or_f;
 
-    status = 0;
+int ReadRequestTable(
+    const char * const filename
+) {
+    FILE * input = NULL;
     if (filename != NULL) {
         input = fopen(filename, "r");
     }
@@ -712,134 +660,160 @@ int ReadRequestTable(char *filename)
         Lib_Log(APP_LIBFST,APP_ERROR,"%s: cannot open directive file '%s'\n",__func__,filename);
         return -1;
     }
-    readnext:
-    cptr=fgets(line, sizeof(line), input);
-    //  fprintf(stderr, "header=%s", line);
-    dirset=0;
-    s1[0]='\000';
-    s2[0]='\000';
-    s3[0]='\000';
-    nvalues=0;
 
-    sscanf(line, "%d", &dirset);
-    if(dirset==0) {
-        fclose(input);
-        return 0;
-    }
-    cptr=line;
-    while(*cptr != '\'' ) cptr++ ; cptr++ ;
-    sscanf(cptr, "%s", s1);
-    while(*cptr != ',' ) cptr++ ; while(*cptr != '\'' ) cptr++ ; cptr++ ;
-    sscanf(cptr, "%s", s2);
-    while(*cptr != ',' ) cptr++ ; while(*cptr != '\'' ) cptr++ ; cptr++ ;
-    sscanf(cptr, "%s", s3);
-    while(*cptr != ',' ) cptr++ ; cptr++ ;
-    sscanf(cptr, "%d", &nvalues);
-    //  fprintf(stderr, "%d, '%s', '%s', '%s', %d\n", dirset, s1, s2, s3, nvalues);
-    rvd = 0 ; /* not used */
-    if(s3[0] == 'v') rvd = VALUE;
-    if(s3[0] == 'r') rvd = RANGE;
-    if(s3[0] == 'd') rvd = DELTA;
-    dex = s1[0] == 'D' ? DESIRE : EXCLURE ;
+    int status = 0;
+    while (status == 0) {
+        char line[4096];
+        char * cptr = fgets(line, sizeof(line), input);
+        int dirset = 0;
+        char s1[16], s2[16], s3[16];
+        s1[0] = '\000';
+        s2[0] = '\000';
+        s3[0] = '\000';
+        int nvalues = 0;
 
-    cptr=fgets(line, sizeof(line), input);
-    cptr = line;
-    //  fprintf(stderr, "reading data\n");
+        sscanf(line, "%d", &dirset);
+        if (dirset == 0) {
+            fclose(input);
+            return 0;
+        }
+        cptr = line;
+        while(*cptr != '\'' ) cptr++;
+        cptr++;
+        sscanf(cptr, "%s", s1);
+        while(*cptr != ',' ) cptr++;
+        while(*cptr != '\'' ) cptr++;
+        cptr++;
+        sscanf(cptr, "%s", s2);
+        while(*cptr != ',' ) cptr++;
+        while(*cptr != '\'' ) cptr++;
+        cptr++;
+        sscanf(cptr, "%s", s3);
+        while(*cptr != ',' ) cptr++;
+        cptr++;
+        sscanf(cptr, "%d", &nvalues);
+        // range, value, delta
+        int rvd = 0;
+        if(s3[0] == 'v') rvd = VALUE;
+        if(s3[0] == 'r') rvd = RANGE;
+        if(s3[0] == 'd') rvd = DELTA;
+        int dex = s1[0] == 'D' ? DESIRE : EXCLURE;
 
-    if(s2[0]=='D') {                            /*  Date */
-        sscanf(cptr, "%d", a);
-        for (i=1;i<nvalues;i++) {
-        while(*cptr != ',' ) cptr++ ; cptr++ ;
-        sscanf(cptr, "%d", a+i);
+        cptr = fgets(line, sizeof(line), input);
+        cptr = line;
+
+        int a[100];
+        if(s2[0] == 'D') {
+            // Date
+            sscanf(cptr, "%d", a);
+            for (int i = 1; i < nvalues; i++) {
+                while(*cptr != ',' ) cptr++;
+                cptr++;
+                sscanf(cptr, "%d", a+i);
+            }
+            if(rvd == RANGE && a[0] >= 0 && a[1] >= 0) {
+                nvalues = 3;
+                a[2] = a[1];
+                a[1] = READLX_RANGE;
+            }
+            if(rvd == DELTA) {
+                nvalues = 5;
+                union {
+                    int i;
+                    float f;
+                } i_or_f;
+                i_or_f.f = a[2];    /* already in seconds, send as a float */
+                a[4] = i_or_f.i;
+                a[3] = READLX_DELTA;
+                a[2] = a[1];
+                a[1] = READLX_RANGE;
+            }
+            status = Xc_Select_date(dirset, dex, a, nvalues);
+            if(status != 0) {
+                Lib_Log(APP_LIBFST,APP_ERROR,"%s: bad value(s) in date\n",__func__);
+                for (int i = 0; i < nvalues; i++) {
+                    fprintf(stderr, " %d", a[i]);
+                }
+                fprintf(stderr, "\n");
+            }
+        } else if(s2[0] == 'I') {
+            // IP1/2/3
+            sscanf(cptr, "%d", a);
+            for (int i = 1; i < nvalues; i++) {
+                while(*cptr != ',' ) cptr++;
+                cptr++;
+                sscanf(cptr, "%d", a+i);
+            }
+            if(rvd == RANGE) {
+                nvalues = 3;
+                a[2] = a[1];
+                a[1] = READLX_RANGE;
+            }
+            if(rvd == DELTA) nvalues = 0;
+            if(s2[2] == '1') status = Xc_Select_ip1(dirset, dex, a, nvalues);
+            if(s2[2] == '2') status = Xc_Select_ip2(dirset, dex, a, nvalues);
+            if(s2[2] == '3') status = Xc_Select_ip3(dirset, dex, a, nvalues);
+            if(status != 0) {
+                Lib_Log(APP_LIBFST,APP_ERROR,"%s: bad value(s) in ip1/ip2/ip3\n",__func__);
+                for (int i = 0; i < nvalues; i++) {
+                    fprintf(stderr, " %d", a[i]);
+                }
+                fprintf(stderr, "\n");
+            }
+        } else if(s2[0] == 'X') {
+            // Xtra
+            sscanf(cptr, "%d", a);
+            for (int i = 1; i < 8; i++) {
+                while(*cptr != ',' ) cptr++;
+                cptr++;
+                sscanf(cptr, "%d", a+i);
+            }
+            while(*cptr != '\'' ) cptr++;
+            cptr++;
+            char gtyp = *cptr;
+            status = Xc_Select_suppl(dirset, dex, a[0], a[1], a[2], a[3], a[4], a[5], a[6], gtyp);
+            if(status != 0) {
+                Lib_Log(APP_LIBFST,APP_ERROR,"%s: bad value(s) in supplementary criteria\n",__func__);
+                for (int i = 0; i < 8; i++) {
+                    fprintf(stderr, " %d", a[i]);
+                }
+                fprintf(stderr, " %c\n", gtyp);
+            }
+        } else if(s2[0] == 'N' || s2[0] == 'T' || s2[0] == 'E') {
+            // Nomvar, Typvar or Etiket
+            char sar[40][13];
+            char * sarp[41];
+            for (int i = 0; i < nvalues; i++) {
+                while(*cptr != '\'' ) cptr++;
+                cptr++;
+                int j = 0;
+                while(*cptr != '\'' ) sar[i][j++] = *cptr++;
+                cptr++;
+                sar[i][j] = '\000';
+                sarp[i] = sar[i];
+            }
+            sarp[nvalues] = NULL;
+            if(s2[0] == 'N') status = Xc_Select_nomvar(dirset, dex, sarp, nvalues);
+            if(s2[0] == 'T') status = Xc_Select_typvar(dirset, dex, sarp, nvalues);
+            if(s2[0] == 'E') status = Xc_Select_etiquette(dirset, dex, sarp, nvalues);
+            if(status != 0) {
+                Lib_Log(APP_LIBFST,APP_ERROR,"%s: bad value(s) in nomvar/typvar/etiket\n",__func__);
+                for (int i = 0; i < nvalues; i++) {
+                    fprintf(stderr, " '%s'", sar[i]);
+                }
+                fprintf(stderr, "\n");
+            }
+        } else {
+            Lib_Log(APP_LIBFST,APP_ERROR,"%s: unrecognized type s2='%s' in directive file\n",__func__,s2);
+            status = -1;
         }
-        if(rvd == RANGE && a[0] >= 0 && a[1] >= 0) {
-        nvalues=3;
-        a[2]=a[1];
-        a[1]=READLX_RANGE;
+        if (status != 0) {
+            fclose(input);
+            Lib_Log(APP_LIBFST,APP_ERROR,"%s: status=%d\n",__func__,status);
+            return -1;
         }
-        if(rvd == DELTA) {
-        nvalues=5;
-        i_or_f.f = a[2];    /* already in seconds, send as a float */
-        a[4]=i_or_f.i;
-        a[3]=READLX_DELTA;
-        a[2]=a[1];
-        a[1]=READLX_RANGE;
-        }
-        status = Xc_Select_date(dirset, dex, a, nvalues);
-        if(status != 0) {
-           Lib_Log(APP_LIBFST,APP_ERROR,"%s: bad value(s) in date\n",__func__);
-           for (i=0;i<nvalues;i++) {
-               fprintf(stderr, " %d", a[i]);
-           }
-           fprintf(stderr, "\n");
-        }
-    }else if(s2[0]=='I') {                       /* IP1/2/3 */
-        sscanf(cptr, "%d", a);
-        for (i=1;i<nvalues;i++) {
-        while(*cptr != ',' ) cptr++ ; cptr++ ;
-        sscanf(cptr, "%d", a+i);
-        }
-        if(rvd == RANGE) {
-        nvalues=3;
-        a[2]=a[1];
-        a[1]=READLX_RANGE;
-        }
-        if(rvd == DELTA) nvalues = 0;
-        if(s2[2]=='1') status = Xc_Select_ip1(dirset, dex, a, nvalues);
-        if(s2[2]=='2') status = Xc_Select_ip2(dirset, dex, a, nvalues);
-        if(s2[2]=='3') status = Xc_Select_ip3(dirset, dex, a, nvalues);
-        if(status != 0) {
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: bad value(s) in ip1/ip2/ip3\n",__func__);
-        for (i=0;i<nvalues;i++) {
-            fprintf(stderr, " %d", a[i]);
-        }
-        fprintf(stderr, "\n");
-        }
-    }else if(s2[0]=='X'){                           /* Xtra  */
-        sscanf(cptr, "%d", a);
-        for (i=1;i<8;i++) {
-        while(*cptr != ',' ) cptr++ ; cptr++ ;
-        sscanf(cptr, "%d", a+i);
-        }
-        while(*cptr != '\'' ) cptr++ ; cptr++ ;
-        gtyp=*cptr;
-        status = Xc_Select_suppl(dirset, dex, a[0], a[1], a[2], a[3], a[4], a[5], a[6], gtyp);
-        if(status != 0) {
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: bad value(s) in supplementary criteria\n",__func__);
-        for (i=0;i<8;i++) {
-            fprintf(stderr, " %d", a[i]);
-        }
-        fprintf(stderr, " %c\n", gtyp);
     }
-    }else if(s2[0]=='N' || s2[0]=='T' || s2[0]=='E'){   /* Nomvar, Typvar or Etiket */
-        for (i=0;i<nvalues;i++) {
-        while(*cptr != '\'' ) cptr++ ; cptr++ ;
-        j=0;
-        while(*cptr != '\'' ) sar[i][j++]=*cptr++; cptr++ ;
-        sar[i][j]='\000';
-        sarp[i] = sar[i];
-        }
-        sarp[nvalues] = NULL;
-        if(s2[0] == 'N') status = Xc_Select_nomvar(dirset, dex, sarp, nvalues) ;
-        if(s2[0] == 'T') status = Xc_Select_typvar(dirset, dex, sarp, nvalues) ;
-        if(s2[0] == 'E') status = Xc_Select_etiquette(dirset, dex, sarp, nvalues) ;
-        if(status != 0) {
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: bad value(s) in nomvar/typvar/etiket\n",__func__);
-        for (i=0;i<nvalues;i++) {
-            fprintf(stderr, " '%s'", sar[i]);
-        }
-        fprintf(stderr, "\n");
-        }
-    }else{
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: unrecognized type s2='%s' in directive file\n",__func__,s2);
-        status = -1;
-    }
-    if(status != 0) {
-        fclose(input);
-        Lib_Log(APP_LIBFST,APP_ERROR,"%s: status=%d\n",__func__,status);
-        return -1;
-    }
-    goto readnext;
+    return status;
 }
 
 
@@ -855,8 +829,7 @@ int ReadRequestTable(char *filename)
  *  IN  last_set_nb    numero de groupe du dernier desire/exclure            *
  *                                                                           *
  *****************************************************************************/
-int C_select_groupset(int first_set_nb, int last_set_nb)
-{
+int C_select_groupset(int first_set_nb, int last_set_nb) {
   if(package_not_initialized) RequetesInit();
   if ((first_set_nb > MAX_requetes-1) || (last_set_nb > MAX_requetes-1) || (first_set_nb > last_set_nb)) {
     Lib_Log(APP_LIBFST,APP_ERROR,"%s: first_set_nb=%d, last_set_nb=%d, MAX allowed=%d\n",__func__,first_set_nb,last_set_nb,MAX_requetes-1);
@@ -875,8 +848,7 @@ return 0; /*CHC/NRC*/
  *   augmenter bundle_nb de 1                                                *
  *                                                                           *
  *****************************************************************************/
-int C_filtre_desire()
-{
+int C_filtre_desire() {
 
   if(package_not_initialized) RequetesInit();
   bundle_nb++;
@@ -897,8 +869,7 @@ int C_filtre_desire()
  *   augmenter bundle_nb de 1                                                *
  *                                                                           *
  *****************************************************************************/
-int C_filtre_exclure()
-{
+int C_filtre_exclure() {
 
   if(package_not_initialized) RequetesInit();
   bundle_nb++;
@@ -917,8 +888,7 @@ int C_filtre_exclure()
  *                                                                           *
  * return 1 if yes, return 0 if no                                           *
  *****************************************************************************/
-static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
-{
+static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable) {
   int mode = -1;   /* IP to P, KIND conversion */
   int i, ip, kind1, kind2, kind3;
   float p0, p1, p2, p3, delta;
@@ -947,12 +917,12 @@ static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
       kind3 = kind1;
     }
     if(p2 > p3){                          // make sure that p2 < p3
-      p0 = p3 ; p3 = p2 ; p2 = p0 ;       // swap p2 and p3 (no point in swapping kinds as they MUST match
+      p0 = p3; p3 = p2; p2 = p0;       // swap p2 and p3 (no point in swapping kinds as they MUST match
       const int32_t tmp = bottom_val;
       bottom_val = top_val;
       top_val = tmp;
     }
-    if(kind1 != kind2 || kind1 != kind3) return 0 ;  /* not same kind, no match */
+    if(kind1 != kind2 || kind1 != kind3) return 0;  /* not same kind, no match */
     if (kind1 < 0) {
       // Does not correspond to a valid encoding, so we can only match the IP itself
       if (ip1 < bottom_val || ip1 > top_val) return 0;
@@ -961,26 +931,26 @@ static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
       return 0;  /* out of value range, no match */
     }
 
-    if(in_use == RANGE) return 1 ;         /* we have a match if RANGE */
+    if(in_use == RANGE) return 1;         /* we have a match if RANGE */
     if(in_use == DELTA) {                  /* we are in range, check delta if there is one */
-      if(data[2] <= 0) return 0 ;          /* delta <= 0 not acceptable */
-      if(kind1 >= 0 && p1 == p2) return 1 ;/* we have a match, modulo will be zero */
+      if(data[2] <= 0) return 0;          /* delta <= 0 not acceptable */
+      if(kind1 >= 0 && p1 == p2) return 1;/* we have a match, modulo will be zero */
       if(data[2] < 0xFFFFF){               /* max 18 bits for integer values */
         delta = (float)data[2];            /* integer interval */
       }else{
         delta = fdata[2];                  /* float interval */
       }
-      if(delta <= 0) return 0 ; /* delta <= 0 not acceptable */
+      if(delta <= 0) return 0; /* delta <= 0 not acceptable */
       float modulo = kind1 >= 0 ? fmodf((p1 - p2) , delta) :
                                   fmodf((float)(ip1 - bottom_val), delta);
       if(modulo < 0) modulo = -modulo;    /* abs(modulo)  */
       const float error = modulo/delta;
-      if( error < 0.00001 || error > 0.99999 ) return 1 ; /* we have a match */
+      if( error < 0.00001 || error > 0.99999 ) return 1; /* we have a match */
     }
     return 0;   /* we fell through, we have no match */
   }
   else if(in_use == VALUE){
-    for (i=0 ; i<nelm ; i++) {
+    for (i = 0; i<nelm; i++) {
       if(ip1 == data[i] || data[i] == -1) return 1;  /* we have a match with raw ip values */
     }
     if(! translatable) return 0;/* name is not translatable we are done */
@@ -993,252 +963,249 @@ static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable)
       return 0;
     }
 
-    for (i=0 ; i<nelm ; i++) {
+    for (i = 0; i<nelm; i++) {
       ip = data[i];
       ConvertIp(&ip, &p2, &kind2, mode); /* convert match reference */
       if(kind1 != kind2) continue;       /* not same kind, no match */
-      if(p2 == 0 && p1 != p2) continue ; /* if one is 0, both must be, no match */
-      delta = 1.0 - p1/p2 ;
+      if(p2 == 0 && p1 != p2) continue; /* if one is 0, both must be, no match */
+      delta = 1.0 - p1/p2;
       if(delta < 0) delta = -delta;    /* abs(relative error)  */
-      if( delta < 0.000001) return 1 ; /* we have a match */
+      if( delta < 0.000001) return 1; /* we have a match */
     }
 
-    return 0 ;   /* if we fell through, we have no match */
+    return 0;   /* if we fell through, we have no match */
   }else{
-    return 0 ;   /* not a value, no match */
+    return 0;   /* not a value, no match */
   }
 }
 
-/*****************************************************************************
- *                      C _ F S T _ M A T C H _ P A R M                      *
- *                                                                           *
- *Objet                                                                      *
- *   Verifier si l'enregistrement courant correspond aux criteres demandes   *
- *   Retourne 1 si l'enregistrement correspond, sinon 0                      *
- *   0 est aussi retourne si l'enregistrement correspond a un a exclure      *
- *                                                                           *
- *   en bref:  on retourne 1 si on accepte cet enregistrement, 0 sinon       *
- *                                                                           *
- *Arguments                                                                  *
- *                                                                           *
- *  IN  handle     handle de l'enregistrement courant                        *
- * IN   datevalid, ..., ig4                                                    *
- *      ce qui a ete obtenu de fstprm pour handle                            *
- *                                                                           *
- *****************************************************************************/
-int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
-                     int ip1, int ip2, int ip3, const char *typvar, const char *nomvar, const char *etiket,
-                     const char *grtyp, int ig1, int ig2, int ig3, int ig4)
-{
-  int i, last_in_use;
-  int amatch = 0;
-  int debut, fin;
-  double diff_deb, diff_fin, delta8, remainder;
-  char *desire_exclure;
-  int translatable;
-  int nb_desire = 0;
 
-  if(package_not_initialized) {
-    Lib_Log(APP_LIBFST,APP_INFO,"%s: initializing request tables\n", __func__);
-    RequetesInit();
-  }
-//  if (! Requests[first_R].in_use) return 1;        /* aucune requete desire ou exclure */
+//! Check if the current record matches the search criteria
+int C_fstmatch_parm(
+    //! [in] Current record handle
+    const int handle,
+    const int datevalid,
+    const int ni,
+    const int nj,
+    const int nk,
+    const int ip1,
+    const int ip2,
+    const int ip3,
+    const char * const typvar,
+    const char * const nomvar,
+    const char * const etiket,
+    const char * const grtyp,
+    const int ig1,
+    const int ig2,
+    const int ig3,
+    const int ig4
+) {
+    //! \return 1 if the record matches, 0 if it doesn't or matches an exclude
 
-  Lib_Log(APP_LIBFST, APP_EXTRA, "%s: fstprm date=%d ip1=%d ip2=%d ip3=%d nomvar=\"%s\" typvar=\"%s\" etiket=\"%s\"\n",
-          __func__, datevalid, ip1, ip2, ip3, nomvar, typvar, etiket);
-  translatable = FstCanTranslateName(nomvar) ;
-  int date = datevalid;
+    (void) ig4; // unused
 
-  if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) {
-    char buffer[1024];
-    char* ptr = buffer;
-    for (int set_nb=first_R; set_nb <= last_R && (ptr - buffer < 1000) ; set_nb++)
-      ptr += sprintf(ptr, " %d", Requests[set_nb].in_use);
-    Lib_Log(APP_LIBFST, APP_EXTRA, "%s: %s\n", __func__, buffer);
-  }
+    if(package_not_initialized) {
+        Lib_Log(APP_LIBFST,APP_INFO,"%s: initializing request tables\n", __func__);
+        RequetesInit();
+    }
+    //  if (! Requests[first_R].in_use) return 1;        /* aucune requete desire ou exclure */
 
-  for (int set_nb=first_R; (set_nb <= last_R) ; set_nb++) {
-    if(Requests[set_nb].in_use == 0)continue ;
+    Lib_Log(APP_LIBFST, APP_EXTRA, "%s: fstprm date=%d ip1=%d ip2=%d ip3=%d nomvar=\"%s\" typvar=\"%s\" etiket=\"%s\"\n",
+            __func__, datevalid, ip1, ip2, ip3, nomvar, typvar, etiket);
+    int translatable = FstCanTranslateName(nomvar);
+    int date = datevalid;
 
-    /* process supplementary parameters if any right here */
-    amatch = 0;
-    if (Requests[set_nb].exdes == DESIRE) nb_desire++;
-    desire_exclure = (Requests[set_nb].exdes == DESIRE)  ? "desire" : "exclure";
-    Lib_Log(APP_LIBFST, APP_EXTRA, "%s: matching request set %d (%s)\n", __func__, set_nb, desire_exclure);
-      if (Requests[set_nb].in_use_supp) {   /* les criteres supplementires sont globaux */
-        if( (Requests[set_nb].ig1s != ig1 && Requests[set_nb].ig1s != -1)
-        ||  (Requests[set_nb].ig2s != ig2 && Requests[set_nb].ig2s != -1)
-        ||  (Requests[set_nb].ig3s != ig3 && Requests[set_nb].ig3s != -1)
-        ||  (Requests[set_nb].ig4s != ig2 && Requests[set_nb].ig4s != -1)
-        ||  (Requests[set_nb].nis  !=  ni &&  Requests[set_nb].nis != -1)
-        ||  (Requests[set_nb].njs  !=  nj &&  Requests[set_nb].njs != -1)
-        ||  (Requests[set_nb].nks  !=  nk &&  Requests[set_nb].nks != -1)
-        ||  (Requests[set_nb].grdtyps  !=  grtyp[0] && Requests[set_nb].grdtyps != ' ') ) continue;  /* requete non satisfaite pour criteres supplementaires */
-      }
-      amatch = 1;   /* requete satisfaite jusqu'ici si criteres supplementaires actifs et OK */
-      if (Requests[set_nb].etiquettes.in_use) {
-        amatch = 0;
-        if(Requests[set_nb].etiquettes.pdata[0][0] == ' ') amatch = 1;
-        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie etiquettes du fichier=%s set_nb=%d\n", __func__, etiket, set_nb);
-        for (i=0; i < Requests[set_nb].etiquettes.nelm && amatch == 0; i++) {
-          if (strncmp(Requests[set_nb].etiquettes.pdata[i], etiket, Min(12, strlen(Requests[set_nb].etiquettes.pdata[i]))) == 0) {
-            amatch = 1;       /* requete satisfaite jusqu'ici */
-            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req match %s\n", __func__, desire_exclure);
-          }
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) {
+        char buffer[1024];
+        char* ptr = buffer;
+        for (int set_nb = first_R; set_nb <= last_R && (ptr - buffer < 1000); set_nb++) {
+            ptr += sprintf(ptr, " %d", Requests[set_nb].in_use);
         }
-//fprintf(stderr, "matching etiket, amatch=%d\n", amatch);
-        if (amatch == 0) continue;  /* requete non satisfaite pour etiquettes */
-      }
+        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: %s\n", __func__, buffer);
+    }
 
-      if (Requests[set_nb].nomvars.in_use) {
-        amatch = 0;
-        if(Requests[set_nb].nomvars.pdata[0][0] == ' ') amatch = 1;
-        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie nomvars du fichier=%s set_nb=%d\n", __func__, nomvar, set_nb);
-        for (i=0; i < Requests[set_nb].nomvars.nelm && amatch == 0; i++)
-          if (strncmp(Requests[set_nb].nomvars.pdata[i], nomvar, Min(4, strlen(Requests[set_nb].nomvars.pdata[i]))) == 0) {
-            amatch = 1;       /* requete satisfaite jusqu'ici */
-            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req match %s\n", __func__, desire_exclure);
-          }
-//fprintf(stderr, "matching nomvar, amatch=%d\n", amatch);
-        if (amatch == 0) continue;  /* requete non satisfaite pour nomvars */
-      }
+    int nb_desire = 0;
+    for (int set_nb = first_R; (set_nb <= last_R); set_nb++) {
+        if(Requests[set_nb].in_use == 0) continue;
 
-      if (Requests[set_nb].typvars.in_use) {
-        amatch = 0;
-        if(Requests[set_nb].typvars.pdata[0][0] == ' ') amatch = 1;
-        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie typvars set_nb=%d\n", __func__, set_nb);
-        for (i=0; i < Requests[set_nb].typvars.nelm && amatch == 0; i++)
-          if (strncmp(Requests[set_nb].typvars.pdata[i], typvar, Min(2, strlen(Requests[set_nb].typvars.pdata[i]))) == 0) {
-            amatch = 1;       /* requete satisfaite jusqu'ici */
-            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req match %s\n", __func__, desire_exclure);
-          }
-//fprintf(stderr, "matching typvar, amatch=%d\n", amatch);
-        if (amatch == 0) continue;  /* requete non satisfaite pour typvars */
-      }
-
-      if (Requests[set_nb].dates.in_use) {
-          amatch = 0;
-          switch (Requests[set_nb].dates.in_use) {
-
-          case VALUE:
-            Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie dates entier set_nb=%d\n", __func__, set_nb);
-            if(Requests[set_nb].dates.data[0] == -1) amatch = 1;
-            for (i=0; i < Requests[set_nb].dates.nelm && amatch == 0; i++)
-              if (Requests[set_nb].dates.data[i] == date) {
-                amatch = 1;
-                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req match %s\n", __func__, desire_exclure);
-              }
-//fprintf(stderr, "matching date value, amatch=%d\n", amatch);
-            if(amatch == 0) continue;  /* rien trouve qui satisfasse la requete pour dates */
-            break;   /* requete satisfaite jusqu'ici */
-
-          case RANGE:
-            if (Requests[set_nb].dates.data[0] <= 0)
-              debut = date;
-            else {
-              debut = Requests[set_nb].dates.data[0];
-              }
-            if (Requests[set_nb].dates.data[1] <= 0)
-              fin = date;
-            else
-              fin = Requests[set_nb].dates.data[1];
-            Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie dates debut=%d fin=%d set_nb=%d\n", __func__, debut, fin, set_nb);
-            difdatr_c(&date, &debut, &diff_deb);
-            difdatr_c(&date, &fin, &diff_fin);
-            Lib_Log(APP_LIBFST, APP_EXTRA, "%s: diff_deb=%f diff_fin=%f\n", __func__, diff_deb, diff_fin);
-            if ((diff_deb >= 0.) && (diff_fin <= 0.)) {
-              amatch = 1;
-              Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req match %s\n", __func__, desire_exclure);
+        /* process supplementary parameters if any right here */
+        int amatch = 0;
+        if (Requests[set_nb].exdes == DESIRE) nb_desire++;
+        const char * const desire_exclure = (Requests[set_nb].exdes == DESIRE)  ? "desire" : "exclure";
+        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: matching request set %d (%s)\n", __func__, set_nb, desire_exclure);
+        if (Requests[set_nb].in_use_supp) {   /* les criteres supplementires sont globaux */
+            if ( (Requests[set_nb].ig1s != ig1 && Requests[set_nb].ig1s != -1) ||
+                 (Requests[set_nb].ig2s != ig2 && Requests[set_nb].ig2s != -1) ||
+                 (Requests[set_nb].ig3s != ig3 && Requests[set_nb].ig3s != -1) ||
+                 (Requests[set_nb].ig4s != ig2 && Requests[set_nb].ig4s != -1) ||
+                 (Requests[set_nb].nis  !=  ni &&  Requests[set_nb].nis != -1) ||
+                 (Requests[set_nb].njs  !=  nj &&  Requests[set_nb].njs != -1) ||
+                 (Requests[set_nb].nks  !=  nk &&  Requests[set_nb].nks != -1) ||
+                 (Requests[set_nb].grdtyps  !=  grtyp[0] && Requests[set_nb].grdtyps != ' ') ) {
+                    // requete non satisfaite pour criteres supplementaires
+                    continue;
             }
-//fprintf(stderr, "matching date range, amatch=%d\n", amatch);
-            if(amatch == 0) continue;  /* rien trouve qui satisfasse la requete desire/exclure */
-            break;   /* requete satisfaite jusqu'ici */
-
-          case DELTA:
-            Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie dates debut fin delta set_nb=%d\n", __func__, set_nb);
-            if (Requests[set_nb].dates.data[0] <= 0)
-              debut = date;
-            else {
-              debut = Requests[set_nb].dates.data[0];
-              }
-            if (Requests[set_nb].dates.data[1] <= 0)
-              fin = date;
-            else
-              fin = Requests[set_nb].dates.data[1];
-            delta8 = Requests[set_nb].dates.delta;
-            delta8 /= 3600.0;  /* put delta in hours */
-            Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie dates debut=%d fin=%d delta=%f\n", __func__, debut, fin, delta8);
-            difdatr_c(&date, &debut, &diff_deb);
-            difdatr_c(&date, &fin, &diff_fin);
-            remainder = fmod(diff_deb, delta8);
-            Lib_Log(APP_LIBFST, APP_EXTRA, "%s: diff_deb=%f diff_fin=%f modulo=%f\n", __func__, diff_deb, diff_fin, remainder);
-            if ((diff_deb >= 0.) && (diff_fin <= 0.) && (remainder <= (5.0/3600.))) {
-              amatch = 1;
-              Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req match %s\n", __func__, desire_exclure);
-            }
-//fprintf(stderr, "matching date delta, amatch=%d\n", amatch);
-            if(amatch == 0) continue;  /* rien trouve qui satisfait la requete desire/exclure */
-            break;   /* requete satisfaite jusqu'ici */
-
-          default:
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: (C_fst_match_req) invalid Requests[%d].dates.in_use=%d\n",
-                    __func__, set_nb, Requests[set_nb].dates.in_use);
-            return 0;
-            break;     /* this never gets executed */
-
-          } /* end switch */
-      }
-
-      if (Requests[set_nb].ip1s.in_use) {
-        amatch = (Requests[set_nb].ip1s.data[0] == -1) ? 1 : 0 ;
-        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie ip1s set_nb=%d\n", __func__, set_nb);
-        if( amatch == 0)
-          amatch = match_ip(Requests[set_nb].ip1s.in_use, Requests[set_nb].ip1s.nelm, Requests[set_nb].ip1s.data, ip1, translatable);
-//fprintf(stderr, "%s matching ip1=%d, amatch=%d\n", in_use[Requests[set_nb].ip1s.in_use], ip1, amatch);
-        if(amatch == 0) continue ;  /* requete non satisfaite pour ip1 */
-      }
-
-      if (Requests[set_nb].ip2s.in_use) {
-        amatch = (Requests[set_nb].ip2s.data[0] == -1) ? 1 : 0 ;
-        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie ip2s set_nb=%d\n", __func__, set_nb);
-        if( amatch == 0)
-          amatch = match_ip(Requests[set_nb].ip2s.in_use, Requests[set_nb].ip2s.nelm, Requests[set_nb].ip2s.data, ip2, translatable);
-//printf(stderr, "%s matching ip2=%d, amatch=%d\n", in_use[Requests[set_nb].ip2s.in_use], ip2, amatch);
-        if(amatch == 0) continue ;  /* requete non satisfaite pour ip2 */
-      }
-
-      if (Requests[set_nb].ip3s.in_use) {
-        amatch = (Requests[set_nb].ip3s.data[0] == -1) ? 1 : 0 ;
-        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie ip3s set_nb=%d\n", __func__, set_nb);
-        if( amatch == 0)
-          amatch = match_ip(Requests[set_nb].ip3s.in_use, Requests[set_nb].ip3s.nelm, Requests[set_nb].ip3s.data, ip3, translatable);
-//fprintf(stderr, "%s matching ip3=%d, amatch=%d\n", in_use[Requests[set_nb].ip3s.in_use], ip3, amatch);
-        if (amatch == 0) {
-          Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Request not satisfied for ip3 (we have %d) \n", __func__, ip3);
-          continue ;  /* requete non satisfaite pour ip3 */
         }
-      }
+        amatch = 1;   /* requete satisfaite jusqu'ici si criteres supplementaires actifs et OK */
+        if (Requests[set_nb].etiquettes.in_use) {
+            amatch = 0;
+            if(Requests[set_nb].etiquettes.pdata[0][0] == ' ') amatch = 1;
+            Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie etiquettes du fichier=%s set_nb=%d\n", __func__, etiket, set_nb);
+            for (int i = 0; i < Requests[set_nb].etiquettes.nelm && amatch == 0; i++) {
+                if (strncmp(Requests[set_nb].etiquettes.pdata[i], etiket, Min(12, strlen(Requests[set_nb].etiquettes.pdata[i]))) == 0) {
+                    amatch = 1;       /* requete satisfaite jusqu'ici */
+                    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req match %s\n", __func__, desire_exclure);
+                }
+            }
+            //fprintf(stderr, "matching etiket, amatch=%d\n", amatch);
+            if (amatch == 0) continue;  /* requete non satisfaite pour etiquettes */
+        }
 
-      if (amatch == 1) {
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req fin requete %s satisfaite, handle=%d \n", __func__, desire_exclure, handle);
-        Requests[set_nb].hit++ ;                                    /* add one to this request's hit count */
-        return (Requests[set_nb].exdes == DESIRE) ? set_nb+1 : 0 ;  /* requete desire satisfaite */
-      }
-    /* Next:                  verifier le prochain desire/exclure */
+        if (Requests[set_nb].nomvars.in_use) {
+            amatch = 0;
+            if (Requests[set_nb].nomvars.pdata[0][0] == ' ') amatch = 1;
+            Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie nomvars du fichier=%s set_nb=%d\n", __func__, nomvar, set_nb);
+            for (int i = 0; i < Requests[set_nb].nomvars.nelm && amatch == 0; i++) {
+                if (strncmp(Requests[set_nb].nomvars.pdata[i], nomvar, Min(4, strlen(Requests[set_nb].nomvars.pdata[i]))) == 0) {
+                    amatch = 1;       /* requete satisfaite jusqu'ici */
+                    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req match %s\n", __func__, desire_exclure);
+                }
+            }
+            //fprintf(stderr, "matching nomvar, amatch=%d\n", amatch);
+            if (amatch == 0) continue;  /* requete non satisfaite pour nomvars */
+        }
 
-  } /* end for */
+        if (Requests[set_nb].typvars.in_use) {
+            amatch = 0;
+            if(Requests[set_nb].typvars.pdata[0][0] == ' ') amatch = 1;
+            Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie typvars set_nb=%d\n", __func__, set_nb);
+            for (int i = 0; i < Requests[set_nb].typvars.nelm && amatch == 0; i++) {
+                if (strncmp(Requests[set_nb].typvars.pdata[i], typvar, Min(2, strlen(Requests[set_nb].typvars.pdata[i]))) == 0) {
+                    amatch = 1;       /* requete satisfaite jusqu'ici */
+                    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req match %s\n", __func__, desire_exclure);
+                }
+            }
+            //fprintf(stderr, "matching typvar, amatch=%d\n", amatch);
+            if (amatch == 0) continue;  /* requete non satisfaite pour typvars */
+        }
 
-  last_in_use = last_R;
-  while ((last_in_use > first_R) && (! Requests[last_in_use].in_use))
-    last_in_use--;
-/*  fprintf(stderr, "Debug+ last_in_use=%d\n", last_in_use); */
-/*  rien trouve qui satisfasse les requetes */
-  if ((Requests[last_in_use].exdes == DESIRE) && (Requests[last_in_use].in_use))
-    return 0;  /* ne satisfait pas la requete desire */
-  else
-    return nb_desire==0 ? 1:0;  /* rien a exclure */
+        if (Requests[set_nb].dates.in_use) {
+            amatch = 0;
+            switch (Requests[set_nb].dates.in_use) {
 
-} /* end fst_match_req */
+            case VALUE:
+                Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie dates entier set_nb=%d\n", __func__, set_nb);
+                if(Requests[set_nb].dates.data[0] == -1) amatch = 1;
+                for (int i = 0; i < Requests[set_nb].dates.nelm && amatch == 0; i++)
+                if (Requests[set_nb].dates.data[i] == date) {
+                    amatch = 1;
+                    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req match %s\n", __func__, desire_exclure);
+                }
+                //fprintf(stderr, "matching date value, amatch=%d\n", amatch);
+                if(amatch == 0) continue;  /* rien trouve qui satisfasse la requete pour dates */
+                break;   /* requete satisfaite jusqu'ici */
+
+            case RANGE: {
+                int debut = Requests[set_nb].dates.data[0] <= 0 ? date : Requests[set_nb].dates.data[0];
+                int fin = Requests[set_nb].dates.data[1] <= 0 ? date : Requests[set_nb].dates.data[1];
+                Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie dates debut=%d fin=%d set_nb=%d\n", __func__, debut, fin, set_nb);
+                double diff_deb, diff_fin;
+                difdatr_c(&date, &debut, &diff_deb);
+                difdatr_c(&date, &fin, &diff_fin);
+                Lib_Log(APP_LIBFST, APP_EXTRA, "%s: diff_deb=%f diff_fin=%f\n", __func__, diff_deb, diff_fin);
+                if ((diff_deb >= 0.) && (diff_fin <= 0.)) {
+                    amatch = 1;
+                    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req match %s\n", __func__, desire_exclure);
+                }
+                //fprintf(stderr, "matching date range, amatch=%d\n", amatch);
+                if(amatch == 0) continue;  /* rien trouve qui satisfasse la requete desire/exclure */
+                break;   /* requete satisfaite jusqu'ici */
+            }
+
+            case DELTA: {
+                Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie dates debut fin delta set_nb=%d\n", __func__, set_nb);
+                int debut = Requests[set_nb].dates.data[0] <= 0 ? date : Requests[set_nb].dates.data[0];
+                int fin = Requests[set_nb].dates.data[1] <= 0 ? date : Requests[set_nb].dates.data[1];
+                double delta8 = Requests[set_nb].dates.delta / 3600.0;  /* put delta in hours */
+                Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie dates debut=%d fin=%d delta=%f\n", __func__, debut, fin, delta8);
+                double diff_deb, diff_fin;
+                difdatr_c(&date, &debut, &diff_deb);
+                difdatr_c(&date, &fin, &diff_fin);
+                double remainder = fmod(diff_deb, delta8);
+                Lib_Log(APP_LIBFST, APP_EXTRA, "%s: diff_deb=%f diff_fin=%f modulo=%f\n", __func__, diff_deb, diff_fin, remainder);
+                if ((diff_deb >= 0.) && (diff_fin <= 0.) && (remainder <= (5.0/3600.))) {
+                    amatch = 1;
+                    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req match %s\n", __func__, desire_exclure);
+                }
+                //fprintf(stderr, "matching date delta, amatch=%d\n", amatch);
+                if(amatch == 0) continue;  /* rien trouve qui satisfait la requete desire/exclure */
+                break;   /* requete satisfaite jusqu'ici */
+            }
+
+            default:
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: (C_fst_match_req) invalid Requests[%d].dates.in_use=%d\n",
+                        __func__, set_nb, Requests[set_nb].dates.in_use);
+                return 0;
+                break;     /* this never gets executed */
+
+            } /* end switch */
+        }
+
+        if (Requests[set_nb].ip1s.in_use) {
+            amatch = (Requests[set_nb].ip1s.data[0] == -1) ? 1 : 0;
+            Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie ip1s set_nb=%d\n", __func__, set_nb);
+            if (amatch == 0) {
+                amatch = match_ip(Requests[set_nb].ip1s.in_use, Requests[set_nb].ip1s.nelm, Requests[set_nb].ip1s.data, ip1, translatable);
+            }
+            //fprintf(stderr, "%s matching ip1=%d, amatch=%d\n", in_use[Requests[set_nb].ip1s.in_use], ip1, amatch);
+            if(amatch == 0) continue;  /* requete non satisfaite pour ip1 */
+        }
+
+        if (Requests[set_nb].ip2s.in_use) {
+            amatch = (Requests[set_nb].ip2s.data[0] == -1) ? 1 : 0;
+            Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie ip2s set_nb=%d\n", __func__, set_nb);
+            if (amatch == 0) {
+                amatch = match_ip(Requests[set_nb].ip2s.in_use, Requests[set_nb].ip2s.nelm, Requests[set_nb].ip2s.data, ip2, translatable);
+            }
+            //printf(stderr, "%s matching ip2=%d, amatch=%d\n", in_use[Requests[set_nb].ip2s.in_use], ip2, amatch);
+            if(amatch == 0) continue;  /* requete non satisfaite pour ip2 */
+        }
+
+        if (Requests[set_nb].ip3s.in_use) {
+            amatch = (Requests[set_nb].ip3s.data[0] == -1) ? 1 : 0;
+            Lib_Log(APP_LIBFST, APP_EXTRA, "%s: C_fst_match_req verifie ip3s set_nb=%d\n", __func__, set_nb);
+            if (amatch == 0) {
+                amatch = match_ip(Requests[set_nb].ip3s.in_use, Requests[set_nb].ip3s.nelm, Requests[set_nb].ip3s.data, ip3, translatable);
+            }
+            //fprintf(stderr, "%s matching ip3=%d, amatch=%d\n", in_use[Requests[set_nb].ip3s.in_use], ip3, amatch);
+            if (amatch == 0) {
+                Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Request not satisfied for ip3 (we have %d) \n", __func__, ip3);
+                continue;  /* requete non satisfaite pour ip3 */
+            }
+        }
+
+        if (amatch == 1) {
+            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: C_fst_match_req fin requete %s satisfaite, handle=%d \n", __func__, desire_exclure, handle);
+            Requests[set_nb].hit++;                                    /* add one to this request's hit count */
+            return (Requests[set_nb].exdes == DESIRE) ? set_nb+1 : 0;  /* requete desire satisfaite */
+        }
+        /* Next:                  verifier le prochain desire/exclure */
+
+    } /* end for */
+
+    int last_in_use = last_R;
+    while ((last_in_use > first_R) && (! Requests[last_in_use].in_use)) last_in_use--;
+    /*  fprintf(stderr, "Debug+ last_in_use=%d\n", last_in_use); */
+    /*  rien trouve qui satisfasse les requetes */
+    if ((Requests[last_in_use].exdes == DESIRE) && (Requests[last_in_use].in_use)) {
+        // ne satisfait pas la requete desire
+        return 0;
+    } else {
+        // Rien a exclure
+        return nb_desire == 0 ? 1 : 0;
+    }
+}
+
 
 /*****************************************************************************
  *                      C _ F S T _ M A T C H _ R E Q                        *
@@ -1256,19 +1223,17 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
  *                                                                           *
  *****************************************************************************/
 int C_fst_rsf_match_req(int datev, int ni, int nj, int nk, int ip1, int ip2, int ip3, const char* typvar,
-                        const char* nomvar, const char* etiket, const char* grtyp, int ig1, int ig2, int ig3, int ig4)
-{
+                        const char* nomvar, const char* etiket, const char* grtyp, int ig1, int ig2, int ig3, int ig4) {
   int status;
 
   if(DeactivateAllFilters) return 1;  /* filtering deactivated */
 
-  status = C_fstmatch_parm(0, datev, ni, nj, nk, ip1, ip2, ip3, typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4) ;
+  status = C_fstmatch_parm(0, datev, ni, nj, nk, ip1, ip2, ip3, typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4);
 //  fprintf(stderr, "C_fstmatch_req/fstd status=%d\n", status);
-  return status ;
+  return status;
 }
 
-int C_fstmatch_req(int handle)
-{
+int C_fstmatch_req(int handle) {
   int ier;
   int ni, nj, nk, dateo, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
   int nbits, swa, ubc, lng, dltf, datevalid, xtra2, xtra3, datyp;
@@ -1287,13 +1252,12 @@ int C_fstmatch_req(int handle)
 
   if (ier < 0) return 0;
   status = C_fstmatch_parm(handle, datevalid, ni, nj, nk, ip1, ip2, ip3,
-                            typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4) ;
+                            typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4);
 //  fprintf(stderr, "C_fstmatch_req/fstd status=%d\n", status);
-  return status ;
+  return status;
 }
 
-int C_fst_match_req(const int handle)
-{
+int C_fst_match_req(const int handle) {
   int ier;
   int ni, nj, nk, dateo, deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4;
   int nbits, swa, ubc, lng, dltf, datevalid, xtra2, xtra3, datyp;
@@ -1312,9 +1276,9 @@ int C_fst_match_req(const int handle)
 
   if (ier < 0) return 0;
   status = C_fstmatch_parm(handle, datevalid, ni, nj, nk, ip1, ip2, ip3,
-                            typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4) ;
+                            typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4);
 //  fprintf(stderr, "C_fst_match_req status=%d\n", status);
-  return status ;
+  return status;
 }
 
 /*****************************************************************************
@@ -1327,172 +1291,153 @@ int C_fst_match_req(const int handle)
  *                                                                           *
  *****************************************************************************/
 
-int C_select_ip1(void *iplist, int nelm)
-{
-/*CHC/NRC*/
-  return Xc_Select_ip1(bundle_nb, desire_exclure, iplist, nelm);
+int C_select_ip1(void *iplist, int nelm) {
+    /*CHC/NRC*/
+    return Xc_Select_ip1(bundle_nb, desire_exclure, iplist, nelm);
 }
 
-int C_select_ip2(void *iplist, int nelm)
-{
-/*CHC/NRC*/
-  return Xc_Select_ip2(bundle_nb, desire_exclure, iplist, nelm);
+int C_select_ip2(void *iplist, int nelm) {
+    /*CHC/NRC*/
+    return Xc_Select_ip2(bundle_nb, desire_exclure, iplist, nelm);
 }
 
-int C_select_ip3(void *iplist, int nelm)
-{
-/*CHC/NRC*/
-  return Xc_Select_ip3(bundle_nb, desire_exclure, iplist, nelm);
+int C_select_ip3(void *iplist, int nelm) {
+    /*CHC/NRC*/
+    return Xc_Select_ip3(bundle_nb, desire_exclure, iplist, nelm);
 }
 
-int C_select_date(int set_nb, int des_exc, int *date_list, int nelm)
-{
-/*CHC/NRC*/
-  return Xc_Select_date(bundle_nb, desire_exclure, date_list, nelm);
+int C_select_date(int set_nb, int des_exc, int *date_list, int nelm) {
+    /*CHC/NRC*/
+    (void) set_nb; // unused
+    (void) des_exc; // unused
+    return Xc_Select_date(bundle_nb, desire_exclure, date_list, nelm);
 }
 
-int C_select_etiquette(char *etiq_list[], int nelm)
-{
-/*CHC/NRC*/
-  return Xc_Select_etiquette(bundle_nb, desire_exclure, etiq_list, nelm);
+int C_select_etiquette(char *etiq_list[], int nelm) {
+    /*CHC/NRC*/
+    return Xc_Select_etiquette(bundle_nb, desire_exclure, etiq_list, nelm);
 }
 
-int C_select_nomvar(char *nomv_list[], int nelm)
-{
-/*CHC/NRC*/
-  return Xc_Select_nomvar(bundle_nb, desire_exclure, nomv_list, nelm);
+int C_select_nomvar(char *nomv_list[], int nelm) {
+    /*CHC/NRC*/
+    return Xc_Select_nomvar(bundle_nb, desire_exclure, nomv_list, nelm);
 }
 
-int C_select_typvar(char *typv_list[], int nelm)
-{
-/*CHC/NRC*/
-    return Xc_Select_typvar(bundle_nb, desire_exclure, typv_list, nelm);
+int C_select_typvar(char *typv_list[], int nelm) {
+    /*CHC/NRC*/
+        return Xc_Select_typvar(bundle_nb, desire_exclure, typv_list, nelm);
 }
 
-int C_select_suppl(int ni, int nj, int nk, int ig1, int ig2, int ig3, int ig4, char gtyp)
-{
-/*CHC/NRC*/
+int C_select_suppl(int ni, int nj, int nk, int ig1, int ig2, int ig3, int ig4, char gtyp) {
+    /*CHC/NRC*/
     return Xc_Select_suppl(bundle_nb, desire_exclure, ni, nj, nk, ig1, ig2, ig3, ig4, gtyp);
 }
 
-int f77name(f_select_ip1)(void *iplist, int *nelm)
-{
-  return Xc_Select_ip1(bundle_nb, desire_exclure, iplist, *nelm);
+int f77name(f_select_ip1)(void *iplist, int *nelm) {
+    return Xc_Select_ip1(bundle_nb, desire_exclure, iplist, *nelm);
 }
 
-int f77name(f_select_ip2)(void *iplist, int *nelm)
-{
-  return Xc_Select_ip2(bundle_nb, desire_exclure, iplist, *nelm);
+int f77name(f_select_ip2)(void *iplist, int *nelm) {
+    return Xc_Select_ip2(bundle_nb, desire_exclure, iplist, *nelm);
 }
 
-int f77name(f_select_ip3)(void *iplist, int *nelm)
-{
-  return Xc_Select_ip3(bundle_nb, desire_exclure, iplist, *nelm);
+int f77name(f_select_ip3)(void *iplist, int *nelm) {
+    return Xc_Select_ip3(bundle_nb, desire_exclure, iplist, *nelm);
 }
 
-int f77name(f_select_date)(int *date_list, int *nelm)
-{
-  return Xc_Select_date(bundle_nb, desire_exclure, date_list, *nelm);
+int f77name(f_select_date)(int *date_list, int *nelm) {
+    return Xc_Select_date(bundle_nb, desire_exclure, date_list, *nelm);
 }
 
-int f77name(f_select_suppl)(int *ni, int *nj, int *nk, int *ig1, int *ig2, int *ig3, int *ig4, char *gtyp, F2Cl flng)
-{
-//fprintf(stderr, "f_select_suppl: ni=%d nj=%d nk=%d ig1=%d ig2=%d ig3=%d ig4=%d gtyp='%c'\n", *ni, *nj, *nj, *ig1, *ig2, *ig3, *ig4, *gtyp);
+int f77name(f_select_suppl)(int *ni, int *nj, int *nk, int *ig1, int *ig2, int *ig3, int *ig4, char *gtyp, F2Cl flng) {
+    (void) flng; // unused
+    //fprintf(stderr, "f_select_suppl: ni=%d nj=%d nk=%d ig1=%d ig2=%d ig3=%d ig4=%d gtyp='%c'\n", *ni, *nj, *nj, *ig1, *ig2, *ig3, *ig4, *gtyp);
     return Xc_Select_suppl(bundle_nb, desire_exclure, *ni, *nj, *nk, *ig1, *ig2, *ig3, *ig4, *gtyp);
 }
 
-int Xf_Select_etiquette(int set_nb, int des_exc, char *etiq_list, int nelm, int flng)
-{
-  char **string_array;
-  int i, ier;
-  Lib_Log(APP_LIBFST, APP_DEBUG, "%s: desire_etiquette lng=%d nelm=%d\n", __func__, flng, nelm);
-  string_array = fill_string_array(allocate_string_array(nelm), etiq_list, flng, nelm, 0);
-  for (i=0; i < nelm; i++)
-      Lib_Log(APP_LIBFST, APP_DEBUG, "%s: string_array[%d]-->%s<--\n", __func__, i, string_array[i]);
-  ier = Xc_Select_etiquette(set_nb, des_exc, string_array, nelm);
-  free_string_array(string_array);
-  return ier;
+int Xf_Select_etiquette(int set_nb, int des_exc, char *etiq_list, int nelm, int flng) {
+    char **string_array;
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: desire_etiquette lng=%d nelm=%d\n", __func__, flng, nelm);
+    string_array = fill_string_array(allocate_string_array(nelm), etiq_list, flng, nelm, 0);
+    for (int i = 0; i < nelm; i++) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: string_array[%d]-->%s<--\n", __func__, i, string_array[i]);
+    }
+    int ier = Xc_Select_etiquette(set_nb, des_exc, string_array, nelm);
+    free_string_array(string_array);
+    return ier;
 }
 
-int f77name(f_select_etiquette)(char *etiq_list, int *nelm, F2Cl flng)
-{
+int f77name(f_select_etiquette)(char *etiq_list, int *nelm, F2Cl flng) {
   char **string_array;
-  int i, ier, lng=flng;
+  int i, ier, lng = flng;
   Lib_Log(APP_LIBFST, APP_DEBUG, "%s: desire_etiquette lng=%d nelm=%d\n", __func__, lng, *nelm);
   string_array = fill_string_array(allocate_string_array(*nelm), etiq_list, lng, *nelm, 0);
-  for (i=0; i < *nelm; i++)
+  for (i = 0; i < *nelm; i++)
       Lib_Log(APP_LIBFST, APP_DEBUG, "%s: string_array[%d]-->%s<--\n", __func__, i, string_array[i]);
   ier = Xc_Select_etiquette(bundle_nb, desire_exclure, string_array, *nelm);
   free_string_array(string_array);
   return ier;
 }
 
-int Xf_Select_nomvar(int set_nb, int des_exc, char *nomv_list, int nelm, int flng)
-{
+int Xf_Select_nomvar(int set_nb, int des_exc, char *nomv_list, int nelm, int flng) {
   char **string_array;
   int i, ier;
   Lib_Log(APP_LIBFST, APP_DEBUG, "%s: desire_etiquette lng=%d nelm=%d\n", __func__, flng, nelm);
   string_array = fill_string_array(allocate_string_array(nelm), nomv_list, flng, nelm, 0);
-  for (i=0; i < nelm; i++)
+  for (i = 0; i < nelm; i++)
       Lib_Log(APP_LIBFST, APP_DEBUG, "%s: string_array[%d]-->%s<--\n", __func__, i, string_array[i]);
   ier = Xc_Select_nomvar(set_nb, des_exc, string_array, nelm);
   free_string_array(string_array);
   return ier;
 }
 
-int f77name(f_select_nomvar)(char *nomv_list, int *nelm, F2Cl flng)
-{
+int f77name(f_select_nomvar)(char *nomv_list, int *nelm, F2Cl flng) {
   char **string_array;
-  int i, ier, lng=flng;
+  int i, ier, lng = flng;
   Lib_Log(APP_LIBFST, APP_DEBUG, "%s: desire_nomvar lng=%d nelm=%d\n", __func__, lng, *nelm);
   string_array = fill_string_array(allocate_string_array(*nelm), nomv_list, lng, *nelm, 0);
-  for (i=0; i < *nelm; i++)
+  for (i = 0; i < *nelm; i++)
       Lib_Log(APP_LIBFST, APP_DEBUG, "%s: string_array[%d]-->%s<--\n", __func__, i, string_array[i]);
   ier = Xc_Select_nomvar(bundle_nb, desire_exclure, string_array, *nelm);
   free_string_array(string_array);
   return ier;
 }
 
-int Xf_Select_typvar(int set_nb, int des_exc, char *typv_list, int nelm, int flng)
-{
+int Xf_Select_typvar(int set_nb, int des_exc, char *typv_list, int nelm, int flng) {
   char **string_array;
   int i, ier;
   Lib_Log(APP_LIBFST, APP_DEBUG, "%s: desire_etiquette lng=%d nelm=%d\n", __func__, flng, nelm);
   string_array = fill_string_array(allocate_string_array(nelm), typv_list, flng, nelm, 0);
-  for (i=0; i < nelm; i++)
+  for (i = 0; i < nelm; i++)
       Lib_Log(APP_LIBFST, APP_DEBUG, "%s: string_array[%d]-->%s<--\n", __func__, i, string_array[i]);
   ier = Xc_Select_typvar(set_nb, des_exc, string_array, nelm);
   free_string_array(string_array);
   return ier;
 }
 
-int f77name(f_select_typvar)(char *typv_list, int *nelm, F2Cl flng)
-{
+int f77name(f_select_typvar)(char *typv_list, int *nelm, F2Cl flng) {
   char **string_array;
-  int i, ier, lng=flng;
+  int i, ier, lng = flng;
   Lib_Log(APP_LIBFST, APP_DEBUG, "%s: desire_typvar lng=%d nelm=%d\n", __func__, lng, *nelm);
   string_array = fill_string_array(allocate_string_array(*nelm), typv_list, lng, *nelm, 0);
-  for (i=0; i < *nelm; i++)
+  for (i = 0; i < *nelm; i++)
       Lib_Log(APP_LIBFST, APP_DEBUG, "%s: string_array[%d]-->%s<--\n", __func__, i, string_array[i]);
   ier = Xc_Select_typvar(bundle_nb, desire_exclure, string_array, *nelm);
   free_string_array(string_array);
   return ier;
 }
 
-int f77name(f_filtre_desire)()
-{
+int f77name(f_filtre_desire)() {
 /*CHC/NRC*/
   return C_filtre_desire();
 }
 
-int f77name(f_filtre_exclure)()
-{
+int f77name(f_filtre_exclure)() {
 /*CHC/NRC*/
   return C_filtre_exclure();
 }
 
-int f77name(f_fst_match_req)(int *handle)
-{
+int f77name(f_fst_match_req)(int *handle) {
   return C_fstmatch_req(*handle);
 }
 
@@ -1505,18 +1450,17 @@ int f77name(f_fst_match_req)(int *handle)
  *Arguments                                                                  *
  *                                                                           *
  *  IN  set_nb     numero associe a un groupe requete                        *
- *  IN  nomvars    0=initialise a zero   -1=garder tel quel                  *
- *  IN  typvars    0=initialise a zero   -1=garder tel quel                  *
- *  IN  etikets    0=initialise a zero   -1=garder tel quel                  *
- *  IN  dates      0=initialise a zero   -1=garder tel quel                  *
- *  IN  ip1s       0=initialise a zero   -1=garder tel quel                  *
- *  IN  ip2s       0=initialise a zero   -1=garder tel quel                  *
- *  IN  ip3s       0=initialise a zero   -1=garder tel quel                  *
+ *  IN  nomvars    0 = initialise a zero   -1 = garder tel quel                  *
+ *  IN  typvars    0 = initialise a zero   -1 = garder tel quel                  *
+ *  IN  etikets    0 = initialise a zero   -1 = garder tel quel                  *
+ *  IN  dates      0 = initialise a zero   -1 = garder tel quel                  *
+ *  IN  ip1s       0 = initialise a zero   -1 = garder tel quel                  *
+ *  IN  ip2s       0 = initialise a zero   -1 = garder tel quel                  *
+ *  IN  ip3s       0 = initialise a zero   -1 = garder tel quel                  *
  *                                                                           *
  *****************************************************************************/
 int C_requetes_reset(int set_nb, int nomvars, int typvars, int etikets, int dates,
-                    int ip1s, int ip2s, int ip3s)
-{
+                    int ip1s, int ip2s, int ip3s) {
   int j;
 
   if (set_nb > MAX_requetes-1) {
@@ -1531,43 +1475,43 @@ int C_requetes_reset(int set_nb, int nomvars, int typvars, int etikets, int date
   if (nomvars != -1) {
     Requests[set_nb].nomvars.in_use = UNUSED;
     Requests[set_nb].nomvars.nelm = 0;
-    for (j=0; j < MAX_Nlist; j++)
+    for (j = 0; j < MAX_Nlist; j++)
       strcpy(Requests[set_nb].nomvars.pdata[j], "    ");
   }
   if (typvars != -1) {
     Requests[set_nb].typvars.in_use = UNUSED;
     Requests[set_nb].typvars.nelm = 0;
-    for (j=0; j < MAX_Nlist; j++)
+    for (j = 0; j < MAX_Nlist; j++)
       strcpy(Requests[set_nb].typvars.pdata[j], "  ");
   }
   if (etikets != -1) {
     Requests[set_nb].etiquettes.in_use = UNUSED;
     Requests[set_nb].etiquettes.nelm = 0;
-    for (j=0; j < MAX_Nlist; j++)
+    for (j = 0; j < MAX_Nlist; j++)
       strcpy(Requests[set_nb].etiquettes.pdata[j], "            ");
   }
   if (dates != -1) {
     Requests[set_nb].dates.in_use = UNUSED;
     Requests[set_nb].dates.nelm = 0;
-    for (j=0; j < MAX_Nlist; j++)
+    for (j = 0; j < MAX_Nlist; j++)
       Requests[set_nb].dates.data[j]=0;
   }
   if (ip1s != -1) {
     Requests[set_nb].ip1s.in_use = UNUSED;
     Requests[set_nb].ip1s.nelm = 0;
-    for (j=0; j < MAX_Nlist; j++)
+    for (j = 0; j < MAX_Nlist; j++)
        Requests[set_nb].ip1s.data[j]=0;
   }
   if (ip2s != -1) {
     Requests[set_nb].ip2s.in_use = UNUSED;
     Requests[set_nb].ip2s.nelm = 0;
-    for (j=0; j < MAX_Nlist; j++)
+    for (j = 0; j < MAX_Nlist; j++)
        Requests[set_nb].ip2s.data[j]=0;
   }
   if (ip3s != -1) {
     Requests[set_nb].ip3s.in_use = UNUSED;
     Requests[set_nb].ip3s.nelm = 0;
-    for (j=0; j < MAX_Nlist; j++)
+    for (j = 0; j < MAX_Nlist; j++)
        Requests[set_nb].ip3s.data[j]=0;
   }
   Requests[set_nb].in_use_supp = UNUSED;
@@ -1582,20 +1526,16 @@ int C_requetes_reset(int set_nb, int nomvars, int typvars, int etikets, int date
 
   return 0;
 }
-/*****************************************************************************
- *                      C _ R E Q U E T E S _ I N I T                        *
- *                                                                           *
- *Objet                                                                      *
- *   Initialiser le package de requetes                                      *
- *                                                                           *
- *****************************************************************************/
-void C_requetes_init(char *requetes_filename, const char * const debug_filename)
-{
+
+
+void C_requetes_init(char *requetes_filename, const char * const debug_filename) {
+    (void) requetes_filename; // unused
     /*  debug_filename = getenv("DEBUGFILE"); */
-    if (debug_filename != NULL)
+    if (debug_filename != NULL) {
         stddebug = fopen(debug_filename, "w");
-    else
+    } else {
         stddebug = fopen("/dev/null", "w");
+    }
 
     first_R = 0;
     last_R = MAX_requetes-1;
