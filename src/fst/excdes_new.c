@@ -450,60 +450,61 @@ int Xc_Select_ip3(const int set_nb, const int des_exc, const void *iplist, int n
  *                                                                           *
  *****************************************************************************/
 int Xc_Select_date(int set_nb, int des_exc, int *date_list, int nelm) {
-  int i, range = 0;
-  int valid, delta = 0;
-  union {
-    int i;
-    float f;
-  }i_or_f;
+    Requests[set_nb].dates.in_use = UNUSED;
+    if(ValidateRequestForSet(set_nb, des_exc, nelm, 1, "date") < 0) return -1;
 
-  valid = ValidateRequestForSet(set_nb, des_exc, nelm, 1, "date");
-  if(valid < 0) goto error;
+    if (date_list[0] == -1) nelm = 1;        /* universal value, rest of values if any is irrelevant */
+    Requests[set_nb].in_use = USED;          /* set is in use */
+    Requests[set_nb].dates.in_use = VALUE;    /* item in set is in use */
+    Requests[set_nb].dates.delta = 0;         /* delta not supported */
+    Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
+    Requests[set_nb].dates.nelm = nelm;     /* if range, the value of nelm does not matter, the first 2 values are used */
+    Requests[set_nb].dates.data[0] = date_list[0];  /* first value from list */
 
-  if (date_list[0] == -1) nelm = 1;        /* universal value, rest of values if any is irrelevant */
-  Requests[set_nb].in_use = USED;          /* set is in use */
-  Requests[set_nb].dates.in_use = VALUE;    /* item in set is in use */
-  Requests[set_nb].dates.delta = 0;         /* delta not supported */
-  Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
-  Requests[set_nb].dates.nelm = nelm;     /* if range, the value of nelm does not matter, the first 2 values are used */
-  Requests[set_nb].dates.data[0] = date_list[0];  /* first value from list */
+    if (nelm == 1 ) return 0;               /* one value, cannot be a range */
 
-  if (nelm == 1 ) return 0;               /* one value, cannot be a range */
-
-  Requests[set_nb].dates.nelm = nelm;      /* irrelevant if we have a range of dates */
-  for (i = 0; i<nelm; i++) {
-    Requests[set_nb].dates.data[i] = date_list[i];
-    if(date_list[i] == READLX_DELTA) {                 /* DELTA keyword */
-      delta++;
-      if(delta > 1 || range == 0 ) goto error;           /* more than one delta keyword or delta encountered before @  */
-      if(i >= nelm-1) goto error;                        /* no value follows delta */
-      if(i != 3) goto error;                             /* must be date1 @ date2 delta hours */
-      Requests[set_nb].dates.in_use = DELTA;
-      Requests[set_nb].dates.nelm = 3;
-      i_or_f.i = date_list[i+1];
-      if(i_or_f.i & 0x7F800000) i_or_f.i = i_or_f.f+0.5;  /* real value is in seconds and gets rounded */
-      else i_or_f.i = i_or_f.i * 3600;                    /* integer value converted to seconds */
-      Requests[set_nb].dates.data[2] = i_or_f.i;
-      Requests[set_nb].dates.delta = i_or_f.i;
+    Requests[set_nb].dates.nelm = nelm;      /* irrelevant if we have a range of dates */
+    int range = 0;
+    int delta = 0;
+    for (int i = 0; i < nelm; i++) {
+        Requests[set_nb].dates.data[i] = date_list[i];
+        if (date_list[i] == READLX_DELTA) {
+            // DELTA keyword
+            union {
+                int i;
+                float f;
+            } i_or_f;
+            delta++;
+            if (delta > 1 || range == 0 ) return -1;           /* more than one delta keyword or delta encountered before @  */
+            if (i >= nelm - 1) return -1;                        /* no value follows delta */
+            if (i != 3) return -1;                             /* must be date1 @ date2 delta hours */
+            Requests[set_nb].dates.in_use = DELTA;
+            Requests[set_nb].dates.nelm = 3;
+            i_or_f.i = date_list[i+1];
+            if (i_or_f.i & 0x7F800000) {
+                // real value is in seconds and gets rounded
+                i_or_f.i = i_or_f.f + 0.5;
+            } else {
+                // integer value converted to seconds
+                i_or_f.i = i_or_f.i * 3600;
+            }
+            Requests[set_nb].dates.data[2] = i_or_f.i;
+            Requests[set_nb].dates.delta = i_or_f.i;
+        }
+        if(date_list[i] == READLX_RANGE) {
+            // @ keyword
+            range++;
+            if (range > 1 || i > 1) return -1;           /* more than one @ keyword or @ keyword too far in line */
+            Requests[set_nb].dates.in_use = RANGE;
+            if (i == 1 && nelm > 2) {                                            /* date @ date  or date @ delta */
+                Requests[set_nb].dates.data[1] = date_list[2];
+            }
+            Requests[set_nb].dates.nelm = 2;
+        }
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Requests[%d].dates.data[%d] = %d\n",
+                __func__, set_nb, i, Requests[set_nb].dates.data[i]);
     }
-    if(date_list[i] == READLX_RANGE) {   /* @  keyword   */
-      range++;
-      if(range>1 || i>1) goto error;           /* more than one @ keyword or @ keyword too far in line */
-//      if(i > 1) goto error;                    /*  @ cannot be found beyond position 2 */
-      Requests[set_nb].dates.in_use = RANGE;
-//      if(i==0) Requests[set_nb].dates.data[0] = 0;              /* @ date .... */
-      if(i == 1 && nelm>2) {                                            /* date @ date  or date @ delta */
-        Requests[set_nb].dates.data[1] = date_list[2];
-      }
-      Requests[set_nb].dates.nelm = 2;
-    }
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Requests[%d].dates.data[%d] = %d\n",
-            __func__, set_nb, i, Requests[set_nb].dates.data[i]);
-  }
-  return 0;
-error:
-  Requests[set_nb].dates.in_use = UNUSED;
-  return -1;
+    return 0;
 }
 
 /*****************************************************************************
@@ -521,25 +522,21 @@ error:
  *                                                                           *
  *****************************************************************************/
 int Xc_Select_etiquette(int set_nb, int des_exc, char *etiq_list[], int nelm) {
-  int i;
-  int valid;
+    if (ValidateRequestForSet(set_nb, des_exc, nelm, 1, "etiquette") < 0) {
+        Requests[set_nb].dates.in_use = UNUSED;
+        return -1;
+    }
 
-  valid = ValidateRequestForSet(set_nb, des_exc, nelm, 1, "etiquette");
-  if(valid < 0) goto error;
-
-  Requests[set_nb].in_use = 1;
-  Requests[set_nb].etiquettes.in_use = 1;
-  Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
-  Requests[set_nb].etiquettes.nelm = nelm;
-  for (i = 0; i<nelm; i++) {
-    strncpy(Requests[set_nb].etiquettes.pdata[i], etiq_list[i], 13);
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Requests[%i].etiquettes.pdata[%i]=%s\n",
-            __func__, set_nb, i, Requests[set_nb].etiquettes.pdata[i]);
-  }
-  return 0;
-error:
-  Requests[set_nb].dates.in_use = UNUSED;
-  return -1;
+    Requests[set_nb].in_use = 1;
+    Requests[set_nb].etiquettes.in_use = 1;
+    Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
+    Requests[set_nb].etiquettes.nelm = nelm;
+    for (int i = 0; i<nelm; i++) {
+        strncpy(Requests[set_nb].etiquettes.pdata[i], etiq_list[i], 13);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Requests[%i].etiquettes.pdata[%i]=%s\n",
+                __func__, set_nb, i, Requests[set_nb].etiquettes.pdata[i]);
+    }
+    return 0;
 }
 
 /*****************************************************************************
@@ -557,25 +554,21 @@ error:
  *                                                                           *
  *****************************************************************************/
 int Xc_Select_nomvar(int set_nb, int des_exc, char *nomv_list[], int nelm) {
-  int i;
-  int valid;
+    if (ValidateRequestForSet(set_nb, des_exc, nelm, 1, "nomvar") < 0) {
+        Requests[set_nb].dates.in_use = UNUSED;
+        return -1;
+    }
 
-  valid = ValidateRequestForSet(set_nb, des_exc, nelm, 1, "nomvar");
-  if(valid < 0) goto error;
-
-  Requests[set_nb].in_use = 1;
-  Requests[set_nb].nomvars.in_use = 1;
-  Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
-  Requests[set_nb].nomvars.nelm = nelm;
-  for (i = 0; i<nelm; i++) {
-    strncpy(Requests[set_nb].nomvars.pdata[i], nomv_list[i], 5);
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Requests[%i].nomvars.pdata[%i]=%s\n",
-            __func__, set_nb, i, Requests[set_nb].nomvars.pdata[i]);
-  }
-  return 0;
-error:
-  Requests[set_nb].dates.in_use = UNUSED;
-  return -1;
+    Requests[set_nb].in_use = 1;
+    Requests[set_nb].nomvars.in_use = 1;
+    Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
+    Requests[set_nb].nomvars.nelm = nelm;
+    for (int i = 0; i < nelm; i++) {
+        strncpy(Requests[set_nb].nomvars.pdata[i], nomv_list[i], 5);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Requests[%i].nomvars.pdata[%i]=%s\n",
+                __func__, set_nb, i, Requests[set_nb].nomvars.pdata[i]);
+    }
+    return 0;
 }
 
 /*****************************************************************************
@@ -595,27 +588,24 @@ error:
  *                                                                           *
  *****************************************************************************/
 int Xc_Select_suppl(int set_nb, int des_exc, int ni, int nj, int nk, int ig1, int ig2, int ig3, int ig4, char gtyp) {
-  int valid;
+    if(ValidateRequestForSet(set_nb, des_exc, 1, 1, "suppl") < 0) {
+        Requests[set_nb].dates.in_use = UNUSED;
+        return -1;
+    }
 
-  valid = ValidateRequestForSet(set_nb, des_exc, 1, 1, "suppl");
-  if(valid < 0) goto error;
-
-  Requests[set_nb].in_use = 1;
-  Requests[set_nb].in_use_supp = 1;
-  Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
-  Requests[set_nb].nis     = ni;
-  Requests[set_nb].njs     = nj;
-  Requests[set_nb].nks     = nk;
-  Requests[set_nb].ig1s    = ig1;
-  Requests[set_nb].ig2s    = ig2;
-  Requests[set_nb].ig3s    = ig3;
-  Requests[set_nb].ig4s    = ig4;
-  Requests[set_nb].grdtyps = gtyp;
-//  fprintf(stderr, "CRITSUP: ni=%d nj=%d nk=%d ig1=%d ig2=%d ig3=%d ig4=%d gtyp='%c'\n", ni, nj, nj, ig1, ig2, ig2, ig4, gtyp);
-  return 0;
-error:
-  Requests[set_nb].dates.in_use = UNUSED;
-  return -1;
+    Requests[set_nb].in_use = 1;
+    Requests[set_nb].in_use_supp = 1;
+    Requests[set_nb].exdes = (des_exc == 1) ? DESIRE : EXCLURE;
+    Requests[set_nb].nis     = ni;
+    Requests[set_nb].njs     = nj;
+    Requests[set_nb].nks     = nk;
+    Requests[set_nb].ig1s    = ig1;
+    Requests[set_nb].ig2s    = ig2;
+    Requests[set_nb].ig3s    = ig3;
+    Requests[set_nb].ig4s    = ig4;
+    Requests[set_nb].grdtyps = gtyp;
+    //  fprintf(stderr, "CRITSUP: ni=%d nj=%d nk=%d ig1=%d ig2=%d ig3=%d ig4=%d gtyp='%c'\n", ni, nj, nj, ig1, ig2, ig2, ig4, gtyp);
+    return 0;
 }
 
 
@@ -830,14 +820,14 @@ int ReadRequestTable(
  *                                                                           *
  *****************************************************************************/
 int C_select_groupset(int first_set_nb, int last_set_nb) {
-  if(package_not_initialized) RequetesInit();
-  if ((first_set_nb > MAX_requetes-1) || (last_set_nb > MAX_requetes-1) || (first_set_nb > last_set_nb)) {
-    Lib_Log(APP_LIBFST,APP_ERROR,"%s: first_set_nb=%d, last_set_nb=%d, MAX allowed=%d\n",__func__,first_set_nb,last_set_nb,MAX_requetes-1);
-    return -1;
-  }
-  first_R = first_set_nb;
-  last_R = last_set_nb;
-return 0; /*CHC/NRC*/
+    if(package_not_initialized) RequetesInit();
+    if ((first_set_nb > MAX_requetes-1) || (last_set_nb > MAX_requetes-1) || (first_set_nb > last_set_nb)) {
+        Lib_Log(APP_LIBFST,APP_ERROR,"%s: first_set_nb=%d, last_set_nb=%d, MAX allowed=%d\n",__func__,first_set_nb,last_set_nb,MAX_requetes-1);
+        return -1;
+    }
+    first_R = first_set_nb;
+    last_R = last_set_nb;
+    return 0; /*CHC/NRC*/
 }
 
 /*****************************************************************************
@@ -849,16 +839,15 @@ return 0; /*CHC/NRC*/
  *                                                                           *
  *****************************************************************************/
 int C_filtre_desire() {
-
-  if(package_not_initialized) RequetesInit();
-  bundle_nb++;
-  desire_exclure = 1;
-  if (bundle_nb > MAX_requetes-1) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: C_filtre_desire nb=%d > MAX desire/exclure =%d\n", __func__, bundle_nb, MAX_requetes-1);
-    return -1;
-  }
-  Lib_Log(APP_LIBFST, APP_INFO, "%s: desire bundle_nb = %d, desire_exclure = %d\n", __func__, bundle_nb, desire_exclure);
-  return 0; /*CHC/NRC*/
+    if(package_not_initialized) RequetesInit();
+    bundle_nb++;
+    desire_exclure = 1;
+    if (bundle_nb > MAX_requetes-1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: C_filtre_desire nb=%d > MAX desire/exclure =%d\n", __func__, bundle_nb, MAX_requetes-1);
+        return -1;
+    }
+    Lib_Log(APP_LIBFST, APP_INFO, "%s: desire bundle_nb = %d, desire_exclure = %d\n", __func__, bundle_nb, desire_exclure);
+    return 0; /*CHC/NRC*/
 }
 
 /*****************************************************************************
@@ -870,16 +859,15 @@ int C_filtre_desire() {
  *                                                                           *
  *****************************************************************************/
 int C_filtre_exclure() {
-
-  if(package_not_initialized) RequetesInit();
-  bundle_nb++;
-  desire_exclure = 0;
-  if (bundle_nb > MAX_requetes-1) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: C_filtre_exclure nb=%d > MAX desire/exclure =%d\n", __func__, bundle_nb, MAX_requetes-1);
-    return -1;
-  }
-  Lib_Log(APP_LIBFST, APP_INFO, "%s: exclure bundle_nb = %d, desire_exclure = %d\n", __func__, bundle_nb, desire_exclure);
-  return 0; /*CHC/NRC*/
+    if(package_not_initialized) RequetesInit();
+    bundle_nb++;
+    desire_exclure = 0;
+    if (bundle_nb > MAX_requetes-1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: C_filtre_exclure nb=%d > MAX desire/exclure =%d\n", __func__, bundle_nb, MAX_requetes-1);
+        return -1;
+    }
+    Lib_Log(APP_LIBFST, APP_INFO, "%s: exclure bundle_nb = %d, desire_exclure = %d\n", __func__, bundle_nb, desire_exclure);
+    return 0; /*CHC/NRC*/
 }
 
 /*****************************************************************************
@@ -889,94 +877,91 @@ int C_filtre_exclure() {
  * return 1 if yes, return 0 if no                                           *
  *****************************************************************************/
 static int match_ip(int in_use, int nelm, int *data, int ip1, int translatable) {
-  int mode = -1;   /* IP to P, KIND conversion */
-  int i, ip, kind1, kind2, kind3;
-  float p0, p1, p2, p3, delta;
-  float *fdata = (float *)data;
+    int mode = -1;   /* IP to P, KIND conversion */
+    int i, ip, kind1, kind2, kind3;
+    float p0, p1, p2, p3, delta;
+    float *fdata = (float *)data;
 
-  if( ! in_use ) return 0;
-  if( in_use == RANGE || in_use == DELTA ) {
-//fprintf(stderr, "range matching %d\n", ip1);
-    if(! translatable) return 0;      /* name is not translatable we are done */
-    ip = ip1;
-    ConvertIp(&ip, &p1, &kind1, mode);  /* convert candidate value */
-    int32_t bottom_val = data[0] >= 0 ? data[0] : ip1;
-    int32_t top_val    = data[1] >= 0 ? data[1] : bottom_val;
-    ip = data[0];
-    if(ip >= 0) {
-      ConvertIp(&ip, &p2, &kind2, mode);  /* convert bottom value   */
-    }else{                                /* open bottom  @ value   */
-      p2 = p1;
-      kind2 = kind1;
-    }
-    ip = data[1];
-    if(ip >= 0) {
-      ConvertIp(&ip, &p3, &kind3, mode);  /* convert top value   */
-    }else{                                /* open top   value @  */
-      p3 = p1;
-      kind3 = kind1;
-    }
-    if(p2 > p3){                          // make sure that p2 < p3
-      p0 = p3; p3 = p2; p2 = p0;       // swap p2 and p3 (no point in swapping kinds as they MUST match
-      const int32_t tmp = bottom_val;
-      bottom_val = top_val;
-      top_val = tmp;
-    }
-    if(kind1 != kind2 || kind1 != kind3) return 0;  /* not same kind, no match */
-    if (kind1 < 0) {
-      // Does not correspond to a valid encoding, so we can only match the IP itself
-      if (ip1 < bottom_val || ip1 > top_val) return 0;
-    }
-    else if (p1 < p2 || p1 > p3) {
-      return 0;  /* out of value range, no match */
-    }
+    if( ! in_use ) return 0;
+    if( in_use == RANGE || in_use == DELTA ) {
+    //fprintf(stderr, "range matching %d\n", ip1);
+        if(! translatable) return 0;      /* name is not translatable we are done */
+        ip = ip1;
+        ConvertIp(&ip, &p1, &kind1, mode);  /* convert candidate value */
+        int32_t bottom_val = data[0] >= 0 ? data[0] : ip1;
+        int32_t top_val    = data[1] >= 0 ? data[1] : bottom_val;
+        ip = data[0];
+        if(ip >= 0) {
+            ConvertIp(&ip, &p2, &kind2, mode);  /* convert bottom value   */
+        } else {                                /* open bottom  @ value   */
+            p2 = p1;
+            kind2 = kind1;
+        }
+        ip = data[1];
+        if(ip >= 0) {
+            ConvertIp(&ip, &p3, &kind3, mode);  /* convert top value   */
+        } else {                                /* open top   value @  */
+            p3 = p1;
+            kind3 = kind1;
+        }
+        if(p2 > p3){                          // make sure that p2 < p3
+            p0 = p3; p3 = p2; p2 = p0;       // swap p2 and p3 (no point in swapping kinds as they MUST match
+            const int32_t tmp = bottom_val;
+            bottom_val = top_val;
+            top_val = tmp;
+        }
+        if(kind1 != kind2 || kind1 != kind3) return 0;  /* not same kind, no match */
+        if (kind1 < 0) {
+            // Does not correspond to a valid encoding, so we can only match the IP itself
+            if (ip1 < bottom_val || ip1 > top_val) return 0;
+        } else if (p1 < p2 || p1 > p3) {
+            return 0;  /* out of value range, no match */
+        }
 
-    if(in_use == RANGE) return 1;         /* we have a match if RANGE */
-    if(in_use == DELTA) {                  /* we are in range, check delta if there is one */
-      if(data[2] <= 0) return 0;          /* delta <= 0 not acceptable */
-      if(kind1 >= 0 && p1 == p2) return 1;/* we have a match, modulo will be zero */
-      if(data[2] < 0xFFFFF){               /* max 18 bits for integer values */
-        delta = (float)data[2];            /* integer interval */
-      }else{
-        delta = fdata[2];                  /* float interval */
-      }
-      if(delta <= 0) return 0; /* delta <= 0 not acceptable */
-      float modulo = kind1 >= 0 ? fmodf((p1 - p2) , delta) :
-                                  fmodf((float)(ip1 - bottom_val), delta);
-      if(modulo < 0) modulo = -modulo;    /* abs(modulo)  */
-      const float error = modulo/delta;
-      if( error < 0.00001 || error > 0.99999 ) return 1; /* we have a match */
-    }
-    return 0;   /* we fell through, we have no match */
-  }
-  else if(in_use == VALUE){
-    for (i = 0; i<nelm; i++) {
-      if(ip1 == data[i] || data[i] == -1) return 1;  /* we have a match with raw ip values */
-    }
-    if(! translatable) return 0;/* name is not translatable we are done */
-    ip = ip1;
-    ConvertIp(&ip, &p1, &kind1, mode);  /* convert candidate value */
+        if (in_use == RANGE) return 1;         /* we have a match if RANGE */
+        if (in_use == DELTA) {                  /* we are in range, check delta if there is one */
+            if (data[2] <= 0) return 0;          /* delta <= 0 not acceptable */
+            if (kind1 >= 0 && p1 == p2) return 1;/* we have a match, modulo will be zero */
+            if (data[2] < 0xFFFFF){               /* max 18 bits for integer values */
+                delta = (float)data[2];            /* integer interval */
+            } else {
+                delta = fdata[2];                  /* float interval */
+            }
+            if (delta <= 0) return 0; /* delta <= 0 not acceptable */
+            float modulo = kind1 >= 0 ? fmodf((p1 - p2) , delta) :
+                                        fmodf((float)(ip1 - bottom_val), delta);
+            if (modulo < 0) modulo = -modulo;    /* abs(modulo)  */
+            const float error = modulo/delta;
+            if (error < 0.00001 || error > 0.99999) return 1; /* we have a match */
+        }
+        return 0;   /* we fell through, we have no match */
+    } else if(in_use == VALUE){
+        for (i = 0; i<nelm; i++) {
+            if  (ip1 == data[i] || data[i] == -1) return 1;  /* we have a match with raw ip values */
+        }
+        if(! translatable) return 0;/* name is not translatable we are done */
+        ip = ip1;
+        ConvertIp(&ip, &p1, &kind1, mode);  /* convert candidate value */
 
-    if (kind1 < 0) {
-      // IP does not correspond to a valid encoding, so we can only do an exact match.
-      // If we got here, this means we have no match.
-      return 0;
-    }
+        if (kind1 < 0) {
+            // IP does not correspond to a valid encoding, so we can only do an exact match.
+            // If we got here, this means we have no match.
+            return 0;
+        }
 
-    for (i = 0; i<nelm; i++) {
-      ip = data[i];
-      ConvertIp(&ip, &p2, &kind2, mode); /* convert match reference */
-      if(kind1 != kind2) continue;       /* not same kind, no match */
-      if(p2 == 0 && p1 != p2) continue; /* if one is 0, both must be, no match */
-      delta = 1.0 - p1/p2;
-      if(delta < 0) delta = -delta;    /* abs(relative error)  */
-      if( delta < 0.000001) return 1; /* we have a match */
+        for (i = 0; i<nelm; i++) {
+            ip = data[i];
+            ConvertIp(&ip, &p2, &kind2, mode); /* convert match reference */
+            if (kind1 != kind2) continue;       /* not same kind, no match */
+            if (p2 == 0 && p1 != p2) continue; /* if one is 0, both must be, no match */
+            delta = 1.0 - p1/p2;
+            if (delta < 0) delta = -delta;    /* abs(relative error)  */
+            if (delta < 0.000001) return 1; /* we have a match */
+        }
+        return 0;   /* if we fell through, we have no match */
+    } else {
+        return 0;   /* not a value, no match */
     }
-
-    return 0;   /* if we fell through, we have no match */
-  }else{
-    return 0;   /* not a value, no match */
-  }
 }
 
 
