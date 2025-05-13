@@ -322,7 +322,6 @@ int compact_u_integer(
     const uint32_t * const packHeader = (uint32_t *)packedHeader;
     uint32_t * arrayOfUnsignedUnpacked = (uint32_t *)unpackedArrayOfInt;
     int32_t * arrayOfSignedUnpacked = (int32_t *)unpackedArrayOfInt;
-    uint32_t cleanupMask = ((uint32_t)(~0) >> (wordSize - bitSizeOfPackedToken));
     uint32_t * arrayOfPacked = (uint32_t  *)packedArrayOfInt;
 
     int tokenSize, ShiftIntended;
@@ -429,7 +428,6 @@ int compact_u_short(
     int wordSize = 8 * sizeof(uint32_t);
     unsigned short * arrayOfUnsignedShort = (unsigned short *)unpackedArray;
     uint32_t * const packHeader = (uint32_t *)packedHeader;
-    uint32_t cleanupMask = ((uint32_t)(~0) >> (wordSize - bitSizeOfPackedToken));
     uint32_t * arrayOfPacked = (uint32_t  *)packedArray;
 
     int tokenSize, ShiftIntended;
@@ -531,7 +529,6 @@ int compact_u_char(
     int wordSize = 8 * sizeof(uint32_t);
     unsigned char * arrayOfUnsignedChar = (unsigned char *)unpackedArrayOfBytes;
     uint32_t * const packHeader = (uint32_t *)packedHeader;
-    uint32_t cleanupMask = ((uint32_t)(~0) >> (wordSize - bitSizeOfPackedToken));
     uint32_t * arrayOfPacked = (uint32_t  *)packedArrayOfInt;
 
     int tokenSize, ShiftIntended;
