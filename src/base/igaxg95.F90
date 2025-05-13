@@ -51,6 +51,7 @@ integer function igagds95(gds, gtyin, ig1, ig2, ig3, ig4)
     if (gtyin /= '!') then
         print star_line
         print *, ' <igagds95> Error: bad grid type ', gtyin
+        igagds95 = -1
         return
     else
         ier = qqqgbld()
