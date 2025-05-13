@@ -24,6 +24,7 @@
 !> Bicubic interpolation of points from a gaussian grid
 subroutine ez_gggdint_w(zo, px, py, npts, ay, z, ni, j1, j2, wrap)
     use iso_fortran_env, only: real64
+    use interp_mod, only: cubic, fa64, fa64_2, fa64_3, fa64_4
     implicit none
 
     !> Number of points to interpolate
@@ -122,13 +123,9 @@ subroutine ez_gggdint_w(zo, px, py, npts, ay, z, ni, j1, j2, wrap)
         cy(6) = 1.0 / (ay4 - ay3)
 
         y11 = y1
-        y12 = fa2(cy(1), y1, y2)
-        y13 = fa3(cy(1), cy(2), cy(3), y1, y2, y3)
-        y14 = fa4(cy(1), cy(2), cy(3), cy(4), cy(5), cy(6), y1, y2, y3, y4)
-        zo(n) = real(fa(y11, y12, y13, y14, y, ay1, ay2, ay3))
+        y12 = fa64_2(cy(1), y1, y2)
+        y13 = fa64_3(cy(1), cy(2), cy(3), y1, y2, y3)
+        y14 = fa64_4(cy(1), cy(2), cy(3), cy(4), cy(5), cy(6), y1, y2, y3, y4)
+        zo(n) = real(fa64(y11, y12, y13, y14, y, ay1, ay2, ay3))
     enddo
-    return
-    contains
-#include "cubic8.cdk"
-#include "fa8.cdk"
 end

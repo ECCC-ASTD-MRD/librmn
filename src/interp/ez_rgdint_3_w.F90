@@ -24,6 +24,7 @@
 !> Bicubic interpolation of points from a regular grid
 subroutine ez_rgdint_3_w(zo, px, py, npts, z, ni, j1, j2, wrap)
     use iso_fortran_env, only: real64
+    use interp_mod, only: cubic
     implicit none
 
     !> Number of points to interpolate
@@ -99,7 +100,4 @@ subroutine ez_rgdint_3_w(zo, px, py, npts, z, ni, j1, j2, wrap)
     enddo
 !zzzzzz$OMP END DO
 !zzzzzz$OMP END PARALLEL
-    return
-    contains
-#include "cubic8.cdk"
 end

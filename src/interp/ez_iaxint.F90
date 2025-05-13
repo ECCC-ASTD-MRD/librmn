@@ -23,6 +23,7 @@
 
 !> Interpolation bi-cubique de points a partir d'une grille source irreguliere.
 subroutine ez_iaxint(zo, px, npts, ax, z, ni, i1, i2, ordint)
+    use interp_mod, only: fa32, fa32_2, fa32_3, fa32_4, zlin32
     implicit none
 
     !> Number of points to interpolate
@@ -56,45 +57,39 @@ subroutine ez_iaxint(zo, px, npts, ax, z, ni, i1, i2, ordint)
 
     !  structure identique pour cy(j, 1..6)
 
-    real a11, a12, a13, a14
-    integer i, n
-
-    real x, dx
+    integer :: i, n
+    real :: a11, a12, a13, a14
+    real :: x, dx
 
 #include "ez_def_shared.h"
 
-    if (ordint .eq. CUBIQUE) then
+    if (ordint == CUBIQUE) then
         do n = 1, npts
             i = min(ni - 2, max(2, ifix(px(n))))
 
             x = ax(i) + (ax(i + 1) - ax(i)) * (px(n) - i)
 
             a11 = z(i - 1)
-            a12 = fa2((1.0 / (ax(i) - ax(i - 1))), z(i - 1), z(i))
-            a13 = fa3((1.0 / (ax(i) - ax(i - 1))), 1.0 / (ax(i + 1) - ax(i - 1)), 1.0 / (ax(i + 1) - ax(i)), z(i - 1), z(i), z(i + 1))
-            a14 = fa4((1.0 / (ax(i) - ax(i - 1))), 1.0 / (ax(i + 1) - ax(i - 1)), 1.0 / (ax(i + 1) - ax(i)), 1.0 / (ax(i + 2) - ax(i - 1)), 1.0 / (ax(i + 2) - ax(i)), 1.0 / (ax(i + 2) - ax(i + 1)), z(i - 1), z(i), z(i + 1), z(i + 2))
-            zo(n) = fa(a11, a12, a13, a14, x, ax(i - 1), ax(i), ax(i + 1))
+            a12 = fa32_2((1.0 / (ax(i) - ax(i - 1))), z(i - 1), z(i))
+            a13 = fa32_3((1.0 / (ax(i) - ax(i - 1))), 1.0 / (ax(i + 1) - ax(i - 1)), 1.0 / (ax(i + 1) - ax(i)), z(i - 1), z(i), z(i + 1))
+            a14 = fa32_4((1.0 / (ax(i) - ax(i - 1))), 1.0 / (ax(i + 1) - ax(i - 1)), 1.0 / (ax(i + 1) - ax(i)), 1.0 / (ax(i + 2) - ax(i - 1)), 1.0 / (ax(i + 2) - ax(i)), 1.0 / (ax(i + 2) - ax(i + 1)), z(i - 1), z(i), z(i + 1), z(i + 2))
+            zo(n) = fa32(a11, a12, a13, a14, x, ax(i - 1), ax(i), ax(i + 1))
         end do
     endif
 
-    if (ordint .eq. LINEAIRE) then
+    if (ordint == LINEAIRE) then
         do n = 1, npts
             i = min(i2 - 1, max(i1, ifix(px(n))))
             x = ax(i) + (ax(i + 1) - ax(i)) * (px(n) - i)
             dx = (x - ax(i)) / (ax(i + 1) - ax(i))
-            zo(n) = zlin((z(i)), z(i + 1), dx)
+            zo(n) = zlin32((z(i)), z(i + 1), dx)
         end do
     endif
 
-    if (ordint .eq. VOISIN) then
+    if (ordint == VOISIN) then
         do n = 1, npts
             i = min(i2, max(i1, nint(px(n))))
             zo(n) = z(i)
         end do
     endif
-
-    return
-    contains
-#include "fa4.cdk"
-#include "zlin.cdk"
 end

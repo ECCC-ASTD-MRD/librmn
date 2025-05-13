@@ -24,6 +24,7 @@
 !> Bi-cubic interpolation from a irregular grid
 subroutine ez_irgdint_3_wnnc(zo, px, py, npts, ax, ay, z, ni, j1, j2, wrap)
     use iso_fortran_env, only: real64
+    use interp_mod, only: fa64, fa64_2, fa64_3, fa64_4
     implicit none
 
     !> Number of points to interpolate
@@ -166,10 +167,10 @@ subroutine ez_irgdint_3_wnnc(zo, px, py, npts, ax, ay, z, ni, j1, j2, wrap)
         z4 = z(iplus2, j-1)
 
         a11 = z1
-        a12 = fa2(cx(1), z1, z2)
-        a13 = fa3(cx(1), cx(2), cx(3), z1, z2, z3)
-        a14 = fa4(cx(1), cx(2), cx(3), cx(4), cx(5), cx(6),         z1, z2, z3, z4)
-        b1 = fa(a11, a12, a13, a14, x, x1, x2, x3)
+        a12 = fa64_2(cx(1), z1, z2)
+        a13 = fa64_3(cx(1), cx(2), cx(3), z1, z2, z3)
+        a14 = fa64_4(cx(1), cx(2), cx(3), cx(4), cx(5), cx(6),         z1, z2, z3, z4)
+        b1 = fa64(a11, a12, a13, a14, x, x1, x2, x3)
 
         ! Interpolation 2eme rangee selon x
         z1 = z(imoins1, j)
@@ -178,10 +179,10 @@ subroutine ez_irgdint_3_wnnc(zo, px, py, npts, ax, ay, z, ni, j1, j2, wrap)
         z4 = z(iplus2, j)
 
         a21 = z1
-        a22 = fa2(cx(1), z1, z2)
-        a23 = fa3(cx(1), cx(2), cx(3), z1, z2, z3)
-        a24 = fa4(cx(1), cx(2), cx(3), cx(4),         cx(5), cx(6), z1, z2, z3, z4)
-        b2 = fa(a21, a22, a23, a24, x, x1, x2, x3)
+        a22 = fa64_2(cx(1), z1, z2)
+        a23 = fa64_3(cx(1), cx(2), cx(3), z1, z2, z3)
+        a24 = fa64_4(cx(1), cx(2), cx(3), cx(4),         cx(5), cx(6), z1, z2, z3, z4)
+        b2 = fa64(a21, a22, a23, a24, x, x1, x2, x3)
 
         ! Interpolation 3eme rangee selon x
         z1 = z(imoins1, j+1)
@@ -190,10 +191,10 @@ subroutine ez_irgdint_3_wnnc(zo, px, py, npts, ax, ay, z, ni, j1, j2, wrap)
         z4 = z(iplus2, j+1)
 
         a31 = z1
-        a32 = fa2(cx(1), z1, z2)
-        a33 = fa3(cx(1), cx(2), cx(3), z1, z2, z3)
-        a34 = fa4(cx(1), cx(2), cx(3), cx(4),         cx(5), cx(6), z1, z2, z3, z4)
-        b3 = fa(a31, a32, a33, a34, x, x1, x2, x3)
+        a32 = fa64_2(cx(1), z1, z2)
+        a33 = fa64_3(cx(1), cx(2), cx(3), z1, z2, z3)
+        a34 = fa64_4(cx(1), cx(2), cx(3), cx(4),         cx(5), cx(6), z1, z2, z3, z4)
+        b3 = fa64(a31, a32, a33, a34, x, x1, x2, x3)
 
         ! Interpolation 4eme rangee selon x
         z1 = z(imoins1, j+2)
@@ -202,10 +203,10 @@ subroutine ez_irgdint_3_wnnc(zo, px, py, npts, ax, ay, z, ni, j1, j2, wrap)
         z4 = z(iplus2, j+2)
 
         a41 = z1
-        a42 = fa2(cx(1), z1, z2)
-        a43 = fa3(cx(1), cx(2), cx(3), z1, z2, z3)
-        a44 = fa4(cx(1), cx(2), cx(3), cx(4),         cx(5), cx(6), z1, z2, z3, z4)
-        b4 = fa(a41, a42, a43, a44, x, x1, x2, x3)
+        a42 = fa64_2(cx(1), z1, z2)
+        a43 = fa64_3(cx(1), cx(2), cx(3), z1, z2, z3)
+        a44 = fa64_4(cx(1), cx(2), cx(3), cx(4),         cx(5), cx(6), z1, z2, z3, z4)
+        b4 = fa64(a41, a42, a43, a44, x, x1, x2, x3)
 
         ! Interpolation finale selon y
         cy(1) = 1.0 / (y2-y1)
@@ -216,13 +217,9 @@ subroutine ez_irgdint_3_wnnc(zo, px, py, npts, ax, ay, z, ni, j1, j2, wrap)
         cy(6) = 1.0 / (y4-y3)
 
         b11 = b1
-        b12 = fa2(cy(1), b1, b2)
-        b13 = fa3(cy(1), cy(2), cy(3), b1, b2, b3)
-        b14 = fa4(cy(1), cy(2), cy(3), cy(4),         cy(5), cy(6), b1, b2, b3, b4)
-        zo(n) = real(fa(b11, b12, b13, b14, y, y1, y2, y3))
+        b12 = fa64_2(cy(1), b1, b2)
+        b13 = fa64_3(cy(1), cy(2), cy(3), b1, b2, b3)
+        b14 = fa64_4(cy(1), cy(2), cy(3), cy(4),         cy(5), cy(6), b1, b2, b3, b4)
+        zo(n) = real(fa64(b11, b12, b13, b14, y, y1, y2, y3))
     enddo
-
-    return
-    contains
-#include "fa8.cdk"
 end

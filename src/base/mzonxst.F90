@@ -42,8 +42,7 @@ module mzonxst_mod
     ! +( COMPLET, tabctl(9) ),( LATMIN, tabctl(10)),
     ! +( ROT,     tabctl(11))
 
-    Integer         NDELTAT, DELTAT, MODE, NI, NIP, NJ, NK, NBIN, NBIP, SOMNK, COMPLET, LATMIN, ROT
-    Common /zontab/ NDELTAT, DELTAT, MODE, NI, NIP, NJ, NK, NBIN, NBIP, SOMNK, COMPLET, LATMIN, ROT
+    Integer, save :: NDELTAT, DELTAT, MODE, NI, NIP, NJ, NK, NBIN, NBIP, SOMNK, COMPLET, LATMIN, ROT
 
     ! Declaration de la variable d'etat.
     Integer, save :: ETAT, transit(6, 0:3)

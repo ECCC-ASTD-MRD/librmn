@@ -1,5 +1,5 @@
 subroutine ibicubic_int4(izo, ni, nj, step, ajus_x, ajus_y)
-    use iso_fortran_env
+    use iso_fortran_env, only: int32, real64
 
     implicit none
 
@@ -109,8 +109,8 @@ end subroutine ibicubic_int4
 
 
 subroutine ibicubic_int3(izo, ni, nj, izc, nic, njc, step)
-    use iso_fortran_env
-
+    use iso_fortran_env, only: real32, real64
+    use interp_mod, only: cubic
     implicit none
 
     integer, intent(in) :: ni, nj, nic, njc, step
@@ -192,9 +192,6 @@ subroutine ibicubic_int3(izo, ni, nj, izc, nic, njc, step)
             izo(step * (ic - 1) + 3, step * (jc - 1) + 3) = nint(cubic(y1, y2, y3, y4, dy))
         enddo
     enddo
-    
-    contains
-#include "interp/cubic8.cdk"
 end subroutine ibicubic_int3
 
 
@@ -265,8 +262,7 @@ end subroutine fill_coarse_nodes
 
 
 subroutine fill_last_colrows(px, py, z, ni, nj, nicoarse, njcoarse, istep)
-    use iso_fortran_env
-
+    use iso_fortran_env, only: real32, real64
     implicit none
 
     integer, intent(in) :: ni, nj, nicoarse, njcoarse, istep

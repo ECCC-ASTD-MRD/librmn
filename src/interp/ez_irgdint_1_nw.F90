@@ -20,6 +20,7 @@
 
 subroutine ez_irgdint_1_nw(zo, px, py, npts, ax, ay, z, ni, nj)
     use iso_fortran_env, only: real64
+    use interp_mod, only: zlin64
     implicit none
 
     integer, intent(in) :: npts, ni, nj
@@ -44,12 +45,8 @@ subroutine ez_irgdint_1_nw(zo, px, py, npts, ax, ay, z, ni, nj)
         dx = (x - x1) / (x2 - x1)
         dy = (y - ay(j)) / (ay(j + 1) - ay(j))
 
-        y1 = zlin(dble(z(i, j)), dble(z(i + 1, j)), dx)
-        y2 = zlin(dble(z(i, j + 1)), dble(z(i + 1, j + 1)), dx)
-        zo(n) = real(zlin(y1, y2, dy))
+        y1 = zlin64(dble(z(i, j)), dble(z(i + 1, j)), dx)
+        y2 = zlin64(dble(z(i, j + 1)), dble(z(i + 1, j + 1)), dx)
+        zo(n) = real(zlin64(y1, y2, dy))
     enddo
-
-    return
-    contains
-#include "zlin8.cdk"
 end

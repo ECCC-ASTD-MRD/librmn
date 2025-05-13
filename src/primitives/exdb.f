@@ -17,6 +17,11 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
+
+      module exdb_helper
+        real, save :: t1
+      end module
+
 ****FONCTION EXDB    IMPRESSION DE BOITE DE DEBUT D'EXECUTION
 *
 *
@@ -35,6 +40,7 @@
 *
 *
       INTEGER FUNCTION EXDBPLUS(in_TITRE,REVIS,FLAG,SUPP,NSUP)
+      use exdb_helper, only: t1
       IMPLICIT NONE
       INTEGER NSUP
       CHARACTER(len = *) :: in_TITRE,REVIS,FLAG,SUPP(NSUP)
@@ -78,17 +84,10 @@
 *        CECI EST UNE DEPENDANCE CDC  (NOS OU SCOPE 2)
 *        EXDB SE SERT DU FICHIER FORTRAN 88, L'OUVRE ET LE
 *        RETOURNE.
-*
-**
-*
-
 
       CHARACTER(len = 24) :: CDATIM
       CHARACTER(len = 105) :: VERSION, titre, tempstring
       INTEGER :: I
-      REAL :: T1
-*     utilise pour que EXFIN ait acces a T1
-      common/exdb_t1/ T1
 
       titre = ' '
       titre(1:min(len(in_titre),90))=in_titre(1:min(len(in_titre),90))
@@ -118,12 +117,11 @@
 
       CALL CPU_TIME(T1)
       EXDBPLUS = 0
-
-      RETURN
       END
 
 ***FONCTION EXDBPLUS    IMPRESSION DE BOITE DE FIN D'EXECUTION
       INTEGER FUNCTION EXFIN(in_TITRE,REVIS,FLAG)
+      use exdb_helper, only: t1
       IMPLICIT NONE
       CHARACTER(len = *) :: in_TITRE,REVIS,FLAG
 *AUTEUR  M.VALIN RPN MARS 2022
@@ -139,8 +137,7 @@
 *     autrefois un ENTRY dans EXDBPLUS, maintenant une fonction `a part
 **
       external flush_stdout
-      common/exdb_t1/ T1
-      REAL T1, T2
+      REAL T2
       CHARACTER(len = 105) :: titre
       CHARACTER(len = 24)  :: CDATIM
       call flush_stdout()

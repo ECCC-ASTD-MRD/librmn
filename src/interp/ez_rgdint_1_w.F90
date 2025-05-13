@@ -20,6 +20,7 @@
 
 subroutine ez_rgdint_1_w(zo, px, py, npts, z, ni, j1, j2, wrap)
     use iso_fortran_env, only: real64
+    use interp_mod, only: zlin64
     implicit none
 
     integer, intent(in) :: npts, ni, j1, j2, wrap
@@ -43,13 +44,9 @@ subroutine ez_rgdint_1_w(zo, px, py, npts, z, ni, j1, j2, wrap)
         dx = px(n) - i
         dy = py(n) - j
 
-        y2 = zlin(dble(z(i, j)), dble(z(iplus1, j)), dx)
-        y3 = zlin(dble(z(i, j + 1)), dble(z(iplus1, j + 1)), dx)
+        y2 = zlin64(dble(z(i, j)), dble(z(iplus1, j)), dx)
+        y3 = zlin64(dble(z(i, j + 1)), dble(z(iplus1, j + 1)), dx)
 
-        zo(n) = real(zlin(y2, y3, dy))
+        zo(n) = real(zlin64(y2, y3, dy))
     enddo
-
-    return
-    contains
-#include "zlin8.cdk"
 end
