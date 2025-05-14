@@ -259,12 +259,12 @@ void f77name(ez_calcarea)(float *area, float lats[], float lons[]);
 void f77name(ez_calcarea2)(float *area, float lats[], float lons[]);
 void c_ez_calcdist(float *distance, float lat1, float lon1, float lat2, float lon2);
 void c_ez_calcdist2(double *distance, float lat1, float lon1, float lat2, float lon2);
-void c_ez_calcarea_rect(float *area,     float lat1, float lon1, float lat2, float lon2);
+void c_ez_calcarea_rect(float *area, float lat1, float lon1, float lat2, float lon2);
 void c_ez_calcarea(float *area, float lats[], float lons[]);
 void c_ez_calcarea2(double *area, float lats[], float lons[]);
 
-int32_t c_ezgetgdin();
-int32_t c_ezgetgdout();
+int32_t c_ezgetgdin(void);
+int32_t c_ezgetgdout(void);
 
 #ifdef __cplusplus
 }

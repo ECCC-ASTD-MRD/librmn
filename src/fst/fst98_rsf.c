@@ -357,7 +357,7 @@ int c_fstinfx_rsf(
     }
 
     // If we got out, it's because we didn't find anything
-    Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: (unit=%d) record not found, errcode=%ld\n", __func__, iun, rsf_key);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) record not found, errcode=%ld\n", __func__, iun, rsf_key);
     return (int32_t)rsf_key;
 }
 
@@ -472,7 +472,7 @@ int c_fstluk_rsf(
     }
     memset(work_space, 0, work_size_bytes);
 
-    RSF_record* record_rsf = RSF_Get_record(file_handle, rec.do_not_touch.handle, 0, (void*)work_space);
+    RSF_record* record_rsf = RSF_Get_record(file_handle, rec.do_not_touch.handle, 0, (void*)work_space, NULL);
 
     if ((uint64_t*)record_rsf != work_space) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record corresponding to key 0x%lx\n",

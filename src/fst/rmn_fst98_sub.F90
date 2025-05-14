@@ -541,7 +541,7 @@ contains
     integer(C_SIZE_T) :: nset
     type(C_PTR) :: p
     nset = lngstr
-    p = memset(C_LOC(field), ichar(' '), nset)
+    p = c_memset(C_LOC(field), ichar(' '), nset)
     handle = fstlir(field, iun, ni, nj, nk, datev, etiket, ip1, ip2, ip3, typvar, nomvar)
   end procedure
 

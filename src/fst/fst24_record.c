@@ -19,14 +19,14 @@ const char** fst24_record_get_descriptors(void) {
 //! \return TRUE (1) if it is, FALSE (0) otherwise
 int32_t fst24_record_is_descriptor(const fst_record* const record) {
 
-   const char *desc;
-   int         d=0;
+    const char *desc;
+    int         d=0;
 
-   while((desc=FST_DESCRIPTOR[d++])) {
-      if (!strncmp(record->nomvar,desc,FST_NOMVAR_LEN)) {
-         return(1);
-      }
-   }
+    while((desc=FST_DESCRIPTOR[d++])) {
+        if (!strncmp(record->nomvar,desc,FST_NOMVAR_LEN)) {
+            return(1);
+        }
+    }
 
    return(0);
 }
@@ -179,7 +179,7 @@ char* add_int(
     return buffer + length + 1;
 }
 
-//! Add a date (from a timestamp) to the line to be printed. See \ref fst24_record_print_short.
+//! Add a date (from a timestamp) to the line to be printed. See fst24_record_print_short.
 //! \return Pointer to after the (new) last character of the line to be printed
 char* add_date(
     char* buffer,           //!< [in,out] Buffer containing the line to be printed
@@ -529,6 +529,18 @@ int32_t fst24_record_validate_params(const fst_record* record) {
     return 0;
 }
 
+static inline void get_all_ips(const int initial_ip, int* new_ip, int* old_ip) {
+    int ip = initial_ip;
+    float val;
+    int kind;
+    ConvertIp(&ip, &val, &kind, -1); // Retrieve value
+    ConvertIp(new_ip, &val, &kind, 2); // Encode with new encoding
+    *old_ip = -9999;
+    if (kind < 4) {
+        ConvertIp(old_ip, &val, &kind, 3); // Encode with old encoding
+    }
+}
+
 //! Encode the information of the given record into a directory metadata struct, that
 //! will directly be used for searching in a file
 void make_search_criteria(
@@ -609,30 +621,15 @@ void make_search_criteria(
             if ((record->ip3 == default_fst_record.ip3)) fst98_mask->ip3 = 0;
 
             if (query->options.ip1_all > 0) {
-                int ip1 = record->ip1;
-                float val;
-                int kind;
-                ConvertIp(&ip1, &val, &kind, -1); // Retrieve value
-                ConvertIp(&query->ip1s[0], &val, &kind, 2); // Encode with new encoding
-                ConvertIp(&query->ip1s[1], &val, &kind, 3); // Encode with old encoding
+                get_all_ips(record->ip1, &query->ip1s[0], &query->ip1s[1]);
                 fst98_mask->ip1 = 0;
             }
             if (query->options.ip2_all > 0) {
-                float val;
-                int kind;
-                int ip2 = record->ip2;
-                ConvertIp(&ip2, &val, &kind, -1); // Retrieve value
-                ConvertIp(&query->ip2s[0], &val, &kind, 2); // Encode with new encoding
-                ConvertIp(&query->ip2s[1], &val, &kind, 3); // Encode with old encoding
+                get_all_ips(record->ip2, &query->ip2s[0], &query->ip2s[1]);
                 fst98_mask->ip2 = 0;
             }
             if (query->options.ip3_all > 0) {
-                float val;
-                int kind;
-                int ip3 = record->ip3;
-                ConvertIp(&ip3, &val, &kind, -1); // Retrieve value
-                ConvertIp(&query->ip3s[0], &val, &kind, 2); // Encode with new encoding
-                ConvertIp(&query->ip3s[1], &val, &kind, 3); // Encode with old encoding
+                get_all_ips(record->ip3, &query->ip3s[0], &query->ip3s[1]);
                 fst98_mask->ip3 = 0;
             }
         }
@@ -697,7 +694,12 @@ void make_search_criteria(
     } // fst98 criteria
 }
 
-void fill_with_search_meta(fst_record* record, const search_metadata* meta, const fst_file_type type) {
+//! Update fst_record attributes from the given search metadata. The data and allocation status will remain untouched
+void fill_with_search_meta(
+    fst_record* record,             //!< [in,out] The record we want to update
+    const search_metadata* meta,    //!< The packed searched metadata
+    const fst_file_type type        //!< File type (RSF, XDF, other?)
+) {
 
     record->do_not_touch.fst_version = default_fst_record.do_not_touch.fst_version;
     record->do_not_touch.num_search_keys = sizeof(stdf_dir_keys) / sizeof(uint32_t); // Default for XDF
