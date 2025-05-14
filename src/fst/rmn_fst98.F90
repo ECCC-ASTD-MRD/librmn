@@ -12,7 +12,7 @@
 ! and use instead the equivalent procedures from the module and associated sub modules
 module rmn_fst98
     use rmn_fst_common
-    use rmn_libc, only: memset
+    use rmn_libc, only: c_memset
     implicit none
 #define C_INTERFACE_ONLY
 #include "rmn/fst98_interface.hf"

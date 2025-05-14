@@ -26,14 +26,14 @@ module rmn_libc
             type(C_PTR) :: dest_copy
         end function c_strncpy
 
-        function memset(s, byte, n) result(p) bind(C, name='memset')
+        function c_memset(s, byte, n) result(p) bind(C, name='memset')
             import :: C_PTR, C_SIZE_T, C_INT
             implicit none
             type(C_PTR), intent(IN), value :: s
             integer(C_INT), intent(IN), value :: byte
             integer(C_SIZE_T), intent(IN), value :: n
             type(C_PTR) :: p
-        end function memset
+        end function c_memset
 
         function libc_malloc(sz) result(ptr) BIND(C, name='malloc')
             import :: C_SIZE_T, C_PTR

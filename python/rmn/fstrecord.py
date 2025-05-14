@@ -91,6 +91,9 @@ class fst_record(ctypes.Structure):
     - dateo: int           Origin Date timestamp
     - datev: int           Valid Date timestamp
 
+    - file_offset: int(64)        Offset of this record in its file (bytes)
+    - total_stored_bytes: int(64) Size of this record in bytes (header + data)
+
     - data_type: int       Data type of elements. See FST_TYPE_* constants.
     - data_bits: int       Number of bits per input elements
     - pack_bits: int       Number of stored bits
@@ -151,6 +154,9 @@ class fst_record(ctypes.Structure):
         ('_file', ctypes.c_void_p),
         ('_data', ctypes.c_void_p),
         ('metadata', ctypes.c_void_p),
+
+        ('_file_offset', ctypes.c_size_t),
+        ('_total_stored_bytes', ctypes.c_size_t),
 
         ('file_index', ctypes.c_int32),
 

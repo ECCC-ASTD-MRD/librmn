@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
         for (int i = 0; i < 5; i++) {
             uint64_t key = i + 1;
             key += 0x100000000ul;  // simulate file slot 0 for this file
-            void* p = RSF_Get_record(h1, key, 0, NULL);
+            void* p = RSF_Get_record(h1, key, 0, NULL, NULL);
             if (p) free(p);
         }
 

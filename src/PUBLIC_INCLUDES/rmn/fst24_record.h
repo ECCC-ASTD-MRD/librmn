@@ -68,6 +68,9 @@ typedef struct {
     void*   data;     //!< Record data
     void*   metadata; //!< Record metadata
 
+    size_t file_offset; //!< Offset of this record in its file (bytes)
+    size_t total_stored_bytes; //!< Size of this record in bytes (header + data)
+
     // 32-bit elements
 
     //!> Index of this record within its file. This index is permanent, but record data may change if
@@ -125,6 +128,8 @@ typedef struct {
         .file     = NULL,                                                                   \
         .data     = NULL,                                                                   \
         .metadata = NULL,                                                                   \
+        .file_offset = (size_t)-1,                                                          \
+        .total_stored_bytes = 0,                                                            \
                                                                                             \
         .file_index = -1,                                                                   \
                                                                                             \
@@ -249,6 +254,9 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR
         type(C_PTR)        :: metadata = C_NULL_PTR
+
+        integer(C_INT64_T) :: file_offset = -1
+        integer(C_INT64_T) :: total_stored_bytes = 0
         
         integer(C_INT32_T) :: file_index = -1
 

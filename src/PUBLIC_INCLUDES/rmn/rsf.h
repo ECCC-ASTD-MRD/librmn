@@ -184,7 +184,8 @@ int32_t RSF_Get_mode(RSF_handle h) ;
 
 RSF_record_info RSF_Get_record_info_by_index(RSF_handle h, uint32_t key) ;
 RSF_record_info RSF_Get_record_info(RSF_handle h, int64_t key) ;
-RSF_record *RSF_Get_record(RSF_handle h, const int64_t key, const int32_t metadata_only, void* prealloc_space) ;
+RSF_record *RSF_Get_record(RSF_handle h, const int64_t key, const int32_t metadata_only, void* prealloc_space,
+                           RSF_record_info* info_out) ;
 uint32_t RSF_Get_num_records(RSF_handle) ;
 uint32_t RSF_Get_num_records_at_open(RSF_handle h) ;
 void* RSF_Get_next(RSF_handle h) ;

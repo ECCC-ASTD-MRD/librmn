@@ -255,7 +255,8 @@ void memcpy_32_16(int16_t *p16, const int32_t * p32, int nbits, int nb) {
 
 static void init_open_file(fstd_usage_info* info) {
     info->query = new_fst_query(NULL);
-    info->query.num_criteria = sizeof(stdf_dir_keys) / sizeof(int32_t);
+    info->query.num_criteria = (sizeof(info->query.criteria.fst98_meta) + 
+                                sizeof(info->query.criteria.fst98_reserved)) / sizeof(int32_t);
     info->next_file = -1;
     info->is_open = 1;
 }
