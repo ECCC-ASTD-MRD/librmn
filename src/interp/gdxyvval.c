@@ -25,47 +25,58 @@
 #include "gdxysint.h"
 
 
-int32_t f77name(gdxyvval)(int32_t *gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t *n)
-{
-   int32_t icode;
-
-   icode = c_gdxyvval(*gdin, uuout, vvout, uuin, vvin, x, y, *n);
-   return icode;
-}
+//! \file
 
 
-//! Vector interpolation of points located at x-y coordinates, returned as grid components (UU and VV). 
-int32_t c_gdxyvval(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n)
-{
-    int32_t j, icode, yin_gdid, yan_gdid, ni, nj;
-    float *uuyin, *vvyin, *uuyan, *vvyan;
-    float *tmpy;
+//! Bi-dimensional vector interpolation of points located at x-y coordinates, returned as grid components (UU and VV). 
+int32_t c_gdxyvval(
+    //! [in] Grid identifier
+    int32_t gdin,
+    //! [out] U component of winds interpolated in grid coordinates
+    float *uuout,
+    //! [out] V component of winds interpolated in grid coordinates
+    float *vvout,
+    //! [in] U component of the source winds
+    float *uuin,
+    //! [in] U component of the source winds
+    float *vvin,
+    //! [in] X stream of grid positions
+    float *x,
+    //! [in] Y stream of grid positions
+    float *y,
+    //! [in] Number of points
+    int32_t n
+) {
+    //! \ingroup ezscint
+    //! \return Always 0
+    //! There is 1:1 relationship with uuvals,vvals, x and y; that is, interpolated values at point x(1), y(1) are uuvals(1), vvals(1)
 
-    int32_t gdrow_id, gdcol_id, yin_gdrow_id, yin_gdcol_id;
-
+    int32_t gdrow_id, gdcol_id;
     c_gdkey2rowcol(gdin, &gdrow_id, &gdcol_id);
     if (Grille[gdrow_id][gdcol_id].nsubgrids > 0) {
-        yin_gdid = Grille[gdrow_id][gdcol_id].subgrid[0];
-        yan_gdid = Grille[gdrow_id][gdcol_id].subgrid[1];
+        int32_t yin_gdid = Grille[gdrow_id][gdcol_id].subgrid[0];
+        int32_t yan_gdid = Grille[gdrow_id][gdcol_id].subgrid[1];
+
+        int32_t yin_gdrow_id, yin_gdcol_id;
         c_gdkey2rowcol(yin_gdid, &yin_gdrow_id, &yin_gdcol_id);
-        ni = Grille[yin_gdrow_id][yin_gdcol_id].ni;
-        nj = Grille[yin_gdrow_id][yin_gdcol_id].nj;
-        tmpy = (float *) malloc(n*sizeof(float));
-        uuyin = (float *) malloc(n*sizeof(float));
-        vvyin = (float *) malloc(n*sizeof(float));
-        uuyan = (float *) malloc(n*sizeof(float));
-        vvyan = (float *) malloc(n*sizeof(float));
-        for (j = 0; j < n; j++) {
+        int32_t ni = Grille[yin_gdrow_id][yin_gdcol_id].ni;
+        int32_t nj = Grille[yin_gdrow_id][yin_gdcol_id].nj;
+        float * const tmpy = (float *) malloc(n*sizeof(float));
+        float * const uuyin = (float *) malloc(n*sizeof(float));
+        float * const vvyin = (float *) malloc(n*sizeof(float));
+        float * const uuyan = (float *) malloc(n*sizeof(float));
+        float * const vvyan = (float *) malloc(n*sizeof(float));
+        for (int32_t j = 0; j < n; j++) {
             if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj) {
                 tmpy[j] = y[j]-Grille[yin_gdrow_id][yin_gdcol_id].nj;
             } else {
                 tmpy[j] = y[j];
             }
         }
-        icode = c_gdxyvval_orig(yin_gdid, uuyin, vvyin, uuin, vvin, x, tmpy, n);
-        icode = c_gdxyvval_orig(yan_gdid, uuyan, vvyan, &uuin[ni*nj], &vvin[ni*nj], x, tmpy, n);
+        c_gdxyvval_orig(yin_gdid, uuyin, vvyin, uuin, vvin, x, tmpy, n);
+        c_gdxyvval_orig(yan_gdid, uuyan, vvyan, &uuin[ni*nj], &vvin[ni*nj], x, tmpy, n);
 
-        for (j = 0; j < n; j++) {
+        for (int32_t j = 0; j < n; j++) {
             if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj) {
                 uuout[j] = uuyan[j];
                 vvout[j] = vvyan[j];
@@ -79,10 +90,9 @@ int32_t c_gdxyvval(int32_t gdin, float *uuout, float *vvout, float *uuin, float 
         free(vvyan);
         free(uuyin);
         free(vvyin);
-        return icode;
+        return 0;
     } else {
-        icode = c_gdxyvval_orig(gdin, uuout, vvout, uuin, vvin, x, y, n);
-        return icode;
+        return c_gdxyvval_orig(gdin, uuout, vvout, uuin, vvin, x, y, n);
     }
 }
 
@@ -99,4 +109,10 @@ int32_t c_gdxyvval_orig(int32_t gdin, float *uuout, float *vvout, float *uuin, f
     groptions.vecteur = SCALAIRE;
 
     return 0;
+}
+
+
+int32_t f77name(gdxyvval)(int32_t *gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t *n)
+{
+   return c_gdxyvval(*gdin, uuout, vvout, uuin, vvin, x, y, *n);
 }

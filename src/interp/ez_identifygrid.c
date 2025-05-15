@@ -27,6 +27,9 @@
 #include "base/base.h"
 
 
+//! \file
+
+
 void c_ez_manageGrillesMemory() {
     int nchunks = nGrilles / (CHUNK * CHUNK);
     if (nchunks > 0 && 0 == (nGrilles % (CHUNK * CHUNK))) {

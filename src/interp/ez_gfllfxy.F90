@@ -18,6 +18,9 @@
 ! Boston, MA 02111-1307, USA.
 
 
+!> \file
+
+
 !> Compute a latitude and longitude on the true earth from x and y coordinates on a rotated latitude/longitude frame of reference.
 subroutine ez_gfllfxy(lonp, latp, lon, lat, n, xlat1, xlon1, xlat2, xlon2)
     implicit none
@@ -40,6 +43,8 @@ subroutine ez_gfllfxy(lonp, latp, lon, lat, n, xlat1, xlon1, xlat2, xlon2)
     real, intent(in) :: xlat2
     !> Latitude on the unrotated coordinate system corresponding to a point (lat,lon) located on the equator of the rotated coordinate system
     real, intent(in) :: xlon2
+
+    !> \ingroup ezscint
 
     real, dimension(3,3) :: r, ri
 

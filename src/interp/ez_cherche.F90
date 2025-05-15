@@ -32,6 +32,8 @@ integer function ez_cherche(val, tableau, nbelem)
     !> Sorted array in ascending order
     real, intent(in) :: tableau(nbelem)
 
+    !> \ingroup ezscint
+
     integer :: debut, milieu, fin
 
     debut = 1

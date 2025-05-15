@@ -48,6 +48,8 @@ subroutine ez_gggdint_nw(zo, px, py, npts, ay, z, i1, i2, j1, j2)
     !> Source grid values
     real, intent(in) :: z(i1:i2, j1:j2)
 
+    !> \ingroup ezscint
+
     !  *   *   *   *
     !
     !  *   *   *   *

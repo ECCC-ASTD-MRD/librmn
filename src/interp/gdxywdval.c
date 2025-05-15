@@ -24,44 +24,52 @@
 #include "ez_funcdef.h"
 
 
-int32_t f77name(gdxywdval)(int32_t *gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t *n)
-{
-   int32_t icode;
-
-   icode = c_gdxywdval(*gdin, uuout, vvout, uuin, vvin, x, y, *n);
-   return icode;
-
-}
+//! \file
 
 
 //! Vector interpolation of points located at x-y coordinates, returned as speed and direction (UVand WD)
-int32_t c_gdxywdval(int32_t gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t n)
-{
-    int32_t ier, j, yin_gdid, yan_gdid, lni, lnj;
+int32_t c_gdxywdval(
+    //! [in] Grid identifier
+    int32_t gdin,
+    //! [out] U component of winds interpolated in grid coordinates
+    float *uuout,
+    //! [out] V component of winds interpolated in grid coordinates
+    float *vvout,
+    //! [in] U component of the source winds
+    float *uuin,
+    //! [in] U component of the source winds
+    float *vvin,
+    //! [in] X stream of grid positions
+    float *x,
+    //! [in] Y stream of grid positions
+    float *y,
+    //! [in] Number of points
+    int32_t n
+) {
+    //! \ingroup ezscint
+    //! There is 1:1 relationship with uuvals,vvals, x and y; that is, interpolated values at point x(1), y(1) are uuvals(1), vvals(1)
 
-    int32_t gdrow_id, gdcol_id, yin_gdrow_id, yin_gdcol_id;
-    float *tmplat, *tmplon, *tmpy;
-    float *uuyin, *vvyin, *uuyan, *vvyan;
-    float *tmpuu, *tmpvv;
+    int32_t ier;
+    float * const tmplat = (float *) malloc(n * sizeof(float));
+    float * const tmplon = (float *) malloc(n * sizeof(float));
+    float * const tmpuu = (float *) malloc(n * sizeof(float));
+    float * const tmpvv = (float *) malloc(n * sizeof(float));
 
-    tmplat = (float *) malloc(n * sizeof(float));
-    tmplon = (float *) malloc(n * sizeof(float));
-    tmpuu = (float *) malloc(n * sizeof(float));
-    tmpvv = (float *) malloc(n * sizeof(float));
-
+    int32_t gdrow_id, gdcol_id;
     c_gdkey2rowcol(gdin, &gdrow_id, &gdcol_id);
     if (Grille[gdrow_id][gdcol_id].nsubgrids > 0) {
-        yin_gdid = Grille[gdrow_id][gdcol_id].subgrid[0];
-        yan_gdid = Grille[gdrow_id][gdcol_id].subgrid[1];
+        int32_t yin_gdid = Grille[gdrow_id][gdcol_id].subgrid[0];
+        int32_t yan_gdid = Grille[gdrow_id][gdcol_id].subgrid[1];
+        int32_t yin_gdrow_id, yin_gdcol_id;
         c_gdkey2rowcol(yin_gdid, &yin_gdrow_id, &yin_gdcol_id);
-        lni = Grille[yin_gdrow_id][yin_gdcol_id].ni;
-        lnj = Grille[yin_gdrow_id][yin_gdcol_id].nj;
-        tmpy = (float *) malloc(n*sizeof(float));
-        uuyin = (float *) malloc(n*sizeof(float));
-        vvyin = (float *) malloc(n*sizeof(float));
-        uuyan = (float *) malloc(n*sizeof(float));
-        vvyan = (float *) malloc(n*sizeof(float));
-        for (j = 0; j < n; j++) {
+        int32_t lni = Grille[yin_gdrow_id][yin_gdcol_id].ni;
+        int32_t lnj = Grille[yin_gdrow_id][yin_gdcol_id].nj;
+        float * const tmpy = (float *) malloc(n*sizeof(float));
+        float * const uuyin = (float *) malloc(n*sizeof(float));
+        float * const vvyin = (float *) malloc(n*sizeof(float));
+        float * const uuyan = (float *) malloc(n*sizeof(float));
+        float * const vvyan = (float *) malloc(n*sizeof(float));
+        for (int32_t j = 0; j < n; j++) {
             if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj) {
                 tmpy[j] = y[j]-Grille[yin_gdrow_id][yin_gdcol_id].nj;
             } else {
@@ -75,7 +83,7 @@ int32_t c_gdxywdval(int32_t gdin, float *uuout, float *vvout, float *uuin, float
         ier = c_gdxyvval_orig(yan_gdid, tmpuu, tmpvv, &uuin[(lni*lnj)], &vvin[(lni*lnj)], x, tmpy, n);
         ier = c_gdllfxy_orig (yan_gdid, tmplat, tmplon, x, tmpy, n);
         ier = c_gdwdfuv_orig (yan_gdid, uuyan, vvyan, tmpuu, tmpvv, tmplat, tmplon, n);
-        for (j = 0; j < n; j++) {
+        for (int32_t j = 0; j < n; j++) {
             if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj) {
                 uuout[j] = uuyan[j];
                 vvout[j] = vvyan[j];
@@ -101,4 +109,10 @@ int32_t c_gdxywdval(int32_t gdin, float *uuout, float *vvout, float *uuin, float
     free(tmpvv);
 
     return ier;
+}
+
+
+int32_t f77name(gdxywdval)(int32_t *gdin, float *uuout, float *vvout, float *uuin, float *vvin, float *x, float *y, int32_t *n)
+{
+   return c_gdxywdval(*gdin, uuout, vvout, uuin, vvin, x, y, *n);
 }

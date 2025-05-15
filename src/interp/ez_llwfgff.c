@@ -27,25 +27,39 @@
 #include "base/base.h"
 
 
-void f77name(ez_llwfgff)(float *uullout, float *vvllout, float *latin, float *lonin,
-                  float *xlatingf, float *xloningf, int32_t *ni,int32_t *nj,
-                  char *grtyp,int32_t *ig1,int32_t *ig2,int32_t *ig3,int32_t *ig4, F2Cl lengrtyp)
-{
-  c_ezllwfgff(uullout, vvllout, latin, lonin, xlatingf, xloningf, ni,nj,
-    grtyp,ig1,ig2,ig3,ig4);
-}
+//! \file
 
 
-
-//! LatLon Winds From GeF Winds
-void c_ezllwfgff(float *uullout, float *vvllout, float *latin, float *lonin,
-                  float *xlatingf, float *xloningf, int32_t *ni,int32_t *nj,
-                  char *grtyp,int32_t *ig1,int32_t *ig2,int32_t *ig3,int32_t *ig4)
-{
-    //! Ce sous-programme effectue la rotation des vents d'un systeme de coordonne
-    //! tourne a un systeme de coordonnee non tourne.
-    //! latin, lonin sont les latlons vraies
-    //! xlatingf, xloningf sont les latlons sur la grille tournee
+//! Convert wins from a rotated grid to a non-rotated one
+void c_ezllwfgff(
+    //! [out] Rotated U wind component
+    float * const uullout,
+    //! [out] Rotated V wind component
+    float * const vvllout,
+    //! [in] Real latitudes
+    const float * const latin,
+    //! [in] Real longitudes
+    const float * const lonin,
+    //! [in] Latitudes on the rotated grid
+    const float * const xlatingf,
+    //! [in] Longitudes on the rotated grid
+    const float * const xloningf,
+    //! [in] Number of points in the first dimension
+    const int32_t * const ni,
+    //! [in] Number of points in the second dimension
+    const int32_t * const nj,
+    //! [in] Grid type
+    const char * const grtyp,
+    //! [in] First integer grid parameter. See \ref cxgaig for parameter description
+    const int32_t * const ig1,
+    //! [in] Second integer grid parameter
+    const int32_t * const ig2,
+    //! [in] Third integer grid parameter
+    const int32_t * const ig3,
+    //! [in] Fourth integer grid parameter
+    const int32_t * const ig4
+) {
+    //! \ingroup ezscint
 
     int32_t npts = *ni * *nj;
     int32_t trois = 3;
@@ -63,4 +77,25 @@ void c_ezllwfgff(float *uullout, float *vvllout, float *latin, float *lonin,
 
     free(uvcart);
     free(xyz);
+}
+
+
+//! \copydoc c_ezllwfgff
+void f77name(ez_llwfgff)(
+    float * const uullout,
+    float * const vvllout,
+    const float * const latin,
+    const float * const lonin,
+    const float * const xlatingf,
+    const float * const xloningf,
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const char * const grtyp,
+    const int32_t * const ig1,
+    const int32_t * const ig2,
+    const int32_t * const ig3,
+    const int32_t * const ig4,
+    F2Cl lengrtyp
+) {
+    c_ezllwfgff(uullout, vvllout, latin, lonin, xlatingf, xloningf, ni, nj, grtyp, ig1, ig2, ig3, ig4);
 }

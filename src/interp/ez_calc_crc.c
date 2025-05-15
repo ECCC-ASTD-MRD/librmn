@@ -22,6 +22,9 @@
 #include <stddef.h>
 
 
+//! \file
+
+
 //! Computer a CRC of an int array and optionally 2 float arrays
 unsigned int ez_calc_crc(
     //! [in] Pointer of the array

@@ -48,6 +48,8 @@ subroutine llwfgfw(spd, dir, xlat, xlon, li, lj, grtyp, ig1, ig2, ig3, ig4)
     !> Forth integer grid descriptor
     integer, intent(in) :: ig4
 
+    !> \ingroup ezscint
+
     external :: cigaxg, ez_crot, ez_gfxyfll, ez_vrotf2, ez_llwfgdw
     real :: r(3, 3), ri(3, 3)
     real :: xlat1, xlon1, xlat2, xlon2

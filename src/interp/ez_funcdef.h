@@ -143,10 +143,21 @@ void  c_ezllwfgfw(float *uullout, float *vvllout, float *latin, float *lonin,
                   float *xlatingf, float *xloningf,
                  int32_t *ni,int32_t *nj,
                   char *grtyp,int32_t *ig1,int32_t *ig2,int32_t *ig3,int32_t *ig4);
-void  c_ezllwfgff(float *uullout, float *vvllout, float *latin, float *lonin,
-                  float *xlatingf, float *xloningf,
-                 int32_t *ni,int32_t *nj,
-                  char *grtyp,int32_t *ig1,int32_t *ig2,int32_t *ig3,int32_t *ig4);
+void  c_ezllwfgff(
+    float * const uullout,
+    float * const vvllout,
+    const float * const latin,
+    const float * const lonin,
+    const float * const xlatingf,
+    const float * const xloningf,
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const char * const grtyp,
+    const int32_t * const ig1,
+    const int32_t * const ig2,
+    const int32_t * const ig3,
+    const int32_t * const ig4
+);
 
 void c_ez_manageGrillesMemory();
 
