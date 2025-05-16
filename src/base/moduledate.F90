@@ -1,22 +1,25 @@
-!/* RMNLIB - Library of useful routines for C and FORTRAN programming
-! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-! *                          Environnement Canada
-! *
-! * This library is free software; you can redistribute it and/or
-! * modify it under the terms of the GNU Lesser General Public
-! * License as published by the Free Software Foundation,
-! * version 2.1 of the License.
-! *
-! * This library is distributed in the hope that it will be useful,
-! * but WITHOUT ANY WARRANTY; without even the implied warranty of
-! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! * Lesser General Public License for more details.
-! *
-! * You should have received a copy of the GNU Lesser General Public
-! * License along with this library; if not, write to the
-! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-! * Boston, MA 02111-1307, USA.
-! */
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
+!
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
+!
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
+!
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
+
+
+!> \file
+
 
 !> This module is meant to be private to this file
 !> Helper functions that were previously defined inside individual functions (sometimes
@@ -96,12 +99,12 @@ end module rmn_date
 !============================================================================
 
 subroutine date_thread_lock(lock)
-      IMPLICIT NONE
-      !> If .true. attempt to acquire lock, .false. release lock
-      logical, intent(IN) :: lock
-      integer, save :: owner_thread = 0
-      call set_user_lock(owner_thread, lock)
-      return
+    IMPLICIT NONE
+    !> If .true. attempt to acquire lock, .false. release lock
+    logical, intent(IN) :: lock
+    integer, save :: owner_thread = 0
+    external :: set_user_lock
+    call set_user_lock(owner_thread, lock)
 end subroutine date_thread_lock
 
 subroutine INCDATi(idate1, idate2, nhours)
@@ -109,6 +112,7 @@ subroutine INCDATi(idate1, idate2, nhours)
     IMPLICIT NONE
     integer :: idate1, idate2
     real(kind = real64) :: nhours
+    external :: date_thread_lock, IDNACTi
     call date_thread_lock(.true.)
     call IDNACTi(idate1, idate2, nhours)
     call date_thread_lock(.false.)
@@ -119,6 +123,7 @@ subroutine INCDATr(idate1, idate2, nhours)
     IMPLICIT NONE
     integer :: idate1, idate2
     real(kind = real64) :: nhours
+    external :: date_thread_lock, IDNACTr
     call date_thread_lock(.true.)
     call IDNACTr(idate1, idate2, nhours)
     call date_thread_lock(.false.)
@@ -129,6 +134,7 @@ subroutine DIFDATi(idate1, idate2, nhours)
     IMPLICIT NONE
     integer :: idate1, idate2
     real(kind = real64) :: nhours
+    external :: date_thread_lock, DDIAFTi
     call date_thread_lock(.true.)
     call DDIAFTi(idate1, idate2, nhours)
     call date_thread_lock(.false.)
@@ -139,6 +145,7 @@ subroutine DIFDATr(idate1, idate2, nhours)
     IMPLICIT NONE
     integer :: idate1, idate2
     real(kind = real64) :: nhours
+    external :: date_thread_lock, DDIAFTr
     call date_thread_lock(.true.)
     call DDIAFTr(idate1, idate2, nhours)
     call date_thread_lock(.false.)
@@ -148,6 +155,7 @@ INTEGER FUNCTION newdate(DAT1, DAT2, DAT3, MODE)
     IMPLICIT NONE
     integer :: DAT1, DAT2(*), DAT3, MODE
     integer, external :: naetwed
+    external :: date_thread_lock
     call date_thread_lock(.true.)
     newdate = naetwed(DAT1, DAT2, DAT3, MODE)
     call date_thread_lock(.false.)
@@ -157,6 +165,7 @@ INTEGER FUNCTION IDATMG2(IDATE)
     IMPLICIT NONE
     integer idate(14)
     integer, external :: itdmag2
+    external :: date_thread_lock
     call date_thread_lock(.true.)
     IDATMG2 = itdmag2(IDATE)
     call date_thread_lock(.false.)
@@ -165,6 +174,7 @@ end function IDATMG2
 subroutine DATMGP2(IDATE)
     IMPLICIT NONE
     integer idate(14)
+    external :: date_thread_lock, dmagtp2
     call date_thread_lock(.true.)
     call dmagtp2(IDATE)
     call date_thread_lock(.false.)
@@ -173,6 +183,7 @@ end subroutine DATMGP2
 subroutine NewDate_Options( value, command )
     IMPLICIT NONE
     character(len = *) :: value, command
+    external :: date_thread_lock, NewDate_Options_int
     call date_thread_lock(.true.)
     call NewDate_Options_int( value, command )
     call date_thread_lock(.false.)
@@ -181,6 +192,7 @@ end subroutine NewDate_Options
 subroutine Get_Calendar_Status( NoLeapYears, CcclxDays )
     IMPLICIT NONE
     logical :: NoLeapYears, CcclxDays
+    external :: date_thread_lock, Get_Calendar_Status_int
     call date_thread_lock(.true.)
     call Get_Calendar_Status_int( NoLeapYears, CcclxDays )
     call date_thread_lock(.false.)
@@ -188,32 +200,35 @@ end subroutine Get_Calendar_Status
 
 integer function Calendar_Adjust(tdate1, tdate2, true_date_mode, adding)
     IMPLICIT NONE
-    integer, external :: Calendar_Adjust_int
     integer :: tdate1, tdate2
     character(len=1) :: true_date_mode
     logical :: adding
+    external :: date_thread_lock
+    integer, external :: Calendar_Adjust_int
     call date_thread_lock(.true.)
     Calendar_Adjust = Calendar_Adjust_int(tdate1, tdate2, true_date_mode, adding)
     call date_thread_lock(.false.)
 end function Calendar_Adjust
 
 integer function CcclxDays_Adjust(tdate1, tdate2, true_date_mode, adding)
-      IMPLICIT NONE
-      integer, external :: CcclxDays_Adjust_int
-      integer :: tdate1, tdate2 ! input TrueDates
-      character(len=1) :: true_date_mode ! (B)asic or (E)xtended TrueDates
-      logical :: adding ! operating mode (T=incadtr, F=difdatr)
-      call date_thread_lock(.true.)
-      CcclxDays_Adjust = CcclxDays_Adjust_int(tdate1, tdate2, true_date_mode, adding)
-      call date_thread_lock(.false.)
+    IMPLICIT NONE
+    integer :: tdate1, tdate2 ! input TrueDates
+    character(len=1) :: true_date_mode ! (B)asic or (E)xtended TrueDates
+    logical :: adding ! operating mode (T=incadtr, F=difdatr)
+    external :: date_thread_lock
+    integer, external :: CcclxDays_Adjust_int
+    call date_thread_lock(.true.)
+    CcclxDays_Adjust = CcclxDays_Adjust_int(tdate1, tdate2, true_date_mode, adding)
+    call date_thread_lock(.false.)
 end function CcclxDays_Adjust
 
 integer function LeapYear_Adjust(tdate1, tdate2, true_date_mode, adding)
     IMPLICIT NONE
-    integer, external :: LeapYear_Adjust_int
     logical :: adding
     character(len=1) :: true_date_mode ! (B)asic or (E)xtended true dates
     integer :: tdate1, tdate2
+    external :: date_thread_lock
+    integer, external :: LeapYear_Adjust_int
     call date_thread_lock(.true.)
     LeapYear_Adjust = LeapYear_Adjust_int(tdate1, tdate2, true_date_mode, adding)
     call date_thread_lock(.false.)
@@ -221,6 +236,7 @@ end function LeapYear_Adjust
 
 subroutine Ignore_LeapYear()
     IMPLICIT NONE
+    external :: date_thread_lock, Ignore_LeapYear_int
     call date_thread_lock(.true.)
     call Ignore_LeapYear_int
     call date_thread_lock(.false.)
@@ -228,6 +244,7 @@ end subroutine Ignore_LeapYear
 
 subroutine Accept_LeapYear()
     IMPLICIT NONE
+    external :: date_thread_lock, Accept_LeapYear_int
     call date_thread_lock(.true.)
     call Accept_LeapYear_int
     call date_thread_lock(.false.)
@@ -236,6 +253,7 @@ end subroutine Accept_LeapYear
 subroutine Get_LeapYear_Status(no_leap_year_status)
     IMPLICIT NONE
     logical :: no_leap_year_status
+    external :: date_thread_lock, Get_LeapYear_Status_int
     call date_thread_lock(.true.)
     call Get_LeapYear_Status_int(no_leap_year_status)
     call date_thread_lock(.false.)
@@ -252,6 +270,7 @@ subroutine DIFDATr_c(idate1, idate2, nhours) bind(C, name = 'difdatr_c')
     IMPLICIT NONE
     integer :: idate1, idate2
     real(kind = real64) :: nhours
+    external :: DIFDATr
     call DIFDATr(idate1, idate2, nhours)
 end subroutine DIFDATr_c
 
@@ -260,6 +279,7 @@ subroutine INCDATr_c(idate1, idate2, nhours) bind(C, name = 'incdatr_c')
     IMPLICIT NONE
     integer :: idate1, idate2
     real(kind = real64) :: nhours
+    external :: INCDATr
     call INCDATr(idate1, idate2, nhours)
 end subroutine INCDATr_c
 
@@ -379,6 +399,7 @@ SUBROUTINE IDNACTr (IDATE1, IDATE2, NHOURS)
     IMPLICIT NONE
     integer idate1, idate2
     real(real64) nhours
+    external :: date_add_sub
     call date_add_sub(IDATE1, IDATE2, NHOURS, .TRUE., .FALSE.)
 end
 
@@ -387,6 +408,7 @@ SUBROUTINE IDNACTi (IDATE1, IDATE2, NHOURS)
     IMPLICIT NONE
     integer idate1, idate2
     real(real64) nhours
+    external :: date_add_sub
     call date_add_sub(IDATE1, IDATE2, NHOURS, .TRUE., .TRUE.)
 end
 
@@ -395,6 +417,7 @@ SUBROUTINE DDIAFTr(idate1, idate2, nhours)
     IMPLICIT NONE
     integer idate1, idate2
     real(real64) nhours
+    external :: date_add_sub
     call date_add_sub(IDATE1, IDATE2, NHOURS, .FALSE., .FALSE.)
 end
 
@@ -403,6 +426,7 @@ SUBROUTINE DDIAFTi(idate1, idate2, nhours)
     IMPLICIT NONE
     integer idate1, idate2
     real(real64) nhours
+    external :: date_add_sub
     call date_add_sub(IDATE1, IDATE2, NHOURS, .FALSE., .TRUE.)
 end
 
@@ -746,13 +770,14 @@ end subroutine dmagtp2
 
 subroutine Ignore_LeapYear_int()
     implicit none
-
+    external :: NewDate_Options_int
     call NewDate_Options_int( 'year=365_day', 'set' )
 end
 
 
 subroutine Accept_LeapYear_int()
     implicit none
+    external :: NewDate_Options_int
     call NewDate_Options_int( 'year=gregorian', 'set' )
 end
 
@@ -761,6 +786,7 @@ subroutine Get_LeapYear_Status_int( no_leap_year_status )
     implicit none
     logical :: no_leap_year_status
     character(len = 512) :: value
+    external :: NewDate_Options_int
 
     value = 'year'
     call NewDate_Options_int( value, 'get' )
@@ -796,6 +822,7 @@ subroutine NewDate_Options_int( value, command )
     use calendar_status_info
     implicit none
     character(len=*) :: value, command
+    external :: getenvc, up2low
 
     integer ii
     character(512) :: evalue, string
@@ -867,6 +894,9 @@ subroutine Get_Calendar_Status_int( NoLeapYears, CcclxDays )
     use calendar_status_info
     implicit none
     logical NoLeapYears, CcclxDays
+
+    external :: getenvc, up2low
+
     character(len = 512) :: evalue
     integer ii
 
@@ -907,6 +937,8 @@ integer function Calendar_Adjust_int(tdate1, tdate2, true_date_mode, adding)
     integer :: tdate1, tdate2
     character(len=1) true_date_mode
     logical :: adding
+
+    external :: Get_Calendar_Status_int
 
     integer Adjust
     logical NoLeapYears, CcclxDays
@@ -1270,6 +1302,8 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
     IMPLICIT NONE
 
     INTEGER DAT1, DAT2(*), DAT3, MODE
+
+    external :: datec
 
     !NOTE: see top of file for usage documentation
 

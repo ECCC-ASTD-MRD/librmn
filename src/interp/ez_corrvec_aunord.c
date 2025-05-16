@@ -22,113 +22,103 @@
 #include <stdlib.h>
 
 #include "rmn/ezscint.h"
-#include "rmn/f_ezscint.h"
+#include <rmn/f_ezscint.h>
 #include "ez_funcdef.h"
 
 
-
-int32_t ez_corrvec_aunord(float *uuout, float *vvout, float *uuin, float *vvin, int32_t gdin, int32_t gdout)
-{
-    float *polar_uu_in, *polar_vv_in, *corr_uus, *corr_vvs, *temp_y,ay[4];
-    int32_t ni, nj, j1, j2, npts, i;
+int32_t ez_corrvec_aunord(float *uuout, float *vvout, float *uuin, float *vvin, int32_t gdin, int32_t gdout) {
     int32_t quatre = 4;
     int32_t un = 1;
-    int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out, idx_gdin;
-    _gridset *gset;
-    _Grille laGrille;
 
+    int32_t gdrow_in, gdrow_out, gdcol_in, gdcol_out;
     c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
     c_gdkey2rowcol(gdout, &gdrow_out, &gdcol_out);
-    idx_gdin = c_find_gdin(gdin, gdout);
+    const int32_t idx_gdin = c_find_gdin(gdin, gdout);
+
+    _gridset * gset = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin]);
+    _Grille laGrille = Grille[gdrow_in][gdcol_in];
+
+    const int32_t ni = laGrille.ni;
+    const int32_t nj = laGrille.j2 - laGrille.j1 + 1;
+
+    const int32_t j1 = laGrille.j2-2;
+    const int32_t j2 = j1 + 3;
 
     gset = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin]);
-    laGrille = Grille[gdrow_in][gdcol_in];
+    const int32_t npts = gset->zones[AU_NORD].npts;
 
-    ni = laGrille.ni;
-    nj = laGrille.j2 - laGrille.j1 + 1;
-
-    j1 = laGrille.j2-2;
-    j2 = j1 + 3;
-
-    gset = &(Grille[gdrow_out][gdcol_out].gset[idx_gdin]);
-    npts = gset->zones[AU_NORD].npts;
-
-    polar_uu_in = (float *) malloc(4 * ni * sizeof(float));
-    polar_vv_in = (float *) malloc(4 * ni * sizeof(float));
-    corr_uus = (float *) malloc(npts * sizeof(float));
-    corr_vvs = (float *) malloc(npts * sizeof(float));
+    float * const polar_uu_in = (float *) malloc(4 * ni * sizeof(float));
+    float * const polar_vv_in = (float *) malloc(4 * ni * sizeof(float));
+    float * const corr_uus = (float *) malloc(npts * sizeof(float));
+    float * const corr_vvs = (float *) malloc(npts * sizeof(float));
 
     ez_calcnpolarwind(polar_uu_in, polar_vv_in, uuin, vvin, ni, nj, gdin);
 
-    switch (groptions.degre_interp)
-    {
-    case CUBIQUE:
-        switch (laGrille.grtyp[0])
-            {
-            case 'Z':
-            case 'E':
-            case 'G':
-            if (laGrille.ay[j1+1] == 90.0)
-                {
-                ay[0] = laGrille.ay[j1-2];
-                ay[1] = laGrille.ay[j1-1];
-                ay[2] = laGrille.ay[j1];
-                ay[3] = laGrille.ay[j1+1];
-                }
-            else
-                {
-                ay[0] = laGrille.ay[j1-1];
-                ay[1] = laGrille.ay[j1];
-                ay[2] = laGrille.ay[j1+1];
-                ay[3] = 90.0;
+    switch (groptions.degre_interp) {
+        case CUBIQUE:
+            switch (laGrille.grtyp[0]) {
+                case 'Z':
+                case 'E':
+                case 'G': {
+                    float ay[4];
+                    if (laGrille.ay[j1+1] == 90.0) {
+                        ay[0] = laGrille.ay[j1-2];
+                        ay[1] = laGrille.ay[j1-1];
+                        ay[2] = laGrille.ay[j1];
+                        ay[3] = laGrille.ay[j1+1];
+                    } else {
+                        ay[0] = laGrille.ay[j1-1];
+                        ay[1] = laGrille.ay[j1];
+                        ay[2] = laGrille.ay[j1+1];
+                        ay[3] = 90.0;
+                    }
+
+                    f77name(ez_irgdint_3_wnnc)(corr_uus, gset->zones[AU_NORD].x, gset->zones[AU_NORD].y, &npts,
+                                laGrille.ax, ay, polar_uu_in,
+                                &ni, &j1, &j2, &laGrille.extension);
+                    f77name(ez_irgdint_3_wnnc)(corr_vvs, gset->zones[AU_NORD].x, gset->zones[AU_NORD].y, &npts,
+                                laGrille.ax, ay, polar_vv_in,
+                                &ni, &j1, &j2, &laGrille.extension);
+                    break;
                 }
 
-            f77name(ez_irgdint_3_wnnc)(corr_uus,gset->zones[AU_NORD].x, gset->zones[AU_NORD].y,&npts,
-                        laGrille.ax, ay, polar_uu_in,
-                        &ni, &j1, &j2, &laGrille.extension);
-            f77name(ez_irgdint_3_wnnc)(corr_vvs,gset->zones[AU_NORD].x, gset->zones[AU_NORD].y,&npts,
-                        laGrille.ax, ay, polar_vv_in,
-                        &ni, &j1, &j2, &laGrille.extension);
+                default:
+                    f77name(ez_rgdint_3_wnnc)(corr_uus, gset->zones[AU_NORD].x, gset->zones[AU_NORD].y, &npts,
+                                polar_uu_in, &ni, &j1, &j2, &laGrille.extension);
+                    f77name(ez_rgdint_3_wnnc)(corr_vvs, gset->zones[AU_NORD].x,
+                                                    gset->zones[AU_NORD].y, &npts,
+                                polar_vv_in, &ni, &j1, &j2, &laGrille.extension);
+                    break;
+            }
             break;
 
-            default:
-            f77name(ez_rgdint_3_wnnc)(corr_uus,gset->zones[AU_NORD].x, gset->zones[AU_NORD].y,&npts,
-                        polar_uu_in,&ni, &j1, &j2, &laGrille.extension);
-            f77name(ez_rgdint_3_wnnc)(corr_vvs,gset->zones[AU_NORD].x,
-                                            gset->zones[AU_NORD].y,&npts,
-                        polar_vv_in,&ni, &j1, &j2, &laGrille.extension);
+        case LINEAIRE: {
+            float * const temp_y = (float *) malloc(npts*sizeof(float));
+            for (int32_t i = 0; i < npts; i++) {
+                temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (laGrille.j2-3));
+            }
+            f77name(ez_rgdint_1_w)(corr_uus, gset->zones[AU_NORD].x, temp_y, &npts, polar_uu_in, &ni, &un, &quatre, &laGrille.extension);
+            f77name(ez_rgdint_1_w)(corr_vvs, gset->zones[AU_NORD].x, temp_y, &npts, polar_vv_in, &ni, &un, &quatre, &laGrille.extension);
+            free(temp_y);
             break;
-            }
-        break;
+        }
 
-    case LINEAIRE:
-        temp_y = (float *) malloc(npts*sizeof(float));
-        for (i=0; i < npts; i++)
-            {
-            temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (laGrille.j2-3));
+        case VOISIN: {
+            float * const temp_y = (float *) malloc(npts*sizeof(float));
+            for (int32_t i = 0; i < npts; i++) {
+                temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (laGrille.j2-3));
             }
-        f77name(ez_rgdint_1_w)(corr_uus,gset->zones[AU_NORD].x,temp_y,&npts,polar_uu_in,&ni, &un, &quatre, &laGrille.extension);
-        f77name(ez_rgdint_1_w)(corr_vvs,gset->zones[AU_NORD].x,temp_y,&npts,polar_vv_in,&ni, &un, &quatre, &laGrille.extension);
-        free(temp_y);
-        break;
-
-    case VOISIN:
-        temp_y = (float *) malloc(npts*sizeof(float));
-        for (i=0; i < npts; i++)
-            {
-            temp_y[i] = gset->zones[AU_NORD].y[i] - (1.0 * (laGrille.j2-3));
-            }
-        f77name(ez_rgdint_0)(corr_uus,gset->zones[AU_NORD].x,temp_y,&npts,polar_uu_in,&ni, &un, &quatre);
-        f77name(ez_rgdint_0)(corr_vvs,gset->zones[AU_NORD].x,temp_y,&npts,polar_vv_in,&ni, &un, &quatre);
-        free(temp_y);
-        break;
+            f77name(ez_rgdint_0)(corr_uus, gset->zones[AU_NORD].x, temp_y, &npts, polar_uu_in, &ni, &un, &quatre);
+            f77name(ez_rgdint_0)(corr_vvs, gset->zones[AU_NORD].x, temp_y, &npts, polar_vv_in, &ni, &un, &quatre);
+            free(temp_y);
+            break;
+        }
     }
 
 
-    for (i=0; i < gset->zones[AU_NORD].npts; i++)
-    {
-    uuout[gset->zones[AU_NORD].idx[i]] = corr_uus[i];
-    vvout[gset->zones[AU_NORD].idx[i]] = corr_vvs[i];
+    for (int32_t i = 0; i < gset->zones[AU_NORD].npts; i++) {
+        uuout[gset->zones[AU_NORD].idx[i]] = corr_uus[i];
+        vvout[gset->zones[AU_NORD].idx[i]] = corr_vvs[i];
     }
 
     free(polar_uu_in);

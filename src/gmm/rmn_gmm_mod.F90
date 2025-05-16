@@ -1391,6 +1391,8 @@ contains
                 gmm_update_tpi_key2 = gmm_update_table_entry241(indx, key)
             case (381)
                 gmm_update_tpi_key2 = gmm_update_table_entry381(indx, key)
+            case default
+                gmm_update_tpi_key2 = -1
         end select
     end function gmm_update_tpi_key2
 

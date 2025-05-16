@@ -3,52 +3,89 @@
 
 #include <sys/types.h>
 
-#define VECT_MAX(A,B)                 (A<B?B:A)
-#define VECT_MID(A,B)                 (A+B)*0.5
-#define VECT_MIN(A,B)                 (A<B?A:B)
+//! \addtogroup genericDataStructures
+//! @{
 
-#define Vect_Add(V1,V2,V3)       V1[0]=V2[0]+V3[0];V1[1]=V2[1]+V3[1];V1[2]=V2[2]+V3[2];
-#define Vect_Assign(V1,V2)       V1[0]=V2[0];V1[1]=V2[1];V1[2]=V2[2];
-#define Vect_Clear(V)            V[0]=0.0;V[1]=0.0;V[2]=0.0;
-#define Vect_DotProduct(V1,V2)   (V1[0]*V2[0]+V1[1]*V2[1]+V1[2]*V2[2])
-#define Vect_Init(V,I,J,K)       V[0]=I;V[1]=J;V[2]=K;
-#define Vect_Max(V1,V2,V3)       V1[0]=VECT_MAX(V2[0],V3[0]);V1[1]=VECT_MAX(V2[1],V3[1]);V1[2]=VECT_MAX(V2[2],V3[2])
-#define Vect_Mid(V1,V2,V3)       V1[0]=VECT_MID(V2[0],V3[0]);V1[1]=VECT_MID(V2[1],V3[1]);V1[2]=VECT_MID(V2[2],V3[2])
-#define Vect_Min(V1,V2,V3)       V1[0]=VECT_MIN(V2[0],V3[0]);V1[1]=VECT_MIN(V2[1],V3[1]);V1[2]=VECT_MIN(V2[2],V3[2])
-#define Vect_Norm(V)             (sqrt(V[0]*V[0]+V[1]*V[1]+V[2]*V[2]))
-#define Vect_Null(V)             (V[0]==0.0 && V[1]==0.0 && V[2]==0.0)
-#define Vect_Substract(V1,V2,V3) V1[0]=V2[0]-V3[0];V1[1]=V2[1]-V3[1];V1[2]=V2[2]-V3[2]
-#define Vect_Weight(V1,V2)       VECT_MAX(VECT_MAX(fabs(V2[0]-V1[0]),fabs(V2[1]-V1[1])),fabs(V2[2]-V1[2]))
-#define Vect_Equal(V1,V2)        (V1[0]==V2[0] && V1[1]==V2[1] && V1[2]==V2[2])
-#define Vect_Mul(V1,V2,V3)       V1[0]=V2[0]*V3[0];V1[1]=V2[1]*V3[1];V1[2]=V2[2]*V3[2]
-#define Vect_Dist2(V1,V2)        ((V1[0]-V2[0])*(V1[0]-V2[0])+(V1[1]-V2[1])*(V1[1]-V2[1])+(V1[2]-V2[2])*(V1[2]-V2[2]))
-#define Vect_Dist(V1,V2)         sqrt(Vect_Dist2(V1,V2))
+//! Get the biggest of two numbers
+#define VECT_MAX(A, B) (A < B ? B : A)
+//! Average two numbers
+#define VECT_MID(A, B) (A + B) * 0.5
+//! Get the smallest of two numbers
+#define VECT_MIN(A, B) (A < B ? A : B)
 
-#define Vect_Interp(V,V1,V2,R)   Vect_Substract(V,V2,V1);Vect_SMul(V,V,R);Vect_Add(V,V1,V)
-#define Vect_InterpC(V,V1,V2,R)  Vect_Substract(V,V2,V1);V[0]=V[0]>2?-(4-V[0]):(V[0]<-2?4+V[0]:V[0]);Vect_SMul(V,V,R);Vect_Add(V,V1,V)
+//! Add 2 3D vectors
+#define Vect_Add(v3dOut, v3dIn1, v3dIn2) v3dOut[0] = v3dIn1[0] + v3dIn2[0]; v3dOut[1] = v3dIn1[1] + v3dIn2[1]; v3dOut[2] = v3dIn1[2] + v3dIn2[2];
+//! Assign the value of a 3D vector to another
+#define Vect_Assign(v3dOut, v3dIn1) v3dOut[0] = v3dIn1[0]; v3dOut[1] = v3dIn1[1]; v3dOut[2] = v3dIn1[2];
+//! Set each component of a 3D vector to 0
+#define Vect_Clear(v3d) v3d[0] = 0.0; v3d[1] = 0.0; v3d[2] = 0.0;
+//! Compute the dot product of 2 3D vectors
+#define Vect_DotProduct(v3dIn1, v3dIn2) (v3dIn1[0] * v3dIn2[0] + v3dIn1[1] * v3dIn2[1] + v3dIn1[2] * v3dIn2[2])
+//! Assign each component of a 3D vector
+#define Vect_Init(v3d, I, J, K) v3d[0] = I; v3d[1] = J; v3d[2] = K;
+//! Set a 3D vector to the maximum of each component of the 2 3D input vectors
+#define Vect_Max(v3dOut, v3dIn1, v3dIn2) v3dOut[0] = VECT_MAX(v3dIn1[0], v3dIn2[0]); v3dOut[1] = VECT_MAX(v3dIn1[1], v3dIn2[1]); v3dOut[2] = VECT_MAX(v3dIn1[2], v3dIn2[2])
+//! Set a 3D vector to the average of each component of the 2 3D input vectors
+#define Vect_Mid(v3dOut, v3dIn1, v3dIn2) v3dOut[0] = VECT_MID(v3dIn1[0], v3dIn2[0]); v3dOut[1] = VECT_MID(v3dIn1[1], v3dIn2[1]); v3dOut[2] = VECT_MID(v3dIn1[2], v3dIn2[2])
+//! Set a 3D vector to the minimum of each component of the 2 3D input vectors
+#define Vect_Min(v3dOut, v3dIn1, v3dIn2) v3dOut[0] = VECT_MIN(v3dIn1[0], v3dIn2[0]); v3dOut[1] = VECT_MIN(v3dIn1[1], v3dIn2[1]); v3dOut[2] = VECT_MIN(v3dIn1[2], v3dIn2[2])
+//! Compute the norm of the 3D vector
+#define Vect_Norm(v3d) (sqrt(v3d[0] * v3d[0] + v3d[1] * v3d[1] + v3d[2] * v3d[2]))
+//! Check if each component of tree the vector is equal to 0
+#define Vect_Null(v3d) (v3d[0] == 0.0 && v3d[1] == 0.0 && v3d[2] == 0.0)
+//! Substract v3dIn2 from v3dIn1 giving v3dOut
+#define Vect_Substract(v3dOut, v3dIn1, v3dIn2) v3dOut[0] = v3dIn1[0] - v3dIn2[0]; v3dOut[1] = v3dIn1[1] - v3dIn2[1]; v3dOut[2] = v3dIn1[2] - v3dIn2[2];
 
-#define Vect_SAdd(V1,V2,SC)      V1[0]=V2[0]+SC;V1[1]=V2[1]+SC;V1[2]=V2[2]+SC;
-#define Vect_SSubstrac(V1,V2,SC) V1[0]=V2[0]-SC;V1[1]=V2[1]-SC;V1[2]=V2[2]-SC;
-#define Vect_SMul(V1,V2,SC)      V1[0]=V2[0]*SC;V1[1]=V2[1]*SC;V1[2]=V2[2]*SC;
-#define Vect_SDiv(V1,V2,SC)      V1[0]=V2[0]/SC;V1[1]=V2[1]/SC;V1[2]=V2[2]/SC;
+#define Vect_Weight(v3dIn1, v3dIn2) VECT_MAX(VECT_MAX(fabs(v3dIn2[0] - v3dIn1[0]), fabs(v3dIn2[1] - v3dIn1[1])), fabs(v3dIn2[2] - v3dIn1[2]))
+//! Check if two 3D vectors are equal
+#define Vect_Equal(v3dIn1, v3dIn2) (v3dIn1[0] == v3dIn2[0] && v3dIn1[1] == v3dIn2[1] && v3dIn1[2] == v3dIn2[2])
+//! Multiplied two 3D vectors
+#define Vect_Mul(v3dOut, v3dIn1, v3dIn2) v3dOut[0] = v3dIn1[0] * v3dIn2[0]; v3dOut[1] = v3dIn1[1] * v3dIn2[1]; v3dOut[2] = v3dIn1[2] * v3dIn2[2]
+//! Compute the squared distance between two 3D vectors
+#define Vect_Dist2(v3dIn1, v3dIn2) ((v3dIn1[0] - v3dIn2[0]) * (v3dIn1[0] - v3dIn2[0]) + (v3dIn1[1] - v3dIn2[1]) * (v3dIn1[1] - v3dIn2[1]) + (v3dIn1[2] - v3dIn2[2]) * (v3dIn1[2] - v3dIn2[2]))
+//! Compute the distance between two 3D vectors
+#define Vect_Dist(v3dIn1, v3dIn2) sqrt(Vect_Dist2(v3dIn1, v3dIn2))
 
+//! Add a scalar to each component of a 3D vector
+#define Vect_SAdd(v3dOut, v3dIn, SC)      v3dOut[0] = v3dIn[0] + SC; v3dOut[1] = v3dIn[1] + SC; v3dOut[2] = v3dIn[2] + SC;
+//! Substract a scalar from each component of a 3D vector
+#define Vect_SSubstrac(v3dOut, v3dIn, SC) v3dOut[0] = v3dIn[0] - SC; v3dOut[1] = v3dIn[1] - SC; v3dOut[2] = v3dIn[2] - SC;
+//! Multiply each component of a 3D vector by a scalar
+#define Vect_SMul(v3dOut, v3dIn, SC)      v3dOut[0] = v3dIn[0] * SC; v3dOut[1] = v3dIn[1] * SC; v3dOut[2] = v3dIn[2] * SC;
+//! Devide each component of a 3D vector by a scalar
+#define Vect_SDiv(v3dOut, v3dIn, SC)      v3dOut[0] = v3dIn[0] / SC; v3dOut[1] = v3dIn[1] / SC; v3dOut[2] = v3dIn[2] / SC;
+
+#define Vect_Interp(V, V1, V2, R) Vect_Substract(V, V2, V1); Vect_SMul(V, V, R); Vect_Add(V, V1, V)
+#define Vect_InterpC(V, V1, V2, R)  Vect_Substract(V, V2, V1);V[0]=V[0]>2?-(4-V[0]):(V[0]<-2?4+V[0]:V[0]);Vect_SMul(V, V, R);Vect_Add(V, V1, V)
+
+//! 4D vector of double
 typedef double   Vect4d[4];
+//! 3D vector of double
 typedef double   Vect3d[3];
+//! 2D vector of double
 typedef double   Vect2d[2];
+//! 4D vector of float
 typedef float    Vect4f[4];
+//! 3D vector of float
 typedef float    Vect3f[3];
+//! 2D vector of float
 typedef float    Vect2f[2];
+//! 4D vector of 32 bit integer
 typedef int32_t  Vect4i[4];
+//! 3D vector of 32 bit integer
 typedef int32_t  Vect3i[3];
+//! 2D vector of 32 bit integer
 typedef int32_t  Vect2i[2];
 
-void Vect3f_CrossProduct(Vect3f V1,Vect3f V2,Vect3f V3);
-void Vect3f_Normalize(Vect3f V);
+void Vect3f_CrossProduct(Vect3f v3dOut, const Vect3f v3dIn1, const Vect3f v3dIn2);
+void Vect3f_Normalize(Vect3f vect);
 
-void Vect_Normalize(Vect3d V);
-void Vect_Normal(Vect3d V1,Vect3d V2,Vect3d V3);
-void Vect_CrossProduct(Vect3d V1,Vect3d V2,Vect3d V3);
-int  Vect_InterPlane(Vect3d Dir,Vect3d Pix,double R);
-int  Vect_InterSphere(Vect3d Dir,double A,Vect3d Pix,double R);
+void Vect_Normalize(Vect3d vect);
+void Vect_Normal(Vect3d v3dOut, Vect3d v3dIn1, Vect3d v3dIn2);
+void Vect_CrossProduct(Vect3d v3dOut, const Vect3d v3dIn1, const Vect3d v3dIn2);
+int  Vect_InterPlane(const Vect3d vect, Vect3d intersectPos, const double dist);
+int  Vect_InterSphere(const Vect3d vect, const double quadConstFact, Vect3d intersectPos, const double radius);
+
+//! @}
 
 #endif

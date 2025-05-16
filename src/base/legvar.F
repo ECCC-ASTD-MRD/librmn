@@ -17,7 +17,7 @@
 * * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 * * Boston, MA 02111-1307, USA.
 * */
-#if defined (CRAY) 
+#ifdef CRAY
       FUNCTION LEGVAR(IAR)
       IEXP = SHIFTR(IAR,48).AND.77777B
       IF(IEXP.LE.20000B .OR. IEXP.GE.60000B)THEN

@@ -1,22 +1,21 @@
-!/* RMNLIB - Library of useful routines for C and FORTRAN programming
-! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-! *                          Environnement Canada
-! *
-! * This library is free software; you can redistribute it and/or
-! * modify it under the terms of the GNU Lesser General Public
-! * License as published by the Free Software Foundation,
-! * version 2.1 of the License.
-! *
-! * This library is distributed in the hope that it will be useful,
-! * but WITHOUT ANY WARRANTY; without even the implied warranty of
-! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! * Lesser General Public License for more details.
-! *
-! * You should have received a copy of the GNU Lesser General Public
-! * License along with this library; if not, write to the
-! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-! * Boston, MA 02111-1307, USA.
-! */
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
+!
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
+!
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
+!
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
 
 
 module mzonxst_mod
@@ -43,8 +42,7 @@ module mzonxst_mod
     ! +( COMPLET, tabctl(9) ),( LATMIN, tabctl(10)),
     ! +( ROT,     tabctl(11))
 
-    Integer         NDELTAT, DELTAT, MODE, NI, NIP, NJ, NK, NBIN, NBIP, SOMNK, COMPLET, LATMIN, ROT
-    Common /zontab/ NDELTAT, DELTAT, MODE, NI, NIP, NJ, NK, NBIN, NBIP, SOMNK, COMPLET, LATMIN, ROT
+    Integer, save :: NDELTAT, DELTAT, MODE, NI, NIP, NJ, NK, NBIN, NBIP, SOMNK, COMPLET, LATMIN, ROT
 
     ! Declaration de la variable d'etat.
     Integer, save :: ETAT, transit(6, 0:3)
@@ -254,7 +252,6 @@ end module mzonxst_mod
 #endif
 
 
-#if !defined(NO_SOURCE)
 Subroutine mzonopr ( OPR, VAL )
     use mzonxst_mod
     use rmn_fst98
@@ -1501,5 +1498,3 @@ subroutine MZONFIL ( NAME )
 
  6204 Format(' MzonFIL: NAME =',A)
 end
-
-#endif

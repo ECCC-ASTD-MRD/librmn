@@ -24,7 +24,7 @@
 
 #include "ez_funcdef.h"
 #include "base/base.h"
-#include "rmn/f_ezscint.h"
+#include <rmn/f_ezscint.h>
 
 int32_t c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, int32_t n);
 
@@ -33,7 +33,7 @@ int32_t c_gdllfxy(int32_t gdid, float *lat, float *lon, float *x, float *y, int3
     float *latyin, *lonyin, *latyan, *lonyan;
     float *tmpy;
 
-    int32_t gdrow_id, gdcol_id,yin_gdrow_id,yin_gdcol_id;
+    int32_t gdrow_id, gdcol_id, yin_gdrow_id, yin_gdcol_id;
 
     c_gdkey2rowcol(gdid,  &gdrow_id,  &gdcol_id);
 
@@ -56,7 +56,7 @@ int32_t c_gdllfxy(int32_t gdid, float *lat, float *lon, float *x, float *y, int3
         icode = c_gdllfxy_orig(yin_gdid, latyin, lonyin, x, tmpy, n);
         /*
         for (int32_t j = 0; j < n; j++) {
-            printf("gdllfxy yin x %f y %f : lat %f, lon %f \n",x[j],y[j],lat[j],lon[j]);
+            printf("gdllfxy yin x %f y %f : lat %f, lon %f \n", x[j], y[j], lat[j], lon[j]);
         }
         */
         icode = c_gdllfxy_orig(yan_gdid, latyan, lonyan, x, tmpy, n);
@@ -64,11 +64,11 @@ int32_t c_gdllfxy(int32_t gdid, float *lat, float *lon, float *x, float *y, int3
             if (y[j] > Grille[yin_gdrow_id][yin_gdcol_id].nj) {
                 lat[j] = latyan[j];
                 lon[j] = lonyan[j];
-                /* printf("gdllfxy yan x %f y %f : lat %f, lon %f \n",x[j],y[j],lat[j],lon[j]); */
+                /* printf("gdllfxy yan x %f y %f : lat %f, lon %f \n", x[j], y[j], lat[j], lon[j]); */
             } else {
                 lat[j] = latyin[j];
                 lon[j] = lonyin[j];
-                /* printf("gdllfxy yin x %f y %f : lat %f, lon %f \n",x[j],y[j],lat[j],lon[j]); */
+                /* printf("gdllfxy yin x %f y %f : lat %f, lon %f \n", x[j], y[j], lat[j], lon[j]); */
             }
         }
         free(tmpy);
@@ -141,7 +141,7 @@ int32_t c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, 
          tmpy[i] = (y[i]-1.0)*dlat+swlat;
          }
 
-      f77name(ez_gfllfxy)(lon,lat,tmpx,tmpy,&n,&gr.fst.xg[XLAT1],&gr.fst.xg[XLON1],&gr.fst.xg[XLAT2],&gr.fst.xg[XLON2]);
+      f77name(ez_gfllfxy)(lon, lat, tmpx, tmpy, &n, &gr.fst.xg[XLAT1], &gr.fst.xg[XLON1], &gr.fst.xg[XLAT2], &gr.fst.xg[XLON2]);
       free(tmpx);
       free(tmpy);
       break;
@@ -158,7 +158,7 @@ int32_t c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, 
 
     case 'N':
     case 'S':
-      f77name(ez_vllfxy)(lat,lon,x,y,&npts,&un,&gr.fst.xg[D60],&gr.fst.xg[DGRW],&gr.fst.xg[PI],&gr.fst.xg[PJ],&gr.fst.hemisphere);
+      f77name(ez_vllfxy)(lat, lon, x, y, &npts, &un, &gr.fst.xg[D60], &gr.fst.xg[DGRW], &gr.fst.xg[PI], &gr.fst.xg[PJ], &gr.fst.hemisphere);
       for (i=0; i < n; i++)
          {
          lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
@@ -166,11 +166,11 @@ int32_t c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, 
       break;
 
     case 'T':
-      f77name(ez_vtllfxy)(lat,lon,x,y, &gr.fst.xg[CLAT], &gr.fst.xg[CLON], &gr.fst.xg[TD60], &gr.fst.xg[TDGRW], &gr.ni, &gr.nj, &npts);
+      f77name(ez_vtllfxy)(lat, lon, x, y, &gr.fst.xg[CLAT], &gr.fst.xg[CLON], &gr.fst.xg[TD60], &gr.fst.xg[TDGRW], &gr.ni, &gr.nj, &npts);
       break;
 
     case '!':
-      f77name(ez_llflamb)(lat,lon,x,y,&npts,gr.grtyp,&gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4],1);
+      f77name(ez_llflamb)(lat, lon, x, y, &npts, gr.grtyp, &gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4], 1);
       break;
 
 
@@ -210,16 +210,16 @@ int32_t c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, 
       switch (gr.grref[0])
          {
          case 'E':
-           f77name(cigaxg)(gr.grref,&xlat1,&xlon1,&xlat2,&xlon2,
-                 &gr.fst.igref[IG1],&gr.fst.igref[IG2],&gr.fst.igref[IG3],&gr.fst.igref[IG4],1);
+           f77name(cigaxg)(gr.grref, &xlat1, &xlon1, &xlat2, &xlon2,
+                 &gr.fst.igref[IG1], &gr.fst.igref[IG2], &gr.fst.igref[IG3], &gr.fst.igref[IG4], 1);
            f77name(ez_gfllfxy)(lon, lat, tmpx, tmpy, &npts, &gr.fst.xgref[XLAT1], &gr.fst.xgref[XLON1],
                      &gr.fst.xgref[XLAT2], &gr.fst.xgref[XLON2]);
            break;
 
          case 'S':
          case 'N':
-           f77name(ez_vllfxy)(lat,lon,tmpx,tmpy,&npts,&un,&gr.fst.xgref[D60],
-                    &gr.fst.xgref[DGRW],&gr.fst.xgref[PI],&gr.fst.xgref[PJ],&gr.fst.hemisphere);
+           f77name(ez_vllfxy)(lat, lon, tmpx, tmpy, &npts, &un, &gr.fst.xgref[D60],
+                    &gr.fst.xgref[DGRW], &gr.fst.xgref[PI], &gr.fst.xgref[PJ], &gr.fst.hemisphere);
            for (i=0; i < n; i++)
              {
              lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
@@ -236,7 +236,7 @@ int32_t c_gdllfxy_new(int32_t gdid, float *lat, float *lon, float *x, float *y, 
            break;
 
          default:
-         fprintf(stderr,"<gdllfxy> Errrrrrrrrrrreur!\n");
+         fprintf(stderr, "<gdllfxy> Errrrrrrrrrrreur!\n");
          break;
          }
       free(tmpx);
@@ -301,7 +301,7 @@ int32_t c_gdllfxy_orig(int32_t gdid, float *lat, float *lon, float *x, float *y,
          tmpy[i] = (y[i]-1.0)*dlat+swlat;
          }
 
-      f77name(ez_gfllfxy)(lon,lat,tmpx,tmpy,&n,&gr.fst.xg[XLAT1],&gr.fst.xg[XLON1],&gr.fst.xg[XLAT2],&gr.fst.xg[XLON2]);
+      f77name(ez_gfllfxy)(lon, lat, tmpx, tmpy, &n, &gr.fst.xg[XLAT1], &gr.fst.xg[XLON1], &gr.fst.xg[XLAT2], &gr.fst.xg[XLON2]);
       free(tmpx);
       free(tmpy);
       break;
@@ -318,7 +318,7 @@ int32_t c_gdllfxy_orig(int32_t gdid, float *lat, float *lon, float *x, float *y,
 
     case 'N':
     case 'S':
-      f77name(ez_vllfxy)(lat,lon,x,y,&npts,&un,&gr.fst.xg[D60],&gr.fst.xg[DGRW],&gr.fst.xg[PI],&gr.fst.xg[PJ],&gr.fst.hemisphere);
+      f77name(ez_vllfxy)(lat, lon, x, y, &npts, &un, &gr.fst.xg[D60], &gr.fst.xg[DGRW], &gr.fst.xg[PI], &gr.fst.xg[PJ], &gr.fst.hemisphere);
       for (i=0; i < n; i++)
          {
          lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
@@ -326,11 +326,11 @@ int32_t c_gdllfxy_orig(int32_t gdid, float *lat, float *lon, float *x, float *y,
       break;
 
     case 'T':
-      f77name(ez_vtllfxy)(lat,lon,x,y, &gr.fst.xg[CLAT], &gr.fst.xg[CLON], &gr.fst.xg[TD60], &gr.fst.xg[TDGRW], &gr.ni, &gr.nj, &npts);
+      f77name(ez_vtllfxy)(lat, lon, x, y, &gr.fst.xg[CLAT], &gr.fst.xg[CLON], &gr.fst.xg[TD60], &gr.fst.xg[TDGRW], &gr.ni, &gr.nj, &npts);
       break;
 
     case '!':
-      f77name(ez_llflamb)(lat,lon,x,y,&npts,gr.grtyp,&gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4],1);
+      f77name(ez_llflamb)(lat, lon, x, y, &npts, gr.grtyp, &gr.fst.ig[IG1], &gr.fst.ig[IG2], &gr.fst.ig[IG3], &gr.fst.ig[IG4], 1);
       break;
 
 
@@ -364,16 +364,16 @@ int32_t c_gdllfxy_orig(int32_t gdid, float *lat, float *lon, float *x, float *y,
       switch (gr.grref[0])
          {
          case 'E':
-           f77name(cigaxg)(gr.grref,&xlat1,&xlon1,&xlat2,&xlon2,
-                 &gr.fst.igref[IG1],&gr.fst.igref[IG2],&gr.fst.igref[IG3],&gr.fst.igref[IG4],1);
+           f77name(cigaxg)(gr.grref, &xlat1, &xlon1, &xlat2, &xlon2,
+                 &gr.fst.igref[IG1], &gr.fst.igref[IG2], &gr.fst.igref[IG3], &gr.fst.igref[IG4], 1);
            f77name(ez_gfllfxy)(lon, lat, tmpx, tmpy, &npts, &gr.fst.xgref[XLAT1], &gr.fst.xgref[XLON1],
                      &gr.fst.xgref[XLAT2], &gr.fst.xgref[XLON2]);
            break;
 
          case 'S':
          case 'N':
-           f77name(ez_vllfxy)(lat,lon,tmpx,tmpy,&npts,&un,&gr.fst.xgref[D60],
-                    &gr.fst.xgref[DGRW],&gr.fst.xgref[PI],&gr.fst.xgref[PJ],&gr.fst.hemisphere);
+           f77name(ez_vllfxy)(lat, lon, tmpx, tmpy, &npts, &un, &gr.fst.xgref[D60],
+                    &gr.fst.xgref[DGRW], &gr.fst.xgref[PI], &gr.fst.xgref[PJ], &gr.fst.hemisphere);
            for (i=0; i < n; i++)
              {
              lon[i] = (float) (fmod((double) (lon[i] + 360.0), (double) 360.0));
@@ -390,7 +390,7 @@ int32_t c_gdllfxy_orig(int32_t gdid, float *lat, float *lon, float *x, float *y,
            break;
 
          default:
-         fprintf(stderr,"<gdllfxy> Errrrrrrrrrrreur!\n");
+         fprintf(stderr, "<gdllfxy> Errrrrrrrrrrreur!\n");
          break;
          }
       free(tmpx);

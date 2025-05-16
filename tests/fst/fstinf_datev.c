@@ -72,7 +72,7 @@ int test_datev(const int is_rsf) {
 
     int ni, nj, nk;
     const int handle = c_fstinf(iun, &ni, &nj, &nk, DESIRED_DATEV, "", -1, -1, -1, "", "");
-    
+
     if (handle < 0) {
         App_Log(APP_ERROR, "Could not get record\n");
         return -1;

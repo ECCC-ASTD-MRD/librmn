@@ -1,8 +1,18 @@
+#include <malloc.h>
+#include "rmn/List.h"
+
+
 //! \file
 //! Implementation of a generic doubly linked list
 
-#include <malloc.h>
-#include "rmn/List.h"
+//! \defgroup genericDataStructures Generic Data Structures
+//! @{
+//! An implementation of generic data structures
+//!
+//! Provided data structures:
+//! - Doubly linked lists
+//! - Quad trees
+//! - Vectors
 
 
 //! Add a node to a doubly linked list
@@ -164,7 +174,7 @@ TList * TList_Del(
 //! Find the node corresponding to the provided item
 TList * TList_Find(
     //! [in] List in which to search
-    const TList * const list,
+    TList * const list,
     //! [in] Comparison function. Must return 1 when items match.
     TList_CompareProc * const compare,
     //! [in] Item to search for
@@ -199,3 +209,5 @@ void TList_Clear(
         free(tmp);
     }
 }
+
+//! @}

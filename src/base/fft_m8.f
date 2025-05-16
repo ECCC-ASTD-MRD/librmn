@@ -1,19 +1,19 @@
 C Copyright 1981-2007 ECMWF
-C 
+
 C Licensed under the GNU Lesser General Public License which
 C incorporates the terms and conditions of version 3 of the GNU
 C General Public License.
 C See LICENSE and gpl-3.0.txt for details.
-C
-C  this file contains a few modifications to the ECMWF original code 
+
+C  this file contains a few modifications to the ECMWF original code
 C  introduced implicit none
 C  appended _M8 to the original names to avoid accidents should the new vode
 C    be used together with the original code
 C  introduced a few top level entry points( setfft8, ffft8, etc ...) that needed
 C     no work array and/or no explicit factor/trig constants initialization
 C  made code work with 8 byte reals
-C
-C
+
+
       module fft_m8_helper
         use rmn_common
         implicit none
@@ -30,12 +30,12 @@ C
       implicit none
       integer n,inc, jump, lot, isign
       real(kind = real64) :: a(*)
-      
+
       call setfft_M8( n )
       call fft_M8( a, inc, jump, lot, isign )
       return
       end
-      
+
       subroutine setfft8( n )
       implicit none
       integer  n
@@ -43,14 +43,14 @@ C
       call setfft_M8( n )
       return
       end
-      
+
       subroutine setfft_M8( n )
       use fft_m8_helper
       use rmn_common
       implicit none
       integer  n
       external set99_m8
-      
+
       if(n .eq. npts) return
       if(n .gt. npts) then
           if(npts .gt. 0) deallocate(trigs)
@@ -59,10 +59,10 @@ C
       npts = n
       ifac=0
       call set99_m8(trigs,ifac,npts)
-      
+
       return
       end
-      
+
       subroutine ffft8( a, inc, jump, lot, isign )
       use rmn_common
       implicit none
@@ -71,22 +71,22 @@ C
       call fft_m8(a, inc, jump, lot, isign )
       return
       end
-      
+
       subroutine fft_M8( a, inc, jump, lot, isign )
       use fft_m8_helper
       use rmn_common
       implicit none
       integer inc, jump, lot, isign
       real(kind = real64) :: a(*)
-      
+
       external fft991_m8
-C
+
 C  CHANGE maxlot ON VECTOR MACHINES
-C
+
       integer, parameter :: maxlot=16
       real(kind = real64) :: work(npts+2,maxlot)
       integer i,slice
-      
+
       do i=1,lot,maxlot
           slice=min(maxlot,lot+1-i)
           call fft991_m8( a(1+(i-1)*jump), work,
@@ -94,7 +94,7 @@ C
       enddo
       return
       end
-      
+
       SUBROUTINE FFT991_M8(A,WORK,TRIGS,IFAX,INC,JUMP,N,ILOT,ISIGN)
       use rmn_common
       implicit none
@@ -104,13 +104,13 @@ C
       integer nx,nblox,nvex,i,ia
       integer nfax,istart,nb,j,ila,igo,k,ifac,ierr
       integer ibase,jbase,jj,ii,ix,iz
-C
+
 C     SUBROUTINE 'FFT991' - MULTIPLE FAST REAL PERIODIC TRANSFORM
 C     SUPERSEDES PREVIOUS ROUTINE 'FFT991'
-C
+
 C     REAL TRANSFORM OF LENGTH N PERFORMED BY REMOVING REDUNDANT
 C     OPERATIONS FROM COMPLEX TRANSFORM OF LENGTH N
-C
+
 C     A IS THE ARRAY CONTAINING INPUT & OUTPUT DATA
 C     WORK IS AN AREA OF SIZE (N+1)*MIN(ILOT,JP_LOT)
 C     TRIGS IS A PREVIOUSLY PREPARED LIST OF TRIG FUNCTION VALUES
@@ -122,30 +122,29 @@ C     N IS THE LENGTH OF THE DATA VECTORS
 C     ILOT IS THE NUMBER OF DATA VECTORS
 C     ISIGN = +1 FOR TRANSFORM FROM SPECTRAL TO GRIDPOINT
 C           = -1 FOR TRANSFORM FROM GRIDPOINT TO SPECTRAL
-C
+
 C     ORDERING OF COEFFICIENTS:
 C         A(0),B(0),A(1),B(1),A(2),B(2),...,A(N/2),B(N/2)
 C         WHERE B(0)=B(N/2)=0; (N+2) LOCATIONS REQUIRED
-C
+
 C     ORDERING OF DATA:
 C         X(0),X(1),X(2),...,X(N-1), 0 , 0 ; (N+2) LOCATIONS REQUIRED
-C
+
 C     VECTORIZATION IS ACHIEVED ON CRAY BY DOING THE TRANSFORMS
 C     IN PARALLEL
-C
+
 C     N MUST BE COMPOSED OF FACTORS 2,3 & 5 BUT DOES NOT HAVE TO BE EVEN
-C
+
 C     DEFINITION OF TRANSFORMS:
 C     -------------------------
-C
+
 C     ISIGN=+1: X(J)=SUM(K=0,...,N-1)(C(K)*EXP(2*I*J*K*PI/N))
 C         WHERE C(K)=A(K)+I*B(K) AND C(N-K)=A(K)-I*B(K)
-C
+
 C     ISIGN=-1: A(K)=(1/N)*SUM(J=0,...,N-1)(X(J)*COS(2*J*K*PI/N))
 C               B(K)=-(1/N)*SUM(J=0,...,N-1)(X(J)*SIN(2*J*K*PI/N))
-C
-      real(kind = real64) :: zero, haf, two
-      parameter( zero  = 0.0D0 )
+
+      real(kind = real64) :: haf, two
       parameter( haf  = 0.5D0 )
       parameter( two   = 2.0D0 )
       IF(IFAX(10).NE.N) CALL SET99_M8(TRIGS,IFAX,N)
@@ -157,7 +156,7 @@ C==cfse  NVEX=ILOT-(NBLOX-1)*64
       NBLOX=1+(ILOT-1)/512
       NVEX=ILOT-(NBLOX-1)*512
       IF (ISIGN.EQ.-1) GO TO 300
-C
+
 C     ISIGN=+1, SPECTRAL TO GRIDPOINT TRANSFORM
 C     -----------------------------------------
 !   100 CONTINUE
@@ -181,7 +180,7 @@ C==*vocl loop,novrec
       IA=ISTART+INC
       ILA=1
       IGO=+1
-C
+
       DO 160 K=1,NFAX
       IFAC=IFAX(K+1)
       IERR=-1
@@ -198,7 +197,7 @@ C
       IGO=-IGO
       IA=ISTART
   160 CONTINUE
-C
+
 C     IF NECESSARY, COPY RESULTS BACK TO A
 C     ------------------------------------
       IF (MOD(NFAX,2).EQ.0) GO TO 190
@@ -216,7 +215,7 @@ C     ------------------------------------
       JBASE=JBASE+JUMP
   180 CONTINUE
   190 CONTINUE
-C
+
 C     FILL IN ZEROS AT END
 C     --------------------
       IX=ISTART+N*INC
@@ -226,13 +225,13 @@ C==*vocl loop,novrec
       A(IX+INC)=0.0
       IX=IX+JUMP
   210 CONTINUE
-C
+
       ISTART=ISTART+NVEX*JUMP
 C==cfse  NVEX=64
       NVEX=512
   220 CONTINUE
       RETURN
-C
+
 C     ISIGN=-1, GRIDPOINT TO SPECTRAL TRANSFORM
 C     -----------------------------------------
   300 CONTINUE
@@ -241,7 +240,7 @@ C     -----------------------------------------
       IA=ISTART
       ILA=N
       IGO=+1
-C
+
       DO 340 K=1,NFAX
       IFAC=IFAX(NFAX+2-K)
       ILA=ILA/IFAC
@@ -258,7 +257,7 @@ C
       IGO=-IGO
       IA=ISTART+INC
   340 CONTINUE
-C
+
 C     IF NECESSARY, COPY RESULTS BACK TO A
 C     ------------------------------------
       IF (MOD(NFAX,2).EQ.0) GO TO 370
@@ -276,7 +275,7 @@ C     ------------------------------------
       JBASE=JBASE+JUMP
   360 CONTINUE
   370 CONTINUE
-C
+
 C     SHIFT A(0) & FILL IN ZERO IMAG PARTS
 C     ------------------------------------
       IX=ISTART
@@ -292,13 +291,13 @@ C     ------------------------------------
       IZ=IZ+JUMP
   390 CONTINUE
   400 CONTINUE
-C
+
       ISTART=ISTART+NVEX*JUMP
 C==cfse  NVEX=64
       NVEX=512
   410 CONTINUE
       RETURN
-C
+
 C     ERROR MESSAGES
 C     --------------
   500 CONTINUE
@@ -313,12 +312,12 @@ C     --------------
       ENDIF
       END
 C Copyright 1981-2007 ECMWF
-C 
+
 C Licensed under the GNU Lesser General Public License which
 C incorporates the terms and conditions of version 3 of the GNU
 C General Public License.
 C See LICENSE and gpl-3.0.txt for details.
-C
+
 
       SUBROUTINE QPASSM_M8(A,B,C,D,TRIGS,INC1,INC2,INC3,INC4,ILOT,N,
      *    IFAC,ILA,IERR)
@@ -334,10 +333,10 @@ C
       real(kind = real64) :: a1,b1,a2,b2,a3,b3,a0,b0
       real(kind = real64) :: a4,b4,a5,b5,a6,b6,a10,b10
       real(kind = real64) :: a11,b11,a20,b20,a21,b21
-C
+
 C     SUBROUTINE 'QPASSM' - PERFORMS ONE PASS THROUGH DATA AS PART
 C     OF MULTIPLE REAL FFT (FOURIER ANALYSIS) ROUTINE
-C
+
 C     A IS FIRST REAL INPUT VECTOR
 C         EQUIVALENCE B(1) WITH A(IFAC*ILA*INC1+1)
 C     C IS FIRST REAL OUTPUT VECTOR
@@ -356,25 +355,24 @@ C              0 - PASS COMPLETED WITHOUT ERROR
 C              1 - ILOT GREATER THAN 64
 C              2 - IFAC NOT CATERED FOR
 C              3 - IFAC ONLY CATERED FOR IF ILA=N/IFAC
-C
+
 C-----------------------------------------------------------------------
-C
+
       real(kind = real64) :: SIN36, SIN72, QRT5, SIN60
       parameter( sin36 = 0.587785252292473D0)
       parameter( sin72 = 0.951056516295154D0)
       parameter( qrt5  = 0.559016994374947D0)
       parameter( sin60 = 0.866025403784437D0)
-      real(kind = real64) :: zero, haf, two
+      real(kind = real64) :: zero, haf
       parameter( zero  = 0.0D0 )
       parameter( haf  = 0.5D0 )
-      parameter( two   = 2.0D0 )
-C
+
       M=N/IFAC
       IINK=ILA*INC1
       JINK=ILA*INC2
       IJUMP=(IFAC-1)*IINK
       KSTOP=(N-IFAC)/(2*IFAC)
-C
+
       IBAD=1
 C     no longer necessary, temporary arrays have dimension ILOT now
 C     IF (ILOT.GT.512) GO TO 910
@@ -385,7 +383,7 @@ C     IF (ILOT.GT.512) GO TO 910
       IBAD=2
       IF (IGO.LT.1.OR.IGO.GT.6) GO TO 910
       GO TO (200,300,400,500,600,800),IGO
-C
+
 C     CODING FOR FACTOR 2
 C     -------------------
   200 CONTINUE
@@ -393,9 +391,9 @@ C     -------------------
       IB=IA+IINK
       JA=1
       JB=JA+(2*M-ILA)*INC2
-C
+
       IF (ILA.EQ.M) GO TO 290
-C
+
       DO 220 JL=1,ILA
       I=IBASE
       J=JBASE
@@ -459,7 +457,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   280 CONTINUE
       GO TO 900
-C
+
   290 CONTINUE
       Z=1.0D0/FLOAT(N)
       DO 294 JL=1,ILA
@@ -477,7 +475,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   294 CONTINUE
       GO TO 900
-C
+
 C     CODING FOR FACTOR 3
 C     -------------------
   300 CONTINUE
@@ -487,9 +485,9 @@ C     -------------------
       JA=1
       JB=JA+(2*M-ILA)*INC2
       JC=JB
-C
+
       IF (ILA.EQ.M) GO TO 390
-C
+
       DO 320 JL=1,ILA
       I=IBASE
       J=JBASE
@@ -568,7 +566,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   380 CONTINUE
       GO TO 900
-C
+
   390 CONTINUE
       Z=1.0D0/FLOAT(N)
       ZSIN60=Z*SIN60
@@ -588,7 +586,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   394 CONTINUE
       GO TO 900
-C
+
 C     CODING FOR FACTOR 4
 C     -------------------
   400 CONTINUE
@@ -600,9 +598,9 @@ C     -------------------
       JB=JA+(2*M-ILA)*INC2
       JC=JB+2*M*INC2
       JD=JB
-C
+
       IF (ILA.EQ.M) GO TO 490
-C
+
       DO 420 JL=1,ILA
       I=IBASE
       J=JBASE
@@ -693,7 +691,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   480 CONTINUE
       GO TO 900
-C
+
   490 CONTINUE
       Z=1.0D0/FLOAT(N)
       DO 494 JL=1,ILA
@@ -713,7 +711,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   494 CONTINUE
       GO TO 900
-C
+
 C     CODING FOR FACTOR 5
 C     -------------------
   500 CONTINUE
@@ -727,9 +725,9 @@ C     -------------------
       JC=JB+2*M*INC2
       JD=JC
       JE=JB
-C
+
       IF (ILA.EQ.M) GO TO 590
-C
+
       DO 520 JL=1,ILA
       I=IBASE
       J=JBASE
@@ -852,7 +850,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   580 CONTINUE
       GO TO 900
-C
+
   590 CONTINUE
       Z=1.0D0/FLOAT(N)
       ZQRT5=Z*QRT5
@@ -882,7 +880,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   594 CONTINUE
       GO TO 900
-C
+
 C     CODING FOR FACTOR 6
 C     -------------------
   600 CONTINUE
@@ -898,9 +896,9 @@ C     -------------------
       JD=JC+2*M*INC2
       JE=JC
       JF=JB
-C
+
       IF (ILA.EQ.M) GO TO 690
-C
+
       DO 620 JL=1,ILA
       I=IBASE
       J=JBASE
@@ -1024,7 +1022,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   680 CONTINUE
       GO TO 900
-C
+
   690 CONTINUE
       Z=1.0D0/FLOAT(N)
       ZSIN60=Z*SIN60
@@ -1049,7 +1047,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   694 CONTINUE
       GO TO 900
-C
+
 C     CODING FOR FACTOR 8
 C     -------------------
   800 CONTINUE
@@ -1070,7 +1068,7 @@ C     -------------------
       JE=JD+2*M*INC2
       Z=1.0D0/FLOAT(N)
       ZSIN45=Z*SQRT(haf)
-C
+
       DO 820 JL=1,ILA
       I=IBASE
       J=JBASE
@@ -1097,7 +1095,7 @@ C==DIR$ IVDEP
       IBASE=IBASE+INC1
       JBASE=JBASE+INC2
   820 CONTINUE
-C
+
 C     RETURN
 C     ------
   900 CONTINUE
@@ -1107,12 +1105,12 @@ C     ------
       RETURN
       END
 C Copyright 1981-2007 ECMWF
-C 
+
 C Licensed under the GNU Lesser General Public License which
 C incorporates the terms and conditions of version 3 of the GNU
 C General Public License.
 C See LICENSE and gpl-3.0.txt for details.
-C
+
 
       SUBROUTINE RPASSM_M8(A,B,C,D,TRIGS,INC1,INC2,INC3,INC4,ILOT,N,
      *    IFAC,ILA,IERR)
@@ -1125,10 +1123,10 @@ C
       real(kind = real64) :: c1,c2,s1,s2,ssin60,c3,s3,c4,s4,c5,s5,sin45
       real(kind = real64) :: qqrt5,ssin45,ssin36,ssin72
       integer id,jd,kd,ie,je,ke,if,jf,kf,jg,jh
-C
+
 C     SUBROUTINE 'RPASSM' - PERFORMS ONE PASS THROUGH DATA AS PART
 C     OF MULTIPLE REAL FFT (FOURIER SYNTHESIS) ROUTINE
-C
+
 C     A IS FIRST REAL INPUT VECTOR
 C         EQUIVALENCE B(1) WITH A (ILA*INC1+1)
 C     C IS FIRST REAL OUTPUT VECTOR
@@ -1147,9 +1145,9 @@ C              0 - PASS COMPLETED WITHOUT ERROR
 C              1 - ILOT GREATER THAN 64
 C              2 - IFAC NOT CATERED FOR
 C              3 - IFAC ONLY CATERED FOR IF ILA=N/IFAC
-C
+
 C-----------------------------------------------------------------------
-C
+
       REAL(kind = real64) :: A10(ILOT),A11(ILOT),
      *     A20(ILOT),A21(ILOT),
      *     B10(ILOT),B11(ILOT),B20(ILOT),B21(ILOT)
@@ -1158,17 +1156,16 @@ C
       parameter( sin72 = 0.951056516295154D0)
       parameter( qrt5  = 0.559016994374947D0)
       parameter( sin60 = 0.866025403784437D0)
-      real(kind = real64) :: zero, haf, two
-      parameter( zero  = 0.0D0 )
+      real(kind = real64) :: haf, two
       parameter( haf  = 0.5D0 )
       parameter( two   = 2.0D0 )
-C
+
       M=N/IFAC
       IINK=ILA*INC1
       JINK=ILA*INC2
       JUMP=(IFAC-1)*JINK
       KSTOP=(N-IFAC)/(2*IFAC)
-C
+
       IBAD=1
 C     no longer necessary, temporary arrays have dimension ILOT now
 C     IF (ILOT.GT.512) GO TO 910
@@ -1179,7 +1176,7 @@ C     IF (ILOT.GT.512) GO TO 910
       IBAD=2
       IF (IGO.LT.1.OR.IGO.GT.6) GO TO 910
       GO TO (200,300,400,500,600,800),IGO
-C
+
 C     CODING FOR FACTOR 2
 C     -------------------
   200 CONTINUE
@@ -1187,9 +1184,9 @@ C     -------------------
       IB=IA+(2*M-ILA)*INC1
       JA=1
       JB=JA+JINK
-C
+
       IF (ILA.EQ.M) GO TO 290
-C
+
       DO 220 IL=1,ILA
       I=IBASE
       J=JBASE
@@ -1254,7 +1251,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   280 CONTINUE
       GO TO 900
-C
+
   290 CONTINUE
       DO 294 IL=1,ILA
       I=IBASE
@@ -1271,7 +1268,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   294 CONTINUE
       GO TO 900
-C
+
 C     CODING FOR FACTOR 3
 C     -------------------
   300 CONTINUE
@@ -1281,9 +1278,9 @@ C     -------------------
       JA=1
       JB=JA+JINK
       JC=JB+JINK
-C
+
       IF (ILA.EQ.M) GO TO 390
-C
+
       DO 320 IL=1,ILA
       I=IBASE
       J=JBASE
@@ -1372,7 +1369,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   380 CONTINUE
       GO TO 900
-C
+
   390 CONTINUE
       SSIN60=two*SIN60
       DO 394 IL=1,ILA
@@ -1391,7 +1388,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   394 CONTINUE
       GO TO 900
-C
+
 C     CODING FOR FACTOR 4
 C     -------------------
   400 CONTINUE
@@ -1403,9 +1400,9 @@ C     -------------------
       JB=JA+JINK
       JC=JB+JINK
       JD=JC+JINK
-C
+
       IF (ILA.EQ.M) GO TO 490
-C
+
       DO 420 IL=1,ILA
       I=IBASE
       J=JBASE
@@ -1500,7 +1497,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   480 CONTINUE
       GO TO 900
-C
+
   490 CONTINUE
       DO 494 IL=1,ILA
       I=IBASE
@@ -1519,7 +1516,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   494 CONTINUE
       GO TO 900
-C
+
 C     CODING FOR FACTOR 5
 C     -------------------
   500 CONTINUE
@@ -1533,9 +1530,9 @@ C     -------------------
       JC=JB+JINK
       JD=JC+JINK
       JE=JD+JINK
-C
+
       IF (ILA.EQ.M) GO TO 590
-C
+
       DO 520 IL=1,ILA
       I=IBASE
       J=JBASE
@@ -1590,7 +1587,7 @@ C==DIR$ IVDEP
 C==DIR$ IVDEP
 *==VOCL LOOP,NOVREC
       DO 530 IJK=1,ILOT
-C
+
       A10(IJK)=(A(IA+I)-0.25*((A(IB+I)+A(IE+I))+(A(IC+I)+A(ID+I))))
      *    +QRT5*((A(IB+I)+A(IE+I))-(A(IC+I)+A(ID+I)))
       A20(IJK)=(A(IA+I)-0.25*((A(IB+I)+A(IE+I))+(A(IC+I)+A(ID+I))))
@@ -1603,7 +1600,7 @@ C
       A21(IJK)=SIN36*(B(IB+I)+B(IE+I))-SIN72*(B(IC+I)+B(ID+I))
       B11(IJK)=SIN72*(A(IB+I)-A(IE+I))+SIN36*(A(IC+I)-A(ID+I))
       B21(IJK)=SIN36*(A(IB+I)-A(IE+I))-SIN72*(A(IC+I)-A(ID+I))
-C
+
       C(JA+J)=A(IA+I)+((A(IB+I)+A(IE+I))+(A(IC+I)+A(ID+I)))
       D(JA+J)=B(IA+I)+((B(IB+I)-B(IE+I))+(B(IC+I)-B(ID+I)))
       C(JB+J)=C1*(A10(IJK)-A11(IJK))-S1*(B10(IJK)+B11(IJK))
@@ -1614,7 +1611,7 @@ C
       D(JC+J)=S2*(A20(IJK)-A21(IJK))+C2*(B20(IJK)+B21(IJK))
       C(JD+J)=C3*(A20(IJK)+A21(IJK))-S3*(B20(IJK)-B21(IJK))
       D(JD+J)=S3*(A20(IJK)+A21(IJK))+C3*(B20(IJK)-B21(IJK))
-C
+
       I=I+INC3
       J=J+INC4
   530 CONTINUE
@@ -1657,7 +1654,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   580 CONTINUE
       GO TO 900
-C
+
   590 CONTINUE
       QQRT5=two*QRT5
       SSIN36=two*SIN36
@@ -1684,7 +1681,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   594 CONTINUE
       GO TO 900
-C
+
 C     CODING FOR FACTOR 6
 C     -------------------
   600 CONTINUE
@@ -1700,9 +1697,9 @@ C     -------------------
       JD=JC+JINK
       JE=JD+JINK
       JF=JE+JINK
-C
+
       IF (ILA.EQ.M) GO TO 690
-C
+
       DO 620 IL=1,ILA
       I=IBASE
       J=JBASE
@@ -1758,28 +1755,28 @@ C==DIR$ IVDEP
 C==DIR$ IVDEP
 *==VOCL LOOP,NOVREC
       DO 630 IJK=1,ILOT
-C
+
       A11(IJK)= (A(IE+I)+A(IB+I))+(A(IC+I)+A(IF+I))
       A20(IJK)=(A(IA+I)+A(ID+I))-haf*A11(IJK)
       A21(IJK)=SIN60*((A(IE+I)+A(IB+I))-(A(IC+I)+A(IF+I)))
       B11(IJK)= (B(IB+I)-B(IE+I))+(B(IC+I)-B(IF+I))
       B20(IJK)=(B(IA+I)-B(ID+I))-haf*B11(IJK)
       B21(IJK)=SIN60*((B(IB+I)-B(IE+I))-(B(IC+I)-B(IF+I)))
-C
+
       C(JA+J)=(A(IA+I)+A(ID+I))+A11(IJK)
       D(JA+J)=(B(IA+I)-B(ID+I))+B11(IJK)
       C(JC+J)=C2*(A20(IJK)-B21(IJK))-S2*(B20(IJK)+A21(IJK))
       D(JC+J)=S2*(A20(IJK)-B21(IJK))+C2*(B20(IJK)+A21(IJK))
       C(JE+J)=C4*(A20(IJK)+B21(IJK))-S4*(B20(IJK)-A21(IJK))
       D(JE+J)=S4*(A20(IJK)+B21(IJK))+C4*(B20(IJK)-A21(IJK))
-C
+
       A11(IJK)=(A(IE+I)-A(IB+I))+(A(IC+I)-A(IF+I))
       B11(IJK)=(B(IE+I)+B(IB+I))-(B(IC+I)+B(IF+I))
       A20(IJK)=(A(IA+I)-A(ID+I))-haf*A11(IJK)
       A21(IJK)=SIN60*((A(IE+I)-A(IB+I))-(A(IC+I)-A(IF+I)))
       B20(IJK)=(B(IA+I)+B(ID+I))+haf*B11(IJK)
       B21(IJK)=SIN60*((B(IE+I)+B(IB+I))+(B(IC+I)+B(IF+I)))
-C
+
       C(JD+J)=
      *  C3*((A(IA+I)-A(ID+I))+A11(IJK))-S3*((B(IA+I)+B(ID+I))-B11(IJK))
       D(JD+J)=
@@ -1788,7 +1785,7 @@ C
       D(JB+J)=S1*(A20(IJK)-B21(IJK))+C1*(B20(IJK)-A21(IJK))
       C(JF+J)=C5*(A20(IJK)+B21(IJK))-S5*(B20(IJK)+A21(IJK))
       D(JF+J)=S5*(A20(IJK)+B21(IJK))+C5*(B20(IJK)+A21(IJK))
-C
+
       I=I+INC3
       J=J+INC4
   630 CONTINUE
@@ -1827,7 +1824,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   680 CONTINUE
       GO TO 900
-C
+
   690 CONTINUE
       SSIN60=two*SIN60
       DO 694 IL=1,ILA
@@ -1853,7 +1850,7 @@ C==DIR$ IVDEP
       JBASE=JBASE+INC2
   694 CONTINUE
       GO TO 900
-C
+
 C     CODING FOR FACTOR 8
 C     -------------------
   800 CONTINUE
@@ -1873,7 +1870,7 @@ C     -------------------
       JG=JF+JINK
       JH=JG+JINK
       SSIN45=SQRT(two)
-C
+
       DO 820 IL=1,ILA
       I=IBASE
       J=JBASE
@@ -1898,7 +1895,7 @@ C==DIR$ IVDEP
       IBASE=IBASE+INC1
       JBASE=JBASE+INC2
   820 CONTINUE
-C
+
 C     RETURN
 C     ------
   900 CONTINUE
@@ -1908,12 +1905,12 @@ C     ------
       RETURN
       END
 C Copyright 1981-2007 ECMWF
-C 
+
 C Licensed under the GNU Lesser General Public License which
 C incorporates the terms and conditions of version 3 of the GNU
 C General Public License.
 C See LICENSE and gpl-3.0.txt for details.
-C
+
 
       SUBROUTINE SET99_M8(TRIGS,IFAX,N)
       use rmn_common
@@ -1923,13 +1920,13 @@ C
       INTEGER JFAX(10),LFAX(7)
       integer ixxx, nil,nhl,k,nu,ifac,l,nfax,i
       real(kind = real64) :: del, angle
-C
+
 C     SUBROUTINE 'SET99' - COMPUTES FACTORS OF N & TRIGONOMETRIC
 C     FUNCTIONS REQUIRED BY FFT99 & FFT991
-C
+
       DATA LFAX/6,8,5,4,3,2,1/
       IXXX=1
-C
+
       DEL=4.0*ASIN(1.0D0)/FLOAT(N)
       NIL=0
       NHL=(N/2)-1
@@ -1938,7 +1935,7 @@ C
       TRIGS(2*K+1)=COS(ANGLE)
       TRIGS(2*K+2)=SIN(ANGLE)
    10 CONTINUE
-C
+
 C     FIND FACTORS OF N (8,6,5,4,3,2; ONLY ONE 8 ALLOWED)
 C     LOOK FOR SIXES FIRST, STORE FACTORS IN DESCENDING ORDER
       NU=N
@@ -1961,11 +1958,11 @@ C     LOOK FOR SIXES FIRST, STORE FACTORS IN DESCENDING ORDER
       L=L+1
       IFAC=LFAX(L)
       IF (IFAC.GT.1) GO TO 20
-C
+
       WRITE(6,40) N
    40 FORMAT('1N =',I4,' - CONTAINS ILLEGAL FACTORS')
       RETURN
-C
+
 C     NOW REVERSE ORDER OF FACTORS
    50 CONTINUE
       NFAX=K

@@ -36,6 +36,7 @@
       end module npspin_helper
 
       SUBROUTINE NPSPIN (SPEED,PSI,U,V,LI,LJ,KASE,PHI,ARBPSI,DELLAM)
+      use rmn_base_const, only: dgtord, global
       use npspin_helper
       REAL U(LI,LJ), V(LI,LJ)
 *
@@ -67,19 +68,8 @@
 *         - OBJET   RMNLIB,ID=RMNP
 *
 * ----------------------------------------------------------------------
-*
 
-
-
-
-#include "kases.cdk"
-#include "pi.cdk"
-
-
-*
 * POSITION OF COORDINATE OF SOUTH OR NORTH POLE
-
-
       J1 =1
       J2 =2
        IF(PHI.GT. 90.0 .AND.KASE.EQ.GLOBAL) J1 = LJ
@@ -91,15 +81,13 @@
       VV2J1 = 0.0
       VV2J2 = 0.0
 
-
 * ACCUMULATION OF SCALAR QUANTITE
 * ----------------------------------------------------------------------
 
 
-       DO 20 I=1,LI
-*
+       DO I=1,LI
 * ACCUMULATE SUMS OF P-S COMPONENTS.
-*
+
         CLAMBI = (I-1)*DELLAM*DGTORD
         S = -SIN(CLAMBI)
         C =  COS(CLAMBI)
@@ -111,8 +99,8 @@
         VI = C*U(I,J2) + S*V(I,J2)
         UV2J2 = UV2J2 + UI
         VV2J2 = VV2J2 + VI
-   20   CONTINUE
-*
+      end do
+
       UPOLE = POLIN (UV2J1,UV2J2,LI)
       VPOLE = POLIN (VV2J1,VV2J2,LI)
       SPEED = SQRT(UPOLE**2 + VPOLE**2)
@@ -120,6 +108,4 @@
       IF (SPEED.NE.0.0) PSI = RDTODG*ATAN2(VPOLE,UPOLE)
       IF (PSI.LT.0.0) PSI = PSI + 360.0
 
-
-       RETURN
-       END
+      END

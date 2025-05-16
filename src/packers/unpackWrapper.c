@@ -27,37 +27,40 @@
 #include "compact_IEEEblock.h"
 #include "packers.h"
 
+//! \file
+
 
 //! Convinience function to unpack data
 void unpackWrapper(
     //! [out] Array of unpacked numbers
-    void *unpackedArray,
+    void * const unpackedArray,
     //! [in] Format information of packed integer numbers
-    void *packedHeader,
+    void * const packedHeader,
     //! [in] Array of packed integers
-    void *packedArray,
+    void * const packedArray,
     //! [in] Spacing indicator
-    int stride,
+    const int stride,
     //! [in] Missing value identifier
-    void *missingValueTag
+    const void * const missingValueTag
 ) {
-    uint32_t *packHeader = (uint32_t *)packedHeader;
-    uint32_t headerType = packHeader[0] >> 24;
-    double dmin=0.0,dmax=0.0;
+    uint32_t * const packHeader = (uint32_t *)packedHeader;
+    const uint32_t headerType = packHeader[0] >> 24;
+    double dmin = 0.0;
+    double dmax = 0.0;
 
     if (( headerType == 0x0000007f ) || ( headerType == 0x000000ff )) {
         // Floating point, without missing value
-        compact_float(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 2, 0, missingValueTag, &dmin, &dmax);
+        compact_u_float(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 0, missingValueTag, &dmin, &dmax);
     } else if (( headerType == 0x0000007e ) || ( headerType == 0x000000fe )) {
         // Floating point, with missing value
-        compact_float(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 2, 1, missingValueTag, &dmin, &dmax);
+        compact_u_float(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 1, missingValueTag, &dmin, &dmax);
     } else if ( headerType == 0x000000fb ) {
         compact_IEEEblock_float(unpackedArray, packedHeader, packedArray, -1, -1, -1, 0, stride, 2, 0, missingValueTag);
     } else if ( headerType == 0x000000fd ) {
-        compact_integer(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 2);
+        compact_u_integer(unpackedArray, packedHeader, packedArray, -1, -1, 128, stride, 0);
     } else if ( headerType == 0x000000f0 ) {
         compact_rle(unpackedArray, packedHeader, packedArray, -1, -1, -1, -1, 128, stride, 2);
     } else {
-        Lib_Log(APP_LIBRMN,APP_ERROR,"%s: %8.8x not a valid header\n",__func__,headerType);
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: %8.8x not a valid header\n", __func__, headerType);
     }
 }

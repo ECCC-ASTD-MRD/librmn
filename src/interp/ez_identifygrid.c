@@ -27,6 +27,9 @@
 #include "base/base.h"
 
 
+//! \file
+
+
 void c_ez_manageGrillesMemory() {
     int nchunks = nGrilles / (CHUNK * CHUNK);
     if (nchunks > 0 && 0 == (nGrilles % (CHUNK * CHUNK))) {
@@ -40,8 +43,6 @@ void c_ez_manageGrillesMemory() {
 
 
 //! Create grid entry for this regular grid
-//!
-//! \return Grid id
 int32_t c_ezidentify_reg_grid(
     //! [in] First dimension
     const int32_t ni,
@@ -58,6 +59,8 @@ int32_t c_ezidentify_reg_grid(
     //! [in] Fourth grid parameter
     const int32_t ig4
 ) {
+    //! \return Grid id
+
     int32_t newgrsize = sizeof(_Grille);
     if (nGrilles == 0) {
         gr_list = calloc(chunks_sq[cur_log_chunk], sizeof(_Grille *));
@@ -105,9 +108,7 @@ int32_t c_ezidentify_reg_grid(
 }
 
 
-//! Create grid entry for this irregular grid
-//!
-//! \return Grid id
+//! Create grid entry for an irregular grid
 int32_t c_ezidentify_irreg_grid(
     //! [in] First dimension
     const int32_t ni,
@@ -126,13 +127,15 @@ int32_t c_ezidentify_irreg_grid(
     //! [in] Fourth grid parameter
     const int32_t ig4,
     //! [in] 
-    const float * const ax,
+    float * const ax,
     //! [in] 
-    const float * const ay
+    float * const ay
 ) {
+    //! \return Grid id
+
     if (nGrilles == 0) {
         gr_list = calloc(chunks_sq[cur_log_chunk], sizeof(_Grille *));
-        Grille = (_Grille **) calloc(chunks[cur_log_chunk],sizeof(_Grille *));
+        Grille = (_Grille **) calloc(chunks[cur_log_chunk], sizeof(_Grille *));
         Grille[0] = (_Grille *) calloc(chunks[cur_log_chunk], sizeof(_Grille));
         for (int32_t i = 0; i < chunks[cur_log_chunk]; i++) {
             Grille[0][i].index = -1;
@@ -185,7 +188,7 @@ int32_t c_ezidentify_irreg_grid(
     unsigned int grid_crc;
     switch(typeGrille) {
         case '#':
-            grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, &(ax[ig3-1]), &(ay[ig4-1]), ni, nj);
+            grid_crc = ez_calc_crc((int *)&newgr, &newgrsize, &(ax[ig3 - 1]), &(ay[ig4 - 1]), ni, nj);
             newgr.ax = ax;
             newgr.ay = ay;
             break;

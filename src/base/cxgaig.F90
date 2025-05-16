@@ -1,3 +1,5 @@
+!> \file
+
 !> Convert real grid descriptors to integer parameters
 subroutine cxgaig(cgtyp, ig1, ig2, ig3, ig4, xg1, xg2, xg3, xg4)
     use iso_fortran_env, only : real64
@@ -87,8 +89,8 @@ subroutine cxgaig(cgtyp, ig1, ig2, ig3, ig4, xg1, xg2, xg3, xg4)
             ig4 = ig4 + nint(dlat * 16383.0 / 180.0)
         endif
     else if (cgtyp == 'A' .or. cgtyp == 'B' .or. cgtyp == 'G')  then
-        ig1 = real(xg1)
-        ig2 = real(xg2)
+        ig1 = nint(xg1)
+        ig2 = nint(xg2)
         ig3 = 0
         ig4 = 0
         status = valide("IG1", ig1, 0, 2) ! verifier si ig1=0, 1, ou 2

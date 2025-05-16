@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "ez_def_shared.h"
+
 #define NMAXGRIDS 32
 #define NMAXSETS  NMAXGRIDS * (NMAXGRIDS - 1)
 #define NMAXSUBGRIDS 20
@@ -29,23 +31,9 @@
 #define GLOBALE                   0
 #define LOCALE                    1
 
-#define VOISIN                    0
-#define NEAREST                   0
-#define LINEAIRE                  1
-#define LINEAR                    1
-#define CUBIQUE                   3
-#define DISTANCE                  4
-#define TRIANGLE                  5
-#define LINEAR_AND_NEAREST        6
-
 #define EZ_EXTRAP                 1
 #define EZ_NO_EXTRAP              0
 #define RIEN                     -1
-
-#define MAXIMUM                   4
-#define MINIMUM                   5
-#define VALEUR                    6
-#define ABORT                     13
 
 #define FICHIER         1
 #define MEMOIRE         2
@@ -56,10 +44,6 @@
 #define AU_SUD             2
 #define POLE_NORD          3
 #define POLE_SUD           4
-
-#define GLOBAL          0
-#define NORD            1
-#define SUD             2
 
 #define SYM             1
 #define ANTISYM         0
@@ -72,9 +56,6 @@
 #define C_TO_FTN(i,j,ni)  (int32_t)((ni) * (j) + i)
 
 #define OUT_OUT         5
-
-#define ABSOLU          0
-#define RELATIF         1
 
 #define SWLAT           0
 #define SWLON           1

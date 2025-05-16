@@ -1,10 +1,10 @@
 #ifndef COMPACT_IEEEBLOCK_H
 #define COMPACT_IEEEBLOCK_H
 
-void *compact_IEEEblock_float(
-    void *unpackedArrayOfFloat,
-    void *packedHeader,
-    void *packedArrayOfInt,
+void * compact_IEEEblock_float(
+    void * unpackedArrayOfFloat,
+    void * packedHeader,
+    void * packedArrayOfInt,
     int elementCount,
     int bitSizeOfPackedToken,
     int bitSizeOfPackedExpo,
@@ -12,13 +12,13 @@ void *compact_IEEEblock_float(
     int stride,
     int opCode,
     int hasMissing,
-    void *missingTag
+    const void * const missingTag
 );
 
-void *compact_IEEEblock_double(
-    void *unpackedArrayOfFloat,
-    void *packedHeader,
-    void *packedArrayOfInt,
+void * compact_IEEEblock_double(
+    void * unpackedArrayOfFloat,
+    void * packedHeader,
+    void * packedArrayOfInt,
     int elementCount,
     int bitSizeOfPackedToken,
     int bitSizeOfPackedExpo,
@@ -26,7 +26,7 @@ void *compact_IEEEblock_double(
     int stride,
     int opCode,
     int hasMissing,
-    void *missingTag
+    const void * const missingTag
 );
 
 #endif

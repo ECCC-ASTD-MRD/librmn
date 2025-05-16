@@ -1,7 +1,0 @@
-      integer ncodemax
-      parameter (ncodemax = 32)
-
-      character(len = 512) :: cgbinfo(ncodemax)
-      character(len = 256) :: gdsinfo(ncodemax)
-
-      common /qqqcgb1/ cgbinfo,gdsinfo

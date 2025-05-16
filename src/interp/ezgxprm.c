@@ -21,6 +21,8 @@
 #include <rmn/ezscint.h>
 #include "ez_funcdef.h"
 
+//! \file
+
 
 //! Get grid parameters
 int32_t c_ezgxprm(
@@ -51,9 +53,10 @@ int32_t c_ezgxprm(
     //! [out] Reference grid forth grid parameter
     int32_t * const ig4ref
 ) {
+    //! \ingroup ezscint
+
     int32_t gdrow_id;
     int32_t gdcol_id;
-
     c_gdkey2rowcol(gdid, &gdrow_id, &gdcol_id);
 
     *ni       = Grille[gdrow_id][gdcol_id].ni;

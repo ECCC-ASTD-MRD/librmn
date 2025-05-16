@@ -1,60 +1,47 @@
-!/* RMNLIB - Library of useful routines for C and FORTRAN programming
-! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-! *                          Environnement Canada
-! *
-! * This library is free software; you can redistribute it and/or
-! * modify it under the terms of the GNU Lesser General Public
-! * License as published by the Free Software Foundation,
-! * version 2.1 of the License.
-! *
-! * This library is distributed in the hope that it will be useful,
-! * but WITHOUT ANY WARRANTY; without even the implied warranty of
-! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! * Lesser General Public License for more details.
-! *
-! * You should have received a copy of the GNU Lesser General Public
-! * License along with this library; if not, write to the
-! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-! * Boston, MA 02111-1307, USA.
-! */
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
+!
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
+!
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
+!
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
 
-!.S MRBRPT
-!**S/P  MRBRPT - VERIFIER SI UN ELEMENT EST REPETITIF OU NON
-      FUNCTION MRBRPT( ELEMENT )
-      use app
-      use rmn_burp_defi
-      use rmn_burpopt
-      IMPLICIT NONE
-      INTEGER  MRBRPT, ELEMENT
-!
-!AUTEUR: J. CAVEEN    JANVIER 1992
-!REV001  Y. BOURASSA  MARS    1995 RATFOR @ FTN77
-!
-!OBJET( MRBRPT )
-!     FONCTION SERVANT A VERIFIER SI UN ELEMENT EST REPETITIF OU NON.
-!     LA FONCTION RETOURNE:
-!        1 - ELEMENT REPETITIF
-!        0 - ELEMENT NON REPETITIF
-!       <0 - CODE D'ELEMENT NON VALABLE
-!            (PLUS PETIT QUE UN OU PLUS GRAND QUE MAXREP)
-!
-!ARGUMENT
-!     ELEMENT  ENTREE  CODE DE L'ELEMENT A VERIFIER
-!
-!IMPLICITES
-#include <rmn/codes.cdk>
+
+!> \file
+
+
+!> Check if element is repeating
+integer function mrbrpt(element)
+    use app
+    use rmn_burp, only: erelem, maxrep, rpetitif
+    implicit none
+
+    !> Element to check
+    integer, intent(in) :: element
+
+    !> Sets rpetitif in the rmn_burp module
+
+    !> \return 1 if element is repeating, 0 if element is non-repeating, <0 if the element code is invalid
+
+    ! For BITMOT, GETBIT, RMASK
 #include <ftnmacros.hf>
-!
-!MODULE
-!
-!*
-      IF(ELEMENT.LT.1 .OR. ELEMENT .GT. MAXREP*BITMOT) THEN
-         write(app_msg,*) 'MRBRPT: Nom d''element non valide'
-         call Lib_Log(APP_LIBFST,APP_WARNING,app_msg)       
-         MRBRPT = ERELEM
-      ELSE
-         MRBRPT = GETBIT(RPETITIF, ELEMENT, 1)
-      ENDIF
 
-      RETURN
-      END
+    if (element < 1 .or. element > maxrep * BITMOT) then
+        write(app_msg,*) 'mrbrpt: nom d''element non valide'
+        call lib_log(app_libfst, app_warning, app_msg)
+        mrbrpt = erelem
+    else
+        mrbrpt = GETBIT(rpetitif, element, 1)
+    endif
+end

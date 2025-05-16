@@ -121,10 +121,10 @@ int c_fstprm(int handle, int *dateo, int *deet, int *npas, int *ni, int *nj, int
             char *nomvar, char *etiket, char *grtyp,
             int *ig1, int *ig2, int *ig3, int *ig4, int *swa, int *lng,
             int *dltf, int *ubc, int *extra1, int *extra2, int *extra3);
-int c_fstecr(void *field_in, void * work, int npak, int iun, int date,
-            int deet, int npas, int ni, int nj, int nk, int ip1, int ip2, int ip3,
-            char *in_typvar, char *in_nomvar, char *in_etiket, char *in_grtyp, 
-            int ig1, int ig2, int ig3, int ig4, int in_datyp_ori, int rewrit);
+int c_fstecr(const void * const field_in, const void * const work, const int npak, const int iun, const int date,
+            const int deet, const int npas, const int ni, const int nj, const int nk, const int ip1, const int ip2, const int ip3,
+            const char * const typvar, const char * const nomvar, const char * const etiket, const char * const grtyp,
+            const int ig1, const int ig2, const int ig3, const int ig4, const int datyp, const int rewrit);
 int c_fstouv(const int iun, const char * const options);
 int c_fstvoi(const int iun, const char * const options);
 int c_fstapp(int iun, char *option);

@@ -32,6 +32,8 @@ static inline void c_gdkey2rowcol(
     //! [out] Column
     int32_t * const col
 ) {
+    //! \ingroup ezscint
+
     *row = key >> LOG2_CHUNK;
     *col = key % CHUNK;
 }
@@ -46,5 +48,7 @@ static inline void c_gdrowcol2key(
     //! [in] Column
     const int32_t col
 ) {
+    //! \ingroup ezscint
+
     *key = row * CHUNK + col;
 }

@@ -338,6 +338,16 @@ if (EC_INIT_DONE LESS 2)
         add_test( NAME python_import_package COMMAND bash -c "${set_pythonpath} python3 -c 'import rmn'")
         add_test( NAME python_unit_tests COMMAND bash -c "${set_pythonpath} python3 ${CMAKE_CURRENT_SOURCE_DIR}/test_rmn.py")
 
+        add_executable(compact_integer EXCLUDE_FROM_ALL packers/compact_integer.c)
+        target_link_libraries(compact_integer rmn::rmn)
+        add_test(NAME compact_integer COMMAND $<TARGET_FILE:compact_integer>)
+        add_dependencies(check compact_integer)
+
+        add_executable(ezscint EXCLUDE_FROM_ALL interp.c)
+        target_link_libraries(ezscint rmn::rmn)
+        add_test(NAME ezscint COMMAND $<TARGET_FILE:ezscint>)
+        add_dependencies(check ezscint)
+
         if(BUILD_PYTHON)
             add_dependencies(check _rmn)
             add_test( NAME python_import_package_compiled COMMAND bash -c "${set_pythonpath} ${Python_EXECUTABLE} -c 'import compiled-rmn'")

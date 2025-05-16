@@ -18,10 +18,12 @@
 ! Boston, MA 02111-1307, USA.
 
 
+!> \file
+
+
 !> Create search key for mrbloc from bknat, bktyp and bkstp
 integer function mrblocx(buf, bfam, bdesc, bknat, bktyp, bkstp, blkno)
-    use rmn_burp_defi
-    use rmn_burpopt
+    use rmn_burp, only: sgbkstp, bkstpmsk, bknatmsk, bktypmsk, bpbknat, bpbktyp, sgbktyp, sgbknat
     implicit none
 
     integer :: buf(*)
@@ -42,11 +44,8 @@ integer function mrblocx(buf, bfam, bdesc, bknat, bktyp, bkstp, blkno)
     ! 28, 29 OU 30 RESPECTIVEMENT DANS INBTYP (CES BITS NE SONT ALLUMES
     ! QUE SI LES CLEFS D'ENTREE SON MISE A -1)
 
-#include "masques.cdk"
-#include "bpl.cdk"
+    integer, external :: mrbloc
 
-    external mrbloc
-    integer :: mrbloc
     integer :: inbtyp
 
     ! Build key

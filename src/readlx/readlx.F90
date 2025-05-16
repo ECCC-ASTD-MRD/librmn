@@ -2,7 +2,7 @@
 ! TODO A lot of global variables in theses modules are not initialized. Is that OK?
 ! (there was no "DATA" statement for them in the common blocks)
 module readlx_parmadr
-    use rmn_common
+    use iso_fortran_env, only: int64
     implicit none
     save
 
@@ -36,7 +36,7 @@ module readlx_qlxfmt
 end module readlx_qlxfmt
 
 module readlx_nrdlx
-    use rmn_common
+    use iso_fortran_env, only: int64
     implicit none
     save
 
@@ -47,7 +47,7 @@ module readlx_nrdlx
 end module readlx_nrdlx
 
 module readlx_remote
-    use rmn_common
+    use iso_c_binding, only: c_int32_t, c_int64_t, c_ptr, c_funptr, c_f_procpointer
     implicit none
 contains
     integer(C_INT32_t) function remote_call(fn, args) BIND(C,name='RemoteCall')
@@ -58,7 +58,7 @@ contains
                                     a20,a21,a22,a23,a24,a25,a26,a27,a28,a29, &
                                     a30,a31,a32,a33,a34,a35,a36,a37,a38,a39, &
                                     a40) BIND(C)
-            use ISO_C_BINDING
+            use iso_c_binding, only: c_int32_t, c_ptr
             type(C_PTR), intent(IN), value :: &
                                         a00,a01,a02,a03,a04,a05,a06,a07,a08,a09, &
                                         a10,a11,a12,a13,a14,a15,a16,a17,a18,a19, &
@@ -88,9 +88,28 @@ contains
     end function
 end module readlx_remote
 
+
+module qlx_token
+    use iso_fortran_env, only: int64
+    implicit none
+
+    character(len = 80), save :: token
+
+    logical, save :: inexpr
+    ! Number of characters in token
+    integer, save :: len
+    ! Token type: alpha numeric key, integer, real, string, symbol
+    integer, save :: typ
+    ! The value of the number contained in the token
+    real, save :: zval
+
+    integer(kind = int64), save :: jval64
+end module
+
+
 ! get contents at address(subscript) (assuming a 32 bit item)
 subroutine get_value_at_address(address, subscript, content)
-    use rmn_common
+    use iso_fortran_env, only: int64
     implicit none
 
     integer(kind = int64), intent(IN) :: address   ! memory address
@@ -107,7 +126,7 @@ end subroutine
 
 ! set contents at address(subscript) (assuming a 32 bit item)
 subroutine set_value_at_address(address, subscript, content)
-    use rmn_common
+    use iso_fortran_env, only: int64
     implicit none
 
     integer(kind = int64), intent(IN) :: address   ! memory address
@@ -125,7 +144,7 @@ end subroutine
 !> Get value of indexed array component
 ! SUBROUTINE QLXADI(KLE, IND, VALEUR, TYPE, ERR)
 SUBROUTINE qlx_adi2(KLE, IND, VALEUR, ERR)
-    use rmn_common
+    use iso_fortran_env, only: int64
     implicit none
 
     !     INTEGER IND, VALEUR, TYPE
@@ -165,7 +184,7 @@ END
 
 !> Get subscript then build memory address
 integer(kind = int64) FUNCTION qlx_adr(KLE, ERR)
-    use rmn_common
+    use iso_fortran_env, only: int64
     implicit none
 
     character(len=*) KLE
@@ -196,8 +215,9 @@ END
 
 !> Prend les tokens qui suivent le signe = et separes par des virgules pour les placer a l'adresse val
 SUBROUTINE qlx_asg(VAL, ICOUNT, LIMIT, ERR)
-    use rmn_common
+    use iso_fortran_env, only: int64
     use readlx_qlxfmt
+    use qlx_token, only: len, typ, zval, token, jval64
     implicit none
 
     !> Adresse de la clé cible
@@ -211,17 +231,8 @@ SUBROUTINE qlx_asg(VAL, ICOUNT, LIMIT, ERR)
 
     EXTERNAL :: qlx_err, qlx_ind, qlx_tok, qlx_xpr, qlx_val, get_value_at_address, set_value_at_address
 
-    COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
-    LOGICAL INEXPR
-    INTEGER LEN, TYPE, JVAL
-    REAL ZVAL
+    INTEGER JVAL
     pointer(pjval,jval)
-
-    COMMON/qlx_tok2/TOKEN
-    character(len=80) TOKEN
-
-    COMMON /qlx_tok3/ jval64
-    integer(kind = int64) :: jval64
 
     INTEGER IND, JLEN, qlx_val
     INTEGER OLDTYP, ITEMP(80), IREPCN
@@ -241,31 +252,31 @@ SUBROUTINE qlx_asg(VAL, ICOUNT, LIMIT, ERR)
         CALL qlx_tok
     ENDIF
 
-    IF (TOKEN(1:2) == '= ' .AND. TYPE == 4 .AND. .NOT. ERR) THEN
+    IF (TOKEN(1:2) == '= ' .AND. typ == 4 .AND. .NOT. ERR) THEN
         DO WHILE (.NOT.ERR .AND. .NOT.FIN)
             CALL qlx_tok
-            IF ((TYPE == 4) .AND. (TOKEN(1:1) == '(')) THEN
+            IF ((typ == 4) .AND. (TOKEN(1:1) == '(')) THEN
                 CALL qlx_xpr(ERR)
                 IF (ERR) THEN
                     EXIT
                 ENDIF
             ENDIF
-            IF (TYPE == 8) THEN
+            IF (typ == 8) THEN
                 call get_value_at_address(jval64, 1, JVAL)
             ELSE
-                IF (TYPE == 1 .AND. OLDTYP == 4) THEN
+                IF (typ == 1 .AND. OLDTYP == 4) THEN
                     ITEMP(1) = JVAL
                     JLEN = 1
                 ELSE
-                    IF (TYPE == 2 .AND. OLDTYP == 4) THEN
+                    IF (typ == 2 .AND. OLDTYP == 4) THEN
                         itemp(1) = transfer(zval, itemp(1))
                         JLEN = 1
                     ELSE
-                        IF (TYPE == 3 .AND. OLDTYP == 4) THEN
+                        IF (typ == 3 .AND. OLDTYP == 4) THEN
                             JLEN = (LEN + KARMOT - 1) / KARMOT
                             READ(TOKEN, LINEFMT)(ITEMP(J), J=1, JLEN)
                         ELSE
-                            IF (TYPE == 4) THEN
+                            IF (typ == 4) THEN
                                 IF (TOKEN(1:2) == '% ') THEN
                                     IF (OLDTYP == 1 .AND.(.NOT.IAREP)) THEN
                                         IREPCN = ITEMP(1)
@@ -304,7 +315,7 @@ SUBROUTINE qlx_asg(VAL, ICOUNT, LIMIT, ERR)
                                     ENDIF
                                 ENDIF
                             ELSE
-                                IF (TYPE == 0 .AND. OLDTYP == 4) THEN
+                                IF (typ == 0 .AND. OLDTYP == 4) THEN
                                     JLEN = 1
                                     ITEMP(1) = qlx_val(TOKEN(1:8), ERR)
                                 ELSE
@@ -316,7 +327,7 @@ SUBROUTINE qlx_asg(VAL, ICOUNT, LIMIT, ERR)
                     ENDIF
                 ENDIF
             ENDIF
-            OLDTYP = TYPE
+            OLDTYP = typ
         END DO
     ELSE
         CALL qlx_err(21006, 'qlx_asg')
@@ -343,22 +354,17 @@ SUBROUTINE qlx_bak(ICAR)
 END
 
 SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
-    use rmn_common
+    use iso_fortran_env, only: int64
     use readlx_parmadr
     use readlx_qlxfmt
     use readlx_remote
+    use qlx_token, only: len, typ, zval, token
     implicit none
 
     integer(kind = int64) :: SUB, ICOUNT
 
-    COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
-    LOGICAL INEXPR
-    INTEGER LEN, TYPE, JVAL
-    REAL ZVAL
+    INTEGER JVAL
     pointer(pjval,jval)
-
-    COMMON/qlx_tok2/TOKEN
-    character(len=80) TOKEN
 
     EXTERNAL :: qlx_err, qlx_tok, qlx_flsh, set_value_at_address
 
@@ -390,7 +396,7 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
     PREVI =4
 
     CALL qlx_tok
-    IF (TYPE.NE.4 .AND. TOKEN(1:1).NE.'(') THEN
+    IF (typ.NE.4 .AND. TOKEN(1:1).NE.'(') THEN
         CALL qlx_err(81018, 'qlx_call')
         ERR = .TRUE.
     ENDIF
@@ -398,7 +404,7 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
     DO WHILE (.NOT. ERR .AND. .NOT.FIN)
         CALL qlx_tok
         IF (PREVI  == 4) THEN
-            IF (TYPE  == 0) THEN
+            IF (typ  == 0) THEN
                 KLE = TOKEN(1:8)
                 PREVI =7
                 IF (INLIST) THEN
@@ -411,10 +417,10 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
                     NPRM0 = NPRM - 1
                 ENDIF
                 NDOPES = MIN(NDOPES+1, 101)
-                DOPES(NDOPES) = TYPE + 1 * 256 + (NPRM-NPRM0) * 256 * 256
+                DOPES(NDOPES) = typ + 1 * 256 + (NPRM-NPRM0) * 256 * 256
                 DOPE(NARG) = DOPE(NARG) + 1
             ELSE
-                IF (TYPE == 1 .OR. TYPE == 2) THEN
+                IF (typ == 1 .OR. typ == 2) THEN
                     NPRM = MIN(NPRM+1, 101)
                     PARM(NPRM) = JVAL
                     PREVI =7
@@ -425,10 +431,10 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
                         NPRM0 = NPRM - 1
                     ENDIF
                     NDOPES = MIN(NDOPES+1, 101)
-                    DOPES(NDOPES) = TYPE + 1 * 256 + (NPRM-NPRM0)*256*256
+                    DOPES(NDOPES) = typ + 1 * 256 + (NPRM-NPRM0)*256*256
                     DOPE(NARG) = DOPE(NARG) + 1
                 ELSE
-                    IF (TYPE  == 3) THEN
+                    IF (typ  == 3) THEN
                         JLEN = MIN((LEN+KARMOT-1) / KARMOT , 101 - NPRM)
                         IF (.NOT. INLIST) THEN
                             NARG = MIN(NARG+1, 41)
@@ -438,13 +444,13 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
                         ENDIF
                         READ(TOKEN, LINEFMT) (PARM(J+NPRM), J=1, JLEN)
                         NDOPES = MIN(NDOPES+1, 101)
-                        DOPES(NDOPES) = TYPE + LEN * 256 + (NPRM-NPRM0+1)*256 *256
+                        DOPES(NDOPES) = typ + LEN * 256 + (NPRM-NPRM0+1)*256 *256
                         NPRM = MIN(NPRM+JLEN, 101)
 
                         DOPE(NARG) = DOPE(NARG) + JLEN
                         PREVI =7
                     ELSE
-                        IF (TYPE == 4 .AND. TOKEN(1:1) == '[' .AND. .NOT.INLIST) THEN
+                        IF (typ == 4 .AND. TOKEN(1:1) == '[' .AND. .NOT.INLIST) THEN
                             INLIST = .TRUE.
                             PREVI =4
                             NARG = MIN(NARG+1, 41)
@@ -452,7 +458,7 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
                             DOPEA(NARG) = NDOPES + 1
                             NPRM0 = NPRM
                         ELSE
-                            IF (TYPE == 4 .AND. TOKEN(1:1) == ')' .AND.NARG == 0) THEN
+                            IF (typ == 4 .AND. TOKEN(1:1) == ')' .AND.NARG == 0) THEN
                                 FIN = .TRUE.
                             ELSE
                                 CALL qlx_err(81019, 'qlx_call')
@@ -463,11 +469,11 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
                 ENDIF
             ENDIF
         ELSE
-            IF (TYPE == 4 .AND. (TOKEN(1:1) == ',' .OR. TOKEN(1:1) == ')')) THEN
+            IF (typ == 4 .AND. (TOKEN(1:1) == ',' .OR. TOKEN(1:1) == ')')) THEN
                 FIN = TOKEN(1:1) == ')'
                 PREVI = 4
             ELSE
-                IF (TYPE == 4 .AND. TOKEN(1:1) == ']' .AND. INLIST) THEN
+                IF (typ == 4 .AND. TOKEN(1:1) == ']' .AND. INLIST) THEN
                     INLIST = .FALSE.
                 ELSE
                     CALL qlx_err(81020, 'qlx_call')
@@ -755,19 +761,13 @@ END
 
 
 SUBROUTINE qlx_ind(IND, ERR)
-    use app
+    use qlx_token, only: typ, zval, token
     implicit none
 
     INTEGER IND
     LOGICAL ERR
-    COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
-    LOGICAL INEXPR
-    INTEGER LEN, TYPE, JVAL
-    REAL ZVAL
+    INTEGER JVAL
     pointer(pjval,JVAL)
-
-    COMMON/qlx_tok2/TOKEN
-    character(len=80) TOKEN
 
     EXTERNAL :: qlx_skp, qlx_tok, qlx_err, qlx_bak
     character(len=1) qlx_skp
@@ -779,7 +779,7 @@ SUBROUTINE qlx_ind(IND, ERR)
 
     IF (IC == '[') THEN
         CALL qlx_tok
-        IF (((TYPE == 1) .OR.(TYPE == 0)) .AND. JVAL > 0) THEN
+        IF (((typ == 1) .OR.(typ == 0)) .AND. JVAL > 0) THEN
             IND=JVAL
         ELSE
             CALL qlx_err(21009, 'qlx_ind')
@@ -787,7 +787,7 @@ SUBROUTINE qlx_ind(IND, ERR)
         ENDIF
         IF (.NOT.ERR) THEN
             CALL qlx_tok
-            IF (TOKEN(1:1).NE.']' .OR. TYPE.NE.4) THEN
+            IF (TOKEN(1:1).NE.']' .OR. typ.NE.4) THEN
                 CALL qlx_err(21010, 'qlx_ind')
                 ERR = .TRUE.
             ENDIF
@@ -1489,31 +1489,12 @@ END
 SUBROUTINE qlx_tok
     use rmn_common
     use readlx_qlxfmt
+    use qlx_token, only: len, typ, zval, token, inexpr
     implicit none
 
-    ! ARGUMENTS
-    ! TOKEN
-    ! (S)
-
-    ! LEN       NOMBRE DE CARACTERE DANS UN TOKEN
-    ! (S)
-
-    ! TYPE      TYPE DU TOKEN(CLE ALPHANUMERIQUE, NOMBRE
-    ! (S)       ENTIER OU REEL, CHAINE DE CARACTERE OU SYMBOLE).
-
-    ! JVAL, ZVAL LES VALEURS D'UN NOMBRE ENTIER OU REEL,
-    ! (S)       CONTENU DANS UN TOKEN.
-
     INTEGER JSIGN, ITYP
-    COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
-    LOGICAL INEXPR
-    INTEGER LEN, TYPE, JVAL
-    REAL ZVAL
-    !     EQUIVALENCE (ZVAL, JVAL)
+    INTEGER JVAL
     pointer(pjval,JVAL)
-
-    COMMON /qlx_tok2/ TOKEN
-    character(len=80) TOKEN
 
     EXTERNAL :: qlx_chr, qlx_num, qlx_err, qlx_bak, qlx_fnd, get_value_at_address
 
@@ -1542,9 +1523,9 @@ SUBROUTINE qlx_tok
             IC = qlx_chr()
         ENDDO
         IF (LENG > 8) THEN
-            TYPE = 3                 ! string ( non delimited )
+            typ = 3                 ! string ( non delimited )
         ELSE
-            TYPE = 0                 ! short string, possibly a key
+            typ = 0                 ! short string, possibly a key
         ENDIF
         CALL qlx_bak(IC)
     ELSE
@@ -1561,10 +1542,10 @@ SUBROUTINE qlx_tok
         IF (IC  == '"') THEN
             LENG = MIN(LENG, KARMOT)
         ENDIF
-        TYPE = 3                    ! string ( delimited )
+        typ = 3                    ! string ( delimited )
     ELSE
     IF ( (IC >= '0' .AND. IC <= '9') .OR. (IC == '.') ) THEN
-        TYPE = qlx_num(TOKEN, LENG)  ! 1/2/5/6
+        typ = qlx_num(TOKEN, LENG)  ! 1/2/5/6
         JSIGN = 1
     ELSE
     IF ( (IC == '+' .OR. IC == '-') .AND. (.NOT.INEXPR) ) THEN
@@ -1576,14 +1557,14 @@ SUBROUTINE qlx_tok
         IC = qlx_chr()
         IF ((IC >= '0' .AND. IC <= '9').OR. IC == '.') THEN
             TOKEN(1:1)=IC
-            TYPE = qlx_num(TOKEN, LENG)  ! 1/2/5/6
+            typ = qlx_num(TOKEN, LENG)  ! 1/2/5/6
         ELSE
             CALL qlx_bak(IC)
-            TYPE = 4              ! special char, possibly operator
+            typ = 4              ! special char, possibly operator
         ENDIF
     ELSE
     IF (IC == '*') THEN
-        TYPE = 4                  ! operator (1 or 2 chars)
+        typ = 4                  ! operator (1 or 2 chars)
         IC = qlx_chr()
         IF (IC == '*') THEN
             LENG = 2
@@ -1593,7 +1574,7 @@ SUBROUTINE qlx_tok
         ENDIF
     ELSE
     IF (IC == '<' .OR. IC == '>' .OR. IC == '=' .OR. IC == ':') THEN
-        TYPE = 4                  ! operator (1 or 2 chars)
+        typ = 4                  ! operator (1 or 2 chars)
         IC = qlx_chr()
         IF (IC == '<' .OR. IC == '>' .OR. IC == '=') THEN
             LENG = 2
@@ -1602,7 +1583,7 @@ SUBROUTINE qlx_tok
             CALL qlx_bak(IC)
         ENDIF
     ELSE
-        TYPE = 4                  ! operator
+        typ = 4                  ! operator
     ENDIF
     ENDIF
     ENDIF
@@ -1610,30 +1591,30 @@ SUBROUTINE qlx_tok
     ENDIF
     ENDIF
 
-    IF ( (LENG > 80) .OR. (TYPE == 5) ) THEN
+    IF ( (LENG > 80) .OR. (typ == 5) ) THEN
         TOKEN = 'SCRAP'
-        TYPE = 5
+        typ = 5
         CALL qlx_err(21014, 'qlx_tok')
     ENDIF
-    IF (TYPE == 1) THEN         ! integer
+    IF (typ == 1) THEN         ! integer
         READ(TOKEN, '(I20)')JVAL
         JVAL = SIGN(JVAL, JSIGN)
     ELSE
-    IF (TYPE == 2) THEN         ! float
+    IF (typ == 2) THEN         ! float
         READ(TOKEN, '(G20.3)')ZVAL
         ZVAL = SIGN(ZVAL, FLOAT(JSIGN))
     ELSE
-    IF (TYPE == 6) THEN          ! octal constant
+    IF (typ == 6) THEN          ! octal constant
         READ(TOKEN, '(O20)')JVAL
-        TYPE = 1                 ! integer
+        typ = 1                 ! integer
         JVAL = SIGN(JVAL, JSIGN)
     ENDIF
     ENDIF
     ENDIF
-    IF (TYPE == 0) THEN
+    IF (typ == 0) THEN
         CALL qlx_fnd(TOKEN(1:8), LOCVAR, LOCCNT, LIMITS, ITYP)
         IF (ITYP  ==  -1) THEN
-            TYPE = 3
+            typ = 3
             LENG = MIN(LENG, KARMOT)
         ELSE
         IF ( (ITYP  ==  0) .OR. (ITYP  ==  1) ) THEN
@@ -1693,20 +1674,12 @@ END
 SUBROUTINE qlx_xpr(ERR)
     use app
     use rmn_common
+    use qlx_token, only: typ, token, inexpr, zval, jval64
     implicit none
 
     LOGICAL ERR
-    COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
-    LOGICAL INEXPR
-    INTEGER LEN, TYPE, JVAL
-    REAL ZVAL
+    INTEGER JVAL
     pointer(pjval,JVAL)
-
-    COMMON /qlx_tok2/ TOKEN
-    character(len=80) TOKEN
-
-    COMMON /qlx_tok3/ jval64
-    integer(kind = int64) :: jval64
 
     INTEGER, PARAMETER :: MAXTKNS = 65
     INTEGER, PARAMETER :: MAXOPS = 30
@@ -1738,7 +1711,7 @@ SUBROUTINE qlx_xpr(ERR)
             CALL qlx_tok
         ENDIF
         FIRST = .FALSE.
-        IF (TYPE == 0) THEN
+        IF (typ == 0) THEN
             NTOKEN = NTOKEN + 1
             CALL qlx_fnd(TOKEN(1:8), LOCVAR, LOCCNT, LIMITES, ITYP)
             IF (ITYP.NE.0 .AND. ITYP.NE.1) THEN
@@ -1751,7 +1724,7 @@ SUBROUTINE qlx_xpr(ERR)
             ENDIF
             UNARY = .FALSE.
         ELSE
-        IF (TYPE == 1 .OR. TYPE == 2) THEN
+        IF (typ == 1 .OR. typ == 2) THEN
             NTOKEN = NTOKEN + 1
             TOKENS(NTOKEN) = JVAL
             TOKTYPE(NTOKEN) = 0
@@ -1819,13 +1792,13 @@ SUBROUTINE qlx_xpr(ERR)
         TOKEN = ' '
         JVAL = int(TOKENS(1))
         IF (TOKTYPE(1) > 0) THEN
-            TYPE = 8      ! adresse
+            typ = 8      ! adresse
             jval64 = TOKENS(1)
         ELSE
         IF (ABS(JVAL) <= 2147483647) THEN
-            TYPE =1
+            typ =1
         ELSE
-            TYPE =2
+            typ =2
         ENDIF
         ENDIF
     ENDIF
@@ -1965,6 +1938,7 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
     use rmn_common
     use readlx_qlxbuff
     use readlx_qlxfmt
+    use qlx_token, only: typ, token, inexpr, zval
     implicit none
 
     !> Numéro d'unité d'entrée
@@ -1974,14 +1948,8 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
 
     INTEGER, INTENT(inout) :: KERR
 
-    COMMON /qlx_tok1/ LEN, TYPE, ZVAL, INEXPR
-    LOGICAL INEXPR
-    INTEGER LEN, TYPE, JVAL
-    REAL ZVAL
+    INTEGER JVAL
     pointer(pjval,JVAL)
-
-    COMMON/qlx_tok2/TOKEN
-    character(len=80) TOKEN
 
     EXTERNAL :: qlx_nvar, qlx_prnt, qlx_undf
     EXTERNAL :: qlxinx, qlx_bak, qlx_err, qlx_tok, qlx_fnd, qlx_asg, qlx_call, qlx_xpr, qlx_flsh
@@ -2037,7 +2005,7 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
         SKIPFLG = SKIPF(NSTRUC)
         ERR = .FALSE.
         CALL qlx_tok
-        IF (TYPE == 0) THEN
+        IF (typ == 0) THEN
             CALL qlx_fnd(TOKEN, LOCVAR, LOCCNT, LIMITS, ITYP)
             IF (ITYP == 1 .AND. SKIPF(NSTRUC) == 0) THEN
                 call get_value_at_address(LOCCNT, 1, IICNT)
@@ -2058,7 +2026,7 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
                                 IF (ERR) THEN
                                     EXIT
                                 ENDIF
-                                IF (TYPE == 8) THEN
+                                IF (typ == 8) THEN
                                     jval64 = JVAL
                                     call get_value_at_address(jval64, 1, JVAL)
                                 ENDIF
@@ -2103,7 +2071,7 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
                                             IF (ERR) THEN
                                                 EXIT
                                             ENDIF
-                                            IF (TYPE == 8) THEN
+                                            IF (typ == 8) THEN
                                                 jval64 = JVAL
                                                 call get_value_at_address(jval64, 1, JVAL)
                                             ENDIF
@@ -2150,7 +2118,7 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
             CALL qlx_err(21016, 'readlx')
             ERR = .TRUE.
         ENDIF
-        IF (ERR.AND.(TOKEN(1:1).NE.'$'.OR. TYPE.NE.4)) THEN
+        IF (ERR.AND.(TOKEN(1:1).NE.'$'.OR. typ.NE.4)) THEN
             CALL qlx_flsh('$')
         ENDIF
     ENDDO

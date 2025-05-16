@@ -24,26 +24,20 @@
 
 
 int32_t ez_defzone_nord(int32_t gdin, float *x, float *y, int32_t npts, _zone *zone) {
-    float *tmpx, *tmpy;
-    int32_t nhits;
-    int32_t *tmpidx;
-    int32_t jmax;
-
     int32_t gdrow_in, gdcol_in;
-
     c_gdkey2rowcol(gdin,  &gdrow_in,  &gdcol_in);
 
-    tmpx =   (float *) malloc(npts*sizeof(float));
-    tmpy =   (float *) malloc(npts*sizeof(float));
-    tmpidx = (int32_t  *) malloc(npts*sizeof(int32_t));
+    float * const tmpx = (float *) malloc(npts * sizeof(float));
+    float * const tmpy = (float *) malloc(npts * sizeof(float));
+    int32_t * const tmpidx = (int32_t  *) malloc(npts * sizeof(int32_t));
 
-    nhits = 0;
-    jmax = Grille[gdrow_in][gdcol_in].j2-2;
+    int32_t nhits = 0;
+    const int32_t jmax = Grille[gdrow_in][gdcol_in].j2 - 2;
     for (int32_t i = 0; i < npts; i++) {
         if ((int)y[i] > jmax) {
             tmpx[nhits] = x[i];
             tmpy[nhits] = y[i];
-            tmpidx[nhits]=i;
+            tmpidx[nhits] = i;
             nhits++;
         }
     }
@@ -58,8 +52,8 @@ int32_t ez_defzone_nord(int32_t gdin, float *x, float *y, int32_t npts, _zone *z
         }
 
         for (int32_t i = 0; i < zone->npts; i++) {
-            zone->x[i]   = tmpx[i];
-            zone->y[i]   = tmpy[i];
+            zone->x[i] = tmpx[i];
+            zone->y[i] = tmpy[i];
             zone->idx[i] = tmpidx[i];
         }
     }

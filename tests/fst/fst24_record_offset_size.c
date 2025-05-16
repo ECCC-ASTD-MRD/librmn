@@ -1,8 +1,8 @@
 #include <App.h>
 #include <rmn/fst24_file.h>
 
-const char* filename_rsf = "record_offset_size.rsf";
-const char* filename_xdf = "record_offset_size.xdf";
+const char * const filename_rsf = "record_offset_size.rsf";
+const char * const filename_xdf = "record_offset_size.xdf";
 
 #define NUM_DATA 10
 // const float data1[NUM_DATA] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f};
@@ -11,8 +11,8 @@ const int   data3[NUM_DATA] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 // const int   data4[NUM_DATA] = {-1, -2, -3, -4, -5, -6, -7, -8, -9};
 
 int create_file(const int is_rsf) {
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+    const char * const filename = is_rsf ? filename_rsf : filename_xdf;
+    const char * const options = is_rsf ? "RSF+R/W" : "XDF+R/W";
 
     remove(filename);
     fst_file* test_file = fst24_open(filename, options);
@@ -25,7 +25,7 @@ int create_file(const int is_rsf) {
     rec.ni = NUM_DATA;
     rec.nj = 1;
     rec.nk = 1;
-    
+
     rec.ig1 = 0;
     rec.ig2 = 0;
     rec.ig3 = 0;

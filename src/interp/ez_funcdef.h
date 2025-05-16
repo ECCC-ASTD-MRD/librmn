@@ -76,26 +76,63 @@ int32_t c_ezfreegridset(int32_t gdid, int32_t index);
 int32_t c_ezgdef_yymask(_Grille *gr);
 
 //! Pas appellée dans ezscint -> Public?
-int32_t f77name(ezgenpole)(float *vpolnor, float *vpolsud, float *fld,
-                           int32_t *ni, int32_t *nj, int32_t *vecteur,
-                           char *grtyp, int32_t *hem, F2Cl lengrtyp);
-int32_t c_ezgenpole(float *vpolnor, float *vpolsud, float *fld,
-                           int32_t ni, int32_t nj, int32_t vecteur,
-                           char *grtyp, int32_t hem);
+int32_t c_ezgenpole(
+    float * const vpolnor,
+    float * const vpolsud,
+    const float * const fld,
+    const int32_t ni,
+    const int32_t nj,
+    const int32_t vecteur,
+    const char * const grtyp,
+    const int32_t hem
+);
+int32_t f77name(ezgenpole)(
+    float * const vpolnor,
+    float * const vpolsud,
+    const float * const fld,
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const int32_t * const vecteur,
+    const char * const grtyp,
+    const int32_t * const hem,
+    F2Cl lengrtyp
+);
 
 int32_t find_gdin_in_gset(int32_t gdin, int32_t gdout);
 
 int32_t ftnstrclean(char *str, int32_t lenstr);
 
-void c_ezgfllfxy(float *lonp, float *latp,
-                 float *lon, float *lat,
-                 float *r, float *ri, int32_t *npts,
-                 float *xlat1, float *xlon1, float *xlat2, float *xlon2);
+int32_t c_ezgetgdin();
 
-void c_ezgfxyfll(float *lonp, float *latp,
-                 float *lon, float *lat,
-                 float *r, float *ri, int32_t *npts,
-                 float *xlat1, float *xlon1, float *xlat2, float *xlon2);
+int32_t c_ezgetgdout();
+
+void c_ezgfllfxy(
+    float * const lonp,
+    float * const latp,
+    const float * const lon,
+    const float * const lat,
+    float * const r,
+    float * const ri,
+    const int32_t * const npts,
+    const float * const xlat1,
+    const float * const xlon1,
+    const float * const xlat2,
+    const float * const xlon2
+);
+
+void c_ezgfxyfll(
+    const float * const lonp,
+    const float * const latp,
+    float * const lon,
+    float * const lat,
+    float * const r,
+    float * const ri,
+    const int32_t * const npts,
+    const float * const xlat1,
+    const float * const xlon1,
+    const float * const xlat2,
+    const float * const xlon2
+);
 
 void c_ezgfwfllw(float *uullout, float *vvllout, float *latin, float *lonin,
                   float *xlatingf, float *xloningf,
@@ -106,10 +143,21 @@ void  c_ezllwfgfw(float *uullout, float *vvllout, float *latin, float *lonin,
                   float *xlatingf, float *xloningf,
                  int32_t *ni,int32_t *nj,
                   char *grtyp,int32_t *ig1,int32_t *ig2,int32_t *ig3,int32_t *ig4);
-void  c_ezllwfgff(float *uullout, float *vvllout, float *latin, float *lonin,
-                  float *xlatingf, float *xloningf,
-                 int32_t *ni,int32_t *nj,
-                  char *grtyp,int32_t *ig1,int32_t *ig2,int32_t *ig3,int32_t *ig4);
+void  c_ezllwfgff(
+    float * const uullout,
+    float * const vvllout,
+    const float * const latin,
+    const float * const lonin,
+    const float * const xlatingf,
+    const float * const xloningf,
+    const int32_t * const ni,
+    const int32_t * const nj,
+    const char * const grtyp,
+    const int32_t * const ig1,
+    const int32_t * const ig2,
+    const int32_t * const ig3,
+    const int32_t * const ig4
+);
 
 void c_ez_manageGrillesMemory();
 
@@ -159,8 +207,8 @@ int32_t c_ezidentify_irreg_grid(
     const int32_t ig2,
     const int32_t ig3,
     const int32_t ig4,
-    const float * const ax,
-    const float * const ay
+    float * const ax,
+    float * const ay
 );
 
 int32_t c_ezidentify_reg_grid(

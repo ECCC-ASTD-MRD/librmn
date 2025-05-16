@@ -23,7 +23,7 @@
 #include <stdio.h>
 
 #include "rmn/ezscint.h"
-#include "rmn/f_ezscint.h"
+#include <rmn/f_ezscint.h>
 #include "ez_funcdef.h"
 
 int32_t ez_corrval(float *zout, float *zin, int32_t gdin, int32_t gdout) {

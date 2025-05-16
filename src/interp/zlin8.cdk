@@ -1,7 +1,0 @@
-
-      pure function zlin(zz1,zz2,zdx) result(z_out)
-          implicit none
-          real(kind = real64), intent(in) :: zz1, zz2, zdx
-          real(kind = real64) :: z_out
-          z_out = zz1 + (zz2 - zz1) * zdx
-      end function zlin

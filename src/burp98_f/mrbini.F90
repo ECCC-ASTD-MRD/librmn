@@ -1,32 +1,35 @@
-!/* RMNLIB - Library of useful routines for C and FORTRAN programming
-! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-! *                          Environnement Canada
-! *
-! * This library is free software; you can redistribute it and/or
-! * modify it under the terms of the GNU Lesser General Public
-! * License as published by the Free Software Foundation,
-! * version 2.1 of the License.
-! *
-! * This library is distributed in the hope that it will be useful,
-! * but WITHOUT ANY WARRANTY; without even the implied warranty of
-! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! * Lesser General Public License for more details.
-! *
-! * You should have received a copy of the GNU Lesser General Public
-! * License along with this library; if not, write to the
-! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-! * Boston, MA 02111-1307, USA.
-! */
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
+!
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
+!
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
+!
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
+
+
+!> \file
+
 
 !> Intialize report header
-!> This must be done before using the report
 function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, idrcv, datein, oars, run, sup, nsup, xaux, nxaux) result(retval)
     use app
-    use rmn_burp_defi
+    use rmn_burp, only: enforc8, erclef, errdat, nauxtot, nauxdef, nauxsup, npridef, nprisup, npritot
     implicit none
 
     !> Numéro d'unité associé au fichier
     integer, intent(in) :: iun
+    !> ???
     integer, intent(in) :: temps
     !> Marqueurs globaux
     integer, intent(in) :: flgs
@@ -63,10 +66,10 @@ function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, i
     !> Additionnal auxilary keys
     integer, dimension(nxaux), intent(in) :: xaux
 
-    integer :: retval
+    !> This must be done before using the report
 
-#include <rmn/codes.cdk>
-#include "enforc8.cdk"
+    !> \return 0 on success, error code otherwise
+    integer :: retval
 
     external xdfini, char2rah
     ! Type d'enregistrement

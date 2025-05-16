@@ -25,13 +25,9 @@ static double powerOf2s[powerSpan];
 static int powerOf2sInitialized = 0;
 
 #define FLOAT_TYPE double
-#define compact_FLOAT_TYPE compact_double
 #include "compact.tmplc"
-#undef compact_FLOAT_TYPE
 #undef FLOAT_TYPE
 
 #define FLOAT_TYPE float
-#define compact_FLOAT_TYPE compact_float
 #include "compact.tmplc"
-#undef compact_FLOAT_TYPE
 #undef FLOAT_TYPE

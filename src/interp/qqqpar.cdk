@@ -1,7 +1,0 @@
-      integer, parameter :: global = 0
-      integer, parameter :: nord = 1
-      integer, parameter :: sud = 2
-      integer, parameter :: sudnord = 0
-      integer, parameter :: nordsud = 1
-      integer, parameter :: absolu = 0
-      integer, parameter :: relatif = 1

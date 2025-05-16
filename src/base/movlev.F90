@@ -1,13 +1,15 @@
-!> Copier le contenu de src dans dst
-!
-!> @param[in] src Source pour la copie
-!> @param[out] dst Destination pour la copie
-!> @param[in] Taille du tableau
+!> \file
+
+
+!> Copy array content
 subroutine movlev(src, dst, nb)
     implicit none
 
+    !> Number of items in the array
     integer, intent(in) :: nb
+    !> Source array
     integer, dimension(nb), intent(in) :: src
+    !> Destination array
     integer, dimension(nb), intent(out) :: dst
 
     integer :: i
@@ -18,17 +20,16 @@ subroutine movlev(src, dst, nb)
 end subroutine movlev
 
 
-!> Copier le contenu de src dans dst
-!
-!> @param[in] src Source pour la copie
-!> @param[out] dst Destination pour la copie
-!> @param[in] Taille du tableau
+!> Copy array content
 subroutine move3216(src, dst, nb)
     use rmn_common
     implicit none
 
+    !> Number of items in the array
     integer, intent(in) :: nb
+    !> Source array
     integer, dimension(nb), intent(in) :: src
+    !> Destination array
     integer, dimension(nb), intent(out) :: dst
 
 #if defined(Little_Endian)
@@ -45,17 +46,16 @@ subroutine move3216(src, dst, nb)
 end subroutine
 
 
-!> Copier le contenu de src dans dst
-!
-!> @param[in] src Source pour la copie
-!> @param[out] dst Destination pour la copie
-!> @param[in] Taille du tableau
+!> Copy array content
 subroutine move832(src, dst, nb)
     use rmn_common
     implicit none
 
+    !> Number of items in the array
     integer, intent(in) :: nb
+    !> Source array
     integer, dimension(nb), intent(in) :: src
+    !> Destination array
     integer, dimension(nb), intent(out) :: dst
 
 #if defined(Little_Endian)

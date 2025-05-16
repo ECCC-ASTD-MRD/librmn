@@ -257,7 +257,7 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
 
         integer(C_INT64_T) :: file_offset = -1
         integer(C_INT64_T) :: total_stored_bytes = 0
-        
+
         integer(C_INT32_T) :: file_index = -1
 
         integer(C_INT32_T) :: dateo    = -1

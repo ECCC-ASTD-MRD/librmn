@@ -21,7 +21,7 @@
 #include <stdio.h>
 
 #include "ez_funcdef.h"
-#include "rmn/f_ezscint.h"
+#include <rmn/f_ezscint.h>
 
 
 int32_t f77name(gdxyzfll)(int32_t *gdid, float *x, float *y, float *lat, float *lon, int32_t *n) {

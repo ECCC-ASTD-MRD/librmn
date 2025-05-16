@@ -1,6 +1,9 @@
 #ifndef RMN_BURP98_F_H__
 #define RMN_BURP98_F_H__
 
+//! \file
+//! C function prototypes burp Fortran style functions
+
 #include <rmn/rpnmacros.h>
 
 int32_t f77name(mrbcol)(int32_t* liste, int32_t* cliste, int32_t *nele);
