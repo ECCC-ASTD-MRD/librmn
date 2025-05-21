@@ -44,7 +44,12 @@ module f_c_strings_mod
         end function memset
     end interface
 
-#if ! defined FORTRAN_202X_SUPPORTED
+! TODO: doesn't work for now, as __INTEL_LLVM_COMPILER doesn't give the proper version number
+! Done in CMakeLists.txt for now
+!#if __INTEL_COMPILER > 20211100 || __INTEL_LLVM_COMPILER > 20240000
+!#define FORTRAN_202X_SUPPORTED
+!#endif
+#if ! defined C_F_STRPOINTER_AVAILABLE
     interface c_f_strpointer
         module procedure c_f_strpointer1
         module procedure c_f_strpointer2
@@ -216,7 +221,8 @@ module f_c_strings_mod
         if (flen > clen) f_str(clen+1:flen) = ' ' ! pad with blanks
     end subroutine strncpy_c2f
 
-#if ! defined FORTRAN_202X_SUPPORTED
+
+#ifndef F_C_STRING_AVAILABLE
     !>Attempt at implementing new C<->Fortran strings from Fortran 202X
     function f_c_string(fstr, asis) result(cstr)
         implicit none
@@ -234,39 +240,51 @@ module f_c_strings_mod
             cstr = trim(fstr) // c_null_char
         endif
     end function f_c_string
+#endif
 
+#if ! defined C_F_STRPOINTER_AVAILABLE
     subroutine c_f_strpointer1(cstrarray, fstrptr, nchars)
+        use ISO_C_BINDING
         implicit none
         character(C_CHAR), dimension(*), intent(IN), target :: cstrarray
         character(len=:), pointer, intent(OUT) :: fstrptr
         integer, intent(IN), optional :: nchars
         type(C_PTR) :: cstrptr
         integer(C_SIZE_T) :: nc
-        character(len=:), pointer :: fptr
 
         nc = 2000000000
         if(present(nchars)) nc = nchars
-            nc = c_strnlen(cstrarray, nc)
-            cstrptr = C_LOC(cstrarray(1))
-        call c_f_pointer(cstrptr, fptr)
+        nc = c_strnlen(cstrarray, nc)
+        cstrptr = C_LOC(cstrarray(1))
+        block
+            character(kind=C_CHAR, len=nc), pointer :: fptr
+            call c_f_pointer(cstrptr, fptr)
             fstrptr => fptr(1:nc)
+        end block
     end subroutine c_f_strpointer1
 
     subroutine c_f_strpointer2(cstrptr, fstrptr, nchars)
+        use ISO_C_BINDING
         implicit none
         type(C_PTR), intent(IN), value :: cstrptr
         character(len=:), pointer, intent(OUT) :: fstrptr
         integer, intent(IN) :: nchars
         integer(C_SIZE_T) :: nc
+#if defined(__INTEL_LLVM_COMPILER) && !defined(C_F_STRPOINTER_AVAILABLE)
         character(len=:), pointer :: fptr
+#endif
         nc = c_strlen(cstrptr)
         nc = min(nc, int(nchars, kind=C_SIZE_T))
 #if defined(__INTEL_LLVM_COMPILER)
         call c_f_pointer(cstrptr, fptr, [nc])
-#else
-        call c_f_pointer(cstrptr, fptr)
-#endif
         fstrptr => fptr(1:nc)
+#else
+        block
+            character(kind=C_CHAR, len=nc), pointer :: fptr2
+            call c_f_pointer(cstrptr, fptr2)
+            fstrptr => fptr2(1:nc)
+        end block
+#endif
     end subroutine c_f_strpointer2
 #endif
 end module
