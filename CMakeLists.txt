@@ -234,6 +234,7 @@ endif()
 
 # Check for f_c_string and c_f_strpointer availability
 check_source_compiles(Fortran "use, intrinsic :: iso_c_binding, only: c_f_strpointer; end" C_F_STRPOINTER_AVAILABLE SRC_EXT F90)
+check_source_compiles(Fortran "use, intrinsic :: iso_c_binding, only: f_c_string; end" F_C_STRING_AVAILABLE SRC_EXT F90)
 
 foreach(TARGET IN ITEMS ${TARGETS})
 
@@ -275,7 +276,10 @@ foreach(TARGET IN ITEMS ${TARGETS})
     endif()
 
     if (${C_F_STRPOINTER_AVAILABLE})
-        target_compile_definitions(${TARGET} PRIVATE FORTRAN_202X_SUPPORTED)
+        target_compile_definitions(${TARGET} PRIVATE C_F_STRPOINTER_AVAILABLE)
+    endif()
+    if (${F_C_STRING_AVAILABLE})
+        target_compile_definitions(${TARGET} PRIVATE F_C_STRING_AVAILABLE)
     endif()
 
     add_dependencies(${TARGET}
