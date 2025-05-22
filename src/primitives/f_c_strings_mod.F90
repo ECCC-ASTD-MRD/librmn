@@ -23,7 +23,7 @@ module f_c_strings_mod
 !#if __INTEL_COMPILER > 20211100 || __INTEL_LLVM_COMPILER > 20240000
 !#define FORTRAN_202X_SUPPORTED
 !#endif
-#if ! defined FORTRAN_202X_SUPPORTED
+#if ! defined C_F_STRPOINTER_AVAILABLE
     interface c_f_strpointer
         module procedure c_f_strpointer1
         module procedure c_f_strpointer2
@@ -194,7 +194,8 @@ module f_c_strings_mod
         if (flen > clen) f_str(clen+1:flen) = ' ' ! pad with blanks
     end subroutine strncpy_c2f
 
-#if ! defined FORTRAN_202X_SUPPORTED
+
+#ifndef F_C_STRING_AVAILABLE
     !>Attempt at implementing new C<->Fortran strings from Fortran 202X
     function f_c_string(fstr, asis) result(cstr)
         implicit none
@@ -212,7 +213,9 @@ module f_c_strings_mod
             cstr = trim(fstr) // c_null_char
         endif
     end function f_c_string
+#endif
 
+#if ! defined C_F_STRPOINTER_AVAILABLE
     subroutine c_f_strpointer1(cstrarray, fstrptr, nchars)
         use ISO_C_BINDING
         implicit none
@@ -240,7 +243,7 @@ module f_c_strings_mod
         character(len=:), pointer, intent(OUT) :: fstrptr
         integer, intent(IN) :: nchars
         integer(C_SIZE_T) :: nc
-#if defined(__INTEL_LLVM_COMPILER) && !defined(FORTRAN_202X_SUPPORTED)
+#if defined(__INTEL_LLVM_COMPILER) && !defined(C_F_STRPOINTER_AVAILABLE)
         character(len=:), pointer :: fptr
 #endif
         nc = c_strlen(cstrptr)
