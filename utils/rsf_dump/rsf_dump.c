@@ -3,18 +3,22 @@
 #include <App.h>
 
 void usage(char **argv) {
+    App_Log(APP_VERBATIM, "Print information about an rsf file\n\n");
     App_Log(APP_VERBATIM, "Usage : %s rsf_file [verbosity level]\n", argv[0]);
 }
 
-int main(int argc, char **argv) {
-
-    if(argc < 2) {
+int main(int argc, char * argv[]) {
+    if (argc < 2) {
         usage(argv);
         return 1;
     }
 
-    int64_t verbose = 0;
-    if(argc > 2) verbose = atoi(argv[2]);
+    if (argc == 2 && ( strcmp(argv[1], "--help") && strcmp(argv[1], "-h") ) == 0 ) {
+        usage(argv);
+        return 0;
+    }
+
+    const int64_t verbose = argc > 2 ? atoi(argv[2]) : 0;
 
     // Print ls information for that file
     char command[1024];
@@ -30,7 +34,7 @@ int main(int argc, char **argv) {
         for (int i = 0; i < 5; i++) {
             uint64_t key = i + 1;
             key += 0x100000000ul;  // simulate file slot 0 for this file
-            void* p = RSF_Get_record(h1, key, 0, NULL, NULL);
+            void * p = RSF_Get_record(h1, key, 0, NULL, NULL);
             if (p) free(p);
         }
 
