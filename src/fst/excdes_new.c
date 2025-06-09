@@ -101,13 +101,13 @@ int fst_reactivate_filters(){
 
 
 //! Get the internal limit for list sizes
-int XC_get_MAX_Nlist() {
+int XC_get_MAX_Nlist(void) {
     return MAX_Nlist;
 }
 
 
 //! Get the internal limit for number of directives
-int XC_get_MAX_requetes() {
+int XC_get_MAX_requetes(void) {
     return MAX_requetes;
 }
 
