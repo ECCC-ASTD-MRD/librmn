@@ -112,7 +112,6 @@ set(ARRAY_GETTER_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/rmn_fst24_record
 set(GEN_ARRAY_GETTER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/src/fst/gen_array_getters.sh)
 add_custom_command(
     OUTPUT ${ARRAY_GETTER_SOURCE}
-    PRE_BUILD
     COMMAND ${GEN_ARRAY_GETTER_SCRIPT} > ${ARRAY_GETTER_SOURCE}
     DEPENDS ${GEN_ARRAY_GETTER_SCRIPT}
     COMMENT "Generating array include rmn_fst24_record_get_data_array.hf")
@@ -125,7 +124,6 @@ add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
     BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf_ ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__
-    PRE_BUILD
     COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf > ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90
     COMMAND cp -av ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard_constants.h   ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     COMMAND cp -av ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard_constants_2.h ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
