@@ -1034,8 +1034,23 @@ module rmn_fst98
             integer(C_INT), intent(IN) :: getmode
             integer(C_INT) :: status
         end function fstmsq
+    end interface
 
-  end interface
+    interface
+        integer function fstcvt2(nom_, typ_, etik_, grtp_, cnom_, ctyp_, cetik_, cgrtp_, holacar_)
+        implicit none
+            integer, intent(inout) :: nom_
+            integer, intent(inout) :: typ_
+            integer, intent(inout) :: etik_(3)
+            integer, intent(inout) :: grtp_
+            character(len = *), intent(inout) :: cnom_
+            character(len = *), intent(inout) :: ctyp_
+            character(len = *), intent(inout) :: cetik_
+            character(len = *), intent(inout) :: cgrtp_
+            logical, intent(in) :: holacar_
+        end function fstcvt2
+    end interface
+
 
 contains
 
@@ -1050,5 +1065,47 @@ contains
         c_is_rsf = c_fst_is_rsf(iun)
         if (c_is_rsf == 1) is_rsf = .true.
     end function fst_is_rsf
+
+    !/*****************************************************************************
+    ! *                                F S T C V T                                *
+    ! *                                                                           *
+    ! *Object                                                                     *
+    ! *         VARIABLE UTILISEE COMME HOLLERITH SERA TRANSFORME EN CARACTERE    *
+    ! *         OU L'INVERSE POUR NOMVAR, TYPVAR, GRID TYPE, ET ETIKET LE MOT       *
+    ! *         ETIKET AURA 2 LOCATIONS SUR UNE MACHINE A 32 BITS                 *
+    ! *                                                                           *
+    ! *ARGUMENTS                                                                  *
+    ! *  IN OUT    NOM       HOLLERITH *2                       [NOMVAR]          *
+    ! *  IN OUT    TYP       HOLLERITH *1                       [TYPVAR]          *
+    ! *  IN OUT    ETIK      HOLLERITH *8   2 MOTS A4 POUR SUN  [ETIKET]          *
+    ! *  IN OUT    GRTP      HOLLERITH *1                       [GRTYP]           *
+    ! *  OUT IN    CNOM      CARACTERE *2                                         *
+    ! *  OUT IN    CTYP      CARACTERE *1                                         *
+    ! *  OUT IN    CETIK     CARACTERE *8                                         *
+    ! *  OUT IN    CGRTP     CARACTRE *1                                          *
+    ! *  IN        HOLACAR   LOGICAL .TRUE.  HOLLERITH A CARATERE                 *
+    ! *                      LOGICAL .FALSE. CARACTERE A HOLLERITH                *
+    ! *                                                                           *
+    ! *****************************************************************************/
+    integer function fstcvt(nom, typ, etik, grtp, cnom, ctyp, cetik, cgrtp, holacar)
+        implicit none
+        integer, intent(inout) :: nom, typ, etik(3), grtp
+        character(len=*), intent(inout) :: cnom, ctyp, cetik, cgrtp
+        logical, intent(in) :: holacar
+        fstcvt = fstcvt2(nom, typ, etik, grtp, cnom, ctyp, cetik, cgrtp, holacar)
+    end function fstcvt
+
+    integer function fstcvt_to_char(nom, typ, etik, grtp, cnom, ctyp, cetik, cgrtp)
+        implicit none
+        integer, intent(in) :: nom, typ, etik(3), grtp
+        character(len=*), intent(inout) :: cnom, ctyp, cetik, cgrtp
+
+        integer :: nom_, typ_, etik_(3), grtp_
+        nom_ = nom
+        typ_ = typ
+        etik_(:) = etik(:)
+        grtp_ = grtp
+        fstcvt_to_char = fstcvt2(nom_, typ_, etik_, grtp_, cnom, ctyp, cetik, cgrtp, .true.)
+    end function fstcvt_to_char
 
 end module rmn_fst98

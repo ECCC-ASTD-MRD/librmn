@@ -23,8 +23,8 @@ int Xc_Select_ip1(const int set_nb, const int des_exc, const void * const iplist
 int Xc_Select_ip2(const int set_nb, const int des_exc, const void *iplist, int nelm);
 int Xc_Select_ip3(const int set_nb, const int des_exc, const void *iplist, int nelm);
 
-int XC_get_MAX_Nlist();
-int XC_get_MAX_requetes();
+int XC_get_MAX_Nlist(void);
+int XC_get_MAX_requetes(void);
 
 //! \todo Déterminer si cette fonction est interne ou publique
 void C_requetes_init(char *requetes_filename, const char * const debug_filename);

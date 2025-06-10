@@ -6,6 +6,16 @@
 
       interface
 
+!       int XC_get_MAX_Nlist()
+        function Select_get_MAX_Nlist() result (n) bind(C, name='XC_get_MAX_Nlist')
+        integer :: n
+        end function Select_get_MAX_Nlist
+
+!       int XC_get_MAX_requetes()
+        function Select_get_MAX_requetes() result (n) bind(C, name='XC_get_MAX_requetes')
+        integer :: n
+        end function Select_get_MAX_requetes
+
 !       int fst_deactivate_filters()
         function fst_deactivate_filters() result (old_status)
           import :: C_INT
