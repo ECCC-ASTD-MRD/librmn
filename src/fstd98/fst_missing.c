@@ -1508,8 +1508,8 @@ int EncodeMissingValue(
             if (nbits > 32) {
                 // datalength > 32 not supported
                 return 0;
-                missing = (*__fst_float_encode_missing)(dst, src, nElems, nbits);
             }
+            missing = (*__fst_float_encode_missing)(dst, src, nElems, nbits);
         }
     }
     if (ldatatype == 4) {
