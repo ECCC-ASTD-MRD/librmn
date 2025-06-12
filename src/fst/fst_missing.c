@@ -1391,6 +1391,7 @@ int EncodeMissingValue(
                 // datalength > 32 not supported
                 return 0;
             }
+            missing = (*__fst_float_encode_missing)(dst, src, nElems, npak);
         }
     }
     if (ldatatype == 4) {
