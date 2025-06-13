@@ -74,7 +74,7 @@ integer function mrfloc(iun, handle, stnid, idtyp, lat, lon, datein, temps, sup,
     END IF
 
     ! Composer les clefs a partir du stnid
-    istnid = stnid(1:9)
+    istnid = stnid(1:min(len_trim(stnid), 9))
     DO i = 1,9
         IF (istnid(i:i) /= '*') THEN
             CALL char2rah(istnid(i:i), pri(i), 1)

@@ -14,6 +14,12 @@
 !---------------------------------- LICENCE END ---------------------------------
 #include <rmn/msg.h>
 
+!> Public module to expose msg functions
+module rmn_msg
+   implicit none
+   include 'msg.inc'
+end module rmn_msg
+
 !/@*
 module mod_msg
    implicit none

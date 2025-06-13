@@ -363,6 +363,7 @@ install(FILES
     ${MODULE_DIR}/rmn_gmm.mod
     ${MODULE_DIR}/rmn_libc.mod
     ${MODULE_DIR}/rmn_meta.mod
+    ${MODULE_DIR}/rmn_msg.mod
     ${MODULE_DIR}/convert_ip123_int.mod
     ${MODULE_DIR}/whiteboard_mod.mod
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

@@ -99,7 +99,7 @@ integer function mrbupd(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy,
     endif
 
     ! transformer chaque caractere de stnid en un entier
-    istnid = stnid(1:9)
+    istnid = stnid(1:min(len_trim(stnid), 9))
     do i = 1, 9
         if(istnid(i:i).ne.'*') then
             call char2rah(istnid(i:i), klprim(i), 1)
