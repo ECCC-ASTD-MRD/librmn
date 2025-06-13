@@ -391,21 +391,19 @@ def fst_type_to_numpy_type(rmn_type, nbits) -> np.dtype:
     Use the `numpy_type` method of fst_record if you have an instance. """
     base_rmn_type = FstDataType(rmn_type &~ FstDataType.FST_TYPE_TURBOPACK)
     if base_rmn_type == FstDataType.FST_TYPE_UNSIGNED:
-        if nbits == 32:
-            return np.dtype("uint32")
-        elif nbits == 64:
-            return np.dtype("uint64")
-        else:
-            raise NotImplementedError(f"No numpy data type known for FST_TYPE_UNSIGNED with data_bits = {nbits}")
+        if nbits not in (8,16,32,64):
+            raise ValueError(f"nbits={nbits} is not an allowed value for type {rmn_type._name_}: Should be one of 8,16,32,64")
+        return np.dtype(f"uint{nbits}")
+    elif base_rmn_type == FstDataType.FST_TYPE_SIGNED:
+        if nbits not in (8,16,32,64):
+            raise ValueError(f"nbits={nbits} is not an allowed value for type {rmn_type._name_}: Should be one of 8,16,32,64")
+        return np.dtype(f"int{nbits}")
     elif base_rmn_type in [FstDataType.FST_TYPE_REAL_OLD_QUANT,
                       FstDataType.FST_TYPE_REAL_IEEE,
                       FstDataType.FST_TYPE_REAL]:
-        if nbits == 32:
-            return np.dtype("float32")
-        elif nbits == 64:
-            return np.dtype("float64")
-        else:
-            raise NotImplementedError(f"No numpy data type known for FST_TYPE_REAL with data_bits = {nbits}")
+        if nbits not in (32,64):
+            raise ValueError(f"nbits={nbits} is not an allowed value for type {rmn_type._name_}: Should be one of 32,64")
+        return np.dtype(f"float{nbits}")
     else:
         raise NotImplementedError(f"The proper numpy data type is not known for {rmn_type._name_}")
 
