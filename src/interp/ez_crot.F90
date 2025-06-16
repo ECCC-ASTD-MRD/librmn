@@ -40,21 +40,15 @@ subroutine ez_crot( r, ri, lon1, lat1, lon2, lat2 )
 
     !> \ingroup ezscint
 
-    external ez_lac
+    external :: ez_lac
 
-    integer i, j
-    real a, b, c, d
-    real xyz1(3), xyz2(3)
-
-    real, dimension(1) :: lon1_a, lat1_a, lon2_a, lat2_a
-    lon1_a(1) = lon1
-    lat1_a(1) = lat1
-    lon2_a(1) = lon2
-    lat2_a(1) = lat2
+    integer :: i, j
+    real :: a, b, c, d
+    real :: xyz1(3), xyz2(3)
 
     ! calcul des coordonnees cartesiennes des points r1 et r2
-    call ez_lac(xyz1, lon1_a, lat1_a, 1)
-    call ez_lac(xyz2, lon2_a, lat2_a, 1)
+    call ez_lac(xyz1, [lon1], [lat1], 1)
+    call ez_lac(xyz2, [lon2], [lat2], 1)
 
     ! calcul de a=cos(alpha)
     a = (xyz1(1) * xyz2(1)) + (xyz1(2) * xyz2(2)) + (xyz1(3) * xyz2(3))
