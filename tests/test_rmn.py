@@ -350,7 +350,7 @@ class TestRMNPackage(unittest.TestCase):
             # Create a record where setting the data will fail because we gave a
             # bad value for data_bits.
             rec = rmn.fst_record(**kwargs, data=data)
-        self.assertRaisesRegex(NotImplementedError, "No numpy data type known for .* with .*", invalid_kwarg_combination)
+        self.assertRaisesRegex(ValueError, "nbits=3 is not an allowed value", invalid_kwarg_combination)
 
 
 if __name__ == "__main__":
