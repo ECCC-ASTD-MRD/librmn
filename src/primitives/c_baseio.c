@@ -140,7 +140,7 @@ static const int FNOM_ENTRY_AVAILABLE = -1; //!< Value that indicates that an en
 static const int FNOM_IUN_AVAILABLE = 0; //!< Value that indicates that a unit number is available
 
 //! \return Number of files that can be opened by the current process
-rlim_t get_max_open_files() {
+rlim_t get_max_open_files(void) {
     struct rlimit rlim;
     getrlimit(RLIMIT_NOFILE, &rlim);
     return rlim.rlim_cur;
@@ -152,7 +152,7 @@ static off64_t wseek(int fdesc,off64_t offst, int posi) {
 }
 
 //! Print the iun availability bitmap. Debug only
-void print_bitmap() {
+void print_bitmap(void) {
     char buffer[1024 * 80];
     char* ptr = buffer;
 
@@ -216,7 +216,7 @@ static void dump_file_entry(
 }
 
 //! Print file characteristics and attributes of in use files in the master file table(for debugging use)
-void f77name(d_fgfdt)()
+void f77name(d_fgfdt)(void)
 {
     Lib_Log(APP_LIBRMN,APP_ALWAYS,"%s: DUMP of MASTER FILE TABLE (max %d entries)\n", __func__, MAX_FNOM_FILES);
     for (int i = 0 ; i < MAX_FNOM_FILES ; i++) {
@@ -1926,7 +1926,7 @@ static void scrap_page(
 
 
 //! Update age and access count of pages
-static void process_decay() {
+static void process_decay(void) {
     for (int j = 0; j < MAXWAFILES; j++) {
         for (int i = 0; i < wafile[j].nb_page_in_use; i++) {
             wafile[j].page[i].access_count = decay(wafile[j].page[i].access_count);
@@ -2127,7 +2127,7 @@ static void reset_wafile_slot(const int slot_id) {
 
 //! Find a free slot in the wafile table and reserve it. Thread-safe using atomics, no mutex.
 //! \return Index of the entry found, -1 if table is full
-static int get_free_wafile_slot() {
+static int get_free_wafile_slot(void) {
     for (int i = 0; i < MAXWAFILES; i++) {
         if (wafile[i].file_desc == -1) { // Check like this first b/c sync is expensive
             if (__sync_val_compare_and_swap(&(wafile[i].file_desc), -1, 0) == -1) {
@@ -2143,7 +2143,7 @@ static int get_free_wafile_slot() {
 
 //! Initialize the WA API. Thread-safe with fnom_mutex
 //! \return Max number of wafiles that can be open simultaneously, 0 or negative if error
-static int initialize_wa() {
+static int initialize_wa(void) {
     if (MAXWAFILES > 0) return MAXWAFILES; // Already initialized
 
     if (MAX_FNOM_FILES <= 0) {
@@ -2334,7 +2334,7 @@ static int qqcopen(
 
 
 //! Print wa control table
-void f77name(d_wafdt)()
+void f77name(d_wafdt)(void)
 {
     Lib_Log(APP_LIBRMN,APP_ALWAYS,"%s: DUMP OF WA CONTROL TABLE\n",__func__);
     for (int i = 0; i < MAXWAFILES; i++) {

@@ -97,8 +97,8 @@ extern "C" {
 #endif
 
   int cpu_has_feature(int feature);
-  int get_cpu_cores();
-  int get_cpu_hyperthreads();
+  int get_cpu_cores(void);
+  int get_cpu_hyperthreads(void);
   int get_cpu_id(void);
   uint64_t get_cpu_freq(void);
   uint64_t rdtsc(void);

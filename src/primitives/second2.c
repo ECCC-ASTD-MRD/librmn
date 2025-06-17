@@ -27,7 +27,7 @@
 
 
 //! Get user and system time on HP system
-float f77name(second)() {
+float f77name(second)(void) {
    struct tms buffer;
    clock_t elapsed;
    int32_t ticks;

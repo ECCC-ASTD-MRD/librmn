@@ -51,27 +51,28 @@ static extendedClientSlot clients[MAX_EXTENDED_CLIENTS];
 static int client_table_initialized = 0;
 
 
-void set_exit_requested() {
-  exit_requested = 1;
+void set_exit_requested(void) {
+    exit_requested = 1;
 }
 
 
-int is_exit_requested() {
-  return(exit_requested);
+int is_exit_requested(void) {
+    return exit_requested;
 }
 
 
 //! Initialize client table by setting everything to 0
-static void initialize_client_table()  {
+static void initialize_client_table(void)  {
     if (client_table_initialized) return;
 
     memset(&clients[0], 0, sizeof(clients));
     client_table_initialized = 1;
 }
 
+
 //! Find a free slot in the client table
 //! \return Slot number or -1 if there are no slots available
-static int find_client_slot() {
+static int find_client_slot(void) {
     int slot = 0;
     while (clients[slot].client_id != 0 && slot < MAX_EXTENDED_CLIENTS) {
         slot++;
@@ -81,7 +82,7 @@ static int find_client_slot() {
 
 
 //! Initialize locks table from already initialized mutex
-static void initialize_locks() {
+static void initialize_locks(void) {
     if (locks_initialized)  return;
     for (int i = 1 ; i < MAX_LOCKS ; i++) {
         memcpy(&locks[i], &mutex, sizeof(mutex));
@@ -96,6 +97,7 @@ void exit_from_client_thread(extendedClientSlot *client) {
     memset(client, 0, sizeof(extendedClientSlot));
     pthread_exit(0);
 }
+
 
 //! Start a client module, non threaded
 void start_client_module_2(
@@ -160,14 +162,14 @@ void start_client_thread_2(
 
 
 //! Increment the count of connected clients (thread safe)
-void increment_client_count() {
+void increment_client_count(void) {
     pthread_mutex_lock(&mutex);
     client_no++ ;
     pthread_mutex_unlock(&mutex);
 }
 
 //! Decrement the count of connected clients (thread safe)
-void decrement_client_count() {
+void decrement_client_count(void) {
     pthread_mutex_lock(&mutex);
     client_no-- ;
     client_ord--;
@@ -175,7 +177,7 @@ void decrement_client_count() {
 }
 
 //! Get the count of connected clients
-int get_client_count() {
+int get_client_count(void) {
     return client_no > MAX_EXTENDED_CLIENTS ? -1 : client_no;
 }
 

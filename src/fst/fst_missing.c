@@ -192,11 +192,11 @@ static void (*set_plugin_missing_value_flags)(
     const short * const, const unsigned short * const, const signed char * const, const unsigned char * const
 ) = NULL;
 
-/* Fortran and C callable versions get get "magic values" used flag */
+// Fortran and C callable versions get get "magic values" used flag
 #pragma weak missing_value_used_ = missing_value_used
 #pragma weak missing_value_used__ = missing_value_used
-int missing_value_used_();
-int missing_value_used__();
+int missing_value_used_(void);
+int missing_value_used__(void);
 
 
 //! Define missing values from FST_MISSING_VALUE and MISSING_VALUE_PLUGINS environment variables
@@ -225,11 +225,9 @@ int missing_value_used__();
 //! - ushort_decode
 //! - ubyte_decode
 //! - set_plugin_missing_value_flags
-int missing_value_used() {
-    char *text;
-    void *handle;
+int missing_value_used(void) {
     if (plugmode == -1) {
-        text = getenv("MISSING_VALUE_FLAGS");
+        const char * text = getenv("MISSING_VALUE_FLAGS");
         if (text == NULL) {
             plugmode = 0;
         } else {
@@ -248,7 +246,7 @@ int missing_value_used() {
         text = getenv("MISSING_VALUE_PLUGINS");
         if (text != NULL) {
             Lib_Log(APP_LIBFST,APP_INFO,"%s: opening plugin library '%s\n",__func__,text);
-            handle = DlOpen(text, RTLD_NOW);
+            void * handle = DlOpen(text, RTLD_NOW);
             if (handle != NULL) {
                 SetMissingValueMapping(1, 1, 32, DlSym(handle, "float_decode"));
                 SetMissingValueMapping(1, 1, 64, DlSym(handle, "double_decode"));
@@ -757,8 +755,8 @@ static void fst_double_decode_missing(
 //! \copydoc fst_float_decode_missing
 static void fst_int_decode_missing(
     int * const field,
-    const int nElems)
-{
+    const int nElems
+) {
     if (missing_value_used() == 0) return;
 
     int max, min;
@@ -775,8 +773,8 @@ static void fst_int_decode_missing(
 //! \copydoc fst_float_decode_missing
 static void fst_short_decode_missing(
     short * const field,
-    const int nElems)
-{
+    const int nElems
+) {
     if (missing_value_used() == 0) return;
 
     short max, min;
@@ -793,8 +791,8 @@ static void fst_short_decode_missing(
 //! \copydoc fst_float_decode_missing
 static void fst_byte_decode_missing(
     char * const field,
-    const int nElems)
-{
+    const int nElems
+) {
     if (missing_value_used() == 0) return;
 
     char max, min;
@@ -811,8 +809,8 @@ static void fst_byte_decode_missing(
 //! \copydoc fst_float_decode_missing
 static void fst_uint_decode_missing(
     unsigned int * const field,
-    const int nElems)
-{
+    const int nElems
+) {
     if (missing_value_used() == 0) return;
 
     unsigned int max, min;
@@ -829,8 +827,8 @@ static void fst_uint_decode_missing(
 //! \copydoc fst_float_decode_missing
 static void fst_ushort_decode_missing(
     unsigned short * const field,
-    const int nElems)
-{
+    const int nElems
+) {
     if (missing_value_used() == 0) return;
 
     unsigned short max, min;
@@ -847,8 +845,8 @@ static void fst_ushort_decode_missing(
 //! \copydoc fst_float_decode_missing
 static void fst_ubyte_decode_missing(
     unsigned char * const field,
-    const int nElems)
-{
+    const int nElems
+) {
     if (missing_value_used() == 0) return;
 
     unsigned char max, min;
@@ -1189,7 +1187,7 @@ static void (*__fst_ubyte_decode_missing)(unsigned char* const, const int) = fst
 
 
 //! Restore default mapping functions
-void RestoreMissingValueMapping() {
+void RestoreMissingValueMapping(void) {
     __fst_float_encode_missing = fst_float_encode_missing;
     __fst_double_encode_missing = fst_double_encode_missing;
     __fst_int_encode_missing = fst_int_encode_missing;
@@ -1210,9 +1208,9 @@ void RestoreMissingValueMapping() {
 }
 
 /* Fortran entry points (calling C entry point RestoreMissingValueMapping) */
-void restore_missing_value_mapping() { RestoreMissingValueMapping(); }
-void restore_missing_value_mapping_() { RestoreMissingValueMapping(); }
-void restore_missing_value_mapping__() { RestoreMissingValueMapping(); }
+void restore_missing_value_mapping(void) { RestoreMissingValueMapping(); }
+void restore_missing_value_mapping_(void) { RestoreMissingValueMapping(); }
+void restore_missing_value_mapping__(void) { RestoreMissingValueMapping(); }
 
 
 //! Change the missing value mapping function (C entry point)

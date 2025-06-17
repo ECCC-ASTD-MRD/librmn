@@ -107,15 +107,15 @@ extern "C" {
 #endif
 
 int set_host_and_port(const char * const channel_file, const char * const host_and_port);
-char *get_host_and_port(const char * const channel_file);
-char *get_broker_Authorization();
+char * get_host_and_port(const char * const channel_file);
+char * get_broker_Authorization(void);
 void set_broker_Authorization(int auth_token);
 int accept_from_sock(int fserver);
 int bind_sock_to_port(int s);
-int get_sock_net();
+int get_sock_net(void);
 int set_sock_opt(int s);
 int get_ip_address(const char * const hostname);
-int get_own_ip_address();
+int get_own_ip_address(void);
 int connect_to_hostport(const char * const target);
 int connect_to_localport(int port);
 int bind_to_localport(int *port, char *buf, int maxbuf);
@@ -125,17 +125,17 @@ int send_command_to_server(const int fserver, const char * const buf);
 int32_t get_int32_from_channel(int channel);
 void put_int32_to_channel(int channel, int32_t to_send);
 int connect_to_channel_by_name(const char * const name);
-void set_exit_requested();
+void set_exit_requested(void);
 void exit_from_client_thread(extendedClientSlot *client);
-void increment_client_count();
-void decrement_client_count();
-int get_client_count();
-void reset_timeout_counter();
-void increment_timeout_counter();
-void decrement_timeout_counter();
+void increment_client_count(void);
+void decrement_client_count(void);
+int get_client_count(void);
+void reset_timeout_counter(void);
+void increment_timeout_counter(void);
+void decrement_timeout_counter(void);
 int set_timeout_counter(int timeout_value);
-int get_timeout_counter();
-int get_ping_interval();
+int get_timeout_counter(void);
+int get_ping_interval(void);
 
 void check_swap_records(void * const record, const int size, const int tokensize);
 int write_stream(const int fd, const char * const data, const int bytes);

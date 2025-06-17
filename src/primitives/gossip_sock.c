@@ -98,7 +98,7 @@ int get_server_alias(char *path, const char *filename, int maxlen);
 // extern long long time_base();
 // Nasty workaround:
 #ifdef DEBUG
-long long time_base() {
+long long time_base(void) {
     return 0;
 }
 #endif
@@ -298,8 +298,7 @@ char *get_host_and_port(
 
 //! Get the authorization token from the $HOME/.broker/.Bauth file
 //! \return Pointer to character string upon success, NULL pointer in case of failure. The caller must free the object designated by the returned pointer after use.
-char *get_broker_Authorization()
-{
+char * get_broker_Authorization(void) {
     char buf[PATH_MAX];
     snprintf(buf, PATH_MAX - 1, "%s/.gossip", getenv("HOME"));
 
@@ -407,8 +406,7 @@ int bind_sock_to_port(
 
 //! Create a network socket
 //! \return Socket's file descriptor
-int get_sock_net()
-{
+int get_sock_net(void) {
     /* ignore SIGPIPE signal (i.e. do no abort but return error) */
     // DO THIS ONLY ONCE
     if (must_init_signal) {
@@ -536,8 +534,7 @@ int get_ip_address(
 
 
 //! Get host's own IPV4 address
-int get_own_ip_address()
-{
+int get_own_ip_address(void) {
     char buf[PATH_MAX];
     if (GetHostName(buf, sizeof(buf) - 1 )) {
         fprintf(stderr, "Can't find hostname\n");
@@ -2485,7 +2482,7 @@ int send_command_to_server2(int fclient, const char * const buffer) {
 
 
 //! Open client socket to command server
-int cmd_open() {
+int cmd_open(void) {
     int fserver = connect_to_channel_by_name("cmd");
     fprintf(stderr, "fserver = %d\n", fserver);
 

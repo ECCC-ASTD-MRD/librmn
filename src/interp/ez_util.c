@@ -22,11 +22,11 @@
 #include "ez_funcdef.h"
 
 
-int32_t c_ezgetgdin() {
+int32_t c_ezgetgdin(void) {
     return iset_gdin;
 }
 
-int32_t c_ezgetgdout() {
+int32_t c_ezgetgdout(void) {
     if (iset_gdout == UNDEFINED) {
         if (iset_gdin != UNDEFINED) {
             iset_gdout = iset_gdin;
@@ -37,7 +37,7 @@ int32_t c_ezgetgdout() {
     return iset_gdout;
 }
 
-int32_t f77name(ezgetgdout)() {
+int32_t f77name(ezgetgdout)(void) {
     return c_ezgetgdout();
 }
 

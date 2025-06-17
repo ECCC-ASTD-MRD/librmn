@@ -18,23 +18,27 @@
  * Boston, MA 02111-1307, USA.
  */
 
+ 
+#include <rmn/gossip.h>
+
+
 //! \file gossip_timeout.c Gossip timeout counter functions
 
 static int timeout = 0;
 static int baseTimeout = 20;
 static int pingInterval = 15;
 
-void reset_timeout_counter() {
+void reset_timeout_counter(void) {
     timeout = baseTimeout;
 }
 
 
-void increment_timeout_counter() {
+void increment_timeout_counter(void) {
     timeout++;
 }
 
 
-void decrement_timeout_counter() {
+void decrement_timeout_counter(void) {
     timeout--;
 }
 
@@ -46,12 +50,12 @@ int set_timeout_counter(int timeout_value) {
 }
 
 
-int get_timeout_counter() {
+int get_timeout_counter(void) {
     return timeout;
 }
 
 
-int get_ping_interval() {
+int get_ping_interval(void) {
     return pingInterval;
 }
 

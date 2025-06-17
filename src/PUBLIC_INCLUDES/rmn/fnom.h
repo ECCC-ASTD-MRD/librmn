@@ -65,7 +65,7 @@ extern int MAX_FNOM_FILES;
 extern "C" {
 #endif
 
-rlim_t get_max_open_files();
+rlim_t get_max_open_files(void);
 
 int c_fretour(
     const int iun
@@ -74,7 +74,7 @@ int32_t f77name(fretour)(
     const int32_t * const fiun
 );
 
-void f77name(d_fgfdt)();
+void f77name(d_fgfdt)(void);
 
 int c_fnom(
     int * const iun,
@@ -271,7 +271,7 @@ int32_t f77name(sqputs)(
     F2Cl llbuf
 );
 
-void f77name(d_wafdt)();
+void f77name(d_wafdt)(void);
 
 uint32_t f77name(hrjust) (uint32_t *str, const int32_t * const ncar);
 

@@ -17,10 +17,10 @@ void RequetesInit(void) {
 }
 
 #pragma weak f_requetes_init__ = f_requetes_init
-void f_requetes_init__();
+void f_requetes_init__(void);
 #pragma weak f_requetes_init_ = f_requetes_init
-void f_requetes_init_();
-void f_requetes_init() {
+void f_requetes_init_(void);
+void f_requetes_init(void) {
     RequetesInit();
 }
 
@@ -81,9 +81,9 @@ static int DeactivateAllFilters = 0;
 
 #pragma weak fst_deactivate_filters__ = fst_deactivate_filters
 #pragma weak fst_deactivate_filters_ = fst_deactivate_filters
-int fst_deactivate_filters__();
-int fst_deactivate_filters_();
-int fst_deactivate_filters(){
+int fst_deactivate_filters__(void);
+int fst_deactivate_filters_(void);
+int fst_deactivate_filters(void) {
     int old = DeactivateAllFilters;
     DeactivateAllFilters = 1;
     return old;
@@ -91,9 +91,9 @@ int fst_deactivate_filters(){
 
 #pragma weak fst_reactivate_filters__ = fst_reactivate_filters
 #pragma weak fst_reactivate_filters_ = fst_reactivate_filters
-int fst_reactivate_filters__();
-int fst_reactivate_filters_();
-int fst_reactivate_filters(){
+int fst_reactivate_filters__(void);
+int fst_reactivate_filters_(void);
+int fst_reactivate_filters(void) {
     int old = DeactivateAllFilters;
     DeactivateAllFilters = 0;
     return old;
@@ -209,7 +209,7 @@ static void WriteRequestTable(
 }
 
 
-void DumpRequestTable() {
+void DumpRequestTable(void) {
     WriteRequestTable(1);
 }
 
@@ -838,7 +838,7 @@ int C_select_groupset(int first_set_nb, int last_set_nb) {
  *   augmenter bundle_nb de 1                                                *
  *                                                                           *
  *****************************************************************************/
-int C_filtre_desire() {
+int C_filtre_desire(void) {
     if(package_not_initialized) RequetesInit();
     bundle_nb++;
     desire_exclure = 1;
@@ -858,7 +858,7 @@ int C_filtre_desire() {
  *   augmenter bundle_nb de 1                                                *
  *                                                                           *
  *****************************************************************************/
-int C_filtre_exclure() {
+int C_filtre_exclure(void) {
     if(package_not_initialized) RequetesInit();
     bundle_nb++;
     desire_exclure = 0;
@@ -1412,12 +1412,12 @@ int f77name(f_select_typvar)(char *typv_list, int *nelm, F2Cl flng) {
   return ier;
 }
 
-int f77name(f_filtre_desire)() {
+int f77name(f_filtre_desire)(void) {
 /*CHC/NRC*/
   return C_filtre_desire();
 }
 
-int f77name(f_filtre_exclure)() {
+int f77name(f_filtre_exclure)(void) {
 /*CHC/NRC*/
   return C_filtre_exclure();
 }

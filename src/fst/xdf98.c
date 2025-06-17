@@ -107,7 +107,7 @@ int MAX_XDF_FILES = 0;
 // \}
 
 // prototypes declarations
-static int get_free_index();
+static int get_free_index(void);
 static void init_file(file_table_entry* const entry, const int index);
 static int32_t add_dir_page(int file_index, int wflag);
 static int create_new_xdf(int index, int iun, word_2 *pri, int npri,
@@ -138,7 +138,6 @@ int32_t c_xdf_handle_in_file(const int32_t handle) {
 //! Uses the xdf_mutex
 //! \return 
 static int initialize_xdf(void) {
-    
     if (MAX_XDF_FILES > 0) return MAX_XDF_FILES; // xdf already initialized
     if (MAX_FNOM_FILES <= 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot initialize XDF if fnom has never been called/initialized\n", __func__);
@@ -3141,16 +3140,8 @@ int file_index_xdf(
 
 //! Find a free position in file table and initialize file attributes.
 //! \return Free position index or negative error code
-static int get_free_index()
-{
-    int nlimite;
-
-    if (STDSEQ_opened == 1) {
-        nlimite = 128;
-    } else {
-        nlimite = MAX_XDF_FILES;
-    }
-
+static int get_free_index(void) {
+    const int nlimite = STDSEQ_opened == 1 ? 128 : MAX_XDF_FILES;
     for (int i = 0; i < nlimite; i++) {
         file_table_entry* entry = file_table[i];
         if (entry == NULL) {

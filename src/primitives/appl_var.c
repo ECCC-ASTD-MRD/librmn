@@ -18,7 +18,7 @@ typedef struct {
 static appl_var_entry appl_var_table[MAX_ENTRIES];
 static int In_Used;
 
-void init_appl_var_table() {
+void init_appl_var_table(void) {
     for (int i = 0; i < MAX_ENTRIES; i++) {
         appl_var_table[i].name = (char *) NULL;
         appl_var_table[i].value = (char *) NULL;
@@ -29,7 +29,7 @@ void init_appl_var_table() {
 }
 
 
-void free_appl_var_table(){
+void free_appl_var_table(void) {
     for (int i = 0; i < In_Used; i++) {
         if (appl_var_table[i].name) free(appl_var_table[i].name);
         if (appl_var_table[i].value) free(appl_var_table[i].value);
@@ -114,12 +114,12 @@ int32_t f77name(c_get_appl_var)(char* name, char* value, F2Cl ln, F2Cl lv) {
 }
 
 
-void f77name(c_init_appl_var_table)() {
+void f77name(c_init_appl_var_table)(void) {
     init_appl_var_table();
 }
 
 
-void f77name(c_free_appl_var_table)() {
+void f77name(c_free_appl_var_table)(void) {
     free_appl_var_table();
 }
 

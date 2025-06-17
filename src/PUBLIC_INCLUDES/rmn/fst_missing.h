@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-int missing_value_used();
+int missing_value_used(void);
 
 int ForceMissingValueUsage(
     const int enable

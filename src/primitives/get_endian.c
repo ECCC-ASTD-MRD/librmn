@@ -3,15 +3,15 @@ static unsigned char *endian = (unsigned char *)&value;
 
 #pragma weak is_little_endian__=is_little_endian
 #pragma weak is_little_endian_=is_little_endian
-int is_little_endian__();
-int is_little_endian_();
-int is_little_endian() { return(*endian) ; }
+int is_little_endian__(void);
+int is_little_endian_(void);
+int is_little_endian(void) { return *endian; }
 
 #pragma weak is_big_endian__=is_big_endian
 #pragma weak is_big_endian_=is_big_endian
-int is_big_endian__();
-int is_big_endian_();
-int is_big_endian() { return(1 - *endian) ; }
+int is_big_endian__(void);
+int is_big_endian_(void);
+int is_big_endian(void) { return 1 - *endian; }
 
 #if defined(SELF_TEST)
 #include <stdio.h>
