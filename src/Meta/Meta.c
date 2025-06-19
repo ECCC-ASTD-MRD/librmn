@@ -79,9 +79,8 @@ inline static int32_t Meta_TokenEnd(const char* const Token,int32_t *IsSplit) {
  *
  *    @return              Metadata object pointer
 */
-json_object *Meta_NewObject() {
-
-   return(json_object_new_object());
+json_object *Meta_NewObject(void) {
+   return json_object_new_object();
 }
 
 /**----------------------------------------------------------------------------
@@ -148,7 +147,7 @@ static inline TMetaProfile *Meta_GetProfile(char *Version) {
  * @date   June 2023
  *    @return              Error code (1=ok)
 */
-int32_t Meta_Init(){
+int32_t Meta_Init(void){
    char  *c;
 
    MetaProfileNb=0;

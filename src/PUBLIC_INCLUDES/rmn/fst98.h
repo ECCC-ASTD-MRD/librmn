@@ -136,8 +136,8 @@ int c_fstweo(int iun, int level);
 int c_fstnbr(const int iun);
 int c_fstnbrv(int iun);
 int c_fstfrm(const int iun);
-int c_fst_version();
-void c_fstreset_ip_flags();
+int c_fst_version(void);
+void c_fstreset_ip_flags(void);
 void c_fst_env_var(char *cle, int index, char *content);
 int c_fst_edit_dir_plus(int handle, int date, int deet, int npas,
                         int ni, int nj, int nk, int ip1, int ip2, int ip3,

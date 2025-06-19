@@ -45,16 +45,16 @@ typedef int (*f_callback_fn)(int* argc, char* argv, unsigned char*, void* data1,
 
 typedef struct{
 	char command_name[MAX_CMD_LEN];  /* command name */
-  union {
-    f_callback_fn command_f;
-    c_callback_fn command_c;
-  };
+    union {
+        f_callback_fn command_f;
+        c_callback_fn command_c;
+    };
 	void *private_data;              /* pointer to private data */
 	void *private_data_2;            /* pointer to private data */
 	int max_args;                    /* maximun number of arguments permitted */
 	int32_t *actual_args;            /* actual number of arguments */
 	int is_ftn;                      /* 1 if FORTRAN routine, 0 if C routine */
-	}callback_entry;
+} callback_entry;
 
 /*   buffer used to process input file 1024 + 128 */
 #define MAXBUFFER 1152
@@ -160,7 +160,7 @@ static int Find_Callback(char *name){
 }
 
 /* input buffer is empty, read as many characters as possible */
-static void fill_buffer(){
+static void fill_buffer(void){
  int nc;
  char *temp;
 redo:
@@ -185,8 +185,7 @@ redo:
 }
 
 /* get current input character, do not bump input pointer, if buffer empty, fill it */
-static unsigned int Current_Char(){
-
+static unsigned int Current_Char(void){
  if(buffer_in<=buffer_out) fill_buffer();
  if(buffer_in<=buffer_out) return(0xFF);    /* no input available, return EOF */
 
@@ -197,7 +196,7 @@ static unsigned int Current_Char(){
 }
 
 /* initialize table containing syntactic character types */
-static void init_char_table(){
+static void init_char_table(void){
     int i;
 
     char_type[0] = 0xFF;

@@ -264,7 +264,7 @@ static void init_open_file(fstd_usage_info* info) {
 
 //! Reset to zeros ip1-2-3 tables and counters
 //! \return Always 0
-int init_ip_vals()
+int init_ip_vals(void)
 {
     for (int i = 0; i < Max_Ipvals; i++) {
         for (int j = 0; j < 3; j++) {
@@ -3335,11 +3335,9 @@ int c_fstnbr(
             status = c_fstouv(iun, "RND+R/O");
             if (status < 0) return status;
             c_fstfrm(iun);
-        }
-        else if (FGFDT[index_fnom].attr.rsf == 1) {
+        } else if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstnbr_rsf(index_fnom);
-        }
-        else {
+        } else {
             status = c_fstnbr_xdf(FGFDT[index_fnom].iun);
         }
 
@@ -3953,14 +3951,12 @@ int c_fstprm(
     int *extra3
 ) {
     const int32_t key_type = RSF_Key32_type(handle);
-    int dasiz;
-
     if (key_type == 1) {
+        int dasiz;
         RSF_handle file_handle = RSF_Key32_to_handle(handle);
         return c_fstprm_rsf(file_handle, handle, dateo, deet, npas, ni, nj, nk, nbits, datyp, &dasiz, ip1, ip2, ip3, typvar,
                             nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, swa, lng, dltf, ubc, extra1, extra2, extra3);
-    }
-    else if (key_type == 0) {
+    } else if (key_type == 0) {
         return c_fstprm_xdf(handle, dateo, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, typvar, nomvar,
                             etiket, grtyp, ig1, ig2, ig3, ig4, swa, lng, dltf, ubc, extra1, extra2, extra3);
     }
@@ -3970,8 +3966,7 @@ int c_fstprm(
 
 
 //! Reset all the flags previously set by ip(1-3)_val
-void c_fstreset_ip_flags()
-{
+void c_fstreset_ip_flags(void) {
     init_ip_vals();
 }
 
@@ -4266,8 +4261,7 @@ int c_fstsui(
 
 
 //! Get the version number
-int c_fst_version()
-{
+int c_fst_version(void) {
     return stdf_version;
 }
 
@@ -6161,20 +6155,17 @@ int32_t f77name(fstprm)(int32_t *f_handle,
  *   Reset all the flags previously set by ip(1-3)_val                       *
  *                                                                           *
  *****************************************************************************/
-void f77name(fstreset_ip_flags)()
-{
+void f77name(fstreset_ip_flags)(void) {
     init_ip_vals();
 }
 
 
-int32_t f77name(fstrwd)(int32_t *f_iun)
-{
+int32_t f77name(fstrwd)(int32_t *f_iun) {
     return (int32_t) c_fstrwd(*f_iun);
 }
 
 
-int32_t f77name(fstskp)(int32_t *f_iun, int32_t *f_nrec)
-{
+int32_t f77name(fstskp)(int32_t *f_iun, int32_t *f_nrec) {
     return (int32_t) c_fstskp(*f_iun, *f_nrec);
 }
 
@@ -6193,15 +6184,18 @@ int32_t f77name(fstskp)(int32_t *f_iun, int32_t *f_nrec)
  *  OUT nk      dimension 3 of the data field                                *
  *                                                                           *
  *****************************************************************************/
-int32_t f77name(fstsui)(int32_t *f_iun,
-                        int32_t *f_ni, int32_t *f_nj, int32_t *f_nk)
-{
+int32_t f77name(fstsui)(
+    int32_t *f_iun,
+    int32_t *f_ni,
+    int32_t *f_nj,
+    int32_t *f_nk
+) {
     return (int32_t) c_fstsui(*f_iun, f_ni, f_nj, f_nk);
 }
 
 
 //! Unlinks files previously linked with fstlnk
-int32_t c_fstunl() {
+int32_t c_fstunl(void) {
     if (first_linked_file < 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: No list to unlink\n", __func__);
         return ERR_BAD_LINK;
@@ -6224,20 +6218,13 @@ int32_t c_fstunl() {
 }
 
 
-int32_t f77name(fstunl)()
-{
+int32_t f77name(fstunl)(void) {
     return c_fstunl();
 }
 
 
-/*****************************************************************************
- *                           F S T  _ V E R S I O N                          *
- *                                                                           *
- *Object                                                                     *
- *   Returns package version number.                                          *
- *                                                                           *
- *****************************************************************************/
-int32_t f77name(fst_version)()
+//! Get fst version number
+int32_t f77name(fst_version)(void)
 {
     return (int32_t) stdf_version;
 }

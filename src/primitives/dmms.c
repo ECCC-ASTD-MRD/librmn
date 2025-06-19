@@ -60,7 +60,7 @@ static int *pointer;
 static int dejala = 0;
 static int dmms_noabort = 0;
 
-#define single() {\
+#define SINGLE {\
     if (dejala) {\
         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: more than one task in dmms\n",__func__);\
         f77name(tracebck)();\
@@ -70,7 +70,7 @@ static int dmms_noabort = 0;
     }\
 }
 
-#define sortie() {\
+#define SORTIE {\
   dejala = 0;\
 }
 
@@ -107,7 +107,7 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
     int lng, nitem;
     char *value;
 
-    single();
+    SINGLE;
     ptrsize = sizeof(pointer);
 
     nitem = (nbytes + ptrsize - 1) / ptrsize;
@@ -207,7 +207,7 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
         }
     }
 
-    sortie();
+    SORTIE;
     return ptbloc;
 }
 
@@ -250,7 +250,7 @@ int bloc_dealloc(
     struct blocmem * ptbloc,
     int mode
 ){
-    single();
+    SINGLE;
     Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: bloc_dealloc ptbloc =%#p\n",__func__,ptbloc);
  
     if (mode == HEAP) {
@@ -262,7 +262,7 @@ int bloc_dealloc(
         (ptbloc->bwd)->fwd = ptbloc->fwd;
         (ptbloc->fwd)->bwd = ptbloc->bwd;
         free(ptbloc);
-        sortie();
+        SORTIE;
         return 0;
     } else {
         struct blocmem * pt = ptbloc;
@@ -279,7 +279,7 @@ int bloc_dealloc(
             ptbloc = pt;
         }
     }
-    sortie();
+    SORTIE;
     return 0;
 }
 

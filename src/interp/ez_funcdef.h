@@ -102,9 +102,9 @@ int32_t find_gdin_in_gset(int32_t gdin, int32_t gdout);
 
 int32_t ftnstrclean(char *str, int32_t lenstr);
 
-int32_t c_ezgetgdin();
+int32_t c_ezgetgdin(void);
 
-int32_t c_ezgetgdout();
+int32_t c_ezgetgdout(void);
 
 void c_ezgfllfxy(
     float * const lonp,
@@ -159,7 +159,7 @@ void  c_ezllwfgff(
     const int32_t * const ig4
 );
 
-void c_ez_manageGrillesMemory();
+void c_ez_manageGrillesMemory(void);
 
 void c_ezdefxg(int32_t gdid);
 void c_ezdefaxes(const int32_t gdid, const float * const ax, const float * const ay);

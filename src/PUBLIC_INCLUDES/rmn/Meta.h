@@ -22,10 +22,10 @@ char*        Meta_GetObjectString(json_object *Obj);
 json_object* Meta_Copy(json_object *Obj);
 int32_t      Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp);
 json_object* Meta_Resolve(json_object *Obj,json_object *ObjMaster);
-json_object* Meta_NewObject();
+json_object* Meta_NewObject(void);
 
 // Metadata specific functions
-int32_t      Meta_Init();
+int32_t      Meta_Init(void);
 int32_t      Meta_Free(json_object *Obj);
 int32_t      Meta_Is(json_object *Obj);
 json_object* Meta_New(int Type,char *Version);

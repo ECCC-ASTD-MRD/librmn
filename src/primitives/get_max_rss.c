@@ -4,7 +4,7 @@
 
 #include <rmn/rpnmacros.h>
 
-int32_t f77name(get_max_rss)() {
+int32_t f77name(get_max_rss)(void) {
     struct rusage mydata;
 
     getrusage(RUSAGE_SELF, &mydata);

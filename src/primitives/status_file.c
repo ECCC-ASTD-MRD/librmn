@@ -30,8 +30,8 @@
 #include <rmn/rpnmacros.h>
 
 static int fd = -1;
-void f77name(open_status_file)() {
-    if ( (fd=open("./status.dot",O_RDWR+O_CREAT,0755)) <0 ) {
+void f77name(open_status_file)(void) {
+    if ( (fd = open("./status.dot", O_RDWR + O_CREAT, 0755)) < 0 ) {
         Lib_Log(APP_LIBRMN,APP_ERROR,"%s: Cannot open status file\n",__func__);
         exit(1);
     }
@@ -43,6 +43,6 @@ void f77name(write_status_file)(char *msg, F2Cl lmsg) {
 }
 
 
-void f77name(close_status_file)() {
+void f77name(close_status_file)(void) {
     close(fd);
 }

@@ -139,7 +139,7 @@ int c_ez_findgrid(int grid_index, _Grille *gr) {
 }
 
 
-void dump_gr_list() {
+void dump_gr_list(void) {
     for (int i = 0; i < chunks[cur_log_chunk]; i++) {
         if (gr_list[i] != NULL) {
             const _Grille * gr = gr_list[i];

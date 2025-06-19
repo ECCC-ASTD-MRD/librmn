@@ -71,19 +71,20 @@ int32_t f77name (mgi_open) (const int32_t * const f_chan, const char * const mod
 int32_t f77name (mgi_read) (const int32_t * const f_chan, void *data, const int32_t * const f_nelm, const char * const dtype, F2Cl ltype);
 int32_t f77name (mgi_write) (int32_t *f_chan, void *data, int32_t *f_nelm, char *dtype, F2Cl ltype);
 int32_t f77name (mgi_clos) (int32_t *f_chan);
-int32_t f77name (mgi_term) ();
+int32_t f77name (mgi_term) (void);
 void f77name (mgi_set_timeout) (int32_t *chan, int32_t *timeout);
 
-int32_t f77name (mgi_read_oob) ();
-int32_t f77name (mgi_write_oob) ();
+int32_t f77name (mgi_read_oob) (void);
+int32_t f77name (mgi_write_oob) (void);
 
 
 //! Disable the signals between filepipes
 //! \deprecated
-void f77name (mgi_nosig)() {
+void f77name (mgi_nosig)(void) {
     /* SIG_ACTIVE = 0; */
     Lib_Log(APP_LIBRMN,APP_WARNING,"%s: deprecated call\n",__func__);
 }
+
 
 //! Copy a string given by a fortran routine and place the NULL character at the end of the true (charlen) length of the string
 static void strcopy(
@@ -100,6 +101,7 @@ static void strcopy(
         *s++ = '\0';
     }
 }
+
 
 //! Fill the write buffer of initialized channel "chan" on the server
 static int bwrite ( int chan, void *buffer, int nelem, char *dtype ) {
@@ -159,7 +161,7 @@ int32_t f77name (mgi_clos) (
 
 
 //! Close all channels
-int32_t f77name (mgi_term) () {
+int32_t f77name (mgi_term) (void) {
     int ier = -1;
 
     for (int chan = 0; chan <= ichan; chan++) {
@@ -287,6 +289,7 @@ void f77name (mgi_set_retry_connect) (
 int mgi_get_retry_connect(
     int chan
 ) {
+    (void)chan;
     return USER_TRY_CONNECT;
 }
 

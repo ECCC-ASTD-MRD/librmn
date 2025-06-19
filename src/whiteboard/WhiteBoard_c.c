@@ -267,7 +267,7 @@ static int wb_define_check(
 
 //! Create a new whiteboard instance
 //! \return Pointer to the new WhiteBoard
-WhiteBoard *c_wb_new() {
+WhiteBoard * c_wb_new(void) {
     int status;
     WhiteBoard *newWb = (WhiteBoard *)malloc(sizeof(WhiteBoard));
 
@@ -693,10 +693,7 @@ static int new_page(
 //! Initialize BaseWhiteboardPtr
 //!
 //! The content will be read from WhiteBoardCheckpointFile if it is found
-static int wb_init()
-{
-    int status;
-
+static int wb_init(void) {
     if (BaseWhiteboardPtr->firstpage == NULL) {
         int fd = open(WhiteBoardCheckpointFile, O_RDONLY);
         if (fd >= 0) {
@@ -705,7 +702,7 @@ static int wb_init()
             return c_wb_reload();
         }
         // first time through, allocate first page
-        status = new_page(BaseWhiteboardPtr, WB_MAXLINESPERPAGE );
+        int status = new_page(BaseWhiteboardPtr, WB_MAXLINESPERPAGE );
         if (status < 0) {
             // Allocation failed!
             return status;
@@ -714,9 +711,9 @@ static int wb_init()
     return 0;
 }
 
-int32_t f77_name(wb_reset)(){
+int32_t f77_name(wb_reset)(void) {
    BaseWhiteboardPtr->firstpage = NULL;
-   return(1);
+   return 1;
 }
 
 //! Set checkpoint file name
@@ -741,8 +738,8 @@ int32_t f77_name(f_wb_checkpoint_name)(
     //! [in] File name
     char *filename,
     //! [in] Length of the file name
-    F2Cl filenameLength)
-{
+    F2Cl filenameLength
+) {
     int Lfilename = filenameLength;
     set_extra_error_message("Setting chekpoint file name", -1);
     WhiteBoardCheckpointFile = (char *)malloc(Lfilename + 1);

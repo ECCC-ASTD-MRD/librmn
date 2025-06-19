@@ -95,7 +95,7 @@ printf("name3: %d\n",arg);
 return(arg);
 }
 
-int get_symbol_number(){  // like fortran, function to get number of symbols, optional
+int get_symbol_number(void){  // like fortran, function to get number of symbols, optional
   return(3);
 }
 

@@ -30,7 +30,7 @@
 //! \file
 
 
-void c_ez_manageGrillesMemory() {
+void c_ez_manageGrillesMemory(void) {
     int nchunks = nGrilles / (CHUNK * CHUNK);
     if (nchunks > 0 && 0 == (nGrilles % (CHUNK * CHUNK))) {
         Grille = (_Grille **) realloc(Grille, CHUNK * (nchunks+1) * sizeof(_Grille *));
