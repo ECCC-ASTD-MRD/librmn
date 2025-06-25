@@ -10,7 +10,6 @@ void f77name(ez_aminmax)(
     const float * const fld,
     const int32_t * const ni,
     const int32_t * const nj
-
 );
 void f77name(ez_applywgts)(
     float * const outfld,

@@ -82,6 +82,8 @@ subroutine igaxg95(grtypout, xglst, nxg, grtypin, ig1, ig2, ig3, ig4)
     real, intent(out) :: xglst(nxg)
     integer, intent(inout) :: ig1, ig2, ig3, ig4
 
+    !> If the input grid type isn't "!", call cigaxg with the first 4 elements of xglst as output, otherwise do something regarding grib
+
     integer, external :: qqqgbld, qgblukig
 
     integer ier
@@ -194,6 +196,7 @@ subroutine qqqcltab(str, strlen)
 end
 
 
+! Read gribtable
 integer function qqqgbld()
     use igaxg95_helper
     implicit none
