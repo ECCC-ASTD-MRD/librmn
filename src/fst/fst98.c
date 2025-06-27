@@ -6046,9 +6046,16 @@ int32_t f77name(fstcheck)(
  *  IN  options random or sequential access                                  *
  *                                                                           *
  *****************************************************************************/
-int32_t f77name(fstouv)(int32_t *f_iun, char *options, F2Cl lng)
-{
-    return c_fstouv(*f_iun, options);
+int32_t f77name(fstouv)(
+    const int32_t * const f_iun,
+    const char * const options,
+    F2Cl lng
+) {
+    // char * const options_cstr = malloc((lng + 1) * sizeof(char));
+    char options_cstr[lng + 1];
+    strncpy(options_cstr, options, lng);
+    options_cstr[lng] = '\0';
+    return c_fstouv(*f_iun, options_cstr);
 }
 
 
