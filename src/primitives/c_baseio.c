@@ -199,20 +199,20 @@ static void dump_file_entry(
               FGFDT[idx].eff_file_size,
               FGFDT[idx].lrec,
               FGFDT[idx].rsf_fh.p,
-              FGFDT[idx].open_flag?"OPEN":"",
-              FGFDT[idx].attr.stream?"+STREAM":"",
-              FGFDT[idx].attr.std?"+STD":"",
-              FGFDT[idx].attr.rsf?"+RSF":"",
-              FGFDT[idx].attr.burp?"+BURP":"",
-              FGFDT[idx].attr.rnd?"+RND":"+SEQ",
-              FGFDT[idx].attr.wa?"+WA":"",
-              FGFDT[idx].attr.ftn?"+FTN":"",
-              FGFDT[idx].attr.unf?"+UNF":"+FMT",
-              FGFDT[idx].attr.read_only?"+R/O":"+R/W",
-              FGFDT[idx].attr.old?"+OLD":"",
-              FGFDT[idx].attr.notpaged?"+NOT PAGED":"",
-              FGFDT[idx].attr.scratch?"+SCRATCH":"",
-              FGFDT[idx].attr.volatil?"+VOLATILE":"");
+              FGFDT[idx].open_flag ? "OPEN" : "",
+              FGFDT[idx].attr.stream ? "+STREAM" : "",
+              FGFDT[idx].attr.std ? "+STD" : "",
+              FGFDT[idx].attr.rsf ? "+RSF" : "",
+              FGFDT[idx].attr.burp ? "+BURP" : "",
+              FGFDT[idx].attr.rnd ? "+RND" : "+SEQ",
+              FGFDT[idx].attr.wa ? "+WA" : "",
+              FGFDT[idx].attr.ftn ? "+FTN" : "",
+              FGFDT[idx].attr.unf ? "+UNF" : "+FMT",
+              FGFDT[idx].attr.read_only ? "+R/O" : "+R/W",
+              FGFDT[idx].attr.old ? "+OLD" : "",
+              FGFDT[idx].attr.notpaged ? "+NOT PAGED" : "",
+              FGFDT[idx].attr.scratch ? "+SCRATCH" : "",
+              FGFDT[idx].attr.volatil ? "+VOLATILE" : "");
 }
 
 //! Print file characteristics and attributes of in use files in the master file table(for debugging use)
@@ -426,8 +426,8 @@ int c_fnom(
     //! - ' APPEND'  : file to be opened in append mode. Doesn't work or not implemented ?
     //! - 'R/W'      : file to be opened in read/write mode
     //! - 'R/O'      : file to be opened in read only mode
-    //! - 'REMOTE'   : remote file (file name must end with ':', all I/O will be performed using UNIX sockets) 
-    //! - 'VOLATILE' : file will be automatically removed when process ends (unlink at open) 
+    //! - 'REMOTE'   : remote file (file name must end with ':', all I/O will be performed using UNIX sockets)
+    //! - 'VOLATILE' : file will be automatically removed when process ends (unlink at open)
     //! - 'PARALLEL' : Enable paralle write into the file(RSF only)
     //! Attributes can be combined as shown blow:
 /*! \verbatim
@@ -538,7 +538,7 @@ int c_fnom(
         else if (liun == 6) {
             stdoutflag = 1;
         }
-        
+
         pthread_mutex_unlock(&fnom_mutex);
         // --- END critical region ---
 
@@ -696,7 +696,7 @@ int c_fnom(
                 // skip the +, do not convert to lowercase
                 cptr1++;
                 lng--;
-            } 
+            }
             strncpy(FGFDT[entry].file_name, cptr1, lng);
             FGFDT[entry].file_name[lng] = '\0';
         }
@@ -2165,7 +2165,7 @@ static int initialize_wa(void) {
         goto unlock;
     }
 
-    
+
     {
         char * waConfig = getenv("WA_CONFIG");
         int nset = 0;
@@ -2295,7 +2295,7 @@ static int qqcopen(
         FGFDT[indf].fd = fd;
         FGFDT[indf].open_flag = 1;
     }
-    
+
     // VOLATILE mode, unlink the file so it gets erased ate end of process
     if (FGFDT[indf].attr.volatil) {
         if (FGFDT[indf].attr.read_only) {
@@ -2779,10 +2779,10 @@ static int fnom_rem_connect(
     listen(fserver, 5);
     Lib_Log(APP_LIBRMN,APP_INFO,"%s: bound to #%s#\n",__func__,cbuf);
 
-    Lib_Log(APP_LIBRMN,APP_INFO,"%s: echo wa_server %s %s @%s | ssh %s 'bash --login 1>/dev/null 2>/dev/null'\n",__func__,FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1)?"R/O":"R/W",cbuf,remote_host);
+    Lib_Log(APP_LIBRMN,APP_INFO,"%s: echo wa_server %s %s @%s | ssh %s 'bash --login 1>/dev/null 2>/dev/null'\n",__func__,FGFDT[ind].file_name,(FGFDT[ind].attr.read_only == 1) ? "R/O" : "R/W",cbuf,remote_host);
 
     char remote_command[1024];
-    Lib_Log(APP_LIBRMN,APP_INFO,"%s: r.remote_wa_server %s %s %s %s\n",__func__,FGFDT[ind].file_name,(FGFDT[ind].attr.read_only==1)?"R/O":"R/W",cbuf,remote_host);
+    Lib_Log(APP_LIBRMN,APP_INFO,"%s: r.remote_wa_server %s %s %s %s\n",__func__,FGFDT[ind].file_name,(FGFDT[ind].attr.read_only==1) ? "R/O" : "R/W",cbuf,remote_host);
     Lib_Log(APP_LIBRMN,APP_DEBUG,"%s: commande passee =%s\n",__func__,remote_command);
     system(remote_command);
 
