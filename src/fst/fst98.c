@@ -990,7 +990,8 @@ int c_fstecr_xdf(
     int in_datyp = in_datyp_ori & ~FSTD_MISSING_FLAG;
     if (is_type_complex(in_datyp)) {
         if (in_datyp_ori != FST_TYPE_COMPLEX) {
-           Lib_Log(APP_LIBFST,APP_WARNING,"%s: compression and/or missing values not supported, data type %d reset to %d (complex)\n",__func__,in_datyp_ori,8);
+           Lib_Log(APP_LIBFST, APP_WARNING, "%s: compression and/or missing values not supported, data type %d reset to %d (complex)\n",
+                __func__, in_datyp_ori, 8);
         }
         // missing values not supported for complex type
         is_missing = 0;
@@ -1020,17 +1021,18 @@ int c_fstecr_xdf(
     file_table_entry * fte = file_table[index];
 
     if (! fte->cur_info->attr.std) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard file\n", __func__, iun);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (\"%s\", unit=%d) is not a RPN standard file\n", __func__, fte->cur_info->file_name, iun);
         return ERR_NO_FILE;
     }
 
     if (fte->fstd_vintage_89) {
-        Lib_Log(APP_LIBFST, APP_FATAL, "%s: can not write (unit=%d) on an old (version 89) RPN standard file\n", __func__, iun);
+        Lib_Log(APP_LIBFST, APP_FATAL, "%s: can not write (\"%s\", unit=%d) on an old (version 89) RPN standard file\n", __func__,
+            fte->cur_info->file_name, iun);
         return ERR_NO_WRITE;
     }
 
     if (fte->cur_info->attr.read_only) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) not open with write permission\n", __func__, iun);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (\"%s\", unit=%d) not open with write permission\n", __func__, fte->cur_info->file_name, iun);
         return ERR_NO_WRITE;
     }
 
@@ -6044,9 +6046,16 @@ int32_t f77name(fstcheck)(
  *  IN  options random or sequential access                                  *
  *                                                                           *
  *****************************************************************************/
-int32_t f77name(fstouv)(int32_t *f_iun, char *options, F2Cl lng)
-{
-    return c_fstouv(*f_iun, options);
+int32_t f77name(fstouv)(
+    const int32_t * const f_iun,
+    const char * const options,
+    F2Cl lng
+) {
+    // char * const options_cstr = malloc((lng + 1) * sizeof(char));
+    char options_cstr[lng + 1];
+    strncpy(options_cstr, options, lng);
+    options_cstr[lng] = '\0';
+    return c_fstouv(*f_iun, options_cstr);
 }
 
 
