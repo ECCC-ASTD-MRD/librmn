@@ -1645,7 +1645,7 @@ int c_fstecr(
     const int ni,
     //! [in] Second dimension of the data field
     const int nj,
-    //! [in] Thierd dimension of the data field
+    //! [in] Third dimension of the data field
     const int nk,
     //! [in] Vertical level
     const int ip1,
@@ -1702,8 +1702,7 @@ int c_fstecr(
     if (rsf_status == 1) {
         return c_fstecr_rsf(field_in, work, npak, iun, index_fnom, dateo, deet, npas, ni, nj, nk, ip1, ip2, ip3,
                             in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, datyp, rewrit);
-    }
-    else if (rsf_status == 0) {
+    } else if (rsf_status == 0) {
         return c_fstecr_xdf(field_in, work, npak, iun, dateo, deet, npas, ni, nj, nk, ip1, ip2, ip3,
                             in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, datyp, rewrit);
     }
@@ -1906,6 +1905,7 @@ int c_fst_edit_dir(
     (void)nj;
     (void)nk;
     (void)datyp;
+    (void)in_grtyp;
     return c_fst_edit_dir_plus(handle, date, deet, npas, -1, -1, -1, ip1, ip2, ip3, in_typvar, in_nomvar, in_etiket, " ", ig1, ig2, ig3, ig4, -1);
 }
 
@@ -5786,7 +5786,7 @@ int32_t f77name(fstlis)(uint32_t *field, int32_t *f_iun,
 //! Link files together for searches
 int32_t c_fstlnk(
     //! [in] List of unit numbers associated to the files
-    const int32_t *liste,
+    const int32_t * const liste,
     //! [in] Number of files to link
     const int32_t n
 ) {
@@ -5821,9 +5821,9 @@ int32_t c_fstlnk(
 //! \return 0 on success, error code otherwise
 int32_t f77name(fstlnk)(
     //! [in] List of unit numbers associated to the files
-    int32_t *liste,
+    const int32_t * const liste,
     //! [in] Number of files to link
-    int32_t *f_n
+    const int32_t * const f_n
 ) {
     return c_fstlnk(liste, *f_n);
 }
@@ -5848,15 +5848,15 @@ int32_t f77name(fstlnk)(
 int32_t f77name(fstluk)(uint32_t *field, int32_t *f_handle,
                         int32_t *f_ni, int32_t *f_nj, int32_t *f_nk)
 {
-  int handle = *f_handle;
-  int ier, ni, nj, nk;
+    int handle = *f_handle;
+    int ier, ni, nj, nk;
 
-  ier = c_fstluk(field, handle, &ni, &nj, &nk);
+    ier = c_fstluk(field, handle, &ni, &nj, &nk);
 
-  *f_ni = (int32_t) ni;
-  *f_nj = (int32_t) nj;
-  *f_nk = (int32_t) nk;
-  return (int32_t) ier;
+    *f_ni = (int32_t) ni;
+    *f_nj = (int32_t) nj;
+    *f_nk = (int32_t) nk;
+    return (int32_t) ier;
 }
 
 
@@ -5880,24 +5880,24 @@ int32_t f77name(fstmsq)(int32_t *f_iun, int32_t *f_mip1, int32_t *f_mip2,
                         int32_t *f_mip3, char *f_metiket, int32_t *f_getmode,
                         F2Cl ll1)
 {
-  int err, iun = *f_iun, mip1 = *f_mip1, mip2 = *f_mip2, mip3 = *f_mip3;
-  int getmode = *f_getmode;
-  int l1 = ll1;
+    int err, iun = *f_iun, mip1 = *f_mip1, mip2 = *f_mip2, mip3 = *f_mip3;
+    int getmode = *f_getmode;
+    int l1 = ll1;
 
-  char metiket[13];
+    char metiket[13];
 
-  str_cp_init(metiket, 13, f_metiket, l1);
-  err = c_fstmsq(iun, &mip1, &mip2, &mip3, metiket, getmode);
+    str_cp_init(metiket, 13, f_metiket, l1);
+    err = c_fstmsq(iun, &mip1, &mip2, &mip3, metiket, getmode);
 
-  if (getmode) {
-    *f_mip1 = (int32_t) mip1;
-    *f_mip2 = (int32_t) mip2;
-    *f_mip3 = (int32_t) mip3;
+    if (getmode) {
+        *f_mip1 = (int32_t) mip1;
+        *f_mip2 = (int32_t) mip2;
+        *f_mip3 = (int32_t) mip3;
 
-    const int num_chars = Min(12, l1);
-    strncpy(f_metiket, metiket, num_chars);
-  }
-  return err;
+        const int num_chars = Min(12, l1);
+        strncpy(f_metiket, metiket, num_chars);
+    }
+    return err;
 }
 
 
@@ -5912,10 +5912,9 @@ int32_t f77name(fstmsq)(int32_t *f_iun, int32_t *f_mip1, int32_t *f_mip2,
  *  IN  iun     unit number associated to the file                           *
  *                                                                           *
  *****************************************************************************/
-int32_t f77name(fstnbr)(int32_t *f_iun)
+int32_t f77name(fstnbr)(const int32_t * const f_iun)
 {
-  int iun = *f_iun;
-  return (int32_t) c_fstnbr(iun);
+    return (int32_t) c_fstnbr(*f_iun);
 }
 
 
@@ -5931,10 +5930,9 @@ int32_t f77name(fstnbr)(int32_t *f_iun)
  *  IN  iun     unit number associated to the file                           *
  *                                                                           *
  *****************************************************************************/
-int32_t f77name(fstnbrv)(int32_t *f_iun)
+int32_t f77name(fstnbrv)(const int32_t * const f_iun)
 {
-  int iun = *f_iun;
-  return (int32_t) c_fstnbrv(iun);
+    return (int32_t) c_fstnbrv(*f_iun);
 }
 
 
@@ -6030,7 +6028,10 @@ int32_t f77name(fstcheck)(
     const char * const filename,
     F2Cl lng
 ) {
-    return (int32_t) c_fstcheck(filename);
+    char filename_cstr[lng + 1];
+    strncpy(filename_cstr, filename, lng);
+    filename_cstr[lng] = '\0';
+    return (int32_t) c_fstcheck(filename_cstr);
 }
 
 
