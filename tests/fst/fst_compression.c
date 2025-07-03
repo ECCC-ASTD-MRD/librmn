@@ -19,6 +19,8 @@ static int32_t* data_i = NULL;
 static int64_t* data_l = NULL;
 static uint64_t* data_ull = NULL;
 
+#define MISSING 64
+
 typedef struct {
     void** data;
     void** compare_data;
@@ -62,6 +64,7 @@ static const test_params params_real[] = {
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT, .nk = NUM_DATA_Z,             .data_size = 32, .pack_size = 28, .tol = 1e-8, .max_tol = 3e-6, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT, .nk = NUM_DATA_Z,             .data_size = 32, .pack_size = 24, .tol = 1e-7, .max_tol = 2e-4, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT, .nk = NUM_DATA_Z,             .data_size = 32, .pack_size = 16, .tol = 2e-5, .max_tol = 0.01, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT | MISSING, .nk = NUM_DATA_Z,   .data_size = 32, .pack_size = 16, .tol = 2e-5, .max_tol = 0.01, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK, .nk = 1, .data_size = 32, .pack_size = 32, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK, .nk = 1, .data_size = 32, .pack_size = 28, .tol = 1e-8, .max_tol = 3e-6, .compare_data = (void*)&data_f},
     {.data = (void*)&data_f, .data_type = FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK, .nk = 1, .data_size = 32, .pack_size = 24, .tol = 1e-7, .max_tol = 2.3e-5, .compare_data = (void*)&data_f},
@@ -69,9 +72,11 @@ static const test_params params_real[] = {
     {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_OLD_QUANT, .nk = NUM_DATA_Z,             .data_size = 64, .pack_size = 64, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_d},
     {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_OLD_QUANT, .nk = NUM_DATA_Z,             .data_size = 64, .pack_size = 50, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_d},
     {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_OLD_QUANT, .nk = NUM_DATA_Z,             .data_size = 64, .pack_size = 32, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_OLD_QUANT | MISSING, .nk = NUM_DATA_Z,   .data_size = 64, .pack_size = 32, .tol = 0.0, .max_tol = 0.0, .compare_data = (void*)&data_f},
     {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_OLD_QUANT, .nk = NUM_DATA_Z,             .data_size = 64, .pack_size = 28, .tol = 2.3e-8, .max_tol = 3e-6, .compare_data = (void*)&data_f},
     {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_OLD_QUANT, .nk = NUM_DATA_Z,             .data_size = 64, .pack_size = 24, .tol = 1e-7, .max_tol = 2.3e-5, .compare_data = (void*)&data_f},
     {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_OLD_QUANT, .nk = NUM_DATA_Z,             .data_size = 64, .pack_size = 16, .tol = 2.1e-5, .max_tol = 0.01, .compare_data = (void*)&data_f},
+    {.data = (void*)&data_d, .data_type = FST_TYPE_REAL_OLD_QUANT | MISSING, .nk = NUM_DATA_Z,   .data_size = 64, .pack_size = 16, .tol = 2.1e-5, .max_tol = 0.01, .compare_data = (void*)&data_f},
 
     // TODO Add double + turbopack, double for other types (REAL, REAL_OLD_QUANT)
 };
