@@ -483,21 +483,18 @@ int c_fnom(
                 if (Lib_LogLevel(APP_LIBRMN, NULL) >= APP_DEBUG) print_bitmap();
                 return -1;
             }
-        }
-        else {
+        } else {
             if (*iun >= MAX_FNOM_FILES) {
                 Lib_Log(APP_LIBRMN, APP_WARNING, "%s: specified iun = %d. Using a value larger than the maximum number"
                         " of open files (%d) may slow down manipulation of fnom-managed files.",
                         __func__, *iun, MAX_FNOM_FILES);
-            }
-            else if (*iun < 0) {
+            } else if (*iun < 0) {
                 if (*iun != -2) { // Why -2.....
                     Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Cannot have a negative iun (%d). If you want to get any "
                             "available iun, set it to 0.\n", __func__, *iun);
                     return -1;
                 }
-            }
-            else {
+            } else {
                 if (!reserve_unit_number(*iun)) {
                     Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Looks like unit number %d is already taken\n", __func__, *iun);
                     return -1;
