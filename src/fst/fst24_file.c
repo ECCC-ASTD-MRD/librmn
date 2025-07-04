@@ -178,7 +178,10 @@ fst_file* fst24_open(
 //! \return TRUE (1) if no error, FALSE (0) or a negative number otherwise
 //! \todo What happens if closing a linked file?
 int32_t fst24_close(fst_file* const file) {
-    if (!fst24_is_open(file)) return ERR_NO_FILE;
+    if (!fst24_is_open(file)) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Not an open file\n", __func__);
+        return ERR_NO_FILE;
+    }
 
     {
         const float read_time = App_TimerTotalTime_ms(&file->read_timer) / 1000.0f;
@@ -892,6 +895,10 @@ int32_t fst24_write_rsf(
     }
 
     uint32_t * field_u32 = field;
+    if (field_f != NULL) {
+        field_u32 = (uint32_t*)field_f;
+        packfunc = &compact_p_float; // Use corresponding packing function
+    }
     if (image_mode_copy) {
         memcpy(new_record->data, field_u32, num_data_bytes);
     } else {
@@ -900,14 +907,16 @@ int32_t fst24_write_rsf(
 
         // put appropriate values into field after allocating it
         if (has_missing) {
-            field_missing = (uint32_t *)malloc(num_elements * stdf_entry->dasiz / 8);
-            if (EncodeMissingValue(field_missing, record->data, num_elements, in_data_type, stdf_entry->dasiz,
+            const int data_bits = field_f == NULL ? stdf_entry->dasiz : 64;
+            field_missing = (uint32_t *)malloc(num_elements * data_bits / 8);
+            if (EncodeMissingValue(field_missing, record->data, num_elements, in_data_type, data_bits,
                                    record->pack_bits) > 0)
             {
                 field_u32 = field_missing;
+                if (field_f != NULL) packfunc = &compact_p_double;
             }
             else {
-                // field_u32 = record->data;
+                field_u32 = field_f == NULL ? record->data : field_f;
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: NO missing value, data type %d reset to %d\n", __func__, stdf_entry->datyp, data_type);
                 // cancel missing data flag in data type
                 stdf_entry->datyp = data_type;
@@ -1102,7 +1111,7 @@ int32_t fst24_write_rsf(
                         }
                     } else {
                         if (data_type == FST_TYPE_COMPLEX) f_ni = f_ni * 2;
-                        f77name(ieeepak)((int32_t *)field, new_record->data, &f_ni, &f_njnk, &f_minus_nbits, &f_zero, &f_one);
+                        f77name(ieeepak)((int32_t *)field_u32, new_record->data, &f_ni, &f_njnk, &f_minus_nbits, &f_zero, &f_one);
                     }
                 }
                 break;

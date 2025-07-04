@@ -977,9 +977,6 @@ int c_fstecr_xdf(
 ) {
     (void)work; // unused
 
-    // Pointer to the data to be written. The data may be processed before encoding/compression, so this pointer
-    // could change. This avoids modifying the original data.
-    const void * field = field_in;
     float* field_f = NULL; // float version of the data
     uint32_t* field_missing = NULL; // data with missing values transformed
 
@@ -1152,7 +1149,6 @@ int c_fstecr_xdf(
                 for (int i = 0; i < ni * nj * _nk; i++) {
                     field_f[i] = (float)field_d[i];
                 }
-                field = field_f;
             }
             else if (nbits != 64) {
                 Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested %d packed bits for 64-bit reals, but we can only do"
@@ -1320,6 +1316,10 @@ int c_fstecr_xdf(
     }
 
     const uint32_t * field_u32 = field_in;
+    if (field_f != NULL) {
+        field_u32 = (uint32_t*)field_f;
+        packfunc = &compact_p_float; // Use corresponding packing function
+    }
     if (image_mode_copy) {
         // no pack/unpack, used by editfst
         if (is_type_turbopack(datyp)) {
@@ -1361,8 +1361,9 @@ int c_fstecr_xdf(
             field_missing = malloc(ni * nj * _nk * sizefactor);
             if (EncodeMissingValue(field_missing, field_in, ni * nj * _nk, in_datyp, sizefactor*8, nbits) > 0) {
                 field_u32 = field_missing;
+                if (field_f != NULL) packfunc = &compact_p_double;
             } else {
-                field_u32 = field_in;
+                field_u32 = field_f == NULL ? field_in : field_f;
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: NO missing value, data type %d reset to %d\n", __func__, stdf_entry->datyp, datyp);
                 // cancel missing data flag in data type
                 stdf_entry->datyp = datyp;
@@ -1552,7 +1553,7 @@ int c_fstecr_xdf(
                         }
                     } else {
                         if (datyp == FST_TYPE_COMPLEX) f_ni = f_ni * 2;
-                        f77name(ieeepak)((int32_t*)field, (int32_t *)&(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
+                        f77name(ieeepak)((int32_t*)field_u32, (int32_t *)&(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
                             &f_zero, &f_one);
                     }
                 }
@@ -3641,8 +3642,8 @@ static int initialize_fst98(void) {
         goto unlock;
     }
 
-    // Obtain options from environment variable
-    c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C");
+    
+    c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C"); // Obtain options from environment variable
     C_requetes_init(requetes_filename, debug_filename);
     init_ip_vals();
 
