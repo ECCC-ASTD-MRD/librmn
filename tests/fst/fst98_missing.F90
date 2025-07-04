@@ -152,7 +152,10 @@ contains
       integer :: date, deet, npas
       integer :: dummy, ip2, ip3, ig1, ig2, ig3, ig4
       integer :: nbits, datyp
-      character(len=:), allocatable :: nomvar, typvar, etiket, grtyp
+      character(len=5)  :: nomvar
+      character(len=3)  :: typvar
+      character(len=2)  :: grtyp
+      character(len=13) :: etiket
       integer :: swa, lng, dlft, ubc
       do i = 1, num_records
         status = fstprm(handles(i), date, deet, npas, ni, nj, nk, nbits, datyp, &
