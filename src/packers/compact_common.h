@@ -5,7 +5,7 @@
         uint32_t minMantisa32 : 32, emptySpace : 8, bitSize : 8, minMantisa16 : 16;
 #else
         uint32_t marker : 12, counter : 20, rangeExpo : 16, minExpo : 12, minSign : 4;
-        uint32_t minMantisa32 : 32, minMantisa16 : 16, bitSize : 8, emptySpace : 8 ;
+        uint32_t minMantisa32 : 32, minMantisa16 : 16, bitSize : 8, emptySpace : 8;
 #endif
     } xxpack_struct_data;
 
