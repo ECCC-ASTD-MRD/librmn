@@ -199,7 +199,9 @@ int missing_value_used_(void);
 int missing_value_used__(void);
 
 
-//! Define missing values from FST_MISSING_VALUE and MISSING_VALUE_PLUGINS environment variables
+//! Define missing values from FST_MISSING_VALUE and MISSING_VALUE_PLUGINS environment variables.
+//! This function is not thread safe when the module has not been initialized, so its first call
+//! should be protected by a mutex when using multiple threads.
 //! \return 1 if MISSING_VALUE_FLAGS is defined, 0 otherwise
 //!
 //! If the MISSING_VALUE_PLUGINS environement variable is defined, it's
@@ -726,7 +728,7 @@ static void fst_float_decode_missing(
     float max, min;
     fld_float_anal(field, nElems, &max, &min);
 
-    for (int i = 1; i < nElems; i++)  {
+    for (int i = 0; i < nElems; i++)  {
         if (field[i] == max) {
             field[i] = float_missing_val;
         }
@@ -744,7 +746,7 @@ static void fst_double_decode_missing(
     double max, min;
     fld_double_anal(field, nElems, &max, &min);
 
-    for (int i = 1; i < nElems; i++)  {
+    for (int i = 0; i < nElems; i++)  {
         if (field[i] == max) {
             field[i] = double_missing_val;
         }
@@ -762,7 +764,7 @@ static void fst_int_decode_missing(
     int max, min;
     fld_int_anal(field, nElems, &max, &min);
 
-    for (int i = 1; i < nElems; i++)  {
+    for (int i = 0; i < nElems; i++)  {
         if (field[i] == max) {
             field[i] = int_missing_val;
         }
@@ -780,7 +782,7 @@ static void fst_short_decode_missing(
     short max, min;
     fld_short_anal(field, nElems, &max, &min);
 
-    for (int i = 1; i < nElems; i++)  {
+    for (int i = 0; i < nElems; i++)  {
         if (field[i] == max) {
             field[i] = short_missing_val;
         }
@@ -798,7 +800,7 @@ static void fst_byte_decode_missing(
     char max, min;
     fld_byte_anal(field, nElems, &max, &min);
 
-    for (int i = 1; i < nElems; i++)  {
+    for (int i = 0; i < nElems; i++)  {
         if (field[i] == max) {
             field[i] = byte_missing_val;
         }
@@ -816,7 +818,7 @@ static void fst_uint_decode_missing(
     unsigned int max, min;
     fld_uint_anal(field, nElems, &max, &min);
 
-    for (int i = 1; i < nElems; i++)  {
+    for (int i = 0; i < nElems; i++)  {
         if (field[i] == max) {
             field[i] = uint_missing_val;
         }
@@ -834,7 +836,7 @@ static void fst_ushort_decode_missing(
     unsigned short max, min;
     fld_ushort_anal(field, nElems, &max, &min);
 
-    for (int i = 1; i < nElems; i++)  {
+    for (int i = 0; i < nElems; i++)  {
         if (field[i] == max) {
             field[i] = ushort_missing_val;
         }
@@ -852,7 +854,7 @@ static void fst_ubyte_decode_missing(
     unsigned char max, min;
     fld_ubyte_anal(field, nElems, &max, &min);
 
-    for (int i = 1; i < nElems; i++)  {
+    for (int i = 0; i < nElems; i++)  {
         if (field[i] == max) {
             field[i] = ubyte_missing_val;
         }
@@ -994,7 +996,7 @@ static int fst_short_encode_missing(
     int missing = fld_short_anal(src, nElems, &max, &min);
     if (missing == 0) return 0;
 
-    short plug2 = 0xFFFF;
+    unsigned short plug2 = 0xFFFF;
     if (npak < 16) {
         plug2 = plug2 >> (16 - npak);
     }
@@ -1032,7 +1034,7 @@ static int fst_byte_encode_missing(
     int missing = fld_byte_anal(src, nElems, &max, &min);
     if (missing == 0) return 0;
 
-    char plug2 = 0xFF;
+    unsigned char plug2 = 0xFF;
     if (npak < 8) {
         plug2 = plug2 >> (8 - npak);
     }

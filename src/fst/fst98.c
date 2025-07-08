@@ -977,9 +977,6 @@ int c_fstecr_xdf(
 ) {
     (void)work; // unused
 
-    // Pointer to the data to be written. The data may be processed before encoding/compression, so this pointer
-    // could change. This avoids modifying the original data.
-    const void * field = field_in;
     float* field_f = NULL; // float version of the data
     uint32_t* field_missing = NULL; // data with missing values transformed
 
@@ -1152,7 +1149,6 @@ int c_fstecr_xdf(
                 for (int i = 0; i < ni * nj * _nk; i++) {
                     field_f[i] = (float)field_d[i];
                 }
-                field = field_f;
             }
             else if (nbits != 64) {
                 Lib_Log(APP_LIBFST, APP_WARNING, "%s: Requested %d packed bits for 64-bit reals, but we can only do"
@@ -1320,6 +1316,10 @@ int c_fstecr_xdf(
     }
 
     const uint32_t * field_u32 = field_in;
+    if (field_f != NULL) {
+        field_u32 = (uint32_t*)field_f;
+        packfunc = &compact_p_float; // Use corresponding packing function
+    }
     if (image_mode_copy) {
         // no pack/unpack, used by editfst
         if (is_type_turbopack(datyp)) {
@@ -1361,8 +1361,9 @@ int c_fstecr_xdf(
             field_missing = malloc(ni * nj * _nk * sizefactor);
             if (EncodeMissingValue(field_missing, field_in, ni * nj * _nk, in_datyp, sizefactor*8, nbits) > 0) {
                 field_u32 = field_missing;
+                if (field_f != NULL) packfunc = &compact_p_double;
             } else {
-                field_u32 = field_in;
+                field_u32 = field_f == NULL ? field_in : field_f;
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: NO missing value, data type %d reset to %d\n", __func__, stdf_entry->datyp, datyp);
                 // cancel missing data flag in data type
                 stdf_entry->datyp = datyp;
@@ -1552,7 +1553,7 @@ int c_fstecr_xdf(
                         }
                     } else {
                         if (datyp == FST_TYPE_COMPLEX) f_ni = f_ni * 2;
-                        f77name(ieeepak)((int32_t*)field, (int32_t *)&(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
+                        f77name(ieeepak)((int32_t*)field_u32, (int32_t *)&(buffer->data[keys_len]), &f_ni, &f_njnk, &f_minus_nbits,
                             &f_zero, &f_one);
                     }
                 }
@@ -1645,7 +1646,7 @@ int c_fstecr(
     const int ni,
     //! [in] Second dimension of the data field
     const int nj,
-    //! [in] Thierd dimension of the data field
+    //! [in] Third dimension of the data field
     const int nk,
     //! [in] Vertical level
     const int ip1,
@@ -1702,8 +1703,7 @@ int c_fstecr(
     if (rsf_status == 1) {
         return c_fstecr_rsf(field_in, work, npak, iun, index_fnom, dateo, deet, npas, ni, nj, nk, ip1, ip2, ip3,
                             in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, datyp, rewrit);
-    }
-    else if (rsf_status == 0) {
+    } else if (rsf_status == 0) {
         return c_fstecr_xdf(field_in, work, npak, iun, dateo, deet, npas, ni, nj, nk, ip1, ip2, ip3,
                             in_typvar, in_nomvar, in_etiket, in_grtyp, ig1, ig2, ig3, ig4, datyp, rewrit);
     }
@@ -1906,6 +1906,7 @@ int c_fst_edit_dir(
     (void)nj;
     (void)nk;
     (void)datyp;
+    (void)in_grtyp;
     return c_fst_edit_dir_plus(handle, date, deet, npas, -1, -1, -1, ip1, ip2, ip3, in_typvar, in_nomvar, in_etiket, " ", ig1, ig2, ig3, ig4, -1);
 }
 
@@ -3641,8 +3642,8 @@ static int initialize_fst98(void) {
         goto unlock;
     }
 
-    // Obtain options from environment variable
-    c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C");
+    
+    c_env_var_cracker("FST_OPTIONS", c_fst_env_var, "C"); // Obtain options from environment variable
     C_requetes_init(requetes_filename, debug_filename);
     init_ip_vals();
 
@@ -5786,7 +5787,7 @@ int32_t f77name(fstlis)(uint32_t *field, int32_t *f_iun,
 //! Link files together for searches
 int32_t c_fstlnk(
     //! [in] List of unit numbers associated to the files
-    const int32_t *liste,
+    const int32_t * const liste,
     //! [in] Number of files to link
     const int32_t n
 ) {
@@ -5821,9 +5822,9 @@ int32_t c_fstlnk(
 //! \return 0 on success, error code otherwise
 int32_t f77name(fstlnk)(
     //! [in] List of unit numbers associated to the files
-    int32_t *liste,
+    const int32_t * const liste,
     //! [in] Number of files to link
-    int32_t *f_n
+    const int32_t * const f_n
 ) {
     return c_fstlnk(liste, *f_n);
 }
@@ -5848,15 +5849,15 @@ int32_t f77name(fstlnk)(
 int32_t f77name(fstluk)(uint32_t *field, int32_t *f_handle,
                         int32_t *f_ni, int32_t *f_nj, int32_t *f_nk)
 {
-  int handle = *f_handle;
-  int ier, ni, nj, nk;
+    int handle = *f_handle;
+    int ier, ni, nj, nk;
 
-  ier = c_fstluk(field, handle, &ni, &nj, &nk);
+    ier = c_fstluk(field, handle, &ni, &nj, &nk);
 
-  *f_ni = (int32_t) ni;
-  *f_nj = (int32_t) nj;
-  *f_nk = (int32_t) nk;
-  return (int32_t) ier;
+    *f_ni = (int32_t) ni;
+    *f_nj = (int32_t) nj;
+    *f_nk = (int32_t) nk;
+    return (int32_t) ier;
 }
 
 
@@ -5880,24 +5881,24 @@ int32_t f77name(fstmsq)(int32_t *f_iun, int32_t *f_mip1, int32_t *f_mip2,
                         int32_t *f_mip3, char *f_metiket, int32_t *f_getmode,
                         F2Cl ll1)
 {
-  int err, iun = *f_iun, mip1 = *f_mip1, mip2 = *f_mip2, mip3 = *f_mip3;
-  int getmode = *f_getmode;
-  int l1 = ll1;
+    int err, iun = *f_iun, mip1 = *f_mip1, mip2 = *f_mip2, mip3 = *f_mip3;
+    int getmode = *f_getmode;
+    int l1 = ll1;
 
-  char metiket[13];
+    char metiket[13];
 
-  str_cp_init(metiket, 13, f_metiket, l1);
-  err = c_fstmsq(iun, &mip1, &mip2, &mip3, metiket, getmode);
+    str_cp_init(metiket, 13, f_metiket, l1);
+    err = c_fstmsq(iun, &mip1, &mip2, &mip3, metiket, getmode);
 
-  if (getmode) {
-    *f_mip1 = (int32_t) mip1;
-    *f_mip2 = (int32_t) mip2;
-    *f_mip3 = (int32_t) mip3;
+    if (getmode) {
+        *f_mip1 = (int32_t) mip1;
+        *f_mip2 = (int32_t) mip2;
+        *f_mip3 = (int32_t) mip3;
 
-    const int num_chars = Min(12, l1);
-    strncpy(f_metiket, metiket, num_chars);
-  }
-  return err;
+        const int num_chars = Min(12, l1);
+        strncpy(f_metiket, metiket, num_chars);
+    }
+    return err;
 }
 
 
@@ -5912,10 +5913,9 @@ int32_t f77name(fstmsq)(int32_t *f_iun, int32_t *f_mip1, int32_t *f_mip2,
  *  IN  iun     unit number associated to the file                           *
  *                                                                           *
  *****************************************************************************/
-int32_t f77name(fstnbr)(int32_t *f_iun)
+int32_t f77name(fstnbr)(const int32_t * const f_iun)
 {
-  int iun = *f_iun;
-  return (int32_t) c_fstnbr(iun);
+    return (int32_t) c_fstnbr(*f_iun);
 }
 
 
@@ -5931,10 +5931,9 @@ int32_t f77name(fstnbr)(int32_t *f_iun)
  *  IN  iun     unit number associated to the file                           *
  *                                                                           *
  *****************************************************************************/
-int32_t f77name(fstnbrv)(int32_t *f_iun)
+int32_t f77name(fstnbrv)(const int32_t * const f_iun)
 {
-  int iun = *f_iun;
-  return (int32_t) c_fstnbrv(iun);
+    return (int32_t) c_fstnbrv(*f_iun);
 }
 
 
@@ -6030,7 +6029,10 @@ int32_t f77name(fstcheck)(
     const char * const filename,
     F2Cl lng
 ) {
-    return (int32_t) c_fstcheck(filename);
+    char filename_cstr[lng + 1];
+    strncpy(filename_cstr, filename, lng);
+    filename_cstr[lng] = '\0';
+    return (int32_t) c_fstcheck(filename_cstr);
 }
 
 
