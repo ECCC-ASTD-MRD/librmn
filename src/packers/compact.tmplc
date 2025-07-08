@@ -81,8 +81,11 @@ void * CAT(compact_p_,FLOAT_TYPE)(
             return NULL;
         }
     }
-    const uint32_t countLower20 = (elementCount << 12 ) >> 12;
-    const uint32_t countUpper8  = (elementCount << 4 ) >> 24;
+
+    // Copy the element count to an unsigned integer in order to have the correct bits inserted when shifting
+    const uint32_t floatCount = elementCount;
+    const uint32_t countLower20 = (floatCount << 12 ) >> 12;
+    const uint32_t countUpper8  = (floatCount << 4 ) >> 24;
 
     const float missingValueTag = *((FLOAT_TYPE *)missingTag);
 
@@ -207,9 +210,8 @@ void * CAT(compact_p_,FLOAT_TYPE)(
         mulFactor = powerOf2s[packedTokenBS] / f77name(f_pow)(&two, &expos_ftn);
     }
 
-    const int lastPackBit = offset;
-    int spaceInLastWord =  wordSize - ( lastPackBit % wordSize );
-    const int lastSlot = ( lastPackBit / wordSize );
+    int spaceInLastWord =  wordSize - ( offset % wordSize );
+    const int lastSlot = ( offset / wordSize );
 
     uint32_t lastWordShifted = spaceInLastWord == wordSize ? 0 : arrayOfInt[lastSlot] >> spaceInLastWord;
 
