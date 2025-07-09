@@ -45,7 +45,7 @@ int main (int argc, char* argv[])
     int bit0,blkno,lbits,left,ier,ier1,ier2,ier3,i,j, relem;
     int sup[2],xaux[2],nsup,nxaux;
     int tblcomp[500],lstcomp[10],tempo,etblval[10000];
-    char stnid[9], opvalc[9];
+    char stnid[10], opvalc[9];
     int temps,flgs,idtyp,lati,longi,elev,drcv,date,oars,run,nblk,nele,nval,
         dx,dy,nt,bfam,bdesc,btyp,nbit,datyp,lonenr,lonmax;
 

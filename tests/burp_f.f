@@ -1076,7 +1076,7 @@
       enddo
 
       do i = 1,20,2
-         rliste8(i) = mrbcov(lstelea(i))
+         rliste8(i) = mrbcov(lstelea(i/2 + 1))
       enddo
 
       do i = 4,20,2
@@ -1129,7 +1129,7 @@
       enddo
 
       do i = 1,20,2
-         cliste(i) = mrbcov(lstelea(i))
+         cliste(i) = mrbcov(lstelea(i/2 + 1))
       enddo
 
       do i = 4,20,2
@@ -1182,7 +1182,7 @@
       enddo
 
       do i = 1,40,4
-         cliste8(i) = mrbcov(lstelea(i))
+         cliste8(i) = mrbcov(lstelea(i/4 + 1))
       enddo
 
       do i = 2,40,4
@@ -1317,7 +1317,7 @@
       enddo
 
       do i = 1,20,2
-         rliste8(i) = mrbcov(lstelea(i))
+         rliste8(i) = mrbcov(lstelea(i/2 + 1))
       enddo
 
       IER = MRBXTR(BUFA,2,rliste8c,rtablo8c)
@@ -1358,7 +1358,7 @@
       enddo
 
       do i = 1,20,2
-         cliste(i) = mrbcov(lstelea(i))
+         cliste(i) = mrbcov(lstelea(i/2 + 1))
       enddo
          
       IER = MRBXTR(BUFA,3,clistec,ctabloc)
@@ -1399,7 +1399,7 @@
       enddo
 
       do i = 1,40,4
-         cliste8(i) = mrbcov(lstelea(i))
+         cliste8(i) = mrbcov(lstelea(i/4 + 1))
       enddo
 
       IER = MRBXTR(BUFA,4,cliste8c,ctablo8c)
@@ -1482,7 +1482,7 @@
       enddo
 
       do i = 1,20,2
-         rliste8(i) = mrbcov(lstelea(i))
+         rliste8(i) = mrbcov(lstelea(i/2 + 1))
       enddo
 
       IER = MRBREP(BUFA,2,rtablo8)
@@ -1524,7 +1524,7 @@
       enddo
 
       do i = 1,20,2
-         cliste(i) = mrbcov(lstelea(i))
+         cliste(i) = mrbcov(lstelea(i/2 + 1))
       enddo
          
       IER = MRBREP(BUFA,3,ctablo)
@@ -1565,7 +1565,7 @@
       enddo
 
       do i = 1,40,4
-         cliste8(i) = mrbcov(lstelea(i))
+         cliste8(i) = mrbcov(lstelea(i/4 + 1))
       enddo
 
       IER = MRBREP(BUFA,4,ctablo8)
