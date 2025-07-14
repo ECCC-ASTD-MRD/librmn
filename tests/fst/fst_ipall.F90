@@ -143,6 +143,9 @@ end subroutine create_files
 
 subroutine look_fst98()
     implicit none
+
+    include 'rmn/convert_ip123.inc'
+
     integer :: status, status2
     integer, dimension(2) :: units
     integer, dimension(10) :: records
@@ -285,6 +288,9 @@ end subroutine look_fst98
 
 subroutine look_fst24()
     implicit none
+
+    include 'rmn/convert_ip123.inc'
+
     type(fst_file) :: file1, file2
     type(fst_query):: query
     logical :: success

@@ -62,6 +62,9 @@ end subroutine
 subroutine ccard(incle, def, val, nbkeys, ii)
     use app
     use ccard_private
+#if __INTEL_LLVM_COMPILER >= 20250001
+    use ifport, only: getenv
+#endif
     IMPLICIT NONE
 
     !> Number of keys
@@ -75,10 +78,9 @@ subroutine ccard(incle, def, val, nbkeys, ii)
     !> Final key values
     CHARACTER(len = *), dimension(nbkeys), intent(out) :: val
 
-    INTEGER qqqobm, QQQOENV
-    EXTERNAL qqqobm, QQQSAP, low2up, QQQTRNS
-    EXTERNAL QQQOENV, qqexit
-    INTEGER i, pos, j, posc, idx, cllng, posmoin, posmoinc
+    integer, external :: qqqobm, qqqoenv
+    external :: qqqsap, low2up, qqqtrns, qqexit, c_set_appl_var
+    integer i, pos, j, posc, idx, cllng, posmoin, posmoinc
     ! TYPE DE CLE -1=MINUS, 1=MAJUS, 0=PAREIL
     INTEGER cltype(NKLEMAX)
     CHARACTER(len = 50)   :: cleup, cle(NKLEMAX), cletemp

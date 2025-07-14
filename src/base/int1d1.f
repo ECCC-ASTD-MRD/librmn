@@ -1,36 +1,28 @@
-*/* RMNLIB - Library of useful routines for C and FORTRAN programming
-* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-* *                          Environnement Canada
-* *
-* * This library is free software; you can redistribute it and/or
-* * modify it under the terms of the GNU Lesser General Public
-* * License as published by the Free Software Foundation,
-* * version 2.1 of the License.
-* *
-* * This library is distributed in the hope that it will be useful,
-* * but WITHOUT ANY WARRANTY; without even the implied warranty of
-* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* * Lesser General Public License for more details.
-* *
-* * You should have received a copy of the GNU Lesser General Public
-* * License along with this library; if not, write to the
-* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-* * Boston, MA 02111-1307, USA.
-* */
-***S/R INT1D1 - ONE-DIMENSIONAL SPLINE INTERPOLATION.
-*
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
+!
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
+!
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
+!
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
+
+!> ONE-DIMENSIONAL SPLINE INTERPOLATION.
       SUBROUTINE INT1D1(FI,F,XI,X,FX,H,M,MI,CMU1,C1,CLMDAM,CM,A,C,D)
-*
-*AUTHOR   - D. ROBERTSON - A. STANIFORTH
-*
-*REVISION 001   C. THIBEAULT - FEB 80 - DOCUMENTATION
-*
-*LANGUAGE - fortran
-*
-*OBJECT(INT1D1)
+
 *         - INTERPOLATE BETWEEN A NUMBER OF ARBITRARILY SPACED DATA
 *           POINTS USING CUBIC SPLINES.
-*
+
 *ALGORITHM
 *         - A 1-DIMENSIONAL INTERPOLATING CUBIC SPLINE IS DEFINED
 *           AS FOLLOWS...
@@ -38,13 +30,7 @@
 *           DATA POINTS, AND VARIES CUBICALLY BETWEEN POINTS. THE
 *           CUBICS BETWEEN THE POINTS JOIN UP SMOOTHLY, IN THE SENSE
 *           THAT THE FIRST AND SECOND DERIVATIVES ARE CONTINUOUS.
-*
-*LIBRARIES
-*         - SOURCE  RMNSOURCELIB,ID=RMNP     DECK=INT1D1
-*         - OBJECT  RMNLIB,ID=RMNP
-*
-*USAGE    - CALL INT1D1 (FI,F,XI,X,FX,H,M,MI,CMU1,C1,CLMDAM,CM,A,C,D)
-*
+
 *ARGUMENTS
 *   OUT   - FI     - VECTOR OF INTERPOLATED VALUES.
 *   IN    - F      - VECTOR OF VALUES OF THE FUNCTION.
@@ -104,9 +90,9 @@
 *                  DOMINANT, (AS IT IS IN THIS CASE).
 *         - D1INT1 TO CALCULATE THE INTERPOLATED VALUES.
 *         - D1, DN, FD1 AND FDM USED AS OUTLINED ABOVE.
-*
-*--------------------------------------------------------------------------
-*
+
+      external :: SPD, D1INT1
+
       REAL     FI(MI)
       REAL      F(M)
       REAL     XI(MI)
@@ -116,13 +102,8 @@
       REAL      A(M)
       REAL      D(M)
       REAL      C(M)
-*
-*--------------------------------------------------------------------------
-*
+
       CALL SPD(FX,F,M,H,CMU1,C1,CLMDAM,CM,A,C,D)
       CALL D1INT1(FI,F,XI,X,FX,H,M,MI)
-*
-*----------------------------------------------------------------------------
-*
-      RETURN
+
       END

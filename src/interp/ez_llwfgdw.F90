@@ -51,12 +51,12 @@ subroutine ez_llwfgdw(z1, z2, xlon, li, lj, grtyp, ig1, ig2, ig3, ig4)
 
     !> On output, a 270 degree wind is a westerly wind, meaning U is +ve and V is zero.
 
-    external cigaxg
+    external :: cigaxg, ez_lamb_llwfgdw
 
     real xg1, xg2, xg3, xg4
     integer i, j
     real spd0, dir0
-    real x1(2*li*lj), y1(2*li*lj), lat(2*li*lj)
+    real x1(2 * li * lj), y1(2 * li * lj), lat(2 * li * lj)
 
 !  les #define qui suivent rendent le code plus lisible
 #define uu   z1
@@ -64,82 +64,82 @@ subroutine ez_llwfgdw(z1, z2, xlon, li, lj, grtyp, ig1, ig2, ig3, ig4)
 #define spd  z1
 #define dir  z2
 
-    if (grtyp .eq. '!') then
+    if (grtyp == '!') then
         call ez_lamb_llwfgdw(uu, vv, xlon, li, lj, grtyp, ig1, ig2, ig3, ig4, x1, y1, lat)
         return
     endif
 
 
-    if (grtyp.eq. 'N')then
+    if (grtyp == 'N')then
         call cigaxg(grtyp, xg1, xg2, xg3, xg4, ig1, ig2, ig3, ig4)
-        do j=1, lj
-            do i=1, li
-                spd0=sqrt(uu(i, j)*uu(i, j)+vv(i, j)*vv(i, j))
-                if (spd0.eq. 0.0)then
-                    dir0= 0.0
+        do j = 1, lj
+            do i = 1, li
+                spd0 = sqrt(uu(i, j) * uu(i, j) + vv(i, j) * vv(i, j))
+                if (spd0 == 0.0)then
+                    dir0 = 0.0
                 else
-                    if (uu(i, j).eq. 0.0)then
-                        if (vv(i, j).ge. 0.0)then
-                            dir0= xlon(i, j)+xg4-90.0
+                    if (uu(i, j) == 0.0)then
+                        if (vv(i, j) >= 0.0)then
+                            dir0 = xlon(i, j) + xg4 - 90.0
                         else
-                            dir0= xlon(i, j)+xg4+90.0
+                            dir0 = xlon(i, j) + xg4 + 90.0
                         endif
                     else
-                        dir0=xlon(i, j)+xg4-rdtodg*atan2(vv(i, j), uu(i, j))
+                        dir0 = xlon(i, j) + xg4 - rdtodg * atan2(vv(i, j), uu(i, j))
                     endif
                 endif
-                dir0=amod(amod(dir0, 360.0)+360.0, 360.0)
-                spd(i, j)=spd0
-                dir(i, j)=dir0
+                dir0 = amod(amod(dir0, 360.0) + 360.0, 360.0)
+                spd(i, j) = spd0
+                dir(i, j) = dir0
             enddo
         enddo
         return
     endif
 
-    if (grtyp.eq. 'S')then
+    if (grtyp == 'S')then
         call cigaxg(grtyp, xg1, xg2, xg3, xg4, ig1, ig2, ig3, ig4)
-        do j=1, lj
-            do i=1, li
-                spd0=sqrt(uu(i, j)*uu(i, j)+vv(i, j)*vv(i, j))
-                if (spd0.eq. 0.0)then
+        do j = 1, lj
+            do i = 1, li
+                spd0 = sqrt(uu(i, j) * uu(i, j) + vv(i, j) * vv(i, j))
+                if (spd0 == 0.0)then
                     dir0 = 0.0
                 else
-                    if (uu(i, j).eq. 0.0)then
-                        if (vv(i, j).ge. 0.0)then
-                            dir0= 90.0 - xlon(i, j)+xg4
+                    if (uu(i, j) == 0.0)then
+                        if (vv(i, j) >= 0.0)then
+                            dir0 = 90.0 - xlon(i, j) + xg4
                         else
-                            dir0= 270.0 - xlon(i, j)+xg4
+                            dir0 = 270.0 - xlon(i, j) + xg4
                         endif
                     else
-                        dir0=180.0-xlon(i, j)+xg4-rdtodg*atan2(vv(i, j), uu(i, j))
+                        dir0 = 180.0 - xlon(i, j) + xg4 - rdtodg * atan2(vv(i, j), uu(i, j))
                     endif
                 endif
-                dir0=amod(amod(dir0, 360.0)+360.0, 360.0)
-                spd(i, j)=spd0
-                dir(i, j)=dir0
+                dir0 = amod(amod(dir0, 360.0) + 360.0, 360.0)
+                spd(i, j) = spd0
+                dir(i, j) = dir0
             enddo
         enddo
         return
     endif
 
-    if (grtyp.eq.'A'.or.grtyp.eq.'B'.or.grtyp.eq.'G'.or.grtyp.eq.'L')then
-        do j=1, lj
-            do i=1, li
-                spd0 = sqrt(uu(i, j)*uu(i, j)+vv(i, j)*vv(i, j))
-                if (spd0.eq. 0.0)then
+    if (grtyp == 'A' .or. grtyp == 'B' .or. grtyp == 'G' .or. grtyp == 'L')then
+        do j = 1, lj
+            do i = 1, li
+                spd0 = sqrt(uu(i, j) * uu(i, j) + vv(i, j) * vv(i, j))
+                if (spd0 == 0.0)then
                     dir0 = 0.0
                 else
-                    if (uu(i, j).eq. 0.0)then
-                        if (vv(i, j).ge. 0.0)then
-                            dir0= 180.0
+                    if (uu(i, j) == 0.0)then
+                        if (vv(i, j) >= 0.0)then
+                            dir0 = 180.0
                         else
-                            dir0= 0.0
+                            dir0 = 0.0
                         endif
                     else
-                        dir0=270.0 - rdtodg*atan2(vv(i, j), uu(i, j))
+                        dir0 = 270.0 - rdtodg * atan2(vv(i, j), uu(i, j))
                     endif
                 endif
-                dir0 = amod(amod(dir0, 360.0)+360.0, 360.0)
+                dir0 = amod(amod(dir0, 360.0) + 360.0, 360.0)
                 spd(i, j) = spd0
                 dir(i, j) = dir0
             enddo

@@ -42,7 +42,9 @@ subroutine grps(xlat, xlon, ni, nj, pi, pj, d60, dgrw, hem)
     !> Angle between the X axis and greenwhich meridian
     real, intent(in) :: dgrw
     !> Hemisphere: 1 for North, 2 for South
-    real, intent(in) :: hem
+    integer, intent(in) :: hem
+
+    external :: llfxy
 
     integer :: i, j
     real :: y, xla, xlo
