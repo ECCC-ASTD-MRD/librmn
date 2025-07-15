@@ -1,6 +1,6 @@
 message(STATUS "(EC) generating tools tests")
 
-add_executable(dummy EXCLUDE_FROM_ALL tools/dummy.c)
-target_link_libraries(dummy rmn::rmn)
-add_test(NAME dummy COMMAND $<TARGET_FILE:dummy>)
-add_dependencies(check dummy)
+add_executable(ieee_extras EXCLUDE_FROM_ALL tools/test_ieee_extras.c)
+target_link_libraries(ieee_extras rmn::rmn)
+add_test(NAME ieee_extras COMMAND $<TARGET_FILE:ieee_extras> 7 .5)
+add_dependencies(check ieee_extras)
