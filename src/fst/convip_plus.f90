@@ -2,12 +2,12 @@
 
 !> Encode/Decode IP
 SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
+    use iso_fortran_env, only: real64
     use app
     use convert_ip123_int
-    use rmn_common
     implicit none
 
-    include 'convip_plus.inc'
+    include 'rmn/convip_plus.inc'
 
     !> Coded value
     integer, intent(INOUT) :: ip
@@ -367,13 +367,12 @@ contains
         endif
         ! total failure if we get here
     end function conv_kind_15
-
 end SUBROUTINE CONVIP_plus
 
 
 !> Write value val into string using at most maxlen characters
 integer function value_to_string(val, string, maxlen)
-    use rmn_common
+    use iso_fortran_env, only: real32
     implicit none
 
     !> The real value to be encoded into string (left aligned)
@@ -491,10 +490,10 @@ end function value_to_string
 
 
 subroutine test_value_to_string
-    use rmn_common
+    use iso_fortran_env, only: real32
     implicit none
 
-    include 'convip_plus.inc'
+    include 'rmn/convip_plus.inc'
 
     character (len=8) :: stringa
     character (len=12) :: stringb
@@ -540,7 +539,7 @@ end subroutine test_value_to_string
 
 ! test routine for convip_plus
 subroutine test_convip_plus()
-    use rmn_common
+    use iso_c_binding, only: c_float, c_int
     implicit none
 
     include 'rmn/convert_ip123.inc'
@@ -549,6 +548,7 @@ subroutine test_convip_plus()
     real :: p,p2
     character(len=15) :: string
     integer :: kind
+
     !     test #1, ip1 -> p,kind -> ip2 (ip2 must be = ip1)
     nip = 0
     nip2 = 0
@@ -595,7 +595,7 @@ subroutine c_kind_to_string(code,s1,s2) BIND(C,name='KindToString')
     ! translate kind integer code to 2 character string, gateway to Fortran kind_to_string
     use rmn_common
     implicit none
-    include 'convip_plus.inc'
+    include 'rmn/convip_plus.inc'
 
     integer(C_INT), intent(IN), value :: code
     character(C_CHAR), intent(OUT) :: s1, s2
@@ -610,9 +610,12 @@ subroutine c_kind_to_string(code,s1,s2) BIND(C,name='KindToString')
 !> Translate ip kind into a 2 character string code
 function kind_to_string(code) RESULT(string)
     implicit none
+
     integer, intent(IN) :: code
-    character(len=2) :: string
-    integer, parameter :: Max_Kind=31
+    !> \return Two letter kind string
+    character(len = 2) :: string
+
+    integer, parameter :: Max_Kind = 31
     character(len=2), save, dimension(0:Max_Kind) :: kinds = &
         (/  ' m', 'sg', 'mb', '  ', ' M', 'hy', 'th', 'm-',                       &
             '??', '??', ' H', '??', '??', '??', '??', '_0',                       &
@@ -622,31 +625,34 @@ function kind_to_string(code) RESULT(string)
 
     string = '!!'    ! precondition to fail
 
-    if(code<0) return   ! invalid type code
+    if(code < 0) return   ! invalid type code
 
-    if(code<=Max_Kind) then
+    if(code <= Max_Kind) then
         string = kinds(code)  ! straight table lookup
         return
     endif
 
-    if(mod(code,16)/=15) return  ! not a subkind of kind 15
+    if(mod(code, 16) /= 15) return  ! not a subkind of kind 15
 
-    if(code/16>9)  return  ! not a potentially valid subkind of kind 15
+    if(code / 16 > 9)  return  ! not a potentially valid subkind of kind 15
 
     write(1,string)'I',code/16   ! 'In' code where n=code/16 (n=0,1..,9)
 end function kind_to_string
 
 
 !> C language interface with no string option
-subroutine C_CONV_IP(ip, p, kind, mode) BIND(C, name = 'ConvertIp')
-    use ISO_C_BINDING
+subroutine c_conv_ip(ip, p, kind, mode) bind(c, name = 'ConvertIp')
+    use iso_c_binding, only: c_float, c_int
     implicit none
-    integer(C_INT), intent(INOUT) :: ip
-    real(C_FLOAT), intent(INOUT) :: p
-    integer(C_INT), intent(INOUT) :: kind
-    integer(C_INT), intent(IN), value :: mode
 
-    character (len=1) :: string
+    integer(c_int), intent(inout) :: ip
+    real(c_float), intent(inout) :: p
+    integer(c_int), intent(inout) :: kind
+    integer(c_int), intent(in), value :: mode
 
-    call CONVIP_plus(ip, p, kind, mode, string, .false.)
-end subroutine C_CONV_IP
+    character (len = 1) :: string
+
+    external :: convip_plus
+
+    call convip_plus(ip, p, kind, mode, string, .false.)
+end subroutine c_conv_ip

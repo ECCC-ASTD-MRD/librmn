@@ -49,6 +49,10 @@ subroutine ez_nwtncof(cx, cy, ax, ay, ni, nj, i1, i2, j1, j2, extension)
     logical :: sequence_ok
     integer :: i, j
 
+    ! Hack to prevent unused dummy argument warning without actually changing the interface
+    if (i1 == 0) continue
+    if (i2 == 0) continue
+
     sequence_ok = .true. 
 
     do i = 1, ni - 1

@@ -184,29 +184,29 @@ redo:
  cur_char_typ = char_type[cur_char] ;
 }
 
+
 /* get current input character, do not bump input pointer, if buffer empty, fill it */
-static unsigned int Current_Char(void){
- if(buffer_in<=buffer_out) fill_buffer();
- if(buffer_in<=buffer_out) return(0xFF);    /* no input available, return EOF */
+static unsigned int Current_Char(void) {
+    if (buffer_in <= buffer_out) fill_buffer();
+    if (buffer_in <= buffer_out) return 0xFF;    /* no input available, return EOF */
 
- cur_char = *buffer_out ;
- cur_char_typ = char_type[cur_char] ;
+    cur_char = *buffer_out ;
+    cur_char_typ = char_type[cur_char] ;
 
- return (cur_char);
+    return cur_char;
 }
+
 
 /* initialize table containing syntactic character types */
 static void init_char_table(void){
-    int i;
-
     char_type[0] = 0xFF;
-    for (i=1;i<31;i++) char_type[i]=0;        /* control characters */
-    for (i=32;i<126;i++) char_type[i]=128;    /* regular ASCII chars */
-    for (i=127;i<254;i++) char_type[i]=0;     /* accented and special characters, ignore */
+    for (int i = 1;i<31;i++) char_type[i]=0;        /* control characters */
+    for (int i = 32;i<126;i++) char_type[i]=128;    /* regular ASCII chars */
+    for (int i = 127;i<254;i++) char_type[i]=0;     /* accented and special characters, ignore */
 
-    for (i='a';i<='z';i++) char_type[i] = 4+1;  /* TOKEN + LETTER */
-    for (i='A';i<='Z';i++) char_type[i] = 4+1;  /* TOKEN + LETTER */
-    for (i='0';i<='9';i++) char_type[i] = 4+2;  /* TOKEN + DIGIT */
+    for (int i = 'a';i<='z';i++) char_type[i] = 4+1;  /* TOKEN + LETTER */
+    for (int i = 'A';i<='Z';i++) char_type[i] = 4+1;  /* TOKEN + LETTER */
+    for (int i = '0';i<='9';i++) char_type[i] = 4+2;  /* TOKEN + DIGIT */
 
     char_type[255] = 0xFF;
     char_type[' '] = 0;                         /* SPACE */
@@ -224,6 +224,7 @@ static void init_char_table(void){
     char_type['\''] = 4+64;                     /* TOKEN + SEPAR */
 }
 
+
 /* collect an argument for a command ,return token and length */
 static int Argument(char *token){
  int len=0;
@@ -232,7 +233,7 @@ static int Argument(char *token){
  Skip_Blanks(0); Current_Char(); Skip_Blanks(0);
 
  token[0]=Current_Char();                          /* get first character */
- if( (char_type[token[0]] & 4) == 0) {             /* check that charset is OK */
+ if( (char_type[(unsigned char)token[0]] & 4) == 0) {             /* check that charset is OK */
    fprintf(stderr,"Bad char in token:%c:\n",token[0]);
    token[1]='\0';
    return (-1);
@@ -247,7 +248,7 @@ static int Argument(char *token){
  }
 
  if(token[0]!='"' && token[0]!='\'' && token[0]!='<') {    /* not a delimited string */
-  while ( (len < MAXTOKEN) && (char_type[token[len]=Current_Char()] & 4) ) {
+  while ( (len < MAXTOKEN) && (char_type[(unsigned char)(token[len]=Current_Char())] & 4) ) {
    len++;
    Next_Char(0);
   }
@@ -284,14 +285,14 @@ static int Verb(char *token){
   fclose(streamd);
   return (-1);
   }
- if( (char_type[token[0]] & 1) == 0) {  /* bad first character ? (must be letter) */
+ if( (char_type[(unsigned char)token[0]] & 1) == 0) {  /* bad first character ? (must be letter) */
   fprintf(stderr,"Bad starting character for Verb:%c:\n",token[0]);
   return (-1);
   }
 
  len = 1;
  Next_Char(0);  /* colect rest of verb, letters + digits only */
- while ( (len < MAXTOKEN) && (char_type[token[len]=Current_Char()] & (1+2)) ) {
+ while ( (len < MAXTOKEN) && (char_type[(unsigned char)(token[len]=Current_Char())] & (1+2)) ) {
    len++;
    Next_Char(0);
  }
@@ -428,19 +429,19 @@ while(Verb(token)>0){ /* collect "verb" (command name) */
 
    if(callback_table[oo].is_ftn){
  
-    int max_arg_lng=0; int i; int arg_lng; char *F_ARGV; int j; char *temp;
+    int max_arg_lng=0; int arg_lng; char *F_ARGV; int j; char *temp;
  
-    for (i=0 ; i<=ARGC ; i++) {  /* find the length of the longest argument */
+    for (int i = 0 ; i<=ARGC ; i++) {  /* find the length of the longest argument */
      arg_lng=strlen(ARGV[i]); 
      max_arg_lng=arg_lng>max_arg_lng?arg_lng:max_arg_lng;
     }
     F_ARGV=(char *)malloc(max_arg_lng*(1+ARGC));  /* allocate FORTRAN string space */
  
-    for (i=0 ; i<max_arg_lng*(1+ARGC) ; i++) F_ARGV[i]=' ';
+    for (int i = 0 ; i<max_arg_lng*(1+ARGC) ; i++) F_ARGV[i]=' ';
     temp=F_ARGV;
     for (j=0;j<=ARGC;j++) {              /* copy strings from C strings to FORTRAN strings */
      arg_lng=strlen(ARGV[j]);
-     for (i=0 ; i<max_arg_lng ; i++) {
+     for (int i = 0 ; i<max_arg_lng ; i++) {
       if(i<arg_lng)*temp=ARGV[j][i];
       temp++;
      }

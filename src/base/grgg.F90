@@ -30,15 +30,16 @@ subroutine grgg(xlat, xlon, ni, nj, roots, mode)
     integer, intent(in) :: ni
     !> Number of points on the Y axis
     integer, intent(in) :: nj
-    !> Area on which to operate (GLOBAL, NORTH, SOUTH)
-    integer, intent(in) :: mode
-
     !> Latitude field
     real, intent(out) :: xlat(ni, nj)
     !> Longitude field
     real, intent(out) :: xlon(ni, nj)
     !> Legendre polynomial roots used to compute the latitude of points of gaussian grids
     real, intent(out) :: roots(nj)
+    !> Area on which to operate (GLOBAL, NORTH, SOUTH)
+    integer, intent(in) :: mode
+
+    external :: dgauss
 
     integer :: i, j, npoly
     real :: dlon, xla

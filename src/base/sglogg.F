@@ -1,22 +1,21 @@
-*/* RMNLIB - Library of useful routines for C and FORTRAN programming
-* * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-* *                          Environnement Canada
-* *
-* * This library is free software; you can redistribute it and/or
-* * modify it under the terms of the GNU Lesser General Public
-* * License as published by the Free Software Foundation,
-* * version 2.1 of the License.
-* *
-* * This library is distributed in the hope that it will be useful,
-* * but WITHOUT ANY WARRANTY; without even the implied warranty of
-* * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-* * Lesser General Public License for more details.
-* *
-* * You should have received a copy of the GNU Lesser General Public
-* * License along with this library; if not, write to the
-* * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-* * Boston, MA 02111-1307, USA.
-* */
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
+!
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
+!
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
+!
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
 
       real function SGLOGG(G,LI,LJ,ROOTS,LAMBDA,PHI)
       implicit none
@@ -42,32 +41,15 @@
       SANHGG = SGLOGG0(G,LI,LJ,ROOTS,LAMBDA,PHI,2)
       end
 
-***FONCTION SGLOGG0 - INTERPOLATION A PARTIR D'UNE GRILLE GAUSSIENNE
-
-
+!> INTERPOLATION A PARTIR D'UNE GRILLE GAUSSIENNE
       FUNCTION SGLOGG0(G,LI,LJ,ROOTS,LAMBDA,PHI, mode)
       use rmn_base_const, only: dgtord, global, north
       use rmn_ordr
       REAL G(LI,LJ)
       integer :: mode
 
-*AUTEUR   - D.ROBERTSON RPN 1981
-
-*REVISION 001   M. VALIN  -  1981  SYMETRIES ET COMMENTAIRES
-*REVISION 002   C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
-*               M. VALIN      - OCT 2023  removed entry statements
-
-*LANGAGE  - FORTRAN
-
-*OBJET(SGLOGG0)
 *         - TROUVER LA VALEUR D'UNE FONCTION EN UN POINT QUELCONQUE D'UNE
 *           GRILLE GAUSSIENNE
-
-*LIBRAIRIES
-*         - SOURCE  RMNSOURCELIB,ID=RMNP     DECK=SGLOGG0
-*         - OBJET   RMNLIB,ID=RMNP
-
-*APPEL    - R=SGLOGG0(G,LI,LJ,ROOTS,LAMBDA,PHI)
 
 *ARGUMENTS
 *   OUT   - SGLOGG0 - VALEUR INTERPOLEE AU POINT DEMANDE
@@ -81,10 +63,6 @@
 *                    UTILISEES DIRECTEMENT.
 *   IN    - LAMBDA - LONGITUDE DU POINT DESIRE
 *   IN    - PHI    - COLATITUDE (90.0-LATITUDE) DU POINT DESIRE
-
-*MODULES  - DGAUSS,IDXES
-
-*----------------------------------------------------------------
 
       REAL LAMBDA,MU
       REAL ROOTS(LJ) , T(4) , P(4)

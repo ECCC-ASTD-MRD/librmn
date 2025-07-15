@@ -1,28 +1,25 @@
-!/* RMNLIB - Library of useful routines for C and FORTRAN programming
-! * Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
-! *                          Environnement Canada
-! *
-! * This library is free software; you can redistribute it and/or
-! * modify it under the terms of the GNU Lesser General Public
-! * License as published by the Free Software Foundation,
-! * version 2.1 of the License.
-! *
-! * This library is distributed in the hope that it will be useful,
-! * but WITHOUT ANY WARRANTY; without even the implied warranty of
-! * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-! * Lesser General Public License for more details.
-! *
-! * You should have received a copy of the GNU Lesser General Public
-! * License along with this library; if not, write to the
-! * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-! * Boston, MA 02111-1307, USA.
-! */
-
-!**FONCTION SGLO - RETURNS THE INTERPOLATED VALUE FROM THE
-!                  FIELD F, AT THE POINT WITH CO-LATITUDE
-!                  PHI, LONGITUDE LAMBDA.
+! RMNLIB - Library of useful routines for C and FORTRAN programming
+! Copyright (C) 1975-2001  Division de Recherche en Prevision Numerique
+!                          Environnement Canada
+!
+! This library is free software; you can redistribute it and/or
+! modify it under the terms of the GNU Lesser General Public
+! License as published by the Free Software Foundation,
+! version 2.1 of the License.
+!
+! This library is distributed in the hope that it will be useful,
+! but WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+! Lesser General Public License for more details.
+!
+! You should have received a copy of the GNU Lesser General Public
+! License along with this library; if not, write to the
+! Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+! Boston, MA 02111-1307, USA.
 
 
+!> Interpolate value from the field f, at the point with co-latitude
+!> phi, longitude lambda.
       real FUNCTION SGLO (LAMBDA,PHI,F,LI,LJ)
       implicit none
       integer :: LI, LJ
@@ -48,18 +45,13 @@
       end
 
       real FUNCTION SGLO_SSNH_SANH (LAMBDA,PHI,F,LI,LJ, mode)
+#ifdef __INTEL_LLVM_COMPILER
+      use ifport, only: abort
+#endif
       use rmn_ordr
       use rmn_base_const, only: global, north
       REAL F(LI,LJ)
 
-!AUTEUR   - D. ROBERTSON
-
-!REVISION 001  C. THIBEAULT  -  MAR 83  CONVERSION AU CODE CRAY
-!              M. VALIN      -  OCT 2023 removed entry statements
-
-!LANGAGE  - FORTRAN
-
-!OBJET(SGLO)
 !         - RETURNS THE INTERPOLATED VALUE FROM THE FIELD F,
 !           AT THE POINT WITH CO-LATITUDE PHI, LONGITUDE LAMBDA.
 !           RANGES PHI 0 TO PI, 0 AT NORTH POLE, LAMBDA, EITHER
@@ -69,12 +61,6 @@
 !ALGORITHME
 !         - A BI-CUBIC INTERPOLATION IS USED, WHICH TAKES INTO
 !           ACCOUNT THE PERIODICITY IN  BOTH COORDINATES.
-
-!LIBRAIRIES
-!         - SOURCE  RMNSOURCELIB,ID=RMNP     DECK=SGLO
-!         - OBJET   RMNLIB,ID=RMNP
-
-!APPEL    - R=SGLO(LAMBDA,PHI,F,LI,LJ)
 
 !ARGUMENTS
 !   OUT   - SGLO   - INTERPOLATED VALUE
@@ -86,13 +72,6 @@
 !                    OFFSET = 90.0 / LJ DEG.
 !         - LJ     - NUMBER OF LATITUDE CIRCLES
 !         - mode   - 0/1/2 global, symmetric north, antisymmetric north
-
-!MODULES  - ABORT,IDXES
-
-!MESSAGES - "LAMBDA PHI, LI LJ IN FUNCTION SGLO (SSNH,SANH)
-!            WRONG VALUE, ..-..-..-.."
-
-!----------------------------------------------------------------------------
 
       REAL LAMBDA , LONG
 
@@ -120,6 +99,8 @@
 ! SIMPLE SCHEME NEEDS A BIT OF EXAMINATION.
 
       DATA  EPSPHI /1.0E-8/
+
+      external :: idxes
 
 !     original sglo
       if(mode == 0) then

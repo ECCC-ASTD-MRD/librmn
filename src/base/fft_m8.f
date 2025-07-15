@@ -15,7 +15,7 @@ C  made code work with 8 byte reals
 
 
       module fft_m8_helper
-        use rmn_common
+        use iso_fortran_env, only: real64
         implicit none
         save
 
@@ -26,55 +26,51 @@ C  made code work with 8 byte reals
       end module fft_m8_helper
 
       subroutine ffft_m8(a, n, inc, jump, lot, isign )
-      use rmn_common
-      implicit none
-      integer n,inc, jump, lot, isign
-      real(kind = real64) :: a(*)
+        use iso_fortran_env, only: real64
+        implicit none
+        external :: setfft_M8, fft_M8
+        integer n,inc, jump, lot, isign
+        real(kind = real64) :: a(*)
 
-      call setfft_M8( n )
-      call fft_M8( a, inc, jump, lot, isign )
-      return
+        call setfft_M8( n )
+        call fft_M8( a, inc, jump, lot, isign )
       end
 
       subroutine setfft8( n )
-      implicit none
-      integer  n
-      external set99_m8
-      call setfft_M8( n )
-      return
+        implicit none
+        integer  n
+        external set fft_m8
+        call setfft_M8( n )
       end
 
       subroutine setfft_M8( n )
-      use fft_m8_helper
-      use rmn_common
-      implicit none
-      integer  n
-      external set99_m8
+        use fft_m8_helper
+        implicit none
+        integer  n
+        external set99_m8
 
-      if(n .eq. npts) return
-      if(n .gt. npts) then
-          if(npts .gt. 0) deallocate(trigs)
-          allocate(trigs(n+2))
-      endif
-      npts = n
-      ifac=0
-      call set99_m8(trigs,ifac,npts)
-
-      return
+        if(n .eq. npts) return
+        if(n .gt. npts) then
+            if(npts .gt. 0) deallocate(trigs)
+            allocate(trigs(n+2))
+        endif
+        npts = n
+        ifac=0
+        call set99_m8(trigs,ifac,npts)
       end
 
       subroutine ffft8( a, inc, jump, lot, isign )
-      use rmn_common
-      implicit none
-      integer inc, jump, lot, isign
-      real(kind = real64) :: a(*)
-      call fft_m8(a, inc, jump, lot, isign )
-      return
+        use iso_fortran_env, only: real64
+        implicit none
+        external :: fft_m8
+        integer inc, jump, lot, isign
+        real(kind = real64) :: a(*)
+        call fft_m8(a, inc, jump, lot, isign )
       end
 
       subroutine fft_M8( a, inc, jump, lot, isign )
       use fft_m8_helper
-      use rmn_common
+        use iso_fortran_env, only: real64
       implicit none
       integer inc, jump, lot, isign
       real(kind = real64) :: a(*)
@@ -92,12 +88,12 @@ C  CHANGE maxlot ON VECTOR MACHINES
           call fft991_m8( a(1+(i-1)*jump), work,
      %                   trigs, ifac, inc, jump, npts, slice, isign)
       enddo
-      return
       end
 
       SUBROUTINE FFT991_M8(A,WORK,TRIGS,IFAX,INC,JUMP,N,ILOT,ISIGN)
-      use rmn_common
+        use iso_fortran_env, only: real64
       implicit none
+      external :: SET99_M8, RPASSM_M8, QPASSM_M8
       integer INC,JUMP,N,ILOT,ISIGN
       REAL(kind = real64) :: A(*),WORK(*), TRIGS(*)
       INTEGER IFAX(*)
@@ -321,7 +317,7 @@ C See LICENSE and gpl-3.0.txt for details.
 
       SUBROUTINE QPASSM_M8(A,B,C,D,TRIGS,INC1,INC2,INC3,INC4,ILOT,N,
      *    IFAC,ILA,IERR)
-      use rmn_common
+        use iso_fortran_env, only: real64
       implicit none
       REAL(kind = real64) :: A(*),B(*),C(*),D(*),TRIGS(*)
       integer INC1,INC2,INC3,INC4,ILOT,N,IFAC,ILA,IERR
@@ -1114,7 +1110,7 @@ C See LICENSE and gpl-3.0.txt for details.
 
       SUBROUTINE RPASSM_M8(A,B,C,D,TRIGS,INC1,INC2,INC3,INC4,ILOT,N,
      *    IFAC,ILA,IERR)
-      use rmn_common
+        use iso_fortran_env, only: real64
       implicit none
       REAL(kind = real64) :: A(*),B(*),C(*),D(*),TRIGS(*)
       integer INC1,INC2,INC3,INC4,ILOT,N,IFAC,ILA,IERR
@@ -1913,7 +1909,7 @@ C See LICENSE and gpl-3.0.txt for details.
 
 
       SUBROUTINE SET99_M8(TRIGS,IFAX,N)
-      use rmn_common
+        use iso_fortran_env, only: real64
       implicit none
       integer N, IFAX(N)
       real(kind = real64) :: TRIGS(N)

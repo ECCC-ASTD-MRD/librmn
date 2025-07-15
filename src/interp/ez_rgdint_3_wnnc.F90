@@ -35,14 +35,14 @@ subroutine ez_rgdint_3_wnnc(zo, px, py, npts, z, ni, j1, j2, wrap)
     real, intent(in) :: px(npts)
     !> Y positions where to interpolate
     real, intent(in) :: py(npts)
-    !> Source grid values
-    real, intent(in) :: z(ni, j1:j2)
     !> Source grid size on the X axis
     integer, intent(in) :: ni
     !> Source grid start index on the Y axis
     integer, intent(in) :: j1
     !> Source grid end index on the Y axis
     integer, intent(in) :: j2
+    !> Source grid values
+    real, intent(in) :: z(ni, j1:j2)
     !> Wrap around factor for global grids. 2 for 'A' or 'G', 1 for 'B', 0 for all other cases
     integer, intent(in) :: wrap
 
