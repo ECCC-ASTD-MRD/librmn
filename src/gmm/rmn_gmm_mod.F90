@@ -665,6 +665,8 @@ contains
 
 #include <rmn/fnom.hf>
 
+        external :: qqexit
+
         ! Read checkpoint file one record at a time
         if (read_or_write) then
             if (restart_mode) then
@@ -926,6 +928,8 @@ contains
     subroutine add_directory_entry
         implicit none
         integer :: i
+
+        external :: qqexit
 
         ! first time around, nullify all pointers
         if ( table_size == 0 ) then

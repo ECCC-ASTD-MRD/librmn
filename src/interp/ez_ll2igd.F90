@@ -30,7 +30,8 @@ subroutine ez_ll2igd(px, py, xlat, xlon, npts, ni, nj, grtyp, grref, ig1, ig2, i
     integer, intent(in) :: coordflag
     integer, intent(in) :: npts, ni, nj
     real, intent(out) :: px(npts), py(npts)
-    real, intent(in) :: xlat(npts), xlon(npts)
+    real, intent(in) :: xlat(npts)
+    real, intent(inout) :: xlon(npts)
     character(len = 1), intent(in) :: grtyp, grref
     integer, intent(in) :: ig1, ig2, ig3, ig4
     real, intent(in) :: ax(ni), ay(nj)
@@ -47,6 +48,8 @@ subroutine ez_ll2igd(px, py, xlat, xlon, npts, ni, nj, grtyp, grref, ig1, ig2, i
     real :: lonref
     integer :: indx, indy
 
+    ! Hack to prevent unused dummy argument warning without actually changing the interface
+    if (grtyp == 'a') continue
 
     if (grref == 'N') then
         call cigaxg(grref, PI, PJ, D60, DGRW, ig1, ig2, ig3, ig4)

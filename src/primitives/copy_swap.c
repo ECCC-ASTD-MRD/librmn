@@ -21,12 +21,14 @@
 
 #include <rmn/copy_swap.h>
 
+#if defined(__AVX2__) && defined(__x86_64__)
 static uint8_t indx_08_32[] = { 3, 2, 1, 0, 7, 6, 5, 4,11,10, 9, 8,15,14,13,12, 3, 2, 1, 0, 7, 6, 5, 4,11,10, 9, 8,15,14,13,12};
 static uint8_t indx_08_16[] = { 1, 0, 3, 2, 5, 4, 7, 6, 9, 8,11,10,13,12,15,14, 1, 0, 3, 2, 5, 4, 7, 6, 9, 8,11,10,13,12,15,14};
 static uint8_t indx_08_64[] = { 7, 6, 5, 4, 3, 2, 1, 0,15,14,13,12,11,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,15,14,13,12,11,10, 9, 8};
 static uint8_t indx_16_32[] = { 2, 3, 0, 1, 6, 7, 4, 5,10,11, 8, 9,14,15,12,13, 2, 3, 0, 1, 6, 7, 4, 5,10,11, 8, 9,14,15,12,13};
 static uint8_t indx_16_64[] = { 6, 7, 4, 5, 2, 3, 0, 1,14,15,12,13,10,11, 8, 9, 6, 7, 4, 5, 2, 3, 0, 1,14,15,12,13,10,11, 8, 9};
 static uint8_t indx_32_64[] = { 4, 5, 6, 7, 0, 1, 2, 3,12,13,14,15, 8, 9,10,11, 4, 5, 6, 7, 0, 1, 2, 3,12,13,14,15, 8, 9,10,11};
+#endif
 
 // ================================ Swap_n_m family ===============================
 #if defined(__AVX2__) && defined(__x86_64__)
@@ -70,8 +72,7 @@ void Swap_08_16(void *src, void *dst, int n16){            //  8<->16 bit endian
 #if defined(__AVX2__) && defined(__x86_64__)
   FetchShuffleStore(s16, d16, indx_08_16, n16*2) ;
 #else
-  int i, i0 ;
-  for(i=0 ; i<n16 ; i++){
+  for(int i = 0; i < n16; i++){
     uint16_t t16 = s16[i];
     t16 = (t16 >> 8) | (t16 << 8);
     d16[i] = t16;
@@ -84,8 +85,7 @@ void Swap_08_32(void *src, void *dst, int n32){           //  8<->32 bit endian 
 #if defined(__AVX2__) && defined(__x86_64__)
   FetchShuffleStore(s32, d32, indx_08_32, n32*4) ;
 #else
-  int i, i0 ;
-  for(i=0 ; i<n32 ; i++){
+  for(int i = 0; i < n32; i++){
     uint32_t t32 = s32[i];
     t32 = (t32 << 24) | ((t32 & 0xFF00) << 8) | ((t32 >> 8) & 0xFF00) | (t32 >> 24);
     d32[i] = t32;
@@ -98,8 +98,7 @@ void Swap_08_64(void *src, void *dst, int n64){           //  8<->64 bit endian 
 #if defined(__AVX2__) && defined(__x86_64__)
   FetchShuffleStore(s64, d64, indx_08_64, n64*8) ;
 #else
-  int i, i0 ;
-  for(i=0 ; i<n64 ; i++){
+  for(int i = 0; i < n64; i++){
     uint64_t t64 = s64[i];
     t64 = (t64<<32) | (t64>>32);                                                   // swap words in doubleword
     t64 = ((t64 & 0x0000FFFF0000FFFF) << 16) | ((t64 >> 16) & 0x0000FFFF0000FFFF); // swap halfwords in words
@@ -114,8 +113,7 @@ void Swap_16_32(void *src, void *dst, int n32){           // 16<->32 bit endian 
 #if defined(__AVX2__) && defined(__x86_64__)
   FetchShuffleStore(s32, d32, indx_16_32, n32*4) ;
 #else
-  int i, i0 ;
-  for(i=0 ; i<n32 ; i++){
+  for(int i = 0; i < n32; i++){
     uint32_t t32 = s32[i];
     t32 = (t32 << 16) | (t32 >> 16);
     d32[i] = t32;
@@ -128,8 +126,7 @@ void Swap_16_64(void *src, void *dst, int n64){           // 16<->64 bit endian 
 #if defined(__AVX2__) && defined(__x86_64__)
   FetchShuffleStore(s64, d64, indx_16_64, n64*8) ;
 #else
-  int i, i0 ;
-  for(i=0 ; i < n64 ; i++){
+  for(int i = 0; i < n64; i++){
     uint64_t t64 = s64[i];
     t64 = (t64 >> 32) | (t64 << 32);                                               // swap words in doubleword
     t64 = ((t64 & 0x0000FFFF0000FFFF) << 16) | ((t64 >> 16) & 0x0000FFFF0000FFFF); // swap halfwords in words
@@ -159,8 +156,7 @@ void Swap_32_64(void *src, void *dst, int n64){            // 32<->64 bit endian
 //     d64[i] = t64;
 //   }
 #else
-  int i, i0 ;
-  for(i=0 ; i < n64 ; i++){
+  for(int i = 0; i < n64; i++){
     uint64_t t64 = s64[i];
     t64 = (t64 >> 32) | (t64 << 32);
     d64[i] = t64;

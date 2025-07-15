@@ -1029,7 +1029,9 @@ subroutine mzonxst ( Z,NOM,J,NDIM,hhhh,FACF3D,ORD,tttt )
     use mzonxst_mod
     implicit none
 
-    Integer       J,NDIM,hhhh,ORD,tttt
+    external :: qqexit
+
+    Integer       J,NDIM,ORD, hhhh, tttt
     Real          FACF3D(NDIM,*)
     Real          Z(NDIM,*)
     Character(len=*) NOM
@@ -1043,6 +1045,10 @@ subroutine mzonxst ( Z,NOM,J,NDIM,hhhh,FACF3D,ORD,tttt )
     ! Section mise-a-jour de la routine pour les champs scalaire
     ! (Valide seulement dans le mode de controle actif du package).
     If (ETAT.eq.0) Return
+
+    ! Suppress warning about unused arguments without changing the function signature to preserve backward compatibility
+    if (tttt == 0) continue
+    if (hhhh == 0) continue
 
     If (ETAT.ne.3) then
         If (IOPrint) then
@@ -1227,8 +1233,12 @@ subroutine MVZNXST ( X,Y,XNOM,YNOM,J,NDIM,FACF3D,ORD,tttt )
     Integer :: placeX, placeY, tranche, val11X, val11Y
 
     integer, external :: exfin
+    external :: qqexit
 
     If (ETAT.eq.0) Return
+
+    ! Suppress warning about unused arguments without changing the function signature to preserve backward compatibility
+    if (tttt == 0) continue
 
     If (ETAT.ne.3) then
         If (IOPrint) then
@@ -1445,6 +1455,7 @@ subroutine MZONIV ( J,VAL )
     implicit none
     integer j, val, ii, jj, nil, tranche
     integer, external :: exfin
+    external :: qqexit
 
     If (ETAT.eq.0) Return
 

@@ -14,7 +14,7 @@ contains
         integer, dimension(num), target, intent(in) :: vals
         integer, intent(in) :: index
 
-        integer :: argdope
+        integer, external :: argdope
         integer, dimension(5) :: liste
         character(len=50) :: fmt
         integer :: ND
@@ -33,7 +33,7 @@ contains
     SUBROUTINE SUB1(A, B, C, D)
         implicit none
         INTEGER, target :: A(*), B(*), C(*), D(*)
-        INTEGER :: argdims
+        INTEGER, external :: argdims
 
         call App_Log(APP_INFO, ' PASSE PAR SUB1')
         write(app_msg, '(A, I5)') ' NB D ARGUMENTS =',NSUB1
@@ -98,6 +98,8 @@ PROGRAM YOYO
     implicit none
     integer, dimension(10) :: TAB0,TAB1,TAB2,TAB3
     integer :: dummy, INDICE
+
+    external :: qlxins, qlxinx, readlx
 
     integer :: KND, KRR, i
     character(len=4096) :: input_file

@@ -46,6 +46,8 @@ subroutine dgauss (n, roots, kase)
     !> pi. The negative roots are  filled by symmetry. for kase=global, all n roots are found, while for
     !> dase=north/south only the +ve/-ve roots are found, (including 0 if n is odd)  i.e. n/2+mod(n, 2) roots.
 
+    external :: ordleg
+
 #if defined (ALL64)
     real, parameter :: tol = 1.0E-13
 #else

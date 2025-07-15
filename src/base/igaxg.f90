@@ -2,8 +2,8 @@
 
 !> Passe des parametres (entiers) descripteurs de grille aux parametres reels
 subroutine cigaxg(cgtyp, xg1, xg2, xg3, xg4, ig1, ig2, ig3, ig4)
+    use iso_fortran_env, only: real64
     use app
-    use rmn_common
     implicit none
 
     !> Type de grille
@@ -21,6 +21,8 @@ subroutine cigaxg(cgtyp, xg1, xg2, xg3, xg4, ig1, ig2, ig3, ig4)
     !                                                 = 2. SUD !!
     !     CGTYP = 'E', LAT1, LON1, LAT2, LON2
     !     CGTYP = '+', LAT, LON, dummy, dummy
+
+    external :: xyfll
 
     real(kind = real64) :: XG18, XG28
     real :: DLAT, DLON

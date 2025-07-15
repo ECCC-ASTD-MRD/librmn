@@ -85,6 +85,7 @@ subroutine igaxg95(grtypout, xglst, nxg, grtypin, ig1, ig2, ig3, ig4)
     !> If the input grid type isn't "!", call cigaxg with the first 4 elements of xglst as output, otherwise do something regarding grib
 
     integer, external :: qqqgbld, qgblukig
+    external :: cigaxg
 
     integer ier
 
@@ -126,6 +127,11 @@ integer function qgblukig(gtyout, xglst, nxg, gtyin, ig1, ig2, ig3, ig4)
     integer i, gribcode, ni, nj, centercode, subcentercode, projcode
     real xlat00, xlon00, xlatninj, xlonninj, dx, dy, yaxislon, latin1, latin2
     logical found
+
+    ! Suppress warnings about unused arguments. Can't change function signature to preserve backward compatibility
+    if (len(gtyin) == 0) continue
+    if (ig3 == 0) continue
+    if (ig4 == 0) continue
 
     found = .false.
 
@@ -205,6 +211,8 @@ integer function qqqgbld()
     character(len = 256) :: filename, armnlib
     character(len = 512) :: buffer
     integer ier, strlen, iun
+
+    external :: getenvc, qqqcltab
 
     logical, save :: once = .false.
 

@@ -44,6 +44,7 @@ subroutine cxgaig(cgtyp, ig1, ig2, ig3, ig4, xg1, xg2, xg3, xg4)
     !> |   2 |   South |
 
     logical, external :: valide
+    external :: llfxy
 
     real :: dlat, dlon
     real :: xxg2, xxg4

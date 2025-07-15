@@ -1515,7 +1515,7 @@ int c_xdfins(
     //! [in] Data type
     int datyp
 ) {
-    int nbwords, index_word, last_ind, i, mode;
+    int nbwords, index_word, last_ind, i;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
     int ier = 0;
 
@@ -2512,7 +2512,7 @@ int c_xdfrep(
     //! [in] Data type
     int datyp
 ) {
-    int nbwords, index_word, i, mode;
+    int nbwords, index_word, i;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
     int ier = 0;
 
@@ -2961,7 +2961,7 @@ int c_xdfxtr(
     //! [in] Data type
     int datyp
 ) {
-    int nbwords, index_word, i, mode;
+    int nbwords, index_word, i;
     buffer_interface_ptr buf = (buffer_interface_ptr) buffer;
 
     if ((bitpos % 64) != 0) {

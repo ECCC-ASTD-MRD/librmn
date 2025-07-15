@@ -55,8 +55,7 @@ static int initmem = 0;
 
 static intptr_t con;
 
-static int ptrsize;
-static int *pointer;
+const static int ptrsize = sizeof(int *);
 static int dejala = 0;
 static int dmms_noabort = 0;
 
@@ -108,7 +107,6 @@ struct blocmem *bloc_alloc(int nbytes, int mode) {
     char *value;
 
     SINGLE;
-    ptrsize = sizeof(pointer);
 
     nitem = (nbytes + ptrsize - 1) / ptrsize;
     lng = sizeof(struct blocmem) + (nitem * ptrsize);

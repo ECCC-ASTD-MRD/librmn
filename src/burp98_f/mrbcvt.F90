@@ -208,6 +208,8 @@ integer FUNCTION MRBTBL(TBLBURP, NSLOTS, NELE)
     !              .               .          .             .
 
     integer, external :: qrbsct, bufrchr
+    external :: qbrptri
+
     integer :: i, j
 
     mrbtbl = -1
