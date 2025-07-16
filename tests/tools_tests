@@ -4,3 +4,24 @@ add_executable(ieee_extras EXCLUDE_FROM_ALL tools/test_ieee_extras.c)
 target_link_libraries(ieee_extras rmn::rmn)
 add_test(NAME ieee_extras COMMAND $<TARGET_FILE:ieee_extras> 7 .5)
 add_dependencies(check ieee_extras)
+
+add_executable(va_args EXCLUDE_FROM_ALL tools/test_va_args.c)
+target_link_libraries(va_args rmn::rmn)
+add_test(NAME va_args COMMAND $<TARGET_FILE:va_args>)
+add_dependencies(check va_args)
+
+add_executable(simd_functions_ref EXCLUDE_FROM_ALL tools/test_simd_functions_ref.c)
+target_link_libraries(simd_functions_ref rmn::rmn)
+add_test(NAME simd_functions_ref COMMAND $<TARGET_FILE:simd_functions_ref>)
+add_dependencies(check simd_functions_ref)
+
+add_executable(simd_functions EXCLUDE_FROM_ALL tools/test_simd_functions.c)
+target_link_libraries(simd_functions rmn::rmn)
+add_test(NAME simd_functions COMMAND $<TARGET_FILE:simd_functions>)
+add_dependencies(check simd_functions)
+
+add_executable(simd_functions_compare EXCLUDE_FROM_ALL tools/simd_functions_compare.c)
+target_link_libraries(simd_functions rmn::rmn)
+add_test(NAME simd_functions_compare COMMAND $<TARGET_FILE:simd_functions_compare>)
+add_dependencies(check simd_functions_compare)
+
