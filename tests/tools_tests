@@ -10,6 +10,11 @@ target_link_libraries(va_args rmn::rmn)
 add_test(NAME va_args COMMAND $<TARGET_FILE:va_args>)
 add_dependencies(check va_args)
 
+add_executable(be_le_bitstream EXCLUDE_FROM_ALL tools/test_be_le_bitstream.c)
+target_link_libraries(be_le_bitstream rmn::rmn)
+add_test(NAME be_le_bitstream COMMAND $<TARGET_FILE:be_le_bitstream>)
+add_dependencies(check be_le_bitstream)
+
 add_executable(simd_functions_ref EXCLUDE_FROM_ALL tools/test_simd_functions_ref.c)
 target_link_libraries(simd_functions_ref rmn::rmn)
 add_test(NAME simd_functions_ref COMMAND $<TARGET_FILE:simd_functions_ref>)
