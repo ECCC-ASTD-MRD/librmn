@@ -30,3 +30,8 @@ target_link_libraries(simd_functions rmn::rmn)
 add_test(NAME simd_functions_compare COMMAND $<TARGET_FILE:simd_functions_compare>)
 add_dependencies(check simd_functions_compare)
 
+add_executable(lgt53 EXCLUDE_FROM_ALL tools/test_lgt53.c)
+target_link_libraries(lgt53 rmn::rmn)
+add_test(NAME lgt53 COMMAND $<TARGET_FILE:lgt53>)
+add_dependencies(check lgt53)
+
