@@ -40,3 +40,8 @@ target_link_libraries(lorenzo_c rmn::rmn)
 add_test(NAME lorenzo_c COMMAND $<TARGET_FILE:lorenzo_c>)
 add_dependencies(check lorenzo_c)
 
+add_executable(bits_f EXCLUDE_FROM_ALL tools/test_bits.F90)
+target_link_libraries(bits_f rmn::rmn)
+add_test(NAME bits_f COMMAND $<TARGET_FILE:bits_f>)
+add_dependencies(check bits_f)
+
