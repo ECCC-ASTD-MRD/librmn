@@ -35,3 +35,8 @@ target_link_libraries(lgt53 rmn::rmn)
 add_test(NAME lgt53 COMMAND $<TARGET_FILE:lgt53>)
 add_dependencies(check lgt53)
 
+add_executable(lorenzo_c EXCLUDE_FROM_ALL tools/test_lorenzo_c.c)
+target_link_libraries(lorenzo_c rmn::rmn)
+add_test(NAME lorenzo_c COMMAND $<TARGET_FILE:lorenzo_c>)
+add_dependencies(check lorenzo_c)
+
