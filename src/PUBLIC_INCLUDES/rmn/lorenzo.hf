@@ -1,0 +1,2 @@
+#define IN_FORTRAN_CODE
+#include <rmn/lorenzo.h>
