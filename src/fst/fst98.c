@@ -1750,12 +1750,20 @@ int c_fst_edit_dir_plus_xdf(
     file_table_entry * fte = file_table[index];
 
     if (! fte->cur_info->attr.std) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard file\n", __func__, fte->iun);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file \"%s\" (unit=%d) is not a RPN standard file\n",
+                __func__, fte->cur_info->file_name, fte->iun);
         return ERR_NO_FILE;
     }
 
+    if (!fte->cur_info->attr.write_mode) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file \"%s\" (unit=%d) is open in read-only mode\n",
+                __func__, fte->cur_info->file_name, fte->iun);
+        return ERR_NO_WRITE;
+    }
+
     if (fte->xdf_seq) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard file\n", __func__, fte->iun);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file \"%s\" (unit=%d) is sequential (we can't edit it)\n",
+                __func__, fte->cur_info->file_name, fte->iun);
         return ERR_NO_FILE;
     }
 
