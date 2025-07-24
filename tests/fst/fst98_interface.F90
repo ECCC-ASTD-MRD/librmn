@@ -148,11 +148,17 @@ subroutine test_fst98_interface(is_rsf)
         end if
     end block
 
-    ! ----- fstprm -----
+    ! ----- fstprm + fst_edit_dir -----
     block
         integer :: date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3
         character(len=20) :: typvar, nomvar, etiket, grtyp
         integer :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
+
+        status = fst_edit_dir(record_key, -1, -1, -1, -1, -1, -1, -1, -1, -1, '', 'TOTO', '', '',   &
+                    -1, -1, -1, -1, -1)
+
+        call check_status(status, expected = 0, fail_message = 'edit_dir')
+
         status = fstprm(record_key, date, deet, npas, ni, nj, nk, nbits, datyp,                     &
                         ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,                               &
                         ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3)
@@ -186,10 +192,10 @@ subroutine test_fst98_interface(is_rsf)
         call check_status(extra2, expected = 0, fail_message = 'prm (extra2)')
         call check_status(extra3, expected = 0, fail_message = 'prm (extra3)')
 
-        if (typvar(1:2) /= 'XX' .or. nomvar(1:4) /= 'YYYY' .or. etiket(1:6) /= 'ETIKET' .or. grtyp(1:1) /= 'X') then
+        if (typvar(1:2) /= 'XX' .or. nomvar(1:4) /= 'TOTO' .or. etiket(1:6) /= 'ETIKET' .or. grtyp(1:1) /= 'X') then
             write(app_msg, '(6A)') 'Unexpected names for typvar, nomvar, etiket, grtyp: ',          &
                                trim(typvar), trim(nomvar), trim(etiket), trim(grtyp),               &
-                               '. Should be XX, YYYY, ETIKET and X'
+                               '. Should be XX, TOTO, ETIKET and X'
             call App_Log(APP_ERROR, app_msg)
             error stop 1
         end if
