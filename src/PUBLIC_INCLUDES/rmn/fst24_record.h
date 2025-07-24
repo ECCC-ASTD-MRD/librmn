@@ -28,6 +28,7 @@
 #define FST_YES   1
 #define FST_NO    0
 #define FST_SKIP  2
+#define FST_REWRITE_META 4
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -232,7 +233,7 @@ int32_t      fst24_record_free(fst_record* record);
 int32_t      fst24_record_has_same_info(const fst_record* a, const fst_record* b);
 int32_t      fst24_record_is_same(const fst_record* const a, const fst_record* const b);
 void         fst24_record_diff(const fst_record* a, const fst_record* b);
-int32_t      fst24_record_copy_metadata(fst_record* a, const fst_record* b,int What);
+int32_t      fst24_record_copy_metadata(fst_record* dest, const fst_record* src, int What);
 //! \}
 
 int32_t fst24_record_validate_default(const fst_record* fortran_record, const size_t fortran_size);

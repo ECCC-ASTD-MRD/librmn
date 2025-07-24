@@ -348,6 +348,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME ezscint COMMAND $<TARGET_FILE:ezscint>)
         add_dependencies(check ezscint)
 
+        add_executable(fst98_edit_dir EXCLUDE_FROM_ALL fst/fst98_edit_dir.c)
+        target_link_libraries(fst98_edit_dir rmn::rmn)
+        add_test(NAME fst98_edit_dir COMMAND $<TARGET_FILE:fst98_edit_dir>)
+        add_dependencies(check fst98_edit_dir)
+
         if(BUILD_PYTHON)
             add_dependencies(check _rmn)
             add_test( NAME python_import_package_compiled COMMAND bash -c "${set_pythonpath} ${Python_EXECUTABLE} -c 'import compiled-rmn'")

@@ -139,14 +139,14 @@ int c_fstfrm(const int iun);
 int c_fst_version(void);
 void c_fstreset_ip_flags(void);
 void c_fst_env_var(char *cle, int index, char *content);
-int c_fst_edit_dir_plus(int handle, int date, int deet, int npas,
-                        int ni, int nj, int nk, int ip1, int ip2, int ip3,
-                        char *in_typvar, char *in_nomvar, char *in_etiket, char *in_grtyp, 
-                        int ig1, int ig2, int ig3, int ig4, int datyp);
-int c_fst_edit_dir(int handle, int date, int deet, int npas,
-                int ni, int nj, int nk, int ip1, int ip2, int ip3,
-                char *in_typvar, char *in_nomvar, char *in_etiket, char *in_grtyp, 
-                int ig1, int ig2, int ig3, int ig4, int datyp);
+int c_fst_edit_dir_plus(const int handle, const int date, const int deet, const int npas,
+                        const int ni, const int nj, const int nk, const int ip1, const int ip2, const int ip3,
+                        const char *in_typvar, const char *in_nomvar, const char *in_etiket, const char *in_grtyp, 
+                        const int ig1, const int ig2, const int ig3, const int ig4, const int datyp);
+int c_fst_edit_dir(const int handle, const int date, const int deet, const int npas,
+                const int ni, const int nj, const int nk, const int ip1, const int ip2, const int ip3,
+                const char *in_typvar, const char *in_nomvar, const char *in_etiket, const char *in_grtyp, 
+                const int ig1, const int ig2, const int ig3, const int ig4, const int datyp);
 
 void c_ip_string(char * const buffer, const int size, const int ip1, const int ip2, const int ip3);
 
@@ -164,6 +164,7 @@ int32_t f77name(fstprm)(int32_t *f_handle,
                         F2Cl ll1, F2Cl ll2, F2Cl ll3, F2Cl ll4);
 
 uint32_t get_valid_date32(const int64_t origin_date, const int32_t timestep_size, const int32_t timestep_num);
+uint32_t get_origin_date32(const int64_t valid_date, const int32_t timestep_size, const int32_t timestep_num);
 
 #ifdef __cplusplus
 }
