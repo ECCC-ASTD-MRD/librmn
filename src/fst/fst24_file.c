@@ -529,6 +529,96 @@ void fst24_bounds(
     }
 }
 
+search_metadata* make_search_metadata(
+    const fst_record* record,
+    search_metadata* const dest
+) {
+    search_metadata* meta = dest;
+    stdf_dir_keys* stdf_entry = &meta->fst98_meta;
+    if (meta == NULL) { meta = malloc(sizeof(search_metadata)); }
+
+    char typvar[FST_TYPVAR_LEN];
+    copy_record_string(typvar, record->typvar, FST_TYPVAR_LEN);
+    char nomvar[FST_NOMVAR_LEN];
+    copy_record_string(nomvar, record->nomvar, FST_NOMVAR_LEN);
+    char etiket[FST_ETIKET_LEN];
+    copy_record_string(etiket, record->etiket, FST_ETIKET_LEN);
+    char grtyp[FST_GTYP_LEN];
+    copy_record_string(grtyp, record->grtyp, FST_GTYP_LEN);
+
+
+    // RSF reserved metadata
+    for (int i = 0; i < RSF_META_RESERVED; i++) {
+        meta->rsf_reserved[i] = 0;
+    }
+    
+    // FST reserved metadata
+    meta->fst24_reserved[0] = fst24_reserved_0(record->do_not_touch.extended_meta_size);
+
+    // fst98 metadata 
+    {
+        (void)stdf_entry->deleted; // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->select;  // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->lng;     // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->addr;    // Reserved by RSF. Don't write anything here!
+
+        stdf_entry->deet = record->deet;
+        stdf_entry->nbits = record->pack_bits;
+        stdf_entry->ni = record->ni;
+        stdf_entry->gtyp = grtyp[0];
+        stdf_entry->nj = record->nj;
+        // propagate missing values flag
+        stdf_entry->datyp = record->data_type;
+        // this value may be changed later in the code to eliminate improper flags
+        stdf_entry->nk = record->nk;
+        stdf_entry->ubc = 0;
+        stdf_entry->npas = record->npas;
+        stdf_entry->pad7 = 0;
+        stdf_entry->ig4 = record->ig4;
+        stdf_entry->ig2a = record->ig2 >> 16;
+        stdf_entry->ig1 = record->ig1;
+        stdf_entry->ig2b = record->ig2 >> 8;
+        stdf_entry->ig3 = record->ig3;
+        stdf_entry->ig2c = record->ig2 & 0xff;
+        stdf_entry->etik15 =
+            (ascii6(etiket[0]) << 24) |
+            (ascii6(etiket[1]) << 18) |
+            (ascii6(etiket[2]) << 12) |
+            (ascii6(etiket[3]) <<  6) |
+            (ascii6(etiket[4]));
+        stdf_entry->pad1 = 0;
+        stdf_entry->etik6a =
+            (ascii6(etiket[5]) << 24) |
+            (ascii6(etiket[6]) << 18) |
+            (ascii6(etiket[7]) << 12) |
+            (ascii6(etiket[8]) <<  6) |
+            (ascii6(etiket[9]));
+        stdf_entry->pad2 = 0;
+        stdf_entry->etikbc =
+            (ascii6(etiket[10]) <<  6) |
+            (ascii6(etiket[11]));
+        stdf_entry->typvar =
+            (ascii6(typvar[0]) <<  6) |
+            (ascii6(typvar[1]));
+        stdf_entry->pad3 = 0;
+        stdf_entry->nomvar =
+            (ascii6(nomvar[0]) << 18) |
+            (ascii6(nomvar[1]) << 12) |
+            (ascii6(nomvar[2]) <<  6) |
+            (ascii6(nomvar[3]));
+        stdf_entry->ip1 = record->ip1;
+        stdf_entry->levtyp = 0;
+        stdf_entry->ip2 = record->ip2;
+        stdf_entry->pad5 = 0;
+        stdf_entry->ip3 = record->ip3;
+        stdf_entry->pad6 = 0;
+        stdf_entry->date_stamp = stamp_from_date(record->datev);
+        stdf_entry->dasiz = record->data_bits;
+    }
+
+    return meta;
+}
+
 //! Write a record in an RSF file
 int32_t fst24_write_rsf(
     //! RSF handle to the file where we are writing
@@ -785,8 +875,8 @@ int32_t fst24_write_rsf(
           }
        }
        if ((metastr = Meta_Stringify(record->metadata,JSON_C_TO_STRING_PLAIN)) != NULL) {
-          metalen = strlen(metastr) + 1;
-          ext_metadata_size = (metalen + 3) / 4;
+          metalen = strlen(metastr) + 1; // Include null character
+          ext_metadata_size = (metalen + 3) / 4; // Round up to 4 bytes
           rec_metadata_size += ext_metadata_size;
        }
     }
@@ -802,96 +892,20 @@ int32_t fst24_write_rsf(
         Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to create new new_record with %ld bytes\n", __func__, num_data_bytes);
         return(ERR_MEM_FULL);
     }
-    uint32_t* record_data = new_record->data;
-
-    RSF_Record_set_num_elements(new_record, num_word32, sizeof(uint32_t));
-
-    char typvar[FST_TYPVAR_LEN];
-    copy_record_string(typvar, record->typvar, FST_TYPVAR_LEN);
-    char nomvar[FST_NOMVAR_LEN];
-    copy_record_string(nomvar, record->nomvar, FST_NOMVAR_LEN);
-    char etiket[FST_ETIKET_LEN];
-    copy_record_string(etiket, record->etiket, FST_ETIKET_LEN);
-    char grtyp[FST_GTYP_LEN];
-    copy_record_string(grtyp, record->grtyp, FST_GTYP_LEN);
-
-    // set stdf_entry to address of buffer->data for building keys
+    
     search_metadata* meta = (search_metadata *) new_record->meta;
     stdf_dir_keys* stdf_entry = &meta->fst98_meta;
+
+    record->data_type = data_type | has_missing;
+    make_search_metadata(record, meta);
+    new_record->data_size = elem_size;
+    uint32_t* record_data = new_record->data;
+    RSF_Record_set_num_elements(new_record, num_word32, sizeof(uint32_t));
 
     // Insert json metadata
     if (metastr) {
         // Copy metadata into RSF record struct, just after directory metadata
         memcpy((char *)(meta + 1), metastr, metalen);
-    }
-
-    // RSF reserved metadata
-    for (int i = 0; i < RSF_META_RESERVED; i++) {
-        meta->rsf_reserved[i] = 0;
-    }
-    
-    // FST reserved metadata
-    meta->fst24_reserved[0] = fst24_reserved_0(ext_metadata_size);
-
-    // fst98 metadata 
-    {
-        (void)stdf_entry->deleted; // Reserved by RSF. Don't write anything here!
-        (void)stdf_entry->select;  // Reserved by RSF. Don't write anything here!
-        (void)stdf_entry->lng;     // Reserved by RSF. Don't write anything here!
-        (void)stdf_entry->addr;    // Reserved by RSF. Don't write anything here!
-
-        stdf_entry->deet = record->deet;
-        stdf_entry->nbits = record->pack_bits;
-        stdf_entry->ni = record->ni;
-        stdf_entry->gtyp = grtyp[0];
-        stdf_entry->nj = record->nj;
-        // propagate missing values flag
-        stdf_entry->datyp = data_type | has_missing;
-        // this value may be changed later in the code to eliminate improper flags
-        stdf_entry->nk = record->nk;
-        stdf_entry->ubc = 0;
-        stdf_entry->npas = record->npas;
-        stdf_entry->pad7 = 0;
-        stdf_entry->ig4 = record->ig4;
-        stdf_entry->ig2a = record->ig2 >> 16;
-        stdf_entry->ig1 = record->ig1;
-        stdf_entry->ig2b = record->ig2 >> 8;
-        stdf_entry->ig3 = record->ig3;
-        stdf_entry->ig2c = record->ig2 & 0xff;
-        stdf_entry->etik15 =
-            (ascii6(etiket[0]) << 24) |
-            (ascii6(etiket[1]) << 18) |
-            (ascii6(etiket[2]) << 12) |
-            (ascii6(etiket[3]) <<  6) |
-            (ascii6(etiket[4]));
-        stdf_entry->pad1 = 0;
-        stdf_entry->etik6a =
-            (ascii6(etiket[5]) << 24) |
-            (ascii6(etiket[6]) << 18) |
-            (ascii6(etiket[7]) << 12) |
-            (ascii6(etiket[8]) <<  6) |
-            (ascii6(etiket[9]));
-        stdf_entry->pad2 = 0;
-        stdf_entry->etikbc =
-            (ascii6(etiket[10]) <<  6) |
-            (ascii6(etiket[11]));
-        stdf_entry->typvar =
-            (ascii6(typvar[0]) <<  6) |
-            (ascii6(typvar[1]));
-        stdf_entry->pad3 = 0;
-        stdf_entry->nomvar =
-            (ascii6(nomvar[0]) << 18) |
-            (ascii6(nomvar[1]) << 12) |
-            (ascii6(nomvar[2]) <<  6) |
-            (ascii6(nomvar[3]));
-        stdf_entry->ip1 = record->ip1;
-        stdf_entry->levtyp = 0;
-        stdf_entry->ip2 = record->ip2;
-        stdf_entry->pad5 = 0;
-        stdf_entry->ip3 = record->ip3;
-        stdf_entry->pad6 = 0;
-        stdf_entry->date_stamp = stamp_from_date(record->datev);
-        stdf_entry->dasiz = elem_size;
     }
 
     uint32_t * field_u32 = field;
@@ -953,7 +967,7 @@ int32_t fst24_write_rsf(
                     const int compressed_lng = armn_compress((unsigned char *)((uint32_t *)new_record->data + 5),
                                                              record->ni, record->nj, record->nk, record->pack_bits, 1, 1);
                     if (compressed_lng < 0) {
-                        stdf_entry->datyp = 1;
+                        stdf_entry->datyp = FST_TYPE_REAL_OLD_QUANT;
                         packfunc(field_u32, (void*)new_record->data, (void*)&((uint32_t*)new_record->data)[3],
                             num_elements, record->pack_bits, 24, stride, 0, &tempfloat, &dmin, &dmax);
                     } else {
@@ -1271,12 +1285,13 @@ int32_t fst24_write(
     fst_query_options rewrite_options = default_query_options;
     rewrite_options.skip_filter = 1;
 
-    if (rewrite) { 
+    if (rewrite == FST_YES || rewrite == FST_SKIP) { 
         fst24_record_copy_metadata(&crit,record,FST_META_GRID|FST_META_INFO|FST_META_TIME|FST_META_SIZE);
         crit.datev = get_valid_date32(crit.dateo,crit.deet,crit.npas);
         crit.dateo=-1;
     }
 
+    // If the record already exists in the file, we skip writing altogether
     if (rewrite == FST_SKIP) {
         fst_query* q = fst24_new_query(file, &crit, &rewrite_options);
         const int32_t found = fst24_find_next(q,NULL);
@@ -1288,6 +1303,7 @@ int32_t fst24_write(
         }
     } 
 
+    // No skip, so we write
     int32_t return_value = -1;
     if (file->type == FST_RSF) {
         if (rewrite == FST_YES) {
@@ -1307,6 +1323,62 @@ int32_t fst24_write(
 
     App_TimerStop(&file->write_timer);
     if (return_value == TRUE) file->num_bytes_written += fst24_record_data_size(record);
+    return return_value;
+}
+
+//! Rewrite the metadata of a record in an RSF file
+//! Currently only does the "search metadata", without the extended one
+//! \return TRUE (1) if successful, FALSE (0) if there was an error
+int32_t fst24_rewrite_meta_rsf(
+    RSF_handle file_handle,         //!< [in] File where the record is located
+    const int64_t record_handle,    //!< [in] Record handle
+    const fst_record* const record  //!< [in] The new metadata to store
+) {
+    union {
+        search_metadata as_object;
+        uint32_t as_uint[sizeof(search_metadata) / sizeof(uint32_t)];
+    } meta;
+
+    make_search_metadata(record, &meta.as_object);
+    if (RSF_Rewrite_record_meta(file_handle, record_handle, meta.as_uint,
+                                sizeof(search_metadata)) != 1) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to rewrite in RSF file\n", __func__);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+//! Not finished yet
+int32_t fst24_rewrite_meta(fst_record* const record) {
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: This function is not tested\n", __func__);
+    return -1;
+    if (!fst24_record_is_valid(record)) return ERR_BAD_INIT;
+    const fst_file* file = record->file;
+    if (!fst24_is_open(file)) return ERR_NO_FILE;
+
+    const int dateo = get_origin_date32(record->datev, record->deet, record->npas);
+    if (dateo != record->dateo) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Inconsistent origin and validity dates "
+            "(with respect to timestep size and number). Origin date will be updated\n", __func__);
+        record->dateo = dateo;
+    }
+
+    int32_t return_value = FALSE;
+    if (file->type == FST_RSF) {
+        return_value = fst24_rewrite_meta_rsf(record->file->rsf_handle, record->do_not_touch.handle, record);
+    }
+    else if (file->type == FST_XDF) {
+        const int ier = c_fst_edit_dir_plus_xdf(
+            (int32_t)record->do_not_touch.handle, record->datev, record->deet, record->npas,
+            -1, -1, -1, record->ip1, record->ip2, record->ip3, record->typvar, record->nomvar,
+            record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4, -1);
+        if (ier == 0) return_value = TRUE;
+    }
+    else {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
+    }
+
     return return_value;
 }
 

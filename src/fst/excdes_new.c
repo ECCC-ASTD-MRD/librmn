@@ -36,7 +36,6 @@ void f_requetes_init(void) {
 static const char * in_use[] = { "unused", "value ", "range ", "delta " };
 static int first_R = 0;
 static int last_R = MAX_requetes - 1;
-static FILE * stddebug;
 static int bundle_nb = -1;
 static int desire_exclure = 1;
 
@@ -112,7 +111,7 @@ int XC_get_MAX_requetes(void) {
 }
 
 
-//! Write requet table in text format
+//! Write request table in text format
 static void WriteRequestTable(
     //! [in] When other than 0, print separators, otherwise produce "csv" type output
     const int use_header
@@ -1515,12 +1514,6 @@ int C_requetes_reset(int set_nb, int nomvars, int typvars, int etikets, int date
 
 void C_requetes_init(char *requetes_filename, const char * const debug_filename) {
     (void) requetes_filename; // unused
-    /*  debug_filename = getenv("DEBUGFILE"); */
-    if (debug_filename != NULL) {
-        stddebug = fopen(debug_filename, "w");
-    } else {
-        stddebug = fopen("/dev/null", "w");
-    }
 
     first_R = 0;
     last_R = MAX_requetes-1;

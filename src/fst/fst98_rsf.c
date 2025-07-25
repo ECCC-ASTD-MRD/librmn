@@ -5,6 +5,7 @@
 #include "fst98_internal.h"
 #include "fst24_file_internal.h"
 #include "fst24_record_internal.h"
+#include "rsf_internal.h"
 #include "primitives/fnom_internal.h"
 
 
@@ -140,7 +141,7 @@ int c_fstecr_rsf(
     strncpy(rec.etiket, in_etiket, FST_ETIKET_LEN);
     strncpy(rec.grtyp,  in_grtyp,  FST_GTYP_LEN);
 
-    if (rewrit != FST_NO) {
+    if (rewrit == FST_YES || rewrit == FST_SKIP) {
         // Find handle for rewrite operation
         int niout, njout, nkout;
         const int handle = c_fstinfx_rsf(
@@ -992,4 +993,105 @@ int32_t c_fstckp_rsf(const int iun, const int index_fnom) {
     }
 
     return RSF_Checkpoint(file_handle);
+}
+
+//! Edits the directory content of a RPN standard file
+//! \copydoc c_fst_edit_dir_plus
+int c_fst_edit_dir_plus_rsf(
+    //! [in] Handle of the directory entry to edit
+    const int handle,
+    const int date, //!< Validity date
+    const int deet,
+    const int npas,
+    const int ni,   //!< Ignored
+    const int nj,   //!< Ignored
+    const int nk,   //!< Ignored
+    const int ip1,
+    const int ip2,
+    const int ip3,
+    const char *in_typvar,
+    const char *in_nomvar,
+    const char *in_etiket,
+    const char *in_grtyp,
+    const int ig1,
+    const int ig2,
+    const int ig3,
+    const int ig4,
+    const int datyp //!< Ignored
+) {
+    // Ignored parameters
+    (void) ni;
+    (void) nj;
+    (void) nk;
+    (void) datyp;
+
+    RSF_handle file_handle = RSF_Key32_to_handle(handle);
+
+    if (!RSF_Is_handle_valid(file_handle)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: not a valid RSF file\n", __func__);
+        return ERR_NO_FILE;
+    }
+
+    if (RSF_Get_mode(file_handle) == RSF_RO) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file is open in read-only mode\n", __func__);
+        return ERR_NO_WRITE;
+    }
+
+    // Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: handle = 0x%x, key64 = 0x%x\n", __func__, handle, RSF_Key64(handle));
+    const int64_t rsf_key = RSF_Key64(handle);
+    RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
+
+    if (record_info.rsf_version != RSF_VERSION_COUNT) {
+        Lib_Log(APP_LIBFST, APP_ERROR,
+                "%s: Record was written with RSF version %d, but this library can only write records for version %d\n",
+                __func__, record_info.rsf_version, RSF_VERSION_COUNT);
+        return ERR_STDF_VERSION;
+    }
+
+    const search_metadata* meta = (const search_metadata*) record_info.meta;
+    uint8_t fst24_version_count;
+    uint8_t num_criteria;
+    uint16_t ext_meta_size;
+    decode_fst24_reserved_0(meta->fst24_reserved[0], &fst24_version_count, &num_criteria, &ext_meta_size);
+
+    if (fst24_version_count != FST24_VERSION_COUNT) {
+        Lib_Log(APP_LIBFST, APP_ERROR,
+                "%s: Record was written with FST version %d, but this library can only write records for version %d\n",
+                __func__, fst24_version_count, FST24_VERSION_COUNT);
+        return ERR_STDF_VERSION;
+    }
+
+    fst_record rec = default_fst_record;
+    fill_with_search_meta(&rec, meta, FST_RSF);
+    
+    if (date != -1) rec.datev = date;
+    if (deet != -1) rec.deet = deet;
+    if (npas != -1) rec.npas = npas;
+    if (ip1 != -1) rec.ip1 = ip1;
+    if (ip2 != -1) rec.ip2 = ip2;
+    if (ip3 != -1) rec.ip3 = ip3;
+    if (ig1 != -1) rec.ig1 = ig1;
+    if (ig2 != -1) rec.ig2 = ig2;
+    if (ig3 != -1) rec.ig3 = ig3;
+    if (ig4 != -1) rec.ig4 = ig4;
+
+    char typvar[FST_TYPVAR_LEN];
+    char nomvar[FST_NOMVAR_LEN];
+    char etiket[FST_ETIKET_LEN];
+    char grtyp[FST_GTYP_LEN];
+    copy_record_string(typvar, in_typvar, FST_TYPVAR_LEN);
+    copy_record_string(nomvar, in_nomvar, FST_NOMVAR_LEN);
+    copy_record_string(etiket, in_etiket, FST_ETIKET_LEN);
+    copy_record_string(grtyp, in_grtyp, FST_GTYP_LEN);
+
+    if (strcmp(typvar, "  ") != 0) { strcpy(rec.typvar, typvar); }
+    if (strcmp(nomvar, "    ") != 0) { strcpy(rec.nomvar, nomvar); }
+    if (strcmp(etiket, "            ") != 0) { strcpy(rec.etiket, etiket); }
+    if (grtyp[0] != ' ') { rec.grtyp[0] = grtyp[0]; }
+
+    if (fst24_rewrite_meta_rsf(file_handle, rsf_key, &rec) != TRUE) {
+        return -1;
+    }
+
+    return 0;
 }

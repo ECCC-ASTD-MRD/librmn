@@ -11,6 +11,12 @@ static pthread_mutex_t rsf_global_mutex = PTHREAD_MUTEX_INITIALIZER;
 static RSF_File ** rsf_files = NULL;      //!< Global table of pointers to RSF files (slot table)
 static size_t max_rsf_files_open = 0;  //!< Size of the list of open RSF files
 
+//!> Number of RSF-reserved 32-bit words with respect to version 
+static const uint8_t num_rsf_reserved[] = {
+    RSF_META_RESERVED_V0,
+    RSF_META_RESERVED_V1,
+};
+
 static void RSF_Finalize(void);
 static int32_t RSF_File_lock(RSF_File *fp, int lock);
 static int32_t RSF_Ensure_new_segment(RSF_File *fp);
@@ -24,6 +30,13 @@ static rsf_rec_type RSF_Read_record(RSF_File* fp, const uint64_t address, void* 
 //! \return table address if successful, NULL if table cannot be allocated
 static void* RSF_Initialize(void) {
     if (rsf_files != NULL) return rsf_files;                    // slot table already allocated
+
+    if (sizeof(num_rsf_reserved) <= RSF_VERSION_COUNT) {
+        Lib_Log(APP_LIBFST, APP_FATAL,
+                "%s: The number of entries in 'num_rsf_reserved' (%d) does not match RSF version count +1 (%d)\n",
+                __func__, sizeof(num_rsf_reserved), RSF_VERSION_COUNT); 
+        return NULL;
+    }
 
     // --- START critical region ---
     pthread_mutex_lock(&rsf_global_mutex);
@@ -336,7 +349,7 @@ static int64_t RSF_Add_vdir_entry(
 
     if (fp == NULL) return -1;           // invalid file struct pointer
     int64_t slot = RSF_Is_file_valid(fp);
-    if ( ! slot ) return -1;             // something not O.K. with fp if RSF_Is_file_valid returned 0
+    if (slot == 0) return -1;             // something not O.K. with fp if RSF_Is_file_valid returned 0
     slot <<= 32;                          // file slot number (origin 1)
     RSF_Vdir_setup(fp);
     directory_block * dd = fp->dirblocks; // current directory entries block
@@ -1498,56 +1511,141 @@ int32_t RSF_Delete_record(
     RSF_Multithread_lock(fp);
 
     {
-      // Group start-of-record + reserved metadata to read in 1 go
-      struct {
-          start_of_record sor;
-          uint32_t meta[RSF_META_RESERVED];
-      } r;
+        // Group start-of-record + reserved metadata to read in 1 go
+        struct {
+            start_of_record sor;
+            uint32_t meta[RSF_META_RESERVED];
+        } r;
 
-      const rsf_rec_type read_status = RSF_Read_record(fp, info.wa, &r, sizeof(r));
+        const rsf_rec_type read_status = RSF_Read_record(fp, info.wa, &r, sizeof(r));
 
-      if (read_status == RT_INVALID) {
-          Lib_Log(APP_LIBFST, APP_ERROR, "%s: Reading start-of-record\n", __func__);
-          goto RETURN;
-      }
+        if (read_status == RT_INVALID) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Reading start-of-record\n", __func__);
+            goto RETURN;
+        }
 
-      if (r.sor.rt == RT_DEL) {
-          Lib_Log(APP_LIBFST, APP_INFO, "%s: Record at key 0x%x is already deleted\n", __func__, key);
-          status = 1;
-          goto RETURN;
-      }
+        if (r.sor.rt == RT_DEL) {
+            Lib_Log(APP_LIBFST, APP_INFO, "%s: Record at key 0x%x is already deleted\n", __func__, key);
+            status = 1;
+            goto RETURN;
+        }
 
-      // Change the record on disk
-      uint8_t version;
-      rsf_rec_class record_class;
-      rsf_rec_type record_type;
-      extract_meta0(r.meta[0], &version, &record_class, &record_type);
-      r.sor.rt = RT_DEL;
+        // Change the record on disk
+        uint8_t version;
+        rsf_rec_class record_class;
+        rsf_rec_type record_type;
+        extract_meta0(r.meta[0], &version, &record_class, &record_type);
+        r.sor.rt = RT_DEL;
 
-      // print_start_of_record(&r.sor);
+        // print_start_of_record(&r.sor);
 
-      lseek(fp->fd, info.wa, SEEK_SET);
-      const ssize_t nc = write(fp->fd, &r, sizeof(r));
-      if (nc != sizeof(r)) {
-          Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to update start-of-record on disk (size %d, wrote %ld) at position 0x%lx\n",
-                  __func__, sizeof(r), nc, info.wa);
-          goto RETURN;
-      }
+        lseek(fp->fd, info.wa, SEEK_SET);
+        const ssize_t nc = write(fp->fd, &r, sizeof(r));
+        if (nc != sizeof(r)) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to update start-of-record on disk (size %d, wrote %ld) at position 0x%lx\n",
+                    __func__, sizeof(r), nc, info.wa);
+            goto RETURN;
+        }
 
-      // Change the directory on disk
-      const uint32_t index = key64_to_index(key);
-      fp->vdir[index]->meta[0] = make_meta0(record_class, RT_DEL);
-      const uint32_t entry_offset = RSF_32_to_64(fp->vdir[index]->entry_offset);
-      if (entry_offset > 0) {
-          lseek(fp->fd, entry_offset, SEEK_SET);
-          write(fp->fd, fp->vdir[index], sizeof(vdir_entry) + sizeof(uint32_t));
-      }
+        // Change the directory on disk
+        const uint32_t index = key64_to_index(key);
+        fp->vdir[index]->meta[0] = make_meta0(record_class, RT_DEL);
+        const uint32_t entry_offset = RSF_32_to_64(fp->vdir[index]->entry_offset);
+        if (entry_offset > 0) {
+            lseek(fp->fd, entry_offset, SEEK_SET);
+            write(fp->fd, fp->vdir[index], sizeof(vdir_entry) + sizeof(uint32_t));
+        }
 
-      fp->num_deleted_records++;
-      fp->has_deleted = 1;
+        fp->num_deleted_records++;
+        fp->has_rewritten = 1;
 
-      status = 1;
+        status = 1;
     }
+
+RETURN:
+    RSF_Multithread_unlock(fp);
+    // --- END CRITICAL REGION --- //
+
+    return status;
+}
+
+//! Overwrite the metadata of an existing record. Changes both the directory and the metadata in the record
+//! itself. The change is completed on disk when this function returns.
+//! If the new metadata does not fit in the existing space, the function fails.
+//! This function is safe to call from multiple threads on the same file.
+//! \return 1 on success, 0 on failure
+int32_t RSF_Rewrite_record_meta(
+  RSF_handle h,           //!< [in] The file to modify
+  const int64_t key,      //!< [in] The record to modify
+  uint32_t* metadata,     //!< [in] The new metadata
+  const size_t num_meta_bytes //!< [in] Size of the new metadata in bytes
+) {
+    const RSF_record_info info = RSF_Get_record_info(h, key);
+    if (info.wa == 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not get record info from directory\n", __func__);
+        return 0;
+    }
+
+    RSF_File *fp = (RSF_File *) h.p;
+    if ((fp->mode & RSF_RO) == RSF_RO) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File is open in read-only mode, cannot rewrite records\n", __func__);
+        return 0;
+    }
+
+    if (info.dir_meta * sizeof(uint32_t) < num_meta_bytes) {
+        Lib_Log(APP_LIBFST, APP_ERROR,
+                "%s: Trying to write metadata (%d bytes) larger than that of existing record (%d bytes)\n",
+                __func__, (int)num_meta_bytes, (int)info.dir_meta * sizeof(uint32_t));
+        return 0;
+    }
+
+    // Check version, to know how many 32-bit words are reserved (these will not be overwritten)
+    uint8_t version;
+    rsf_rec_class record_class;
+    rsf_rec_type record_type;
+    extract_meta0(info.meta[0], &version, &record_class, &record_type);
+
+    const uint8_t num_reserved = num_rsf_reserved[version];
+    const size_t num_changed_bytes = num_meta_bytes - num_reserved * sizeof(uint32_t);
+
+    int32_t status = 0;
+
+    // --- START CRITICAL REGION --- //
+    RSF_Multithread_lock(fp);
+
+    // Change the record on disk
+    {
+        const off_t write_location = info.wa + sizeof(start_of_record) + num_reserved * sizeof(uint32_t);
+        lseek(fp->fd, write_location, SEEK_SET);
+        const ssize_t nc = write(fp->fd, metadata + num_reserved, num_changed_bytes);
+        if (nc != num_changed_bytes) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to update record meta on disk (size %d, wrote %ld) at position 0x%lx\n",
+                    __func__, num_changed_bytes, nc, write_location);
+            goto RETURN;
+        }
+    }
+
+    // Change the directory on disk
+    {
+        const uint32_t index = key64_to_index(key);
+        const uint32_t entry_offset = RSF_32_to_64(fp->vdir[index]->entry_offset);
+
+        if (entry_offset == 0) goto RETURN;
+
+        memcpy(fp->vdir[index]->meta + num_reserved, metadata + num_reserved, num_changed_bytes);
+        lseek(fp->fd, entry_offset + sizeof(vdir_entry), SEEK_SET);
+        const ssize_t nc = write(fp->fd, fp->vdir[index]->meta, num_meta_bytes);
+        
+        if (nc != num_meta_bytes) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to update record meta on disk (size %d, wrote %ld) at position 0x%lx\n",
+                    __func__, num_meta_bytes, nc, fp->vdir[index]);
+            goto RETURN;
+        }
+    }
+
+    fp->has_rewritten = 1;
+
+    status = 1;
 
 RETURN:
     RSF_Multithread_unlock(fp);
@@ -1878,6 +1976,7 @@ RSF_record_info RSF_Get_record_info_by_index(
                     sizeof(end_of_record) -
                     info.rec_meta * sizeof(int32_t);
     info.rec_type = record_type;
+    info.rsf_version = version;
     info.fname = NULL;                                 // if not a file container
     info.file_size = 0;                                // if not a file container
     if(record_type == RT_FILE){                         // file container detected
@@ -1908,18 +2007,19 @@ RSF_record_info RSF_Get_record_info(
     RSF_handle h, //!< Pointer to a RSF file
     const int64_t key   //!< Record identifier
 ) {
-  RSF_File *fp = (RSF_File *) h.p;
+    RSF_File *fp = (RSF_File *) h.p;
 
-  const int32_t fslot = RSF_Is_file_valid(fp);
-  const int32_t slot  = key >> 32;
-  if (fslot == 0 || slot != fslot) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: inconsistent file slot\n", __func__);
-    return info0;
-  }
+    const int32_t fslot = RSF_Is_file_valid(fp);
+    const int32_t slot  = key64_to_file_slot(key);
+    if (fslot == 0 || slot != fslot) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: inconsistent file slot (file says %d, record says %d). Key = 0x%x\n",
+                __func__, fslot, slot, key);
+        return info0;
+    }
 
-  // Get information from vdir using index from key (Lower 32 bits of key, starting from 0)
-  const uint32_t index = key64_to_index(key);
-  return RSF_Get_record_info_by_index(h, index);
+    // Get information from vdir using index from key (Lower 32 bits of key, starting from 0)
+    const uint32_t index = key64_to_index(key);
+    return RSF_Get_record_info_by_index(h, index);
 }
 
 // USER CALLABLE FUNCTION
@@ -2079,6 +2179,7 @@ uint32_t RSF_Get_num_records_at_open(RSF_handle h) {
     return fp->dir_read - fp->num_deleted_records;
 }
 
+//! Retrieve opening mode of the file (read-only, read-write, fuse, etc.)
 int32_t RSF_Get_mode(RSF_handle h) {
     const RSF_File * const fp = (RSF_File *) h.p;
     return (int32_t)fp->mode;
@@ -2785,7 +2886,7 @@ int32_t RSF_Close_file(RSF_handle h){
   if( (fp->mode & RSF_RO) == RSF_RO) goto CLOSE;  // file open in read only mode, nothing to rewrite
 
   if ((fp->mode & RSF_RW) == RSF_RW && fp->next_write < 0) {
-    if (!fp->is_new && !fp->has_deleted)
+    if (!fp->is_new && !fp->has_rewritten)
       Lib_Log(APP_LIBFST, APP_WARNING,
               "%s: Closing a file that was opened in write mode, but nothing was written! (%s)\n",
               __func__, fp->name);
