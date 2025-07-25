@@ -24,7 +24,7 @@
 static inline int32_t get_cpu_csr(void){
 #if defined(__x86_64__)
   int32_t csr ;
-  asm volatile ( "stmxcsr %[csr]" : [csr]  "=m" (csr) : ) ;
+  __asm__ volatile ( "stmxcsr %[csr]" : [csr]  "=m" (csr) : ) ;
   return csr ;
 #elif defined(__aarch64__)
   int64_t csr ;
@@ -38,7 +38,7 @@ static inline int32_t get_cpu_csr(void){
 // set cpu float control register
 static inline void set_cpu_csr(int32_t t){
 #if defined(__x86_64__)
-  asm volatile ( "ldmxcsr %[t]" : : [t]  "m" (t) : ) ;
+  __asm__ volatile ( "ldmxcsr %[t]" : : [t]  "m" (t) : ) ;
 #elif defined(__aarch64__)
   asm volatile ("msr fpcr, %[t]" : : [t] "r" (t) : ) ;
 #endif

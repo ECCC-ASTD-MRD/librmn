@@ -45,3 +45,8 @@ target_link_libraries(bits_f rmn::rmn)
 add_test(NAME bits_f COMMAND $<TARGET_FILE:bits_f>)
 add_dependencies(check bits_f)
 
+add_executable(move_blocks EXCLUDE_FROM_ALL tools/test_move_blocks.c)
+target_link_libraries(move_blocks rmn::rmn)
+add_test(NAME move_blocks COMMAND $<TARGET_FILE:move_blocks>)
+add_dependencies(check move_blocks)
+
