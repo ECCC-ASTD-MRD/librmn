@@ -160,6 +160,22 @@ uint32_t get_valid_date32(
     return (uint32_t)origin_date;
 }
 
+//! Get record origin date from valid date, timestep size and count
+uint32_t get_origin_date32(const int64_t valid_date, const int32_t timestep_size, const int32_t timestep_num) {
+    if (llabs(valid_date) > (1ll << 32)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: given date stamp (%lld) is too large to fit 32 bits\n", __func__, valid_date);
+        return (valid_date & 0xffffffff);
+    }
+    int32_t ftn_date = (int32_t) valid_date;
+    double r8_diff = -((((double)timestep_size) * ((double)timestep_num)) / 3600.0);
+    if (r8_diff != 0.0) {
+        incdatr_c(&ftn_date, &ftn_date, &r8_diff);
+        return ftn_date;
+    }
+
+    return (valid_date & 0xffffffff);
+}
+
 //! Copy items of a certain size into an array of items with a larger size. If the input array is of type float, it
 //! will be converted to double. Only performs copies from size [8, 16, 32] to size [16, 32, 64]. 
 //! *The source and destination array must not point to the same location!*
@@ -388,15 +404,8 @@ void crack_std_parms(
     // De-octalise the date_stamp and convert from valid date to origin date
     int run = stdf_entry->date_stamp & 0x7;
     unsigned int datexx = (stdf_entry->date_stamp >> 3) * 10 + run;
-    double r8_diff = -((((double)stdf_entry->deet) * ((double)stdf_entry->npas))/3600.0);
     cracked_parms->date_valid = datexx;
-    cracked_parms->date_stamp = datexx;
-    int32_t ftn_date = (int32_t) datexx;
-    if ((stdf_entry->deet * stdf_entry->npas) != 0) {
-        // compute origin date
-        incdatr_c(&ftn_date, &ftn_date, &r8_diff);
-        cracked_parms->date_stamp = (int) ftn_date;
-    }
+    cracked_parms->date_stamp = get_origin_date32(datexx, stdf_entry->deet, stdf_entry->npas);
 
     cracked_parms->aammjj = 0;
     cracked_parms->hhmmss = 0;
@@ -1297,7 +1306,7 @@ int c_fstecr_xdf(
 
     int handle = 0;
 
-    if ((rewrit) && (!fte->xdf_seq)) {
+    if ((rewrit == FST_YES || rewrit == FST_SKIP) && (!fte->xdf_seq)) {
         // find handle for rewrite operation
         int niout, njout, nkout;
 
@@ -1308,7 +1317,7 @@ int c_fstecr_xdf(
         if (handle < 0) {
             // append mode for xdfput
             handle = 0;
-        } else if (rewrit==FST_SKIP) {
+        } else if (rewrit == FST_SKIP) {
             if (field_f != NULL) free(field_f);
             free(buffer);
             return 0; // Success
@@ -1715,25 +1724,25 @@ int c_fstecr(
 //! Edits the directory content of a RPN standard file
 int c_fst_edit_dir_plus_xdf(
     //! [in] Handle of the directory entry to edit
-    int handle,
-    int date,
-    int deet,
-    int npas,
-    int ni, //!< Ignored, can't change that one
-    int nj, //!< Ignored, can't change that one
-    int nk, //!< Ignored, can't change that one
-    int ip1,
-    int ip2,
-    int ip3,
-    char *in_typvar,
-    char *in_nomvar,
-    char *in_etiket,
-    char *in_grtyp,
-    int ig1,
-    int ig2,
-    int ig3,
-    int ig4,
-    int datyp //!< Ignore, can't change that one
+    const int handle,
+    const int date,
+    const int deet,
+    const int npas,
+    const int ni, //!< Ignored, can't change that one
+    const int nj, //!< Ignored, can't change that one
+    const int nk, //!< Ignored, can't change that one
+    const int ip1,
+    const int ip2,
+    const int ip3,
+    const char *in_typvar,
+    const char *in_nomvar,
+    const char *in_etiket,
+    const char *in_grtyp,
+    const int ig1,
+    const int ig2,
+    const int ig3,
+    const int ig4,
+    const int datyp //!< Ignore, can't change that one
 ) {
     // Ignored parameters
     (void) ni;
@@ -1750,12 +1759,20 @@ int c_fst_edit_dir_plus_xdf(
     file_table_entry * fte = file_table[index];
 
     if (! fte->cur_info->attr.std) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard file\n", __func__, fte->iun);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file \"%s\" (unit=%d) is not a RPN standard file\n",
+                __func__, fte->cur_info->file_name, fte->iun);
         return ERR_NO_FILE;
     }
 
+    if (!fte->cur_info->attr.write_mode) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file \"%s\" (unit=%d) is open in read-only mode\n",
+                __func__, fte->cur_info->file_name, fte->iun);
+        return ERR_NO_WRITE;
+    }
+
     if (fte->xdf_seq) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file (unit=%d) is not a RPN standard file\n", __func__, fte->iun);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: file \"%s\" (unit=%d) is sequential (we can't edit it)\n",
+                __func__, fte->cur_info->file_name, fte->iun);
         return ERR_NO_FILE;
     }
 
@@ -1843,33 +1860,32 @@ int c_fst_edit_dir_plus_xdf(
 //! Edits the directory content of a RPN standard file
 int c_fst_edit_dir_plus(
     //! [in] Handle of the directory entry to edit
-    int handle,
-    int date,
-    int deet,
-    int npas,
-    int ni,
-    int nj,
-    int nk,
-    int ip1,
-    int ip2,
-    int ip3,
-    char *in_typvar,
-    char *in_nomvar,
-    char *in_etiket,
-    char *in_grtyp,
-    int ig1,
-    int ig2,
-    int ig3,
-    int ig4,
-    int datyp
+    const int handle,
+    const int date, //! Validity date
+    const int deet,
+    const int npas,
+    const int ni,
+    const int nj,
+    const int nk,
+    const int ip1,
+    const int ip2,
+    const int ip3,
+    const char *in_typvar,
+    const char *in_nomvar,
+    const char *in_etiket,
+    const char *in_grtyp,
+    const int ig1,
+    const int ig2,
+    const int ig3,
+    const int ig4,
+    const int datyp
 ) {
     const int32_t key_type = RSF_Key32_type(handle);
 
     if (key_type == 1) {
-        Lib_Log(APP_LIBFST, APP_WARNING,
-                "%s: You can't just edit a directory entry once a record has been written to an RSF file\n",
-                __func__);
-        return ERR_WRONG_FTYPE;
+        return c_fst_edit_dir_plus_rsf(handle, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,
+                                       in_typvar, in_nomvar, in_etiket, in_grtyp,
+                                       ig1, ig2, ig3, ig4, datyp);
     }
     else if (key_type == 0) {
         return c_fst_edit_dir_plus_xdf(handle, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,
@@ -1882,25 +1898,25 @@ int c_fst_edit_dir_plus(
 
 //! Wrapper of \link c_fst_edit_dir_plus \endlink for backward compatibility
 int c_fst_edit_dir(
-    int handle,
-    int date,
-    int deet,
-    int npas,
-    int ni, //!< Ignored
-    int nj, //!< Ignored
-    int nk, //!< Ignored
-    int ip1,
-    int ip2,
-    int ip3,
-    char *in_typvar,
-    char *in_nomvar,
-    char *in_etiket,
-    char *in_grtyp,
-    int ig1,
-    int ig2,
-    int ig3,
-    int ig4,
-    int datyp //!< Ignored
+    const int handle,
+    const int date,
+    const int deet,
+    const int npas,
+    const int ni, //!< Ignored
+    const int nj, //!< Ignored
+    const int nk, //!< Ignored
+    const int ip1,
+    const int ip2,
+    const int ip3,
+    const char *in_typvar,
+    const char *in_nomvar,
+    const char *in_etiket,
+    const char *in_grtyp,
+    const int ig1,
+    const int ig2,
+    const int ig3,
+    const int ig4,
+    const int datyp //!< Ignored
 ) {
     (void)ni;
     (void)nj;

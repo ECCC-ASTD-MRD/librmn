@@ -804,57 +804,57 @@ void fill_with_search_meta(
 //! \return 1 if we were able to do the copy,
 //!         0 otherwise
 int32_t fst24_record_copy_metadata(
-    fst_record* a,            //!< Destination record
-    const fst_record* b,      //!< Source record
+    fst_record* dest,            //!< Destination record
+    const fst_record* src,      //!< Source record
     const int what            //!< select which part of the metadata to copy (default: FST_META_ALL) thay can be combined with + (ie: FST_META_TIME+FST_META_INFO)
 ) {
 
-    if (a == NULL || b == NULL) return 0;
-    if (a->do_not_touch.version != b->do_not_touch.version) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Incompatible record version (%d != %d)\n",__func__,a->do_not_touch.version,b->do_not_touch.version);    
+    if (dest == NULL || src == NULL) return 0;
+    if (dest->do_not_touch.version != src->do_not_touch.version) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Incompatible record version (%d != %d)\n",__func__,dest->do_not_touch.version,src->do_not_touch.version);    
         return 0;
     }
 
     if (what&FST_META_TIME) {
-       a->dateo = b->dateo;
-       a->datev = b->datev;
-       a->deet = b->deet;
-       a->npas = b->npas;
+       dest->dateo = src->dateo;
+       dest->datev = src->datev;
+       dest->deet = src->deet;
+       dest->npas = src->npas;
     }
     if (what&FST_META_TYPE) {
-       a->data_type = b->data_type;
-       a->data_bits = b->data_bits;
-       a->pack_bits = b->pack_bits;
+       dest->data_type = src->data_type;
+       dest->data_bits = src->data_bits;
+       dest->pack_bits = src->pack_bits;
     }
     if (what&FST_META_SIZE) {
-       a->ni = b->ni;
-       a->nj = b->nj;
-       a->nk = b->nk;
+       dest->ni = src->ni;
+       dest->nj = src->nj;
+       dest->nk = src->nk;
     }
     if (what&FST_META_INFO) {
-       a->ip1 = b->ip1;
-       a->ip2 = b->ip2;
-       a->ip3 = b->ip3;
+       dest->ip1 = src->ip1;
+       dest->ip2 = src->ip2;
+       dest->ip3 = src->ip3;
 
-       strncpy(a->typvar, b->typvar, FST_TYPVAR_LEN);
-       strncpy(a->nomvar, b->nomvar, FST_NOMVAR_LEN);
-       strncpy(a->etiket, b->etiket, FST_ETIKET_LEN);
+       strncpy(dest->typvar, src->typvar, FST_TYPVAR_LEN);
+       strncpy(dest->nomvar, src->nomvar, FST_NOMVAR_LEN);
+       strncpy(dest->etiket, src->etiket, FST_ETIKET_LEN);
     }
 
     if (what&FST_META_GRID) {
-       strncpy(a->grtyp, b->grtyp, FST_GTYP_LEN);
-       a->ig1 = b->ig1;
-       a->ig2 = b->ig2;
-       a->ig3 = b->ig3;
-       a->ig4 = b->ig4;
+       strncpy(dest->grtyp, src->grtyp, FST_GTYP_LEN);
+       dest->ig1 = src->ig1;
+       dest->ig2 = src->ig2;
+       dest->ig3 = src->ig3;
+       dest->ig4 = src->ig4;
     }
 
     if (what&FST_META_EXT) {
-        if (b->metadata) {
-            if (a->metadata) {
-                Meta_Free(a->metadata);
+        if (src->metadata) {
+            if (dest->metadata) {
+                Meta_Free(dest->metadata);
             }
-            a->metadata=Meta_Copy(b->metadata);
+            dest->metadata=Meta_Copy(src->metadata);
         }
     }
 

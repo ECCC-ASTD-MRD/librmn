@@ -124,6 +124,7 @@ int run_test(const int is_rsf) {
 
     close(fd);
     free(raw_record);
+    fst24_query_free(q);
     fst24_record_free(&rec);
     if (fst24_close(test_file) != TRUE) {
         App_Log(APP_ERROR, "%s: Error while closing test file %s\n", __func__, filename);

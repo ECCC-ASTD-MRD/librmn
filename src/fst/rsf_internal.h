@@ -464,7 +464,7 @@ typedef struct _RSF_File {
     uint16_t dir_meta ;            //!< directory entry metadata size (uint32_t units)
     rsf_open_mode_type mode ;      //!< file mode (RO/RW/AP/...)
     uint8_t is_new ;               //!< whether we created the file upon opening
-    uint8_t has_deleted ;          //!< Whether we have deleted record since opening the file
+    uint8_t has_rewritten ;        //!< Whether we have rewritten record metadata since opening the file
     uint8_t last_op ;              //!< last operation (1 = read) (2 = write) (0 = unknown/invalid)
     uint8_t exclusive ;            //!< RW in exclusive mode if 1
 } RSF_File;

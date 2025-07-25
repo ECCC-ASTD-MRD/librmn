@@ -116,6 +116,10 @@ int FstCanTranslateName(const char *varname);
 char *kinds(int kind);
 int c_fstckp_xdf(const int iun);
 int c_fsteff_xdf(int handle);
+int c_fst_edit_dir_plus_xdf(
+    const int handle, const int date, const int deet, const int npas, const int ni, const int nj, const int nk,
+    const int ip1, const int ip2, const int ip3, const char *in_typvar, const char *in_nomvar, const char *in_etiket,
+    const char *in_grtyp, const int ig1, const int ig2, const int ig3, const int ig4, const int datyp);
 int32_t c_fstlnk(const int32_t *liste, const int32_t n);
 
 // Signatures from fstd98_rsf.c
@@ -175,5 +179,9 @@ int c_fstvoi_rsf(const int iun, const int index_fnom, const char * const options
                  int64_t* const total_num_writes, int64_t* const total_num_rewrites, int64_t* const total_num_erasures,
                  int64_t* const total_erased_size);
 int32_t c_fstckp_rsf(const int iun, const int index_fnom);
+int c_fst_edit_dir_plus_rsf(
+    const int handle, const int date, const int deet, const int npas, const int ni, const int nj, const int nk,
+    const int ip1, const int ip2, const int ip3, const char *in_typvar, const char *in_nomvar, const char *in_etiket,
+    const char *in_grtyp, const int ig1, const int ig2, const int ig3, const int ig4, const int datyp);
 
 #endif // fst98_internaL_H__

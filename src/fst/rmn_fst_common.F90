@@ -6,6 +6,7 @@ module rmn_fst_common
     integer, parameter :: FST_NO   = 0
     integer, parameter :: FST_YES  = 1
     integer, parameter :: FST_SKIP = 2
+    integer, parameter :: FST_REWRITE_META = 4
 
     interface
     subroutine set_missing_value_flags(missingFloatVal, missingIntVal, missingUIntVal, missingDoubleVal,    &

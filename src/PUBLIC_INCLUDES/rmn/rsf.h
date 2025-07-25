@@ -70,6 +70,7 @@ DT_08 ... DT_64  : length of data elements in record (for endianness management)
 // Previous values of RSF_META_RESERVED
 //! RSF_META_RESERVED value at version 0
 #define RSF_META_RESERVED_V0 1
+#define RSF_META_RESERVED_V1 2
 
 //! Opening modes
 typedef enum {
@@ -155,6 +156,7 @@ typedef struct{
     uint16_t rec_meta ;  //!< record metadata size in uint32_t units
     uint16_t elem_size ; //!< length of data elements (1/2/4/8 bytes) (endianness management)
     uint8_t rec_type ; //!< Type of the record
+    uint8_t rsf_version ; //!< Version of RSF that created the record
     // NOTE: add something for data map length ?
 } RSF_record_info ;
 
@@ -195,6 +197,7 @@ int64_t RSF_Put_bytes(RSF_handle h, RSF_record *record, uint32_t *meta, uint32_t
 int64_t RSF_Put_data(RSF_handle h, void *data_record, uint32_t *meta, uint32_t rec_meta, uint32_t dir_meta, void *data, size_t data_elements, int element_size) ;
 int64_t RSF_Put_record(RSF_handle h, RSF_record *record, size_t data_size) ;
 int32_t RSF_Delete_record(RSF_handle h, const int64_t key) ;
+int32_t RSF_Rewrite_record_meta(RSF_handle h, const int64_t key, uint32_t* metadata, const size_t num_meta_bytes);
 
 int64_t RSF_Put_file(RSF_handle h, char *filename, uint32_t *meta, uint32_t meta_size) ;
 int64_t RSF_Get_file(RSF_handle h, int64_t key, char *alias, uint32_t **meta, uint32_t *meta_size) ;

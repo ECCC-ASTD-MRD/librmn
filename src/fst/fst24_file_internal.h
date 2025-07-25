@@ -40,5 +40,6 @@ int C_fst_rsf_match_req(int datev, int ni, int nj, int nk, int ip1, int ip2, int
                         const char* typvar, const char* nomvar, const char* etiket, const char* grtyp,
                         int ig1, int ig2, int ig3, int ig4);
 void print_non_default_options(const fst_query_options* const options);
+int32_t fst24_rewrite_meta_rsf(RSF_handle file_handle, const int64_t record_handle, const fst_record* const record);
 
 #endif // RMN_FST24_FILE_INTERNAL_H__
