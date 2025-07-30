@@ -353,6 +353,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst98_edit_dir COMMAND $<TARGET_FILE:fst98_edit_dir>)
         add_dependencies(check fst98_edit_dir)
 
+        add_executable(fst24_rewrite_meta EXCLUDE_FROM_ALL fst/fst24_rewrite_meta.c)
+        target_link_libraries(fst24_rewrite_meta rmn::rmn)
+        add_test(NAME fst24_rewrite_meta COMMAND $<TARGET_FILE:fst24_rewrite_meta>)
+        add_dependencies(check fst24_rewrite_meta)
+
         if(BUILD_PYTHON)
             add_dependencies(check _rmn)
             add_test( NAME python_import_package_compiled COMMAND bash -c "${set_pythonpath} ${Python_EXECUTABLE} -c 'import compiled-rmn'")

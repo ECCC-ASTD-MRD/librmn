@@ -493,6 +493,16 @@ static int run_test(const int is_rsf) {
         if (compare_records(handle_test, handle_sol) != 0) {
             return -1;
         }
+
+        // Check that the data is still the same
+        int ni, nj, nk;
+        uint32_t values[sizeof(dummy_data) / sizeof(uint32_t)];
+        memset(values, 0, sizeof(values));
+        c_fstluk(values, handle_test, &ni, &nj, &nk);
+        if (memcmp(values, dummy_data, sizeof(dummy_data)) != 0) {
+            App_Log(APP_ERROR, "%s: Record %d data does not match after closing file\n", __func__, i);
+            return -1;
+        }
     }
 
     if (c_fstfrm(iun) < 0) {
