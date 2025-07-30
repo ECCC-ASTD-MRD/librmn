@@ -357,6 +357,7 @@ if (EC_INIT_DONE LESS 2)
         target_link_libraries(fst24_rewrite_meta rmn::rmn)
         add_test(NAME fst24_rewrite_meta COMMAND $<TARGET_FILE:fst24_rewrite_meta>)
         add_dependencies(check fst24_rewrite_meta)
+        set_property(TEST fst24_rewrite_meta PROPERTY ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta")
 
         if(BUILD_PYTHON)
             add_dependencies(check _rmn)
