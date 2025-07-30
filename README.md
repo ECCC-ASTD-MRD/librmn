@@ -1,5 +1,5 @@
 rmnlib is a library of functions for numerical weather prediction used
-primarily by Environment and and Climate Change Canada.
+primarily by Environment and Climate Change Canada.
 
 Its main components are Standard RPN files and the EZ interpolator.
 
