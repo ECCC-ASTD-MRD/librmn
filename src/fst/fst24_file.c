@@ -1267,7 +1267,11 @@ int32_t fst24_write_xdf(
 int32_t fst24_write(
     fst_file* file,     //!< [in,out] The file where we want to write
     fst_record* record, //!< [in,out] The record we want to write
-    const int rewrite   //!< Whether we want to overwrite FST_YES, skip FST_SKIP or write again FST_NO an existing record
+    //!> - FST_YES:  overwrite existing record data
+    //!> - FST_SKIP: if record already exists, don't write anything
+    //!> - FST_NO:   append record to file
+    //!> - FST_REWRITE_META: Overwrite metadata of existing record. The record must come from the given file.
+    const int rewrite
 ) {
     fst_record crit = default_fst_record;
 
