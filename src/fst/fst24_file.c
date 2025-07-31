@@ -1270,7 +1270,7 @@ int32_t fst24_write(
     //!> - FST_YES:  overwrite existing record data
     //!> - FST_SKIP: if record already exists, don't write anything
     //!> - FST_NO:   append record to file
-    //!> - FST_REWRITE_META: Overwrite metadata of existing record. The record must come from the given file.
+    //!> - FST_META: Overwrite metadata of existing record. The record must come from the given file.
     const int rewrite
 ) {
     fst_record crit = default_fst_record;
@@ -1281,7 +1281,7 @@ int32_t fst24_write(
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: file %s, type %s, rewrite %d\n",
             __func__, file->path, fst_file_type_name[file->type], rewrite);
 
-    if (rewrite == FST_REWRITE_META) {
+    if (rewrite == FST_META) {
         if (record->do_not_touch.handle < 0 || file != record->file) {
             Lib_Log(APP_LIBFST, APP_ERROR,
                     "%s: Trying to rewrite metadata, but record does not seem to have been read from this file\n",

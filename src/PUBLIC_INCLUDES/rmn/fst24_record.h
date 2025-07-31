@@ -28,7 +28,7 @@
 #define FST_YES   1
 #define FST_NO    0
 #define FST_SKIP  2
-#define FST_REWRITE_META 4
+#define FST_META 4
 
 #include <stdint.h>
 #include <stdlib.h>

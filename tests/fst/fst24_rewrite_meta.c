@@ -270,24 +270,24 @@ static int run_test(const int is_rsf) {
     // Try on a read-only file (should fail)
     get_record(solution_file, 0, &solution_rec);
     App_Log(APP_ALWAYS, "%s: Expecting error \n", __func__);
-    if (fst24_write(solution_file, &solution_rec, FST_REWRITE_META) == TRUE) {
-        App_Log(APP_ERROR, "%s: Call to fst24_write with FST_REWRITE_META on a read-only file should fail\n",
+    if (fst24_write(solution_file, &solution_rec, FST_META) == TRUE) {
+        App_Log(APP_ERROR, "%s: Call to fst24_write with FST_META on a read-only file should fail\n",
                 __func__);
         return -1;
     }
 
     // Try an uninitialized record (should fail)
     App_Log(APP_ALWAYS, "%s: Expecting error \n", __func__);
-    if (fst24_write(test_file, &rec, FST_REWRITE_META) == TRUE) {
-        App_Log(APP_ERROR, "%s: Call to fst24_write with FST_REWRITE_META with a blank record should fail\n",
+    if (fst24_write(test_file, &rec, FST_META) == TRUE) {
+        App_Log(APP_ERROR, "%s: Call to fst24_write with FST_META with a blank record should fail\n",
                 __func__);
         return -1;
     }
 
     // Try a record in a wrong file (should fail)
     App_Log(APP_ALWAYS, "%s: Expecting error \n", __func__);
-    if (fst24_write(test_file, &solution_rec, FST_REWRITE_META) == TRUE) {
-        App_Log(APP_ERROR, "%s: Call to fst24_write with FST_REWRITE_META with a record in the wrong file should fail\n",
+    if (fst24_write(test_file, &solution_rec, FST_META) == TRUE) {
+        App_Log(APP_ERROR, "%s: Call to fst24_write with FST_META with a record in the wrong file should fail\n",
                 __func__);
         return -1;
     }
@@ -297,7 +297,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 0, &rec) != 0) return -1;
         rec.datev = new_record.datev;
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite date failed\n", __func__);
             return -1;
         }
@@ -307,7 +307,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 1, &rec) != 0) return -1;
         rec.deet = new_record.deet;
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite deet failed\n", __func__);
             return -1;
         }
@@ -317,7 +317,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 2, &rec) != 0) return -1;
         rec.npas = new_record.npas;
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite npas failed\n", __func__);
             return -1;
         }
@@ -327,7 +327,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 3, &rec) != 0) return -1;
         rec.ip2 = new_record.ip2;
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite ip2 failed\n", __func__);
             return -1;
         }
@@ -337,7 +337,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 4, &rec) != 0) return -1;
         rec.ip3 = new_record.ip3;
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite ip3 failed\n", __func__);
             return -1;
         }
@@ -347,7 +347,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 5, &rec) != 0) return -1;
         strcpy(rec.typvar, new_record.typvar);
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite typvar failed\n", __func__);
             return -1;
         }
@@ -357,7 +357,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 6, &rec) != 0) return -1;
         strcpy(rec.nomvar, new_record.nomvar);
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite nomvar failed\n", __func__);
             return -1;
         }
@@ -367,7 +367,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 7, &rec) != 0) return -1;
         strcpy(rec.etiket, new_record.etiket);
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite etiket failed\n", __func__);
             return -1;
         }
@@ -377,7 +377,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 8, &rec) != 0) return -1;
         strcpy(rec.grtyp, new_record.grtyp);
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite grtyp failed\n", __func__);
             return -1;
         }
@@ -387,7 +387,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 9, &rec) != 0) return -1;
         rec.ig1 = new_record.ig1;
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite ig1 failed\n", __func__);
             return -1;
         }
@@ -397,7 +397,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 10, &rec) != 0) return -1;
         rec.ig2 = new_record.ig2;
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite ig2 failed\n", __func__);
             return -1;
         }
@@ -407,7 +407,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 11, &rec) != 0) return -1;
         rec.ig3 = new_record.ig3;
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite ig3 failed\n", __func__);
             return -1;
         }
@@ -417,7 +417,7 @@ static int run_test(const int is_rsf) {
     {
         if (get_record(test_file, 12, &rec) != 0) return -1;
         rec.ig4 = new_record.ig4;
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite ig4 failed\n", __func__);
             return -1;
         }
@@ -427,7 +427,7 @@ static int run_test(const int is_rsf) {
     if (is_rsf) {
         if (get_record(test_file, 13, &rec) != 0) return -1;
         rec.metadata = new_record.metadata;
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) != TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) != TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite extended meta failed\n", __func__);
             return -1;
         }
@@ -436,7 +436,7 @@ static int run_test(const int is_rsf) {
         Meta_DefVar(big_meta, NULL, "AAAA_with more characters", NULL, NULL, NULL);
         rec.metadata = big_meta;
         App_Log(APP_ALWAYS, "%s: Expecting error\n", __func__);
-        if (fst24_write(test_file, &rec, FST_REWRITE_META) == TRUE) {
+        if (fst24_write(test_file, &rec, FST_META) == TRUE) {
             App_Log(APP_ERROR, "%s: Call to rewrite larger extended meta succeeded (should have failed)\n", __func__);
             return -1;
         }

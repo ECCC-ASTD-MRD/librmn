@@ -66,7 +66,7 @@ In the new fst24 interface, the rewrite parameter that used to be boolean/logica
    * `FST_YES` to check if the record already exists and marks it as deleted before writing it again
    * `FST_NO` to just write the record without checking if it already exists
    * `FST_SKIP` to check if the record already exists and not write anything if it does
-   * `FST_REWRITE_META` to update the existing metadata in place. Can only be used on a record found in the given file.
+   * `FST_META` to update the existing metadata in place. Can only be used on a record found in the given file.
 
 It is highly recommended to use FST_SKIP to minimize useless IO, or even better, to try just not rewriting records.
 Note also that in `fst24` API, the rewrite option will check **ALL** search metadata, including `DATEV`, `DEET`, `NPAS` and `IG`s.
@@ -101,7 +101,7 @@ There is not a 1-on-1 correspondance between the functions of the two interfaces
 | `fstskp`               | [N/A]                       | [N/A]                            |
 | `fstapp`               | [N/A]                       | [N/A]                            |
 | `fstcvt`               | [N/A]                       | [N/A]                            |
-| `fst_edit_dir`         | `file % write(record, FST_REWRITE_META)` | `fst24_write(file, record, FST_REWRITE_META)` |            
+| `fst_edit_dir`         | `file % write(record, FST_META)` | `fst24_write(file, record, FST_META)` |            
 
 ## Parallel write
 
