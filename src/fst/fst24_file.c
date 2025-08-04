@@ -1335,31 +1335,37 @@ int32_t fst24_write(
         crit.dateo=-1;
     }
 
-    // If the record already exists in the file, we skip writing altogether
-    if (rewrite == FST_SKIP) {
+    // If the record already exists in the file, we skip writing altogether (FST_SKIP), or we delete
+    // it before writing (FST_YES)
+    if (rewrite == FST_SKIP || rewrite == FST_YES) {
         fst_query* q = fst24_new_query(file, &crit, &rewrite_options);
-        const int32_t found = fst24_find_next(q,NULL);
+        fst_record to_delete = default_fst_record;
+        const int32_t found = fst24_find_next(q,&to_delete);
         fst24_query_free(q);
         if (found) {
-            Lib_Log(APP_LIBFST, APP_INFO, "%s: Skipping already existing record\n", __func__);
-            App_TimerStop(&file->write_timer);
-            return TRUE;
+            if (rewrite == FST_SKIP) {
+                Lib_Log(APP_LIBFST, APP_INFO, "%s: Skipping (record already exists)\n", __func__);
+                App_TimerStop(&file->write_timer);
+                return TRUE;
+            }
+
+            if (fst24_delete(&to_delete) != TRUE) {
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to delete existing record\n", __func__);
+                App_TimerStop(&file->write_timer);
+                return -1;
+            }
+
+            Lib_Log(APP_LIBFST, APP_INFO, "%s: Rewriting existing record\n", __func__);
         }
     } 
 
     // No skip, so we write
     int32_t return_value = -1;
     if (file->type == FST_RSF) {
-        if (rewrite == FST_YES) {
-            int nb;
-            if ((nb=fst24_search_and_delete(file, &crit, &rewrite_options))) {
-                Lib_Log(APP_LIBFST, APP_INFO, "%s: Deleted %i matching records\n", __func__,nb);
-            }
-        }
         return_value = fst24_write_rsf(file->rsf_handle, record, 1);
     }
     else if (file->type == FST_XDF) {
-        return_value = fst24_write_xdf(record, rewrite);
+        return_value = fst24_write_xdf(record, FST_NO);
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
