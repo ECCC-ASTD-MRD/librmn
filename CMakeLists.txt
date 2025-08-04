@@ -214,7 +214,7 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
         C_EXTENSIONS OFF)
     
    # Symbolic link for archive numbered version
-   add_custom_command(TARGET rmn-static POST_BUILD
+   add_custom_command(TARGET rmn-ompi-static POST_BUILD
        COMMAND ln -sfv lib${PROJECT_NAME}-ompi.a lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a
        BYPRODUCTS lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a)
    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a DESTINATION lib)
