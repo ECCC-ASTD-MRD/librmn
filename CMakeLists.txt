@@ -102,7 +102,7 @@ set(PROJECT_PUBLIC_INCLUDE_FILES
     src/Struct/Vector.h
     src/Struct/QTree.h
 )
- 
+
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
 set(MODULE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include/mod)
 set(MODULE_DIR_OMPI ${CMAKE_CURRENT_BINARY_DIR}/include/mod_ompi)
@@ -181,7 +181,7 @@ if (${RMN_BUILD_SHARED})
     add_library(rmn::rmn-shared ALIAS rmn-shared)
 endif()
 
-if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND) 
+if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
     set (OMPI_TARGETS rmn-ompi-static)
     if (${RMN_BUILD_SHARED})
         set (OMPI_TARGETS ${OMPI_TARGETS} rmn-ompi-shared)
@@ -212,7 +212,7 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
         SOVERSION ${SOVERSION}
         C_STANDARD 11
         C_EXTENSIONS OFF)
-    
+
    # Symbolic link for archive numbered version
    add_custom_command(TARGET rmn-ompi-static POST_BUILD
        COMMAND ln -sfv lib${PROJECT_NAME}-ompi.a lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a
@@ -260,7 +260,7 @@ foreach(TARGET IN ITEMS ${TARGETS})
         )
     endif()
 
-    # nvhpc doesn't recognize shiftl	  
+    # nvhpc doesn't recognize shiftl
     target_compile_definitions(${TARGET}
         PUBLIC $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:SHIFTL=LSHIFT>)
 
@@ -342,7 +342,7 @@ install(TARGETS ${static_targets}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
- 
+
 # Symbolic link for archive numbered version
 add_custom_command(TARGET rmn-static POST_BUILD
     COMMAND ln -sfv lib${PROJECT_NAME}.a lib${PROJECT_NAME}_${PROJECT_VERSION}.a
@@ -400,7 +400,7 @@ install(EXPORT rmn-static-targets
 install(EXPORT udunits2-targets
         NAMESPACE udunits2::
         DESTINATION ${CONFIG_INSTALL_DIR})
-    
+
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
     "Config.cmake.in"
@@ -424,7 +424,7 @@ add_subdirectory(python)
 add_subdirectory(tests)
 
 # Packaging
-ec_package_name()                 # Define package prefix  
+ec_package_name()                 # Define package prefix
 ec_build_config()                 # Create build configuration script
 ec_prepare_ssm()                  # Prepare ssm packaging files
 
