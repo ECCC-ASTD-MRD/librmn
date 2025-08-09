@@ -1267,19 +1267,63 @@ int32_t fst24_write_xdf(
 int32_t fst24_write(
     fst_file* file,     //!< [in,out] The file where we want to write
     fst_record* record, //!< [in,out] The record we want to write
-    const int rewrite   //!< Whether we want to overwrite FST_YES, skip FST_SKIP or write again FST_NO an existing record
+    //!> - FST_YES:  overwrite existing record data
+    //!> - FST_SKIP: if record already exists, don't write anything
+    //!> - FST_NO:   append record to file
+    //!> - FST_META: Overwrite metadata of existing record. The record must come from the given file.
+    const int rewrite
 ) {
     fst_record crit = default_fst_record;
 
     if (!fst24_is_open(file)) return ERR_NO_FILE;
     if (!fst24_record_is_valid(record)) return ERR_BAD_INIT;
 
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: file %s, type %s, rewrite %d\n",
+            __func__, file->path, fst_file_type_name[file->type], rewrite);
+
+    if (rewrite == FST_META) {
+        if (record->do_not_touch.handle < 0 || file != record->file) {
+            Lib_Log(APP_LIBFST, APP_ERROR,
+                    "%s: Trying to rewrite metadata, but record does not seem to have been read from this file\n",
+                    __func__);
+            return -1;
+        }
+
+        int return_value = -1;
+        App_TimerStart(&file->write_timer);
+        if (file->type == FST_XDF) {
+            if (record->metadata != NULL) {
+                Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot add extended metadata to an XDF record (will be ignored)\n",
+                        __func__);
+            }
+
+            pthread_mutex_lock(&fst24_xdf_mutex);
+            const int dateo = get_origin_date32(record->datev, record->deet, record->npas);
+            if (dateo != record->dateo) {
+                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Inconsistent origin and validity dates "
+                    "(with respect to timestep size and number). Origin date will be updated\n", __func__);
+                record->dateo = dateo;
+            }
+            const int ier = c_fst_edit_dir_plus_xdf(record->do_not_touch.handle & 0xffffffff, record->datev, record->deet,
+                record->npas, -1, -1, -1, record->ip1, record->ip2, record->ip3, record->typvar, record->nomvar,
+                record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4, -1);
+            pthread_mutex_unlock(&fst24_xdf_mutex);
+
+            if (ier == 0) return_value = TRUE;
+        }
+        else if (file->type == FST_RSF) {
+            return_value = fst24_rewrite_meta_rsf(file->rsf_handle, record->do_not_touch.handle, record);
+        }
+        else {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
+        }
+        App_TimerStop(&file->write_timer);
+        return return_value;
+    }
+
     App_TimerStart(&file->write_timer);
 
     record->file = file;
-
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: file %s, type %s, rewrite %d\n",
-            __func__, file->path, fst_file_type_name[file->type], rewrite);
 
     // Use the skip_filter option, to *not* miss the record because of the global filter
     fst_query_options rewrite_options = default_query_options;
@@ -1291,31 +1335,37 @@ int32_t fst24_write(
         crit.dateo=-1;
     }
 
-    // If the record already exists in the file, we skip writing altogether
-    if (rewrite == FST_SKIP) {
+    // If the record already exists in the file, we skip writing altogether (FST_SKIP), or we delete
+    // it before writing (FST_YES)
+    if (rewrite == FST_SKIP || rewrite == FST_YES) {
         fst_query* q = fst24_new_query(file, &crit, &rewrite_options);
-        const int32_t found = fst24_find_next(q,NULL);
+        fst_record to_delete = default_fst_record;
+        const int32_t found = fst24_find_next(q,&to_delete);
         fst24_query_free(q);
         if (found) {
-            Lib_Log(APP_LIBFST, APP_INFO, "%s: Skipping already existing record\n", __func__);
-            App_TimerStop(&file->write_timer);
-            return TRUE;
+            if (rewrite == FST_SKIP) {
+                Lib_Log(APP_LIBFST, APP_INFO, "%s: Skipping (record already exists)\n", __func__);
+                App_TimerStop(&file->write_timer);
+                return TRUE;
+            }
+
+            if (fst24_delete(&to_delete) != TRUE) {
+                Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to delete existing record\n", __func__);
+                App_TimerStop(&file->write_timer);
+                return -1;
+            }
+
+            Lib_Log(APP_LIBFST, APP_INFO, "%s: Rewriting existing record\n", __func__);
         }
     } 
 
     // No skip, so we write
     int32_t return_value = -1;
     if (file->type == FST_RSF) {
-        if (rewrite == FST_YES) {
-            int nb;
-            if ((nb=fst24_search_and_delete(file, &crit, &rewrite_options))) {
-                Lib_Log(APP_LIBFST, APP_INFO, "%s: Deleted %i matching records\n", __func__,nb);
-            }
-        }
         return_value = fst24_write_rsf(file->rsf_handle, record, 1);
     }
     else if (file->type == FST_XDF) {
-        return_value = fst24_write_xdf(record, rewrite);
+        return_value = fst24_write_xdf(record, FST_NO);
     }
     else {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
@@ -1334,14 +1384,34 @@ int32_t fst24_rewrite_meta_rsf(
     const int64_t record_handle,    //!< [in] Record handle
     const fst_record* const record  //!< [in] The new metadata to store
 ) {
-    union {
-        search_metadata as_object;
-        uint32_t as_uint[sizeof(search_metadata) / sizeof(uint32_t)];
-    } meta;
+    // Sanity check
+    if (record->do_not_touch.fst_version != FST24_VERSION_COUNT) {
+        Lib_Log(APP_LIBFST, APP_ERROR,
+            "%s: Existing record written with FST version %d, but this library is compiled for version %d."
+            " We cannot rewrite this record's metadata.\n",
+            __func__, record->do_not_touch.fst_version, FST24_VERSION_COUNT);
+        return FALSE;
+    }
 
-    make_search_metadata(record, &meta.as_object);
-    if (RSF_Rewrite_record_meta(file_handle, record_handle, meta.as_uint,
-                                sizeof(search_metadata)) != 1) {
+    // Compute extended metadata size requirements
+    int ext_meta_bytes = 0;
+    uint16_t ext_meta_words = 0; // 32-bit words
+    char* meta_str = NULL;
+    if (record->metadata != NULL) {
+        if ((meta_str = Meta_Stringify(record->metadata,JSON_C_TO_STRING_PLAIN)) != NULL) {
+            ext_meta_bytes = strlen(meta_str) + 1; // Include null character
+            ext_meta_words = (ext_meta_bytes + 3) / 4; // Round up to 4 bytes
+        }
+    }
+
+    // Put info together in a single array
+    uint32_t meta[sizeof(search_metadata) / sizeof(uint32_t) + ext_meta_words];
+    make_search_metadata(record, (search_metadata*)meta);
+    if (meta_str != NULL) memcpy(((search_metadata*)meta) + 1, meta_str, ext_meta_bytes);
+
+    // Do the rewrite
+    if (RSF_Rewrite_record_meta(file_handle, record_handle, meta,
+                                sizeof(search_metadata) + ext_meta_bytes) != 1) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to rewrite in RSF file\n", __func__);
         return FALSE;
     }

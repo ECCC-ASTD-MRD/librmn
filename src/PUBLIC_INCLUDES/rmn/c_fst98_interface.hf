@@ -422,10 +422,6 @@
       character(C_CHAR), dimension(*), intent(IN) :: cle, content
     end subroutine c_fst_env_var
 
-    ! int c_fst_edit_dir_plus(int handle, unsigned int date, int deet, int npas,
-    !                         int ni, int nj, int nk, int ip1, int ip2, int ip3,
-    !                         char *in_typvar, char *in_nomvar, char *in_etiket, char *in_grtyp, 
-    !                         int ig1, int ig2, int ig3, int ig4, int datyp);
     function c_fst_edit_dir_plus(handle, date, deet, npas, ni, nj, nk, ip1, ip2, ip3, &
                                  typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp) &
                                  result(status) bind(C,name='c_fst_edit_dir_plus')
@@ -437,10 +433,6 @@
       integer(C_INT) :: status
     end function c_fst_edit_dir_plus
 
-    ! int c_fst_edit_dir(int handle, unsigned int date, int deet, int npas,
-    !                    int ni, int nj, int nk, int ip1, int ip2, int ip3,
-    !                    char *in_typvar, char *in_nomvar, char *in_etiket, char *in_grtyp, 
-    !                    int ig1, int ig2, int ig3, int ig4, int datyp);
     function c_fst_edit_dir(handle, date, deet, npas, ni, nj, nk, ip1, ip2, ip3, &
                             typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp) &
                             result(status) bind(C,name='c_fst_edit_dir')

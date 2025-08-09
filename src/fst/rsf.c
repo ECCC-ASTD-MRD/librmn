@@ -1488,6 +1488,8 @@ int64_t RSF_Put_record(
 
 //! Mark the given record as "deleted" in its file
 //! Uses the mutex of the corresponding file
+//! This function is safe to call from multiple threads on the same file, even on the same record.
+//! It is also safe to call from multiple processes on the same file, but *not on the same record*.
 //! \return 1 if success, 0 if not
 int32_t RSF_Delete_record(
     RSF_handle h,
@@ -1572,7 +1574,8 @@ RETURN:
 //! Overwrite the metadata of an existing record. Changes both the directory and the metadata in the record
 //! itself. The change is completed on disk when this function returns.
 //! If the new metadata does not fit in the existing space, the function fails.
-//! This function is safe to call from multiple threads on the same file.
+//! This function is safe to call from multiple threads on the same file, even on the same record.
+//! It is also safe to call from multiple processes on the same file, but *not on the same record*.
 //! \return 1 on success, 0 on failure
 int32_t RSF_Rewrite_record_meta(
   RSF_handle h,           //!< [in] The file to modify
