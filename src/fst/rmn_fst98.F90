@@ -1108,4 +1108,39 @@ contains
         fstcvt_to_char = fstcvt2(nom_, typ_, etik_, grtp_, cnom, ctyp, cetik, cgrtp, .true.)
     end function fstcvt_to_char
 
+
+    function fst_edit_dir_plus(handle, date, deet, npas, ni, nj, nk, ip1, ip2, ip3, &
+                               typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp) &
+                               result(status)
+        use f_c_strings_mod
+        implicit none
+        integer(C_INT), intent(IN), value :: handle, date, deet, npas, ni, nj, nk, ip1, ip2, ip3
+        integer(C_INT), intent(IN), value :: ig1, ig2, ig3, ig4, datyp
+        character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+        integer(C_INT) :: status
+
+        character(C_CHAR), dimension(5)  :: nom
+        character(C_CHAR), dimension(3)  :: typ
+        character(C_CHAR), dimension(13) :: eti
+        character(C_CHAR), dimension(2)  :: gr
+        call strncpy_f2c(typvar, typ, 3)
+        call strncpy_f2c(nomvar, nom, 5)
+        call strncpy_f2c(etiket, eti, 13)
+        call strncpy_f2c(grtyp, gr, 2)
+
+        status = c_fst_edit_dir_plus(handle, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,   &
+                    typ, nom, eti, gr, ig1, ig2, ig3, ig4, datyp)
+    end function fst_edit_dir_plus
+
+    function fst_edit_dir(handle, date, deet, npas, ni, nj, nk, ip1, ip2, ip3, &
+                          typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp) &
+                          result(status)
+        integer(C_INT), intent(IN), value :: handle, date, deet, npas, ni, nj, nk, ip1, ip2, ip3
+        integer(C_INT), intent(IN), value :: ig1, ig2, ig3, ig4, datyp
+        character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+        integer(C_INT) :: status
+
+        status = fst_edit_dir_plus(handle, date, deet, npas, -1, -1, -1, ip1, ip2, ip3,     &
+                        typvar, nomvar, etiket, ' ', ig1, ig2, ig3, ig4, -1)
+    end function fst_edit_dir
 end module rmn_fst98

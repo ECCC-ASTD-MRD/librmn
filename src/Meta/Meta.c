@@ -410,7 +410,7 @@ inline static const char* Meta_ValidateToken(json_object *TokenList, const char 
  *    @param[in]  StandardName  Standard name (CF table)
  *    @param[in]  RPNName       RPN nomvar
  *    @param[in]  LongName      Long name
- *    @param[in]  Description   Varibale description
+ *    @param[in]  Description   Variable description
  *    @param[in]  Unit          Data unit (udunits)
  *
  *    @return                   json_object pointer (NULL if error)
@@ -1773,16 +1773,16 @@ char *Meta_Stringify(json_object *Obj,int Format) {
 json_object* Meta_Parse(const char *MetaString) {
 
    struct json_object *obj=NULL;
-   enum json_tokener_error jerr;
+   enum json_tokener_error jerr = json_tokener_success;
 
-   if (MetaString) {
+   if (MetaString != NULL) {
 	   obj = json_tokener_parse_verbose(MetaString,&jerr);
+
+      if (!obj) {
+         Lib_Log(APP_LIBMETA, APP_ERROR, "%s: %s\n", __func__, json_tokener_error_desc(jerr));
+      }
    }
 
-   if (!obj) {
-      Lib_Log(APP_LIBMETA,APP_ERROR,"%s: %s\n",__func__,json_tokener_error_desc(jerr));
-      return(NULL);
-   }
    return(obj);
 }
 

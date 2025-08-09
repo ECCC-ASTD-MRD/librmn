@@ -861,7 +861,7 @@ int32_t fst24_record_copy_metadata(
     return 1;
 }
 
-//! \return 1 if the given two records have the same metadata
+//! \return 1 if the given two records have the same metadata (does not check extended meta).
 //!         0 otherwise
 int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     if (a == NULL || b == NULL) return 0;
@@ -894,6 +894,19 @@ int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     return 1;
 }
 
+//! Check whether two records have the same FST metadata (including extended metadata)
+//! \return 1 if the given records have the same metadata, 0 otherwise
+int32_t fst24_record_has_same_meta(const fst_record* a, const fst_record* b) {
+    if (!fst24_record_has_same_info(a, b)) return 0;
+    // We don't compare meta size, since it may have changed (become smaller) afterwards. What matters is the content.
+    if ((a->metadata == NULL) != (b->metadata == NULL)) return 0;
+    if (a->metadata != NULL && b->metadata != NULL) {
+        if (strcmp(a->do_not_touch.stringified_meta, b->do_not_touch.stringified_meta) != 0) return 0;
+    }
+
+    return 1;
+}
+
 //! Print every difference between the attributes of the given 2 fst_struct
 void fst24_record_diff(const fst_record* a, const fst_record* b) {
     if (a == NULL || b == NULL) {
@@ -915,7 +928,7 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
     if (a->datev != b->datev)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Datev:   a = %d, b = %d)\n", __func__, a->datev, b->datev);
     if (a->do_not_touch.handle != b->do_not_touch.handle)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Handle:  a = %d, b = %d)\n", __func__, a->do_not_touch.handle, b->do_not_touch.handle);
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Handle:  a = 0x%llx, b = 0x%llx)\n", __func__, a->do_not_touch.handle, b->do_not_touch.handle);
     if (a->data_type != b->data_type)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: data_type:   a = %d, b = %d)\n", __func__, a->data_type, b->data_type);
     if (a->data_bits != b->data_bits)
@@ -957,6 +970,13 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: nomvar:  a = \"%3s\", b = \"%3s\"\n", __func__, a->nomvar, b->nomvar);
     if (!is_same_record_string(a->etiket, b->etiket, FST_ETIKET_LEN))
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: etiket:  a = \"%3s\", b = \"%3s\"\n", __func__, a->etiket, b->etiket);
+
+    if (a->do_not_touch.stringified_meta && b->do_not_touch.stringified_meta) {
+        if (strcmp(a->do_not_touch.stringified_meta, b->do_not_touch.stringified_meta) != 0) {
+            Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: extended metadata \n  a: %s\n  b: %s\n", __func__,
+                a->do_not_touch.stringified_meta, b->do_not_touch.stringified_meta);
+        }
+    }
 }
 
 //! To be called from fortran. Determine whether the given FST record pointer matches the default
@@ -996,6 +1016,7 @@ int32_t fst24_validate_default_record(
     return 0;
 }
 
+//! Debug function. Print record attributes that are not at their default value.
 void print_non_wildcards(const fst_record* const record) {
     char buffer[1024];
     char* ptr = buffer;
@@ -1041,7 +1062,7 @@ void print_search_meta(const search_metadata* const keys, const fst_file_type ty
 
 //! Copy record information (including metadata *pointer*) into destination, while preserving
 //! the data pointer and the allocation flag and status;
-//! Does not free any memory!
+//! *Does not free any memory!*
 void fst_record_copy_info(fst_record* const dest, const fst_record* const src) {
     const fst_record* actual_src = src ? src : &default_fst_record;
     Meta_Free(dest->metadata);

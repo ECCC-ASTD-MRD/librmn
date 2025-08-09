@@ -28,7 +28,7 @@
 #define FST_YES   1
 #define FST_NO    0
 #define FST_SKIP  2
-#define FST_REWRITE_META 4
+#define FST_META 4
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -231,6 +231,7 @@ void         fst24_record_print_short(const fst_record* record, const fst_record
 fst_record*  fst24_record_new(void *data, int32_t type, int32_t nbits, int32_t ni, int32_t nj, int32_t nk);
 int32_t      fst24_record_free(fst_record* record);
 int32_t      fst24_record_has_same_info(const fst_record* a, const fst_record* b);
+int32_t      fst24_record_has_same_meta(const fst_record* a, const fst_record* b);
 int32_t      fst24_record_is_same(const fst_record* const a, const fst_record* const b);
 void         fst24_record_diff(const fst_record* a, const fst_record* b);
 int32_t      fst24_record_copy_metadata(fst_record* dest, const fst_record* src, int What);
