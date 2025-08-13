@@ -364,6 +364,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst_rewrite_skip COMMAND $<TARGET_FILE:fst_rewrite_skip>)
         add_dependencies(check fst_rewrite_skip)
 
+        add_executable(fst24_no_dateo EXCLUDE_FROM_ALL fst/fst24_no_dateo.c)
+        target_link_libraries(fst24_no_dateo rmn::rmn)
+        add_test(NAME fst24_no_dateo COMMAND $<TARGET_FILE:fst24_no_dateo>)
+        add_dependencies(check fst24_no_dateo)
+
         if(BUILD_PYTHON)
             add_dependencies(check _rmn)
             add_test( NAME python_import_package_compiled COMMAND bash -c "${set_pythonpath} ${Python_EXECUTABLE} -c 'import compiled-rmn'")

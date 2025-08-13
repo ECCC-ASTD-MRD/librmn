@@ -1325,6 +1325,25 @@ int32_t fst24_write(
 
     record->file = file;
 
+    // Check and set origin date, if appropriate
+    if (record->deet != default_fst_record.deet && record->npas != default_fst_record.npas) {
+        if (record->datev != default_fst_record.datev) {
+            const int32_t dateo = get_origin_date32(record->datev, record->deet, record->npas);
+            if (record->dateo == default_fst_record.dateo) {
+                Lib_Log(APP_LIBFST, APP_DEBUG,
+                    "%s: No origin date specified. Setting it to %d (from datev = %d, deet = %d, npas = %d)\n",
+                    __func__, dateo, record->datev, record->deet, record->npas);
+                record->dateo = dateo;
+            }
+            else if (record->dateo != dateo) {
+                Lib_Log(APP_LIBFST, APP_WARNING,
+                    "%s: Origin and validity dates are not consistent; validity date will be overwritten."
+                    " dateo = %d, datev = %d, deet = %d, npas = %d\n",
+                    __func__, record->dateo, record->datev, record->deet, record->npas);
+            }
+        }
+    }
+
     // Use the skip_filter option, to *not* miss the record because of the global filter
     fst_query_options rewrite_options = default_query_options;
     rewrite_options.skip_filter = 1;
