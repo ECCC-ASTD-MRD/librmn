@@ -369,6 +369,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst24_no_dateo COMMAND $<TARGET_FILE:fst24_no_dateo>)
         add_dependencies(check fst24_no_dateo)
 
+        add_executable(fst24_flush EXCLUDE_FROM_ALL fst/fst24_flush.c)
+        target_link_libraries(fst24_flush rmn::rmn)
+        add_test(NAME fst24_flush COMMAND $<TARGET_FILE:fst24_flush>)
+        add_dependencies(check fst24_flush)
+
         if(BUILD_PYTHON)
             add_dependencies(check _rmn)
             add_test( NAME python_import_package_compiled COMMAND bash -c "${set_pythonpath} ${Python_EXECUTABLE} -c 'import compiled-rmn'")

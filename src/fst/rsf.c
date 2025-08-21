@@ -21,6 +21,7 @@ static void RSF_Finalize(void);
 static int32_t RSF_File_lock(RSF_File *fp, int lock);
 static int32_t RSF_Ensure_new_segment(RSF_File *fp);
 static rsf_rec_type RSF_Read_record(RSF_File* fp, const uint64_t address, void* dest, const size_t num_bytes);
+static int32_t RSF_Close_compact_segment(RSF_handle h);
 
 
 //! Initialize the RSF library:
@@ -767,10 +768,21 @@ static int64_t RSF_Write_vdir(RSF_File * const fp){
 
 // =================================  user callable rsf file functions =================================
 
-//! Write to disk everything that's only in memory.
-//! \todo is it only the directory?
+//! Write to disk everything that's only in memory and close the segment so that it can be complete and someone else
+//! can read it
+//! \return Result of individual operations: 0 or positive on success, negative on failure
 int64_t RSF_Checkpoint(RSF_handle h) {
-    return RSF_Write_vdir((RSF_File *) h.p);
+    RSF_File* fp = (RSF_File*) h.p;
+    if ((fp->mode & RSF_RO) == RSF_RO) return 0; // Read-only, nothing to do
+
+    if (fp->seg_max == 0) {
+        if (RSF_Close_compact_segment(h) != 1) return -1;
+    }
+    else {
+        if (RSF_Switch_sparse_segment(h, 0) != 1) return -1;
+    }
+    
+    return RSF_Ensure_new_segment(fp);
 }
 
 // default directory match function (user overridable)
@@ -2649,7 +2661,7 @@ ERROR:
 // write directory record
 // write EOS record for compact segment
 // rewrite original SOS, (segment 0 SOS if FUSING segments)
-int32_t RSF_Close_compact_segment(RSF_handle h){
+static int32_t RSF_Close_compact_segment(RSF_handle h){
   RSF_File *fp = (RSF_File *) h.p;
   uint64_t vdir_size;
   off_t offset_vdir, offset_eof;
@@ -2706,6 +2718,8 @@ int32_t RSF_Close_compact_segment(RSF_handle h){
   sos.head.rlmd = fp->dir_meta;
   lseek(fp->fd, fp->seg_base , SEEK_SET);
   write(fp->fd, &sos, sizeof(start_of_segment));      // rewrite start of active segment
+
+  fp->next_write = 0;
 
   return 1;   // NO ERROR
 }
