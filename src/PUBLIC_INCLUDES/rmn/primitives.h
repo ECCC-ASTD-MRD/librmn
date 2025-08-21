@@ -8,5 +8,6 @@
 
 size_t fread32( void *ptr, size_t size, size_t nitems, FILE *stream);
 void f77name(micro_sleep) (double *secs);
+void rmn_print_build_info(void);
 
 #endif
