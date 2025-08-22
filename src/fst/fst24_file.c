@@ -189,7 +189,7 @@ int32_t fst24_close(fst_file* const file) {
         const float find_time = App_TimerTotalTime_ms(&file->find_timer);
         const float num_read_mb = file->num_bytes_read / (1024.0f * 1024.0f);
         const float num_written_mb = file->num_bytes_written / (1024.0f * 1024.0f);
-        Lib_Log(APP_LIBFST, APP_TRIVIAL,
+        Lib_Log(APP_LIBFST, APP_STAT,
             "%s: Closing file %s\n"
             "\tRead  %.2f MB in %.3f seconds\n"
             "\tWrote %.2f MB in %.3f seconds\n"

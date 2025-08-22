@@ -113,17 +113,17 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
                 return -1;
             }
 
-            if (fst24_flush(new_file) < 0) {
-                App_Log(APP_ERROR, "Error while checkpointing the new file %s\n", name);
-                return -1;
-            }
-
             record.ip1++;
+        }
+
+        if (fst24_flush(new_file) < 0) {
+            App_Log(APP_ERROR, "Error while checkpointing the new file %s\n", name);
+            return -1;
         }
 
         // Try something that should fail
         record.data = NULL;
-        App_Log(APP_INFO, "Expecting next call to fail\n");
+        App_Log(APP_ALWAYS, "Expecting next call to fail\n");
         if (fst24_write(new_file, &record, FALSE) == TRUE) {
             App_Log(APP_ERROR, "Should not be able to write a record when there's no data in it\n");
             return -1;
@@ -142,7 +142,8 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
         // we're good
     }
     else {
-        App_Log(APP_ERROR, "wkoffit gives wrong file type (%s vs %d)\n", is_rsf ? "rsf" : "xdf", type);
+        App_Log(APP_ERROR, "wkoffit gives wrong file type (%d, expected %d - %s)\n",
+            type, is_rsf ? WKF_STDRSF : WKF_RANDOM98, is_rsf ? "rsf" : "xdf");
         return -1;
     }
 
