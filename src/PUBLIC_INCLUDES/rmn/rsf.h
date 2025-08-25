@@ -245,5 +245,7 @@ RSF_handle RSF_Key64_to_handle(int64_t key64) ;
 int32_t RSF_Key64_to_index(const int64_t key64) ;
 int32_t RSF_Basic_check(const char* filename) ;
 int64_t RSF_Checkpoint(RSF_handle h) ;
+int32_t RSF_Reset_write_flag(const int32_t file_descriptor, const int full_reset) ;
+
 
 #endif // RMN_RSF_H__

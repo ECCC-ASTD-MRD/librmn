@@ -374,6 +374,16 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst24_flush COMMAND $<TARGET_FILE:fst24_flush>)
         add_dependencies(check fst24_flush)
 
+        add_executable(gen_abort_file EXCLUDE_FROM_ALL fst/gen_abort_file.c)
+        target_link_libraries(gen_abort_file rmn::rmn)
+        add_dependencies(check gen_abort_file)
+        add_dependencies(gen_abort_file fst_force_close fst_check)
+        add_test(
+            NAME fst_force_close
+            COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/fst/fst_force_close.sh
+                    $<TARGET_FILE:gen_abort_file> $<TARGET_FILE:fst_check> $<TARGET_FILE:fst_force_close>
+        )
+
         if(BUILD_PYTHON)
             add_dependencies(check _rmn)
             add_test( NAME python_import_package_compiled COMMAND bash -c "${set_pythonpath} ${Python_EXECUTABLE} -c 'import compiled-rmn'")

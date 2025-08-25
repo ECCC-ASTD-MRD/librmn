@@ -2842,11 +2842,13 @@ int32_t RSF_Switch_sparse_segment(RSF_handle h, int64_t min_size){
 
 //! Reset write flag of the given file, by setting it to 0 if the file was open in exclusive write, or
 //! by decrementing it by one if it was open in parallel (shared) write.
-//! This is an internal function, it assumes that the file description points to a valid file and does
-//! not perform any check on the segment to change.
+//! *This function does not perform any check on the segment to change.*
 //! \return 1 on success, 0 or negative on failure
-int32_t RSF_Reset_write_flag(const int32_t file_descriptor) {
-
+int32_t RSF_Reset_write_flag(
+    const int32_t file_descriptor,     //!< Handle to an open and valid RSF file
+    const int full_reset    //!< Whether to completely reset the flag (if 1), or simply decrement writer count (0)
+) {
+    int32_t status = 0;
 
     // ---------- Lock file ---------- //
     RSF_File_lock(file_descriptor, 1);
@@ -2858,24 +2860,34 @@ int32_t RSF_Reset_write_flag(const int32_t file_descriptor) {
     if (num_read < sizeof(start_of_segment)) return 0;
     // print_start_of_segment(&fp->sos0);
 
+    const uint32_t old_flag = sos0.head.rlm;
+
     // Set to zero if exclusive (compact mode), decrement if sparse
-    if (sos0.head.rlm == RSF_EXCLUSIVE_WRITE) {
+    if (sos0.head.rlm == RSF_EXCLUSIVE_WRITE || full_reset == 1) {
         sos0.head.rlm = 0;
     }
     else if (sos0.head.rlm > 0) {
         sos0.head.rlm = sos0.head.rlm - 1;
     }
 
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: rewriting segment 0 header, rlm = %d\n", __func__, sos0.head.rlm);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: rewriting segment 0 header, rlm = %x (was %x)\n",
+            __func__, sos0.head.rlm, old_flag);
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) print_start_of_segment(&sos0);
 
     lseek(file_descriptor, 0, SEEK_SET);
-    write(file_descriptor, &sos0, sizeof(start_of_segment));  // rewrite start of segment 0
+    const ssize_t num_written = write(file_descriptor, &sos0, sizeof(start_of_segment));  // rewrite start of segment 0
+    if (num_written != sizeof(start_of_segment)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not rewrite first segment! (%ld)\n", __func__, num_written);
+        goto UNLOCK;
+    }
 
+    status = 1;
+
+UNLOCK:
     RSF_File_lock(file_descriptor, 0);
     // --------- Unlock file --------- //
 
-    return 1;
+    return status;
 }
 
 //! Close the given RSF file
@@ -2917,7 +2929,7 @@ int32_t RSF_Close_file(RSF_handle h){
         RSF_Close_compact_segment(fp);
     }
 
-    RSF_Reset_write_flag(fp->fd);
+    RSF_Reset_write_flag(fp->fd, 0);
 
     Lib_Log(APP_LIBFST, APP_EXTRA, "%s: EOF at %lx\n", __func__, lseek(fp->fd, 0L, SEEK_END));
 

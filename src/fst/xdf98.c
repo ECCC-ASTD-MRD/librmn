@@ -1820,7 +1820,7 @@ int c_xdfopn(
     //! [in] Unit number associated to the file
     int iun,
     //! [in] Open mode (READ, WRITE, R-W, CREATE, APPEND)
-    char *mode,
+    const char *mode,
     //! [in] Primary keys
     word_2 *pri,
     //! [in] Number of primary keys
@@ -1974,7 +1974,7 @@ int c_xdfopn(
             if (strstr(mode, "READ") || strstr(mode, "read")) {
                 fte->header->rwflg = RDMODE;
             } else {
-                if (fte->header->rwflg != RDMODE) {
+                if (fte->header->rwflg != RDMODE && !strstr(mode, "FORCE-W")) {
                     Lib_Log(APP_LIBFST,APP_FATAL,"%s: file (unit=%d) currently used by another application in write mode\n",__func__,iun);
                     release_xdf_index(index);
                     return(ERR_STILL_OPN);
@@ -1982,7 +1982,7 @@ int c_xdfopn(
 
                 if (strstr(mode, "WRITE") || strstr(mode, "write")) {
                     fte->header->rwflg = WMODE;
-                } else if (strstr(mode, "R-W") || strstr(mode, "r-w")) {
+                } else if (strstr(mode, "R-W") || strstr(mode, "r-w") || strstr(mode, "FORCE-W")) {
                     fte->header->rwflg = RWMODE;
                 } else if (strstr(mode, "APPEND") || strstr(mode, "append")) {
                     fte->header->rwflg = APPEND;
