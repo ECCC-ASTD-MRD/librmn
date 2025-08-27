@@ -18,6 +18,7 @@ static double* data_d = NULL;
 static int32_t* data_i = NULL;
 static int64_t* data_l = NULL;
 static uint64_t* data_ull = NULL;
+static uint32_t* data_umask = NULL;
 
 #define MISSING 64
 
@@ -90,6 +91,7 @@ static const test_params params_integer[] = {
     {.data = (void*)&data_ull, .data_type = FST_TYPE_SIGNED,   .data_size = 16, .pack_size = 16, .nk = NUM_DATA_Z, .compare_data = (void*)&data_ull},
     {.data = (void*)&data_ull, .data_type = FST_TYPE_UNSIGNED, .data_size =  8, .pack_size =  8, .nk = NUM_DATA_Z, .compare_data = (void*)&data_ull},
     {.data = (void*)&data_ull, .data_type = FST_TYPE_SIGNED,   .data_size =  8, .pack_size =  8, .nk = NUM_DATA_Z, .compare_data = (void*)&data_ull},
+    {.data = (void*)&data_umask, .data_type =FST_TYPE_UNSIGNED,.data_size =  32, .pack_size =  1, .nk = NUM_DATA_Z, .compare_data = (void*)&data_umask},
 };
 
 static const test_params params_fail[] = {
@@ -124,6 +126,7 @@ void make_data() {
     data_f = (float*) malloc(NUM_DATA_X * NUM_DATA_Y * NUM_DATA_Z * sizeof(float));
     data_d = (double*) malloc(NUM_DATA_X * NUM_DATA_Y * NUM_DATA_Z * sizeof(double));
     data_i = (int32_t*) malloc(NUM_DATA_X * NUM_DATA_Y * NUM_DATA_Z * sizeof(int32_t));
+    data_umask = (uint32_t*) malloc(NUM_DATA_X * NUM_DATA_Y * NUM_DATA_Z * sizeof(int32_t));
     data_l = (int64_t*) malloc(NUM_DATA_X * NUM_DATA_Y * NUM_DATA_Z * sizeof(int64_t));
     data_ull = (uint64_t*) malloc(NUM_DATA_X * NUM_DATA_Y * NUM_DATA_Z * sizeof(uint64_t));
 
@@ -139,6 +142,7 @@ void make_data() {
                 data_d[index] = gen_value_real(i, j, k, NUM_DATA_X, NUM_DATA_Y, NUM_DATA_Z);
                 data_f[index] = (float)data_d[index];
                 data_i[index] = (int32_t)data_d[index];
+                data_umask[index] = data_i[index] % 2;
                 data_l[index] = (int64_t)data_d[index];
                 data_ull[index] = gen_value_uint64(i, j, k, NUM_DATA_X, NUM_DATA_Y, NUM_DATA_Z);
                 // fprintf(stderr, "%6.3f ", data_f[index]);
@@ -300,23 +304,19 @@ int compare_data_bytes(const uint8_t* a, const uint8_t* b, const int num_x, cons
             char* ptr = buffer;
 
             const int row_size = num_z * num_y * bytes_per_elem;
-            const int NUM_COL = row_size > 56 ? 56 : row_size;
+            const int NUM_COL = row_size > 40 ? 40 : row_size;
             const int NUM_ROW = num_x > 33 ? 33 : num_x;
 
             for (int j = 0; j < NUM_ROW; j++) {
-                sprintf(ptr, "%2d a: ", j);
-                ptr += 6;
+                ptr += sprintf(ptr, "%2d a: ", j);
                 for (int i = 0; i < NUM_COL; i++) {
-                    sprintf(ptr, "%02x", a[i + j * row_size]);
-                    ptr += 2;
+                    ptr += sprintf(ptr, "%02x", a[i + j * row_size]);
                     if (i % 4 == 3) { ptr[0] = ' '; ptr++; }
                 }
                 ptr[0] = '\n'; ptr++;
-                sprintf(ptr, "   b: ");
-                ptr += 6;
+                ptr += sprintf(ptr, "   b: ");
                 for (int i = 0; i < NUM_COL; i++) {
-                    sprintf(ptr, "%02x", b[i + j * row_size]);
-                    ptr += 2;
+                    ptr += sprintf(ptr, "%02x", b[i + j * row_size]);
                     if (i % 4 == 3) { ptr[0] = ' '; ptr++; }
                 }
                 ptr[0] = '\n'; ptr++;
@@ -392,6 +392,7 @@ int create_file(const int is_rsf) {
         }
     }
 
+    App_Log(APP_ALWAYS, "%s: Expecting %d write failures\n", __func__, NUM_CASES_FAIL);
     for (int i = 0; i < NUM_CASES_FAIL; i++) {
         rec.ip1++;
         rec.data  = *(params_fail[i].data);
@@ -495,10 +496,10 @@ int main(void) {
 
     make_data();
 
-    App_Log(APP_INFO, "Testing RSF\n");
+    App_Log(APP_ALWAYS, "Testing RSF\n");
     if (test_compression(1) != 0) return -1;
 
-    App_Log(APP_INFO, "Testing XDF\n");
+    App_Log(APP_ALWAYS, "Testing XDF\n");
     if (test_compression(0) != 0) return -1;
 
     free(data_f);

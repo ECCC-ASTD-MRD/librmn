@@ -3788,7 +3788,9 @@ int c_fstouv(
                 ier = c_fstouv_rsf(i, open_mode, seg_size);
             }
             else if (iwko == WKF_SEQUENTIEL98 || iwko == WKF_RANDOM98 || iwko == WKF_SEQUENTIEL89 || iwko == WKF_RANDOM89) {
-                ier = c_xdfopn(iun, read_only?"READ":"R-W", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
+                const char* mode = read_only ? "READ":"R-W";
+                if (strcasestr(options, "FORCE-WRITE")) mode = "FORCE-W";
+                ier = c_xdfopn(iun, mode, (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
             else {
                 ier = ERR_WRONG_FTYPE;

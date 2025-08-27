@@ -189,7 +189,7 @@ int32_t fst24_close(fst_file* const file) {
         const float find_time = App_TimerTotalTime_ms(&file->find_timer);
         const float num_read_mb = file->num_bytes_read / (1024.0f * 1024.0f);
         const float num_written_mb = file->num_bytes_written / (1024.0f * 1024.0f);
-        Lib_Log(APP_LIBFST, APP_TRIVIAL,
+        Lib_Log(APP_LIBFST, APP_STAT,
             "%s: Closing file %s\n"
             "\tRead  %.2f MB in %.3f seconds\n"
             "\tWrote %.2f MB in %.3f seconds\n"
@@ -1324,6 +1324,25 @@ int32_t fst24_write(
     App_TimerStart(&file->write_timer);
 
     record->file = file;
+
+    // Check and set origin date, if appropriate
+    if (record->deet != default_fst_record.deet && record->npas != default_fst_record.npas) {
+        if (record->datev != default_fst_record.datev) {
+            const int32_t dateo = get_origin_date32(record->datev, record->deet, record->npas);
+            if (record->dateo == default_fst_record.dateo) {
+                Lib_Log(APP_LIBFST, APP_DEBUG,
+                    "%s: No origin date specified. Setting it to %d (from datev = %d, deet = %d, npas = %d)\n",
+                    __func__, dateo, record->datev, record->deet, record->npas);
+                record->dateo = dateo;
+            }
+            else if (record->dateo != dateo) {
+                Lib_Log(APP_LIBFST, APP_WARNING,
+                    "%s: Origin and validity dates are not consistent; validity date will be overwritten."
+                    " dateo = %d, datev = %d, deet = %d, npas = %d\n",
+                    __func__, record->dateo, record->datev, record->deet, record->npas);
+            }
+        }
+    }
 
     // Use the skip_filter option, to *not* miss the record because of the global filter
     fst_query_options rewrite_options = default_query_options;
@@ -2653,6 +2672,53 @@ int32_t fst24_search_and_delete(
     fst24_query_free(q);
 
     return nb;
+}
+
+//! Force close a file that might have been left open in write mode by a crash.
+//! *Be careful when using this function, it will reset the read-write flag of the file on disk, even if
+//! another process currently has the file open for writing.*
+//!
+//! Thread safety: It is "safe" to call this function several times on the same file at the same time because it
+//! does not take an `fst_file` pointer as input, *but you shouldn't do it*.
+//!
+//! \return TRUE (1) on success, FALSE (0) or a negative number on failure
+int32_t fst24_force_close(
+    const char* filename //!< Name of the file whose flag needs resetting. Must be a valid RPN Standard file
+) {
+
+    fst_file* file = fst24_open(filename, "R/O"); // Must be able to open it read-only
+
+    if (file == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File must be openable in read-only mode (%d)\n", __func__, filename);
+        return -1;
+    }
+
+    int32_t status = -1;
+    if (file->type == FST_RSF) {
+        const int32_t file_descriptor = open(filename, O_RDWR, 0777);
+        if (file_descriptor > 0) {
+            status = RSF_Reset_write_flag(file_descriptor, 1);
+            close(file_descriptor);
+        }
+    }
+    else if (file->type == FST_XDF) {
+        fst_file* xdf_force = fst24_open(filename, "FORCE-WRITE+R/W");
+        if (xdf_force == NULL) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not force open file in write mode (%d)\n", __func__, filename);
+        }
+        else {
+            if (fst24_close(xdf_force) == TRUE) status = TRUE;
+        }
+    }
+    else {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d\n", __func__, file->type);
+    }
+
+    if (status == TRUE) {
+        fst24_close(file);
+    }
+
+    return status;
 }
 
 //! Print human-readable version of the given options, if they differ from their default value.

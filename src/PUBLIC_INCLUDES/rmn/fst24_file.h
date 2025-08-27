@@ -62,6 +62,7 @@ int32_t   fst24_link(fst_file** files, const int32_t num_files);
 int32_t   fst24_unlink(fst_file* const file);
 int32_t   fst24_print_summary(fst_file* const file, const fst_record_fields* const fields);
 int32_t   fst24_flush(const fst_file* const file);
+int32_t   fst24_force_close(const char* filename);
 //! @}
 
 #endif // RMN_FST_FILE_H__
