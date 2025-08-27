@@ -342,11 +342,14 @@ typedef struct {
     end_of_record tail ;    // rt=4
 } end_of_segment_hi ;
 
-//! Record length of end of segment
+//! Check that the given low part of an end_of_segment has a correct type in its start_of_record 
+//! Length of the EOS record if type is correct, 0 otherwise
 static inline uint64_t RSF_Rl_eosl(end_of_segment_lo eosl){
     return RSF_Rl_sor(eosl.head, RT_EOS) ;
 
 }
+//! Check that the given high part of an end_of_segment has a correct type in its end_of_record
+//! Length of the EOS record if type is correct, 0 otherwise
 static inline uint64_t RSF_Rl_eosh(end_of_segment_hi eosh){
     return RSF_Rl_eor(eosh.tail, RT_EOS) ;
 }
@@ -446,7 +449,7 @@ typedef struct _RSF_File {
     start_of_segment sos0 ;        //!< start of segment of first segment (as it was read from file)
     end_of_segment eos1 ;          //!< end of segment of active (compact or sparse) segment
     uint64_t seg_max ;             //!< Maximum address allowable in segment (ssegl if sparse file). 0 for compact segment (or no limit?)
-    uint64_t seg_max_hint ;        //!< Desired maximum address allowable in segment (sparse only)
+    uint64_t seg_max_hint ;        //!< Desired maximum address allowable in sparse segment (bytes)
     off_t    next_write ;          //!< file offset from beginning of file for next write operation ( -1 if not defined)
     rsf_rec_class rec_class ;      //!< record class being writen (default : data class 1) (rightmost 24 bits only)
     uint32_t class_mask ;          //!< record class mask (for scan/read/...) (by default all ones)

@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <glob.h>
-#include </usr/include/regex.h>
+#include <regex.h>
 
 #ifdef HAVE_UDUNITS2
 #include <udunits2.h>

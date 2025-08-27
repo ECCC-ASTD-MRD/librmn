@@ -1020,8 +1020,8 @@ fst_file* fst24_open(
 //! file is also an error. The user is responsible to make sure that other calls on a certain
 //! file are finished before closing that file.
 //!
-//! \todo What happens if closing a linked file?
 //! \return TRUE (1) if no error, FALSE (0) or a negative number otherwise
+//! \todo What happens if closing a linked file?
 int32_t fst24_close(fst_file* const file);
 
 //! Commit data and metadata to disk if the file has changed in memory
@@ -1076,7 +1076,11 @@ int32_t fst24_print_summary(
 int32_t fst24_write(
     fst_file* file,     //!< [in,out] The file where we want to write
     fst_record* record, //!< [in,out] The record we want to write
-    const int rewrite   //!< Whether we want to overwrite FST_YES, skip FST_SKIP or write again FST_NO an existing record
+    //!> - FST_YES:  overwrite existing record data
+    //!> - FST_SKIP: if record already exists, don't write anything
+    //!> - FST_NO:   append record to file
+    //!> - FST_META: Overwrite metadata of existing record. The record must come from the given file.
+    const int rewrite
 );
 
 //! Search a file with given criteria and read the first record that matches these criteria.
@@ -1152,6 +1156,18 @@ int32_t fst24_close_unlink(
 //!
 //! \return The result of \ref c_fsteof if the file was open, FALSE (0) otherwise
 int32_t fst24_eof(const fst_file* const file);
+
+//! Force close a file that might have been left open in write mode by a crash.
+//! *Be careful when using this function, it will reset the read-write flag of the file on disk, even if
+//! another process currently has the file open for writing.*
+//!
+//! Thread safety: It is "safe" to call this function several times on the same file at the same time because it
+//! does not take an `fst_file` pointer as input, *but you shouldn't do it*.
+//!
+//! \return TRUE (1) on success, FALSE (0) or a negative number on failure
+int32_t fst24_force_close(
+    const char* filename //!< Name of the file whose flag needs resetting. Must be a valid RPN Standard file
+);
 ```
 
 ### Query Functions
