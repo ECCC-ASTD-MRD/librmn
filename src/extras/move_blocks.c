@@ -14,46 +14,8 @@
 
 #include <stdint.h>
 
-#include <rmn/identify_c_compiler.h>
-
-// SIMD does not seem to be useful any more for these funtions with most compilers
-#undef WITH_SIMD
-
-#define VERBOSE_SIMD
-
-// replace calls to Intel intrinsics with calls to SIMD functions
-// (ignored if USE_INTEL_SIMD_INTRINSICS is defined)
-#define ALIAS_INTEL_SIMD_INTRINSICS
-// use C version of the SIMD intrinsics (llvm clang 19)
-#define USE_INTEL_SIMD_INTRINSICS_FALSE
-
-#if defined(COMPILER_IS_CLANG) && (__clang_major__ < 19)
-// aocc clang seems to do a poor vectorizing job when using the C version of the SIMD intrinsics
-#define USE_INTEL_SIMD_INTRINSICS   // for vector SIMD functions
-#endif
-
-#if defined(COMPILER_IS_GCC)
-// give an explicit hint to the gcc optimizer
-#pragma GCC optimize "tree-vectorize"
-// gcc seems to do a poor vectorizing job when computing "properties"
-#define USE_INTEL_SIMD_INTRINSICS   // for vector SIMD functions
-#endif
-
-#if defined(COMPILER_IS_ICX)
-// icx seems to do a poor vectorizing job when using the C version of the SIMD intrinsics
-#define USE_INTEL_SIMD_INTRINSICS    // for vector SIMD functions
-#endif
-
-#if defined(COMPILER_IS_ICC)
-// icc seems to do a poor vectorizing job
-#define USE_INTEL_SIMD_INTRINSICS    // for vector SIMD functions
+#define USE_INTEL_SIMD_INTRINSICS    // use Intel intrinsics
 #define WITH_SIMD                    // re-activate SIMD intrinsics everywhere
-#endif
-
-#if defined(COMPILER_IS_PGI)
-// nvc seems to do a poor vectorizing job when using the C version of the SIMD intrinsics
-#define USE_INTEL_SIMD_INTRINSICS   // for vector SIMD functions
-#endif
 
 #include <rmn/simd_functions.h>
 #include <rmn/move_blocks.h>
