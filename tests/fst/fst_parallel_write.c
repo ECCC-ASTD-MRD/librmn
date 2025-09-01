@@ -95,6 +95,7 @@ int test_parallel_write(const int rank) {
     strcpy(rec.grtyp, "X");
 
     MPI_Barrier(MPI_COMM_WORLD);
+    int num_written = 0;
     for (int i = 0; i < 5; i++) {
         gen_data(data, NUM_ELEM, rank, i);
         rec.ip3 = i;
@@ -102,7 +103,11 @@ int test_parallel_write(const int rank) {
             App_Log(APP_ERROR, "Unable to write record in parallel\n");
             return -1;
         }
+        num_written++;
     }
+
+    int total_written = 0;
+    MPI_Allreduce(&num_written, &total_written, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
     fst24_close(test_file);
     test_file = NULL;
@@ -118,6 +123,12 @@ int test_parallel_write(const int rank) {
         fst24_print_summary(test_file, NULL);
 
         const int64_t num_rec = fst24_get_num_records(test_file);
+        if (num_rec != total_written) {
+            App_Log(APP_ERROR, "%s: Wrote %d records, but there are %lld in the file\n",
+                    __func__, total_written, num_rec);
+            return -1;
+        }
+
         int64_t num_read = 0;
         // fst24_set_search_criteria(test_file, &default_fst_record);
         float* expected_data = (float*)malloc(NUM_ELEM * NUM_ELEM * sizeof(float));
