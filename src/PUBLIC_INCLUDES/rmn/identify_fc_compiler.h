@@ -68,6 +68,7 @@
 #else
 
 #undef C_COMPILER_ID
+#define IN_FORTRAN_CODE
 
 #if defined(__GFORTRAN__)
 #define COMPILER_IS_GNU
