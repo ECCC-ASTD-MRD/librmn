@@ -2235,30 +2235,27 @@ static int32_t RSF_File_lock(
     const int32_t fd,   //!< OS file descriptor of the file to (un)lock
     const int do_lock      //!< Whether to lock (1) or unlock (0) the file
 ){
-  struct flock file_lock;
-  int status;
+    struct flock file_lock;
+    file_lock.l_whence = SEEK_SET;  // locked area is by position
+    file_lock.l_start = 0;          // base of segment to be locked
+    file_lock.l_len = 0;            // lock entire file
+    file_lock.l_pid = 0;            // We want an "open file description" lock
 
-  file_lock.l_whence = SEEK_SET;                // locked area is by position
-  file_lock.l_start = 0;                        // base of segment to be locked
-  file_lock.l_len = 0;                          // lock entire file
-
-  if(do_lock){                                      // LOCK file
-    file_lock.l_type = F_WRLCK;                 // exclusive lock
-    status = fcntl(fd, F_SETLK, &file_lock);    // do not wait
-    while ( status != 0) {
-      status = fcntl(fd, F_GETLK, &file_lock);  // find which process holds the lock
-      Lib_Log(APP_LIBFST, APP_DEBUG, "%s: %d owned by pid = %d\n", __func__, getpid(), file_lock.l_pid);
-      usleep(2000);                             // wait 1 millisecond
-      status = fcntl(fd, F_SETLK, &file_lock);  // try again
+    int status = -1;
+    if (do_lock) {
+        // LOCK file
+        file_lock.l_type = F_WRLCK; // exclusive write lock
+        int status = fcntl(fd, F_OFD_SETLKW, &file_lock); // do not wait
+        if (status == 0) Lib_Log(APP_LIBFST, APP_DEBUG, "%s: locked by pid %d\n", __func__, getpid());
     }
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: locked by pid %d\n", __func__, getpid());
+    else {
+        // UNLOCK file
+        file_lock.l_type = F_UNLCK; // release lock
+        const int status = fcntl(fd, F_OFD_SETLK, &file_lock);
+        if (status == 0) Lib_Log(APP_LIBFST, APP_DEBUG, "%s: released by pid %d\n", __func__, getpid());
+    }
 
-  }else{                                         // UNLOCK file
-    file_lock.l_type = F_UNLCK;                 // release lock
-    status = fcntl(fd, F_SETLK, &file_lock);
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: released by pid %d\n", __func__, getpid());
-  }
-  return status;                                // 0 if successful, -1 in case of error
+    return status;
 }
 
 //! Try to lock the given file for writing.
