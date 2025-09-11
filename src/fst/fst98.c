@@ -3446,6 +3446,8 @@ int c_fstopc(
         if (getmode) {
             if (getmode == 2) val = App->LogLevel[APP_LIBFST];
         } else {
+            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option 'MSGLVL' , %d -> %s\n",
+                __func__, App->LogLevel[APP_LIBFST], value);
             val = Lib_LogLevel(APP_LIBFST, (char*)value);
         }
         if (getmode == 1) {
@@ -3510,6 +3512,8 @@ int c_fstopi(
         if (getmode) {
             if (getmode == 2) val = App->LogLevel[APP_LIBFST];
             } else {
+                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option 'MSGLVL' , %d -> %s\n",
+                    __func__, App->LogLevel[APP_LIBFST], value);
                 App->LogLevel[APP_LIBFST] = (TApp_LogLevel)value;
             }
             if (getmode == 1) {
@@ -3691,7 +3695,8 @@ int c_fstouv(
 
     if (initialize_fst98() <= 0) return -1; // Error message should already be printed
 
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opening iun %d, fnom index %d, with options %s\n", __func__, iun, i, options);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Opening iun %d, fnom index %d, path %s, with options %s\n",
+        __func__, iun, i, FGFDT[i].file_name, options);
 
     int ier = -1;
 
