@@ -32,7 +32,7 @@ string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 include(GNUInstallDirs)
 set(CMAKE_INSTALL_LIBDIR lib CACHE INTERNAL "Install dir for libs" FORCE)  # Avoid using lib64, cache when in super-project
 
-ec_build_info()            # Generate build information
+ec_build_info()
 include(ec_compiler_presets)
 
 # Need to add HAVE_RMN definition for auto-registering librmn within App
@@ -63,7 +63,7 @@ endif()
 #find_package(UDUNITS2)
 find_package(LibXml2 REQUIRED)
 
-include(ec_doxygen)         # Doxygen target doc
+include(ec_doxygen)
 
 # set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
@@ -235,7 +235,6 @@ check_source_compiles(Fortran "use, intrinsic :: iso_c_binding, only: c_f_strpoi
 check_source_compiles(Fortran "use, intrinsic :: iso_c_binding, only: f_c_string; end" F_C_STRING_AVAILABLE SRC_EXT F90)
 
 foreach(TARGET IN ITEMS ${TARGETS})
-
     target_compile_options(${TARGET} PUBLIC
         $<$<COMPILE_LANG_AND_ID:Fortran,GNU>: -fconvert=big-endian -fcray-pointer -frecord-marker=4 -fno-second-underscore -pthread>
         $<$<COMPILE_LANG_AND_ID:C,GNU>: -pthread>
@@ -308,6 +307,11 @@ foreach(RMN_TARGET ${TARGETS})
     )
 endforeach()
 
+# The way things are compiled, we must only add to the source of the static targets
+set(SOURCE_TARGETS ${TARGETS})
+list(FILTER SOURCE_TARGETS INCLUDE REGEX "static")
+ec_add_build_info_to_targets(${SOURCE_TARGETS})
+unset(SOURCE_TARGETS)
 
 # Compilation options for specific files
 set_source_files_properties(src/fst/xdf98.c            PROPERTIES COMPILE_FLAGS "$<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=1899> $<$<COMPILE_LANG_AND_ID:C,GNU>:-Wno-multichar> $<$<COMPILE_LANG_AND_ID:C,PGI,NVHPC>:-Mnovect --diag_suppress multi_char_literal,integer_sign_change>")
