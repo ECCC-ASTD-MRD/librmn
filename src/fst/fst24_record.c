@@ -750,8 +750,20 @@ void fill_with_search_meta(
         record->nk = fst98_meta->nk;
         record->data_type = fst98_meta->datyp;
         record->data_bits = fst98_meta->dasiz;
-        if (record->data_bits == 0) record->data_bits = fst98_meta->nbits>32?fst98_meta->nbits:32;
         record->pack_bits = fst98_meta->nbits;
+        if (record->data_bits == 0) {
+            if (record->pack_bits > 32 ||
+                record->data_type == FST_TYPE_BINARY ||
+                record->data_type == FST_TYPE_UNSIGNED ||
+                record->data_type == FST_TYPE_CHAR ||
+                record->data_type == FST_TYPE_SIGNED ||
+                record->data_type == FST_TYPE_STRING) {
+
+                record->data_bits = record->pack_bits;
+            } else {
+                record->data_bits = 32;
+            }
+        }
 
         record->deet = fst98_meta->deet;
         record->npas = fst98_meta->npas;

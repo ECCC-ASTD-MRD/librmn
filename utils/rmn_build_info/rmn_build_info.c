@@ -1,4 +1,4 @@
-#include "rmn/primitives.h"
+#include "rmn_build_info.h"
 
 
 int main() {
