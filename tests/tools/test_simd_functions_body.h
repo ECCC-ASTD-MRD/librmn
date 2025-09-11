@@ -19,7 +19,7 @@ static uint8_t cm[32], ca[32], cb[32] ;
 static uint32_t ia[8] = { 0x01,  0x02, 0x03,  0x04,  0x05,  0x06, 0x07,  0x08 } ;
 static uint32_t ib[8] = { 0x11,  0x12, 0x13,  0x14,  0x15,  0x16, 0x17,  0x18 } ;
 static uint32_t im[8] = {    0,1u<<31,    0,1u<<31,     0,1u<<31,    0,1u<<31 } ;
-static uint32_t i0[8] = {    0,     0,    0,     0,     0,     0,    0,     0 } ;
+// static uint32_t i0[8] = {    0,     0,    0,     0,     0,     0,    0,     0 } ;
 static uint32_t ra[8] ;
 static uint32_t vs[] = {  0,  1,  2,  3,  4,  5,  6,  7,   8,  9,  10, 11, 12, 13, 14, 15,
                          16, 17, 18, 19, 20, 21, 22, 23 , 24 , 25, 26, 27, 28, 29, 30, 31,
@@ -38,8 +38,8 @@ static char  *outfile = "./test_simd.txt" ;
 #endif
 
 int main(int argc, char **argv){
-  __v128i v4ia, v4ib, v4ca, v4cb, v4cm, v4cr, v400, v411, v4ra, v4ma ;
-  __v256i v8ia, v8ib, v8ca, v8cb, v8cm, v8cr, v800, v811, v8ra, v8ma ;
+  __v128i v4ia, v4ib, v4ca, v4cb, v4cm, v4cr, v400, v411, v4ra ;
+  __v256i v8ia,       v8ca, v8cb, v8cm, v8cr, v800, v811, v8ra ;
   __v128  v4fa ;
   __v128d v4da ;
   __v256  v8fa ;
@@ -60,8 +60,8 @@ int main(int argc, char **argv){
 
   fprintf(stderr, "- test of 128/256 bit types\n");
   // 128 bit assignments
-  a128 = (u128_t) { 0LU, 1LU } ;    // 128 bit type cast
-  b128 = (u128_t) { 2LU, 3LU } ;
+  a128 = (u128_t) { {{ 0LU, 1LU }} } ;    // 128 bit type cast
+  b128 = (u128_t) { {{ 2LU, 3LU }} } ;
   v128.u128 = a128 ;
   for(i=0 ; i<2 ; i++) if(v128.i64[i] != i  ) exit(1) ;
   v128.u128 = b128 ;
