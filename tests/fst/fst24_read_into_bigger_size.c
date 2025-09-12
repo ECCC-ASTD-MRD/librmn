@@ -19,6 +19,7 @@ uint64_t* data_u64 = NULL;
 uint32_t* data_u32 = NULL;
 uint16_t* data_u16 = NULL;
 uint8_t* data_u8 = NULL;
+uint32_t* data_mask = NULL;
 
 void clear_data(void);
 
@@ -35,6 +36,7 @@ int init_data(const int size) {
     data_u32 = (uint32_t*)malloc(size * size * sizeof(uint32_t));
     data_u16 = (uint16_t*)malloc(size * size * sizeof(uint16_t));
     data_u8 = (uint8_t*)malloc(size * size * sizeof(uint8_t));
+    data_mask = (uint32_t*)malloc(size * size * sizeof(uint32_t));
 
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
@@ -49,6 +51,7 @@ int init_data(const int size) {
             data_u32[index] = index & 0xffffffff;
             data_u16[index] = index & 0xffff;
             data_u8[index] = index & 0xff;
+            data_mask[index] = index % 2;
         }
     }
 
@@ -66,6 +69,7 @@ void clear_data(void) {
     if (data_u32) free(data_u32);
     if (data_u16) free(data_u16);
     if (data_u8) free(data_u8);
+    if (data_mask) free(data_mask);
 
     data_d = NULL;
     data_f = NULL;
@@ -77,6 +81,44 @@ void clear_data(void) {
     data_u32 = NULL;
     data_u16 = NULL;
     data_u8 = NULL;
+    data_mask = NULL;
+}
+
+inline uint64_t get_elem(const void* array, const int index, const int elem_size) {
+    switch(elem_size) {
+        case 8: return ((uint8_t*)array)[index];
+        case 16: return ((uint16_t*)array)[index];
+        case 32: return ((uint32_t*)array)[index];
+        case 64: return ((uint64_t*)array)[index];
+        default: return 0xabcdabcd43214321;
+    }
+}
+
+void compare_int_arrays(const void* a, const int size_a, const void* b, const int size_b, const int num_elem) {
+    for (int i = 0; i < num_elem; i++) {
+        const uint64_t elem_a = get_elem(a, i, size_a);
+        const uint64_t elem_b = get_elem(b, i, size_b);
+        if (elem_a != elem_b) {
+            App_Log(APP_ERROR, "Data is not identical!!! [%4d] %8x - expected %8x\n", i, elem_a, elem_b);
+            {
+                char buffer[1024 * 4];
+                char* ptr = buffer;
+                for (i = 0; i < num_elem && i < 16; i+= 4) {
+                    ptr += sprintf(ptr, "[%3d - %3d]: ", i, i+3);
+                    for (int j = i; j < i + 4; j++) {
+                        ptr += sprintf(ptr, "%16lx ", get_elem(a, j, size_a));
+                    }
+                    ptr += sprintf(ptr, "\n             ");
+                    for (int j = i; j < i + 4; j++) {
+                        ptr += sprintf(ptr, "%16lx ", get_elem(b, j, size_b));
+                    }
+                    ptr += sprintf(ptr, "\n");
+                }
+                App_Log(APP_ALWAYS, "%s:\n%s\n", __func__, buffer);
+            }
+            exit(-1);
+        }
+    }
 }
 
 int create_file(const int is_rsf) {
@@ -129,6 +171,14 @@ int create_file(const int is_rsf) {
     if (!fst24_write(f, &rec, FST_NO)) return -1;
 
     rec.data_type = FST_TYPE_SIGNED;
+    rec.data_bits = 32;
+    rec.pack_bits = 12;
+    rec.data = data_i32;
+    strcpy(rec.etiket, "S32_12");
+    if (!fst24_write(f, &rec, FST_NO)) return -1;
+
+    rec.data_type = FST_TYPE_SIGNED;
+    rec.data_type = FST_TYPE_SIGNED;
     rec.data_bits = 16;
     rec.pack_bits = 16;
     rec.data = data_i16;
@@ -162,6 +212,24 @@ int create_file(const int is_rsf) {
     rec.data = data_u8;
     strcpy(rec.etiket, "U8");
     if (!fst24_write(f, &rec, FST_NO)) return -1;
+
+    rec.data_type = FST_TYPE_UNSIGNED;
+    rec.data_bits = 32;
+    rec.pack_bits = 1;
+    rec.data = data_mask;
+    strcpy(rec.etiket, "MASK");
+    if (!fst24_write(f, &rec, FST_NO)) return -1;
+
+    // Reset data_bits to 0
+    fst24_close(f);
+    f = fst24_open(filename, options);
+    fst_record crit = default_fst_record;
+    strcpy(crit.etiket, "MASK");
+    fst_query* q = fst24_new_query(f, &crit, NULL);
+    fst24_find_next(q, &rec);
+    rec.data_bits = 0;
+    // rec.ip1 = 5;
+    if (!fst24_write(f, &rec, FST_META)) return -1;
 
     App_Log(APP_INFO, "Done writing records\n");
 
@@ -298,18 +366,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            int32_t* d = rec.data;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_i32[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %d - expected %d\n",
-                            i, d[i], data_i32[i]);
-                    return -1;
-                }
-            }
-        }
+        compare_int_arrays(rec.data, 32, data_i32, 32, DATA_SIZE * DATA_SIZE);
 
         // int 32, to 64
         rec.data_bits = 64;
@@ -317,21 +374,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with double size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            int64_t* d = rec.data;
-            int same = 1;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_i64[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %ld - expected %ld\n",
-                            i, d[i], data_i64[i]);
-                    same = 0;
-                    // return -1;
-                }
-            }
-            if (!same) return -1;
-        }
+        compare_int_arrays(rec.data, 64, data_i64, 64, DATA_SIZE * DATA_SIZE);
 
         fst24_query_free(q);
     }
@@ -351,18 +394,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            int16_t* d = rec.data;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_i16[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %d - expected %d\n",
-                            i, d[i], data_i16[i]);
-                    return -1;
-                }
-            }
-        }
+        compare_int_arrays(rec.data, 16, data_i16, 16, DATA_SIZE * DATA_SIZE);
 
         // int 16, to 32
         rec.data_bits = 32;
@@ -370,21 +402,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with double size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            int32_t* d = rec.data;
-            int same = 1;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_i32[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %d - expected %d\n",
-                            i, d[i], data_i32[i]);
-                    same = 0;
-                    // return -1;
-                }
-            }
-            if (!same) return -1;
-        }
+        compare_int_arrays(rec.data, 32, data_i32, 32, DATA_SIZE * DATA_SIZE);
 
         // int 16, to 64
         rec.data_bits = 64;
@@ -392,21 +410,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with double size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            int64_t* d = rec.data;
-            int same = 1;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_i64[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %ld - expected %ld\n",
-                            i, d[i], data_i64[i]);
-                    same = 0;
-                    // return -1;
-                }
-            }
-            if (!same) return -1;
-        }
+        compare_int_arrays(rec.data, 64, data_i64, 64, DATA_SIZE * DATA_SIZE);
 
         fst24_query_free(q);
     }
@@ -426,18 +430,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            int8_t* d = rec.data;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_i8[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %d - expected %d\n",
-                            i, d[i], data_i8[i]);
-                    return -1;
-                }
-            }
-        }
+        compare_int_arrays(rec.data, 8, data_i8, 8, DATA_SIZE * DATA_SIZE);
 
         // int 8, to 16
         rec.data_bits = 16;
@@ -445,18 +438,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            int16_t* d = rec.data;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_i16[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %d - expected %d\n",
-                            i, d[i], data_i16[i]);
-                    return -1;
-                }
-            }
-        }
+        compare_int_arrays(rec.data, 16, data_i16, 16, DATA_SIZE * DATA_SIZE);
 
         // int 8, to 32
         rec.data_bits = 32;
@@ -464,21 +446,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with double size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            int32_t* d = rec.data;
-            int same = 1;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_i32[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %d - expected %d\n",
-                            i, d[i], data_i32[i]);
-                    same = 0;
-                    // return -1;
-                }
-            }
-            if (!same) return -1;
-        }
+        compare_int_arrays(rec.data, 32, data_i32, 32, DATA_SIZE * DATA_SIZE);
 
         // int 8, to 64
         rec.data_bits = 64;
@@ -486,21 +454,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with double size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            int64_t* d = rec.data;
-            int same = 1;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_i64[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %ld - expected %ld\n",
-                            i, d[i], data_i64[i]);
-                    same = 0;
-                    // return -1;
-                }
-            }
-            if (!same) return -1;
-        }
+        compare_int_arrays(rec.data, 64, data_i64, 64, DATA_SIZE * DATA_SIZE);
 
         fst24_query_free(q);
     }
@@ -520,18 +474,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            int32_t* d = rec.data;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_u32[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %d - expected %d\n",
-                            i, d[i], data_u32[i]);
-                    return -1;
-                }
-            }
-        }
+        compare_int_arrays(rec.data, 32, data_u32, 32, DATA_SIZE * DATA_SIZE);
 
         // uint 32, to 64
         rec.data_bits = 64;
@@ -539,21 +482,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with double size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            uint64_t* d = rec.data;
-            int same = 1;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_u64[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %ld - expected %ld\n",
-                            i, d[i], data_u64[i]);
-                    same = 0;
-                    // return -1;
-                }
-            }
-            if (!same) return -1;
-        }
+        compare_int_arrays(rec.data, 64, data_u64, 64, DATA_SIZE * DATA_SIZE);
 
         fst24_query_free(q);
     }
@@ -573,18 +502,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            uint16_t* d = rec.data;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_u16[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %d - expected %d\n",
-                            i, d[i], data_u16[i]);
-                    return -1;
-                }
-            }
-        }
+        compare_int_arrays(rec.data, 16, data_u16, 16, DATA_SIZE * DATA_SIZE);
 
         // uint 16, to 32
         rec.data_bits = 32;
@@ -592,21 +510,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with double size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            uint32_t* d = rec.data;
-            int same = 1;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_u32[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %d - expected %d\n",
-                            i, d[i], data_u32[i]);
-                    same = 0;
-                    // return -1;
-                }
-            }
-            if (!same) return -1;
-        }
+        compare_int_arrays(rec.data, 32, data_u32, 32, DATA_SIZE * DATA_SIZE);
 
         // uint 16, to 64
         rec.data_bits = 64;
@@ -614,21 +518,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with double size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            uint64_t* d = rec.data;
-            int same = 1;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_u64[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %ld - expected %ld\n",
-                            i, d[i], data_u64[i]);
-                    same = 0;
-                    // return -1;
-                }
-            }
-            if (!same) return -1;
-        }
+        compare_int_arrays(rec.data, 64, data_u64, 64, DATA_SIZE * DATA_SIZE);
 
         fst24_query_free(q);
     }
@@ -648,18 +538,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            uint8_t* d = rec.data;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_u8[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %d - expected %d\n",
-                            i, d[i], data_u8[i]);
-                    return -1;
-                }
-            }
-        }
+        compare_int_arrays(rec.data, 8, data_u8, 8, DATA_SIZE * DATA_SIZE);
 
         // uint 8, to 16
         rec.data_bits = 16;
@@ -667,18 +546,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            uint16_t* d = rec.data;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_u16[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %d - expected %d\n",
-                            i, d[i], data_u16[i]);
-                    return -1;
-                }
-            }
-        }
+        compare_int_arrays(rec.data, 16, data_u16, 16, DATA_SIZE * DATA_SIZE);
 
         // uint 8, to 32
         rec.data_bits = 32;
@@ -686,21 +554,7 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with double size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            uint32_t* d = rec.data;
-            int same = 1;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_u32[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %d - expected %d\n",
-                            i, d[i], data_u32[i]);
-                    same = 0;
-                    // return -1;
-                }
-            }
-            if (!same) return -1;
-        }
+        compare_int_arrays(rec.data, 32, data_u32, 32, DATA_SIZE * DATA_SIZE);
 
         // uint 8, to 64
         rec.data_bits = 64;
@@ -708,25 +562,96 @@ int test_read_into_bigger_size(const int is_rsf) {
             App_Log(APP_ERROR, "Unable to read record with double size (%s)\n", criteria.etiket);
             return -1;
         }
-
-        // Check
-        {
-            uint64_t* d = rec.data;
-            int same = 1;
-            for (int i = 0; i < DATA_SIZE * DATA_SIZE; i++) {
-                if (d[i] != data_u64[i]) {
-                    App_Log(APP_ERROR, "Data is not identical!!! [%4d] %ld - expected %ld\n",
-                            i, d[i], data_u64[i]);
-                    same = 0;
-                    // return -1;
-                }
-            }
-            if (!same) return -1;
-        }
+        compare_int_arrays(rec.data, 64, data_u64, 64, DATA_SIZE * DATA_SIZE);
 
         fst24_query_free(q);
     }
     // ---------- END UNSIGNED 8 --------------
+
+    // ---------- MASK (1 BIT) --------------
+    {
+        strcpy(criteria.etiket, "MASK");
+        fst_query* q = fst24_new_query(f, &criteria, NULL);
+        if (!fst24_find_next(q, &rec)) {
+            App_Log(APP_ERROR, "Unable to find record with criterion %s\n", criteria.etiket);
+            return -1;
+        }
+
+        // 1 to 32 bits (default)
+        if (fst24_read_record(&rec) <= 0) {
+            App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
+            return -1;
+        }
+        compare_int_arrays(rec.data, 32, data_mask, 32, DATA_SIZE * DATA_SIZE);
+
+        // 1 to 8 bits
+        rec.data_bits = 8;
+        if (fst24_read_record(&rec) <= 0) {
+            App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
+            return -1;
+        }
+        compare_int_arrays(rec.data, 8, data_mask, 32, DATA_SIZE * DATA_SIZE);
+
+        // 1 to 16 bits
+        rec.data_bits = 16;
+        if (fst24_read_record(&rec) <= 0) {
+            App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
+            return -1;
+        }
+        compare_int_arrays(rec.data, 16, data_mask, 32, DATA_SIZE * DATA_SIZE);
+
+        // 1 to 32 bits
+        rec.data_bits = 32;
+        if (fst24_read_record(&rec) <= 0) {
+            App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
+            return -1;
+        }
+        compare_int_arrays(rec.data, 32, data_mask, 32, DATA_SIZE * DATA_SIZE);
+
+        // 1 to 64 bits
+        rec.data_bits = 64;
+        if (fst24_read_record(&rec) <= 0) {
+            App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
+            return -1;
+        }
+        compare_int_arrays(rec.data, 64, data_mask, 32, DATA_SIZE * DATA_SIZE);
+    }
+    // ---------- END MASK (1 BIT) --------------
+
+    // ---------- INT 32 compressed to 12 --------------
+    {
+        strcpy(criteria.etiket, "S32_12");
+        fst_query* q = fst24_new_query(f, &criteria, NULL);
+        if (!fst24_find_next(q, &rec)) {
+            App_Log(APP_ERROR, "Unable to find record with criterion %s\n", criteria.etiket);
+            return -1;
+        }
+
+        // 32 bits (default)
+        if (fst24_read_record(&rec) <= 0) {
+            App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
+            return -1;
+        }
+        compare_int_arrays(rec.data, 32, data_i32, 32, DATA_SIZE * DATA_SIZE);
+
+        // 16 bits
+        rec.data_bits = 16;
+        if (fst24_read_record(&rec) <= 0) {
+            App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
+            return -1;
+        }
+        compare_int_arrays(rec.data, 16, data_i16, 16, DATA_SIZE * DATA_SIZE);
+
+        // 8 bits
+        rec.data_bits = 8;
+        if (fst24_read_record(&rec) <= 0) {
+            App_Log(APP_ERROR, "Unable to read record with regular size (%s)\n", criteria.etiket);
+            return -1;
+        }
+        compare_int_arrays(rec.data, 8, data_i8, 8, DATA_SIZE * DATA_SIZE);
+    }
+
+    // ---------- END INT 32 compressed to 12 --------------
 
     fst24_record_free(&rec);
 

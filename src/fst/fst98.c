@@ -176,6 +176,150 @@ uint32_t get_origin_date32(const int64_t valid_date, const int32_t timestep_size
     return (valid_date & 0xffffffff);
 }
 
+//! Copy elements from an integer array into another one with smaller-sized elements
+//! \param dest Destination array. *Must not overlap with the source array.*
+//! \param src Source array. *Must not overlap with the destination array.*
+//! \param num_elem Number of elements to convert.
+inline void downsize_int_64_32(int32_t* restrict dest, const int64_t* restrict src, const int64_t num_elem) {
+    for (int64_t i = 0; i < num_elem; i++) {
+        dest[i] = src[i];
+    }
+}
+
+//! \copydoc downsize_int_64_32
+inline void downsize_int_64_16(int16_t* restrict dest, const int64_t* restrict src, const int64_t num_elem) {
+    for (int64_t i = 0; i < num_elem; i++) {
+        dest[i] = src[i];
+    }
+}
+
+//! \copydoc downsize_int_64_32
+inline void downsize_int_64_8(int8_t* restrict dest, const int64_t* restrict src, const int64_t num_elem) {
+    for (int64_t i = 0; i < num_elem; i++) {
+        dest[i] = src[i];
+    }
+}
+
+//! \copydoc downsize_int_64_32
+inline void downsize_int_32_16(int16_t* restrict dest, const int32_t* restrict src, const int64_t num_elem) {
+    for (int64_t i = 0; i < num_elem; i++) {
+        dest[i] = src[i];
+    }
+}
+
+//! \copydoc downsize_int_64_32
+inline void downsize_int_32_8(int8_t* restrict dest, const int32_t* restrict src, const int64_t num_elem) {
+    for (int64_t i = 0; i < num_elem; i++) {
+        dest[i] = src[i];
+    }
+}
+
+//! \copydoc downsize_int_64_32
+inline void downsize_int_16_8(int8_t* restrict dest, const int16_t* restrict src, const int64_t num_elem) {
+    for (int64_t i = 0; i < num_elem; i++) {
+        dest[i] = src[i];
+    }
+}
+
+//! Copy elements from an integer array into another one with larger-sized elements
+//! \param dest Destination array. *Must not overlap with the source array.*
+//! \param src Source array. *Must not overlap with the destination array.*
+//! \param num_elem Number of elements to convert.
+inline void upsize_int_8_64(int64_t* restrict dest, const int8_t* restrict src, const int64_t num_elem) {
+    for (int64_t i = 0; i < num_elem; i++) {
+        dest[i] = src[i];
+    }
+}
+
+//! \copydoc downsize_int_8_64
+inline void upsize_int_8_32(int32_t* restrict dest, const int8_t* restrict src, const int64_t num_elem) {
+    for (int64_t i = 0; i < num_elem; i++) {
+        dest[i] = src[i];
+    }
+}
+
+//! \copydoc downsize_int_8_64
+inline void upsize_int_8_16(int16_t* restrict dest, const int8_t* restrict src, const int64_t num_elem) {
+    for (int64_t i = 0; i < num_elem; i++) {
+        dest[i] = src[i];
+    }
+}
+
+//! \copydoc downsize_int_8_64
+inline void upsize_int_16_64(int64_t* restrict dest, const int16_t* restrict src, const int64_t num_elem) {
+    for (int64_t i = 0; i < num_elem; i++) {
+        dest[i] = src[i];
+    }
+}
+
+//! \copydoc downsize_int_8_64
+inline void upsize_int_16_32(int32_t* restrict dest, const int16_t* restrict src, const int64_t num_elem) {
+    for (int64_t i = 0; i < num_elem; i++) {
+        dest[i] = src[i];
+    }
+}
+
+//! \copydoc downsize_int_8_64
+inline void upsize_int_32_64(int64_t* restrict dest, const int32_t* restrict src, const int64_t num_elem) {
+    for (int64_t i = 0; i < num_elem; i++) {
+        dest[i] = src[i];
+    }
+}
+
+//! Copy integer array into another one with elements of a different size
+void resize_int(
+    void* restrict dest,        //!< Destination array
+    const int dest_size,        //!< Element size of destination array (in bits)
+    const void* restrict src,   //!< Source array
+    const int src_size,         //!< Element size of source array (in bits)
+    const int64_t num_elem      //!< Number of elements to convert
+) {
+    switch (src_size) {
+        case 8: {
+            switch (dest_size) {
+                case 16: upsize_int_8_16(dest, src, num_elem); return;
+                case 32: upsize_int_8_32(dest, src, num_elem); return;
+                case 64: upsize_int_8_64(dest, src, num_elem); return;
+                default: break;
+            }
+            break;
+        }
+        case 16: {
+            switch (dest_size) {
+                case 8: downsize_int_16_8(dest, src, num_elem); return;
+                case 32: upsize_int_16_32(dest, src, num_elem); return;
+                case 64: upsize_int_16_64(dest, src, num_elem); return;
+                default: break;
+            }
+            break;
+        }
+        case 32: {
+            switch (dest_size) {
+                case 8: downsize_int_32_8(dest, src, num_elem); return;
+                case 16: downsize_int_32_16(dest, src, num_elem); return;
+                case 64: upsize_int_32_64(dest, src, num_elem); return;
+                default: break;
+            }
+            break;
+        }
+        case 64: {
+            switch (dest_size) {
+                case 8: downsize_int_64_8(dest, src, num_elem); return;
+                case 16: downsize_int_64_16(dest, src, num_elem); return;
+                case 32: downsize_int_64_32(dest, src, num_elem); return;
+                default: break;
+            }
+            break;
+        }
+
+        default:
+            break;
+    }
+
+    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unhandled sizes: dest %d, src %d\n",
+            __func__, dest_size, src_size);
+}
+
 //! Copy items of a certain size into an array of items with a larger size. If the input array is of type float, it
 //! will be converted to double. Only performs copies from size [8, 16, 32] to size [16, 32, 64]. 
 //! *The source and destination array must not point to the same location!*
@@ -1430,8 +1574,8 @@ int c_fstecr_xdf(
             case FST_TYPE_UNSIGNED:
             case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK: {
                 // integer, short integer or byte stream
-                int offset = is_type_turbopack(datyp) ? 1 :0;
                 if (is_type_turbopack(datyp)) {
+                    const int offset = 1;
                     if (xdf_short) {
                         stdf_entry->nbits = Min(16, nbits);
                         nbits = stdf_entry->nbits;
@@ -1458,17 +1602,17 @@ int c_fstecr_xdf(
                     }
                 } else {
                     if (xdf_short) {
-                        stdf_entry->nbits = Min(16, nbits);
-                        nbits = stdf_entry->nbits;
-                        compact_p_short(field_u32, (void *) NULL, &(buffer->data[keys_len+offset]),
+                        nbits = Min(16, nbits);
+                        stdf_entry->nbits = nbits;
+                        compact_p_short(field_u32, (void *) NULL, &(buffer->data[keys_len]),
                             ni * nj * _nk, nbits, 0, xdf_stride);
                     } else if (xdf_byte) {
+                        nbits = Min(8, nbits);
+                        stdf_entry->nbits = nbits;
                         compact_p_char(field_u32, (void *) NULL, &(buffer->data[keys_len]),
-                            ni * nj * _nk, Min(8, nbits), 0, xdf_stride);
-                        stdf_entry->nbits = Min(8, nbits);
-                        nbits = stdf_entry->nbits;
+                            ni * nj * _nk, nbits, 0, xdf_stride);
                     } else {
-                        compact_p_integer(field_u32, (void *) NULL, &(buffer->data[keys_len + offset]),
+                        compact_p_integer(field_u32, (void *) NULL, &(buffer->data[keys_len]),
                             ni * nj * _nk, nbits, 0, xdf_stride, 0);
                     }
                 }
@@ -2896,14 +3040,11 @@ int c_fstluk_xdf(
 
     }
 
-    // printf("Debug+ fstluk lng2 = %d\n", lng2);
-
     // Allocate 8 more bytes in case of realingment for 64 bit data
     const size_t work_field_size = 8 + (lng2 + 10) * sizeof(int);
     void* work_field = malloc(work_field_size);
     memset(work_field, 0, work_field_size);
 
-    // printf("Debug+ fstluk - buf = (buffer_interface_ptr) workField\n");
     buffer_interface_ptr buf = (buffer_interface_ptr) work_field;
     const size_t misalignment = (((&(buf->data[0]) - &(buf->nwords)) * sizeof(int)) & 0x7);
     if (misalignment > 0) {
@@ -2913,7 +3054,6 @@ int c_fstluk_xdf(
     // negative value means get data only
     buf->nwords = -(lng + 10);
     buf->nbits = (unsigned)-1;
-    // printf("Debug+ fstluk - c_xdfget2(handle, buf, stdf_aux_keys)\n");
     int stdf_aux_keys[2];
     ier = c_xdfget2(handle, buf, stdf_aux_keys);
     if (ier < 0) return ier;
@@ -2953,7 +3093,6 @@ int c_fstluk_xdf(
         switch (stdf_entry.datyp) {
             case FST_TYPE_BINARY: {
                 // Raw binary
-                // printf("Debug+ fstluk - Raw binary\n");
                 int lngw = ((nelm * stdf_entry.nbits) + bitmot - 1) / bitmot;
                 for (int i = 0; i < lngw; i++) {
                     field[i] = buf->data[i];
@@ -2964,12 +3103,9 @@ int c_fstluk_xdf(
             case FST_TYPE_REAL_OLD_QUANT:
             case FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK: {
                 // Floating Point
-                // printf("Debug+ fstluk - Floating Point\n");
                 double tempfloat = 99999.0;
                 if (is_type_turbopack(stdf_entry.datyp)) {
-                    // fprintf(stderr, "Debug+ unpack buf->data=%d\n", *(buf->data));
                     armn_compress((unsigned char *)(buf->data + 5), *ni, *nj, *nk, stdf_entry.nbits, 2, 1);
-                    // fprintf(stderr, "Debug+ buf->data + 4 + (nbytes / 4) - 1 = %X buf->data + 4 + (nbytes / 4) = %X \n", *(buf->data + 4 + (nbytes / 4) - 1), *(buf->data + 4 + (nbytes / 4)));
                     packfunc(field, buf->data + 1, buf->data + 5, nelm, stdf_entry.nbits + 64 * Max(16, stdf_entry.nbits),
                              0, xdf_stride, 0, &tempfloat, &dmin, &dmax);
                 } else {
@@ -2982,12 +3118,10 @@ int c_fstluk_xdf(
             case FST_TYPE_UNSIGNED | FST_TYPE_TURBOPACK:
                 {
                     // Integer, short integer or byte stream
-                    // printf("Debug+ fstluk - Integer, short integer or byte stream\n");
                     int offset = is_type_turbopack(stdf_entry.datyp) ? 1 : 0;
                     if (xdf_short) {
                         if (is_type_turbopack(stdf_entry.datyp)) {
                             int nbytes = armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
-                            // printf("Debug+ fstluk mode short compress nbytes=%d\n", nbytes);
                             memcpy(field, buf->data + offset, nbytes);
                         } else {
                             ier = compact_u_short(field, (void *) NULL, buf->data + offset, nelm, stdf_entry.nbits, 0, xdf_stride);
@@ -2995,15 +3129,13 @@ int c_fstluk_xdf(
                     }  else if (xdf_byte) {
                         if (is_type_turbopack(stdf_entry.datyp)) {
                             armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
-                            // printf("Debug+ fstluk xdf_byte armn_compress nbytes=%d nelm=%d\n", nbytes, nelm);
                             memcpy_16_8((int8_t *)field, (int16_t *)(buf->data + offset), nelm);
                         } else {
-                            ier = compact_u_char(field, (void *) NULL, buf->data, nelm, 8, 0, xdf_stride);
+                            ier = compact_u_char(field, (void *) NULL, buf->data, nelm, stdf_entry.nbits, 0, xdf_stride);
                         }
                     } else {
                         if (is_type_turbopack(stdf_entry.datyp)) {
                             armn_compress((unsigned char *)(buf->data + offset), *ni, *nj, *nk, stdf_entry.nbits, 2, 0);
-                            // printf("Debug+ fstluk mode int compress nbytes=%d\n", nbytes);
                             memcpy_16_32((int32_t *)field, (int16_t *)(buf->data + offset), stdf_entry.nbits, nelm);
                         } else {
                             ier = compact_u_integer(field, (void *) NULL, buf->data + offset, nelm, stdf_entry.nbits, 0, xdf_stride, 0);
@@ -3014,7 +3146,6 @@ int c_fstluk_xdf(
 
             case FST_TYPE_CHAR: {
                 // Character
-                // printf("Debug+ fstluk - Character\n");
                 int nc = (nelm + 3) / 4;
                 ier = compact_u_integer(field, (void *) NULL, buf->data, nc, 32, 0, xdf_stride, 0);
                 break;
@@ -3023,9 +3154,7 @@ int c_fstluk_xdf(
 
             case FST_TYPE_SIGNED: {
                 // Signed integer
-                // printf("Debug+ fstluk - Signed integer\n");
 #ifdef use_old_signed_pack_unpack_code
-                // fprintf(stderr, "OLD UNPACK CODE ======================================\n");
                 int32_t *field_out;
                 short *s_field_out = (short *)field;
                 signed char *b_field_out = (signed char *)field;
@@ -3152,7 +3281,7 @@ int c_fstluk_xdf(
         else if (base_type == FST_TYPE_SIGNED || base_type == FST_TYPE_UNSIGNED) {
             int32_t x[nelm];
             memcpy(x, field, nelm * sizeof(int32_t));
-            upgrade_size(field, 64, x, 32, nelm, 1);
+            resize_int(field, 64, x, 32, nelm);
         }
     }
 
