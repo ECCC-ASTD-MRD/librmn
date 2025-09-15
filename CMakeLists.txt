@@ -177,27 +177,29 @@ set(static_targets rmn-static)
 #----- Needed when used as sbumodule/subtree
 add_library(rmn::rmn-static ALIAS rmn-static)
 add_library(rmn::rmn ALIAS rmn-static) # Default to static
-if (${RMN_BUILD_SHARED})
+if(${RMN_BUILD_SHARED})
     add_library(rmn::rmn-shared ALIAS rmn-shared)
 endif()
 
 if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
-    set (OMPI_TARGETS rmn-ompi-static)
-    if (${RMN_BUILD_SHARED})
+    set(OMPI_TARGETS rmn-ompi-static)
+    if(${RMN_BUILD_SHARED})
         list(APPEND OMPI_TARGETS rmn-ompi-shared)
     endif()
     set(TARGETS ${TARGETS} ${OMPI_TARGETS})
 
-   # Build static library from source files
-   add_library(rmn-ompi-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-   target_link_libraries(rmn-ompi-static PUBLIC App-ompi-static json-c-static libudunits2-static LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
-   target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
-   add_dependencies(rmn-ompi-static rmn_build_info json-c libudunits2-static)
+    # Build static library from source files
+    add_library(rmn-ompi-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+    target_link_libraries(rmn-ompi-static PUBLIC
+        App-ompi-static json-c-static libudunits2-static LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+    target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
+    add_dependencies(rmn-ompi-static rmn_build_info json-c libudunits2-static)
 
     # Build shared library from objects of rmn-ompi
-    if (${RMN_BUILD_SHARED})
+    if(${RMN_BUILD_SHARED})
         add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi-static>)
-        target_link_libraries(rmn-ompi-shared PUBLIC App-ompi-shared json-c libudunits2-shared LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+        target_link_libraries(rmn-ompi-shared PUBLIC
+            App-ompi-shared json-c libudunits2-shared LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
         target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
     endif()
 
@@ -213,16 +215,16 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
         C_STANDARD 11
         C_EXTENSIONS OFF)
 
-   # Symbolic link for archive numbered version
-   add_custom_command(TARGET rmn-ompi-static POST_BUILD
-       COMMAND ln -sfv lib${PROJECT_NAME}-ompi.a lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a
-       BYPRODUCTS lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a)
-   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a DESTINATION lib)
+    # Symbolic link for archive numbered version
+    add_custom_command(TARGET rmn-ompi-static POST_BUILD
+        COMMAND ln -sfv lib${PROJECT_NAME}-ompi.a lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a
+        BYPRODUCTS lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a DESTINATION lib)
 
-   list(APPEND shared_targets rmn-ompi-shared)
-   list(APPEND static_targets rmn-ompi-static)
+    list(APPEND shared_targets rmn-ompi-shared)
+    list(APPEND static_targets rmn-ompi-static)
 
-    #----- Needed when used as sbumodule/subtree
+    # Needed when used as sbumodule/subtree
     add_library(rmn::rmn-ompi-static ALIAS rmn-ompi-static)
     add_library(rmn::rmn-ompi ALIAS rmn-ompi-static)    # Default to static
     if (${RMN_BUILD_SHARED})
