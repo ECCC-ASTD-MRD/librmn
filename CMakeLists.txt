@@ -144,7 +144,7 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 
 set(TARGETS rmn-static)
 if (${RMN_BUILD_SHARED})
-    set(TARGETS ${TARGETS} rmn-shared)
+    list(APPEND TARGETS rmn-shared)
 endif()
 
 # Build static library from source files
@@ -184,7 +184,7 @@ endif()
 if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
     set (OMPI_TARGETS rmn-ompi-static)
     if (${RMN_BUILD_SHARED})
-        set (OMPI_TARGETS ${OMPI_TARGETS} rmn-ompi-shared)
+        list(APPEND OMPI_TARGETS rmn-ompi-shared)
     endif()
     set(TARGETS ${TARGETS} ${OMPI_TARGETS})
 
