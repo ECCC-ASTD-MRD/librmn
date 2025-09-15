@@ -752,14 +752,8 @@ void fill_with_search_meta(
         record->data_bits = fst98_meta->dasiz;
         record->pack_bits = fst98_meta->nbits;
         if (record->data_bits == 0) {
-            if (record->pack_bits > 32 ||
-                record->data_type == FST_TYPE_BINARY ||
-                record->data_type == FST_TYPE_UNSIGNED ||
-                record->data_type == FST_TYPE_CHAR ||
-                record->data_type == FST_TYPE_SIGNED ||
-                record->data_type == FST_TYPE_STRING) {
-
-                record->data_bits = record->pack_bits;
+            if (record->pack_bits > 32) {
+                record->data_bits = 64;
             } else {
                 record->data_bits = 32;
             }

@@ -92,6 +92,8 @@ void copy_record_string(char* const dest, const char* const src, const int32_t m
 int32_t is_same_record_string(const char* str_a, const char* str_b, const int32_t max_length);
 int init_ip_vals(void);
 int ip_is_equal(int target, const int ip, int ind);
+void resize_int(void* restrict dest, const int dest_size, const void* restrict src, const int src_size,
+                const int64_t num_elem);
 void memcpy_8_16(int16_t *p16, const int8_t *p8, int nb);
 void memcpy_16_8(int8_t *p8, const int16_t *p16, int nb);
 void memcpy_16_32(int32_t *p32, const int16_t *p16, int nbits, int nb);
