@@ -1922,7 +1922,7 @@ int32_t fst24_find_count(
 int32_t fst24_unpack_data(
     void* dest,
     void* source, //!< Should be const, but we might swap stuff in-place. It's supposed to be temporary anyway...
-    const fst_record* record, //!< [in] Record information
+    const fst_record* record, //!< [in] Record information, must have a correct `data_bits` value (8, 16, 32, 64)
     const int32_t skip_unpack,//!< Only copy data (no uncompression) if non-zero
     const int32_t stride,     //!< Kept for compatibility with fst98 interface
     const int32_t original_num_bits //!< Size of data elements of the array from which we are reading
@@ -2002,7 +2002,7 @@ int32_t fst24_unpack_data(
             {
                 // Integer, short integer or byte stream
                 const int offset = is_type_turbopack(record->data_type) ? 1 : 0;
-                if (original_num_bits == 16) {
+                if (record->data_bits == 16) {
                     if (is_type_turbopack(record->data_type)) {
                         const int nbytes = armn_compress((unsigned char *)(source_u32 + offset), record->ni, record->nj,
                             record->nk, record->pack_bits, 2, 0);
@@ -2010,14 +2010,14 @@ int32_t fst24_unpack_data(
                     } else {
                         compact_ier = compact_u_short(dest, (void *) NULL, (void *)(source_u32 + offset), nelm, record->pack_bits, 0, stride);
                     }
-                }  else if (original_num_bits == 8) {
+                }  else if (record->data_bits == 8) {
                     if (is_type_turbopack(record->data_type)) {
                         armn_compress((unsigned char *)(source_u32 + offset), record->ni, record->nj, record->nk, record->pack_bits, 2, 0);
                         memcpy_16_8((int8_t *)dest, (int16_t *)(source_u32 + offset), nelm);
                     } else {
-                        compact_ier = compact_u_char(dest, (void *)NULL, (void *)source, nelm, 8, 0, stride);
+                        compact_ier = compact_u_char(dest, (void *)NULL, (void *)source, nelm, record->pack_bits, 0, stride);
                     }
-                } else if (original_num_bits == 64) {
+                } else if (record->data_bits == 64 && record->pack_bits == 64) {
                     memcpy(dest, source, nelm * sizeof(uint64_t));
                 } else {
                     if (is_type_turbopack(record->data_type)) {
@@ -2026,7 +2026,14 @@ int32_t fst24_unpack_data(
                     } else {
                         compact_ier = compact_u_integer(dest, (void *)NULL, source_u32 + offset, nelm, record->pack_bits, 0, stride, 0);
                     }
+
+                    if (record->data_bits == 64) {
+                        int32_t x[nelm];
+                        memcpy(x, dest, nelm * sizeof(int32_t));
+                        resize_int(dest, 64, x, 32, nelm);
+                    }
                 }
+
                 break;
             }
 
@@ -2131,19 +2138,12 @@ int32_t fst24_unpack_data(
         } // end switch
     }
 
-    // Upgrade to a larger size, if needed
-    if (original_num_bits < record->data_bits && !skip_unpack) {
+    // Upgrade from float to double, if needed
+    if (original_num_bits == 32 && record->data_bits == 64 && is_type_real(record->data_type) && !skip_unpack) {
         const int64_t num_elem = fst24_record_num_elem(record);
-        if (base_fst_type(record->data_type) == FST_TYPE_UNSIGNED) {
-            int32_t x[num_elem];
-            memcpy(x, dest, num_elem * original_num_bits / 8);
-            upgrade_size(dest, record->data_bits, x, original_num_bits, num_elem, 1);
-        }
-        else if (is_type_real(record->data_type)) {
-            float f[num_elem];
-            memcpy(f, dest, num_elem * sizeof(float));
-            upgrade_size(dest, record->data_bits, f, original_num_bits, num_elem, 0);
-        }
+        float f[num_elem];
+        memcpy(f, dest, num_elem * sizeof(float));
+        upgrade_size(dest, record->data_bits, f, original_num_bits, num_elem, 0);
     }
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Read record with key 0x%x\n", __func__, record->do_not_touch.handle);
@@ -2217,11 +2217,13 @@ int32_t fst24_read_record_rsf(
     // Determine into what size we are reading (only 8, 16, 32 and 64 allowed)
     const int32_t original_num_bits = record_fst->data_bits;
     if (is_type_integer(record_fst->data_type) || is_type_real(record_fst->data_type)) {
-        if (requested_num_bits < record_fst->data_bits) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot read %d-bit data elements into an array of %d-bit elements\n",
-                    __func__, record_fst->data_bits, requested_num_bits);
+        if (requested_num_bits < record_fst->pack_bits) {
+            Lib_Log(APP_LIBFST, APP_WARNING,
+                "%s: Reading %d-bit data elements (compressed to %d) into an array of %d-bit elements\n",
+                __func__, record_fst->data_bits, requested_num_bits, record_fst->pack_bits);
         }
-        else if (requested_num_bits > 32)
+
+        if (requested_num_bits > 32)
             record_fst->data_bits = 64;
         else if (requested_num_bits > 16)
             record_fst->data_bits = 32;

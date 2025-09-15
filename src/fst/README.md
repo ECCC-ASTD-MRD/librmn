@@ -6,6 +6,7 @@
     1. [Thread Safety](#thread-safety)
     1. [Memory Management](#memory-management)
     1. [Data Types](#data-types)
+    1. [Data Size](#data-size)
     1. [Old Interface: `fst98`](#old-interface-fst98)
 2. [Examples](#examples)
     1. [Opening and Closing](#opening-and-closing-a-file)
@@ -279,6 +280,23 @@ static const int32_t FST_TYPE_TURBOPACK = 128;
 
 #define FSTD_MISSING_FLAG 64 //!< When this flag is ON in a datatype, it indicates that some data points are missing
 ```
+
+## Data Size
+
+Records now store the size of elements of the array that was used to store the data. That size will then be used
+by default when reading the record.
+For example, if the data given to write into a record was an array of `short` (`integer(kind = int16)` in Fortran),
+when subsequently reading that record, the `data` pointer of the `fst_record` object will point to an array of
+16-bit elements.
+This is different from the behavior of older files, which always default to 32-bit elements when reading, unless
+specified otherwise.
+
+In any case, it is always possible to know the size of data elements that were read by looking at the `data_bits`
+attribute of the `fst_record`.
+
+It is possible to directly read the data into an array of elements with a different size by specifiying that
+size *before* reading, by setting the `data_bits` attribute of the `fst_record`.
+[See example](#reading-into-a-different-size)
 
 ## Old Interface: fst98
 
@@ -751,6 +769,94 @@ print *, data_i4(1:4, :)
 call my_record % get_data_array(data_r8)    ! Only works if the record contains 3D real (double) data
 print *, data_r8(3, 2:5, 1)
 ```
+
+### Reading into a different size
+
+<table><tr><td style="width:50%">
+
+**Fortran**
+
+</td><td style="width:50%">
+
+**C**
+
+</td></tr>
+<tr><td>
+
+```fortran
+use rmn_fst24
+
+integer :: mask_data
+fst_record :: my_record
+fst_file :: my_file
+
+! ...
+
+record % data = mask_data
+my_file % write(my_record)
+```
+
+</td><td>
+
+```c
+#include <rmn.h>
+
+int* mask_data;
+fst_record my_record = default_fst_record;
+fst_file* my_file = NULL;
+
+// ...
+
+my_record.data = mask_data;
+fst24_write(my_file, &my_record, FST_NO);
+```
+
+</td></tr>
+<tr><td>
+
+```fortran
+use rmn_fst24
+
+fst_record :: my_record
+fst_file :: my_file
+logical :: success
+
+! ...
+
+
+
+query = my_file % new_query(nomvar = 'MASK')
+if (query % find_next(my_record)) then
+    my_record % data_bits = 8 ! Choose the size into which to read
+    success = my_record % read()
+    ! my_record % data now contains 8-bit elements
+end if
+
+```
+
+</td><td>
+
+```c
+#include <rmn.h>
+
+fst_record my_record = default_fst_record;
+fst_file* my_file = NULL;
+
+
+// ...
+
+fst_record criteria = default_fst_record;
+sprintf(criteria.nomvar, "MASK");
+fst_query* query = fst24_new_query(my_file, &criteria, NULL);
+if (fst24_find_next(query, &my_record) == TRUE) {
+    my_record.data_bits = 8; // Choose the size into which to read
+    fst24_read_record(&my_record);
+    // my_record.data now points to an array with 8-bit elements
+}
+```
+
+</td></tr>
+</table>
 
 
 <a id="ex-write"></a>
