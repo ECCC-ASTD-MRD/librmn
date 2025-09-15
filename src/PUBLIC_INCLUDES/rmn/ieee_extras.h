@@ -79,6 +79,8 @@ static inline int32_t fp32_allow_denorm(void){
 
 // transform a float into a fake signed integer (comparison order preserving)
 // sign magnitude float to signed integer, order preserving
+// f     : 32 bit float to transform
+// return fake integer
 // both 0.0 and -0.0 come back as 0
 static inline int32_t fp32_to_fi32(float f){
   union{ int32_t i ; uint32_t u ; float f ; } r ;
@@ -92,7 +94,9 @@ static inline int32_t fp32_to_fi32(float f){
 
 // sign magnitude float to rounded and scaled signed integer, order preserving
 // both 0.0 and -0.0 come back as 0
-// nbits MUST NOT BE > 23
+// f     : 32 bit float to transform
+// nbits : number of less significant bits to eliminate (0 <= nbits <= 23)
+// return fake integer
 static inline int32_t fp32_to_fsi32(float f, int nbits){
   union{ int32_t i ; uint32_t u ; float f ; } r ;
   r.f = f ;
@@ -108,6 +112,8 @@ static inline int32_t fp32_to_fsi32(float f, int nbits){
 
 // restore float from fake integer representing float
 // signed integer to sign magnitude float, order preserving
+// i    : fake integer
+// return appropriate float value
 // 0 comes back as 0.0f, -0.0f is never produced
 static inline float fi32_to_fp32(int32_t i){
   union{ int32_t i ; float f ; } r ;
@@ -120,7 +126,10 @@ static inline float fi32_to_fp32(int32_t i){
 }
 
 // rounded and scaled signed integer to sign magnitude float, order preserving
-// nbits MUST NOT BE > 23 (and MUST be the same value previously used by fp32_to_fsi32)
+// i     : fake integer
+// nbits : number of less significant bits to eliminate (0 <= nbits <= 23) 
+//         (MUST be the same value previously used by fp32_to_fsi32)
+// return appropriate float value
 // 0 comes back as 0.0f, -0.0f is never produced
 static inline float fsi32_to_fp32(int32_t i, int nbits){
   union{ int32_t i ; float f ; } r ;
@@ -147,14 +156,14 @@ static inline int32_t fp32_sign(float z){
   return (r.i >> 31) ;  // will return 0 or -1
 }
 
-// get biased exponent from z
+// get biased exponent from float value z
 static inline uint32_t fp32_exp_raw(float z){
   union{ int32_t i ; uint32_t u ; float f ; } r ;
   r.f = z ;
   return ((r.i >> 23) & 0xFF) ;
 }
 
-// get unbiased exponent from z
+// get unbiased exponent from float value z
 static inline int32_t fp32_exp(float z){
   union{ int32_t i ; uint32_t u ; float f ; } r ;
   r.f = z ;
