@@ -104,8 +104,7 @@ set(PROJECT_PUBLIC_INCLUDE_FILES
 )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/rmn)
-set(MODULE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include/mod)
-set(MODULE_DIR_OMPI ${CMAKE_CURRENT_BINARY_DIR}/include/mod_ompi)
+set(MODULE_BASE_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 # A bunch of fst_record functions (generated)
 set(ARRAY_GETTER_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/rmn_fst24_record_get_data_array.hf)
@@ -144,13 +143,12 @@ add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/in
 
 set(TARGETS rmn-static)
 if (${RMN_BUILD_SHARED})
-    set(TARGETS ${TARGETS} rmn-shared)
+    list(APPEND TARGETS rmn-shared)
 endif()
 
 # Build static library from source files
 add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES} ${PROJECT_H_FILES})
 target_link_libraries(rmn-static PUBLIC App-static json-c-static libudunits2-static LibXml2::LibXml2)
-target_include_directories(rmn-static INTERFACE $<BUILD_INTERFACE:${MODULE_DIR}> ${CMAKE_CURRENT_SOURCE_DIR}/src/Struct)
 add_dependencies(rmn-static rmn_build_info json-c libudunits2-static)
 
 # Build shared library from object of rmn
@@ -159,12 +157,17 @@ if (${RMN_BUILD_SHARED})
     target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2-shared LibXml2::LibXml2)
 endif()
 
+foreach(TARGET ${TARGETS})
+    target_include_directories(${TARGET} INTERFACE
+        $<BUILD_INTERFACE:${MODULE_BASE_DIR}/fmod>
+        $<INSTALL_INTERFACE:include/fmod>)
+endforeach()
+
 set_target_properties(${TARGETS} PROPERTIES
     VERSION ${PROJECT_VERSION}
-    Fortran_MODULE_DIRECTORY ${MODULE_DIR}
+    Fortran_MODULE_DIRECTORY ${MODULE_BASE_DIR}/fmod
     PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
     INTERFACE_COMPILE_DEFINITIONS HAVE_RMN="${PROJECT_VERSION}"
-    INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${MODULE_DIR}>
     POSITION_INDEPENDENT_CODE ON
     OUTPUT_NAME rmn
     SOVERSION ${SOVERSION}
@@ -177,52 +180,59 @@ set(static_targets rmn-static)
 #----- Needed when used as sbumodule/subtree
 add_library(rmn::rmn-static ALIAS rmn-static)
 add_library(rmn::rmn ALIAS rmn-static) # Default to static
-if (${RMN_BUILD_SHARED})
+if(${RMN_BUILD_SHARED})
     add_library(rmn::rmn-shared ALIAS rmn-shared)
 endif()
 
 if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
-    set (OMPI_TARGETS rmn-ompi-static)
-    if (${RMN_BUILD_SHARED})
-        set (OMPI_TARGETS ${OMPI_TARGETS} rmn-ompi-shared)
+    set(OMPI_TARGETS rmn-ompi-static)
+    if(${RMN_BUILD_SHARED})
+        list(APPEND OMPI_TARGETS rmn-ompi-shared)
     endif()
     set(TARGETS ${TARGETS} ${OMPI_TARGETS})
 
-   # Build static library from source files
-   add_library(rmn-ompi-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
-   target_link_libraries(rmn-ompi-static PUBLIC App-ompi-static json-c-static libudunits2-static LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
-   target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
-   add_dependencies(rmn-ompi-static rmn_build_info json-c libudunits2-static)
+    # Build static library from source files
+    add_library(rmn-ompi-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
+    target_link_libraries(rmn-ompi-static PUBLIC
+        App-ompi-static json-c-static libudunits2-static LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+    target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
+    add_dependencies(rmn-ompi-static rmn_build_info json-c libudunits2-static)
 
     # Build shared library from objects of rmn-ompi
-    if (${RMN_BUILD_SHARED})
+    if(${RMN_BUILD_SHARED})
         add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi-static>)
-        target_link_libraries(rmn-ompi-shared PUBLIC App-ompi-shared json-c libudunits2-shared LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+        target_link_libraries(rmn-ompi-shared PUBLIC
+            App-ompi-shared json-c libudunits2-shared LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
         target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
     endif()
 
+    foreach(TARGET ${OMPI_TARGETS})
+        target_include_directories(${TARGET} INTERFACE
+            $<BUILD_INTERFACE:${MODULE_BASE_DIR}/fmod-ompi>
+            $<INSTALL_INTERFACE:include/fmod-ompi>)
+    endforeach()
+
     set_target_properties(${OMPI_TARGETS} PROPERTIES
         VERSION ${PROJECT_VERSION}
-        Fortran_MODULE_DIRECTORY ${MODULE_DIR_OMPI}
+        Fortran_MODULE_DIRECTORY ${MODULE_BASE_DIR}/fmod-ompi
         PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES/rmn.h
         INTERFACE_COMPILE_DEFINITIONS HAVE_RMN="${PROJECT_VERSION}"
-        INTERFACE_INCLUDE_DIRECTORIES $<BUILD_INTERFACE:${MODULE_DIR_OMPI}>
         POSITION_INDEPENDENT_CODE ON
         OUTPUT_NAME rmn-ompi
         SOVERSION ${SOVERSION}
         C_STANDARD 11
         C_EXTENSIONS OFF)
 
-   # Symbolic link for archive numbered version
-   add_custom_command(TARGET rmn-ompi-static POST_BUILD
-       COMMAND ln -sfv lib${PROJECT_NAME}-ompi.a lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a
-       BYPRODUCTS lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a)
-   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a DESTINATION lib)
+    # Symbolic link for archive numbered version
+    add_custom_command(TARGET rmn-ompi-static POST_BUILD
+        COMMAND ln -sfv lib${PROJECT_NAME}-ompi.a lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a
+        BYPRODUCTS lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}-ompi_${PROJECT_VERSION}.a DESTINATION lib)
 
-   list(APPEND shared_targets rmn-ompi-shared)
-   list(APPEND static_targets rmn-ompi-static)
+    list(APPEND shared_targets rmn-ompi-shared)
+    list(APPEND static_targets rmn-ompi-static)
 
-    #----- Needed when used as sbumodule/subtree
+    # Needed when used as sbumodule/subtree
     add_library(rmn::rmn-ompi-static ALIAS rmn-ompi-static)
     add_library(rmn::rmn-ompi ALIAS rmn-ompi-static)    # Default to static
     if (${RMN_BUILD_SHARED})
@@ -353,24 +363,31 @@ add_custom_command(TARGET rmn-static POST_BUILD
     BYPRODUCTS lib${PROJECT_NAME}_${PROJECT_VERSION}.a)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}_${PROJECT_VERSION}.a DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-# Fortran modules are installed in the include directory for now
-install(FILES
-    ${MODULE_DIR}/f_c_strings_mod.mod
-    ${MODULE_DIR}/rmn_circular_buffer_module.mod
-    ${MODULE_DIR}/rmn_common.mod
-    ${MODULE_DIR}/rmn_date.mod
-    ${MODULE_DIR}/rmn_fst_common.mod
-    ${MODULE_DIR}/rmn_fst24.mod
-    ${MODULE_DIR}/rmn_fst24_record.mod
-    ${MODULE_DIR}/rmn_fst98.mod
-    ${MODULE_DIR}/rmn_jar.mod
-    ${MODULE_DIR}/rmn_gmm.mod
-    ${MODULE_DIR}/rmn_libc.mod
-    ${MODULE_DIR}/rmn_meta.mod
-    ${MODULE_DIR}/rmn_msg.mod
-    ${MODULE_DIR}/convert_ip123_int.mod
-    ${MODULE_DIR}/whiteboard_mod.mod
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+set(MOD_DIRS "fmod")
+if(WITH_OMPI)
+    list(APPEND MOD_DIRS "fmod-ompi")
+endif()
+foreach(MOD_DIR ${MOD_DIRS})
+    install(FILES
+        ${MODULE_BASE_DIR}/${MOD_DIR}/f_c_strings_mod.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_circular_buffer_module.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_common.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_date.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst_common.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst24.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst24_record.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst98.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_jar.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_gmm.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_libc.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_meta.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_msg.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/convert_ip123_int.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/whiteboard_mod.mod
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${MOD_DIR})
+endforeach()
+unset(MOD_DIRS)
+
 
 file(GLOB PROJECT_INCLUDE_FILES src/PUBLIC_INCLUDES/rmn/*)
 # WhiteBoard.hf is generated by make and doesn't exist when cmake is executed

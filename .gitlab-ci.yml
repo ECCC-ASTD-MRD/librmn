@@ -16,6 +16,11 @@ include:
      ref: dev
      file: '/ci/.gitlab-ci-config.yml'
 
+# Add needed mpi flag for the tests in this project
+test:rhel-8-amd64_gnu-14.2.0:
+   variables:
+      ORD_SOUMET_MPI : mpi
+
 deploy:staging:
    stage: deploy
    tags:
