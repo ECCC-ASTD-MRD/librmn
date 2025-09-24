@@ -2248,12 +2248,10 @@ int c_xdfput(
             record = (file_record *) f->cur_entry;
         } else {
             // file is xdf sequential
-            if (handle > 0) {
-                // Rewrite record
-                addr = address_from_handle(handle, f);
-                c_waread(iun, f->head_keys, addr, MAX_PRIMARY_LNG);
-                record = (file_record *) f->head_keys;
-            }
+            // Rewrite record
+            addr = address_from_handle(handle, f);
+            c_waread(iun, f->head_keys, addr, MAX_PRIMARY_LNG);
+            record = (file_record *) f->head_keys;
         }
         idtyp = record->idtyp;
         addr = record->addr;
