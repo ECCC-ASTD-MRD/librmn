@@ -1908,7 +1908,7 @@ static int qqcopen(
         return -1;
     }
 
-    int fd;
+    int fd = -1;
     if (FGFDT[indf].subname) {
         // cmcarc file
         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:  opening subfile %s from file %s\n",__func__,FGFDT[indf].subname,FGFDT[indf].file_name);
