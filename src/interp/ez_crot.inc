@@ -53,8 +53,8 @@
       real xyz1(3), xyz2(3)
 
 !     calcul des coordonnees cartesiennes des points r1 et r2
-      call ez_lac(xyz1, lon1, lat1, 1)
-      call ez_lac(xyz2, lon2, lat2, 1)
+      call ez_lac(xyz1, [lon1], [lat1], 1)
+      call ez_lac(xyz2, [lon2], [lat2], 1)
 
 !     calcul de a=cos(alpha)
       a = (xyz1(1) * xyz2(1)) + (xyz1(2) * xyz2(2)) + (xyz1(3) * xyz2(3))
