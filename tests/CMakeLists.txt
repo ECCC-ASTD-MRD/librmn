@@ -379,6 +379,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst24_flush COMMAND $<TARGET_FILE:fst24_flush>)
         add_dependencies(check fst24_flush)
 
+        add_executable(fst_data_size EXCLUDE_FROM_ALL fst/fst_data_size.c)
+        target_link_libraries(fst_data_size rmn::rmn)
+        add_test(NAME fst_data_size COMMAND $<TARGET_FILE:fst_data_size>)
+        add_dependencies(check fst_data_size)
+
         add_executable(gen_abort_file EXCLUDE_FROM_ALL fst/gen_abort_file.c)
         target_link_libraries(gen_abort_file rmn::rmn)
         add_dependencies(check gen_abort_file)

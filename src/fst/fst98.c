@@ -1224,7 +1224,7 @@ int c_fstecr_xdf(
     // flag 64 bit IEEE (type 5 or 8)
     int IEEE_64 = 0;
     // 64 bits real IEEE
-    if ( (base_fst_type(in_datyp) == FST_TYPE_REAL_IEEE) && (nbits == 64) ) IEEE_64 = 1;
+    if ( (is_type_real(in_datyp)) && (nbits == 64) ) IEEE_64 = 1;
     // 64 bits complex IEEE
     if ( is_type_complex(in_datyp) && (nbits == 64) ) IEEE_64 = 1;
 
