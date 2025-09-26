@@ -924,9 +924,6 @@ int c_wawrit2(
     const int nwords
 ) {
 #define WA_HOLE 2048
-    uint32_t scrap[WA_HOLE];
-    uint32_t *bufswap = (uint32_t *) buf;
-
     int entry = find_file_entry("c_wawrit", iun);
     if (entry < 0) return entry;
 
@@ -942,9 +939,12 @@ int c_wawrit2(
         Lib_Log(APP_LIBRMN,APP_ERROR,"%s:  attempt to write beyond EOF+%d\n\tunit = %d, adr=%u > file_size=%d\n\tfilename=%s\n",__func__,WA_HOLE,iun,offset,FGFDT[entry].file_size,FGFDT[entry].file_name);
         exit(1);
     }
-    if ( offset > FGFDT[entry].file_size + 1 ){
+    if ( offset > FGFDT[entry].file_size + 1 ) {
+        uint32_t scrap[WA_HOLE];
+        memset(scrap, 0, WA_HOLE);
         qqcwawr(scrap, FGFDT[entry].file_size + 1, offset - FGFDT[entry].file_size, entry);
     }
+    uint32_t * const bufswap = (uint32_t *) buf;
     if (*little_endian) swap_buffer_endianness(bufswap, nwords);
     qqcwawr((uint32_t *)buf, offset, nwords, entry);
     if (*little_endian) swap_buffer_endianness(bufswap, nwords);
@@ -1908,7 +1908,7 @@ static int qqcopen(
         return -1;
     }
 
-    int fd;
+    int fd = -1;
     if (FGFDT[indf].subname) {
         // cmcarc file
         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:  opening subfile %s from file %s\n",__func__,FGFDT[indf].subname,FGFDT[indf].file_name);

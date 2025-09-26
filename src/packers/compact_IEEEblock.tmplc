@@ -178,7 +178,7 @@ void *compact_IEEEblock_FLOAT_TYPE(
                 arrayOfInt[i] = floatTemplate.U;
 
             }
-            return arrayOfTempFloat;
+            return arrayOfInt;
         } else {
             // Bit by bit shuffle
             for ( i = 0; i < floatCount * stride; i += stride) {

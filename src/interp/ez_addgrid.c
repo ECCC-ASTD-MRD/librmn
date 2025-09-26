@@ -15,9 +15,9 @@ static pthread_mutex_t EZ_MTX = PTHREAD_MUTEX_INITIALIZER;
 
 //! \bug This function never worked as intended: The first parameter of c_gdkey2rowcol is an input and it's not initialized before the call!
 int c_ez_refgrid(int grid_index) {
-    int gdrow, gdcol, gdindex;
+    int gdrow, gdcol;
 
-    c_gdkey2rowcol(gdindex, &gdrow, &gdcol);
+    c_gdkey2rowcol(grid_index, &gdrow, &gdcol);
 
 #ifdef MUTEX
     pthread_mutex_lock(&EZ_MTX);

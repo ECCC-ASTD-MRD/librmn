@@ -507,7 +507,7 @@
       external fstecr,hybref_to_ig
 
 
-      integer  ip1, ig1, ig2, ig3, ig4
+      integer  kind, ip1, ig1, ig2, ig3, ig4
       integer  ierr
       real     x1,x2
       character(len=1) blk_S
@@ -518,7 +518,8 @@
           write_encode_hyb = -1
           return
       endif
-      call convip_plus(ip1,ptop,2,+1,blk_S,.false.)
+      kind = 2
+      call convip_plus(ip1,ptop,kind,+1,blk_S,.false.)
       ierr = hybref_to_ig(ig1,ig2,ig3,ig4,rcoef,pref,x1,x2)
       if (ierr.lt.0) then
           write(app_msg,*) 'write_encode_hyb: Encoding of ig?? in ',nom

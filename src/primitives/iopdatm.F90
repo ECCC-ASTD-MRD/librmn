@@ -6,9 +6,13 @@ function iopdatm(date_string) result(timestamp)
     character(len=*), intent(in) :: date_string !< Date as a string of characters with format YYDDDHH
     integer :: timestamp !< The returned timestamp, in some format. 10101011 if there was any error.
 
+    external :: jdatec, datec
+    integer, external :: newdate
+
     integer :: date_val
     integer :: date_year, date_month, date_day
     integer :: jd
+    integer :: dummy
 
     read(date_string, '(I10)', err = 100) date_val
     if (date_val < 9936624) then  ! it is in YYJJJHH format
@@ -16,7 +20,7 @@ function iopdatm(date_string) result(timestamp)
         if (date_year < 1950) date_year = date_year + 100
         call jdatec(jd, date_year, 1, 1)
         call datec(jd + MOD(date_val / 100, 1000) - 1, date_year, date_month, date_day)
-        call newdate(date_val, date_year * 10000 + date_month * 100 + date_day,                &
+        dummy = newdate(date_val, date_year * 10000 + date_month * 100 + date_day,                &
                     MOD(date_val, 100) * 1000000, 3)
         timestamp = date_val
         return

@@ -947,9 +947,9 @@ int c_xdfdel(
     //! [in] File index, page number and record number to record
     const int handle
 ) {
-    int index, page_number, record_number, idtyp, i, addr;
+    int index, page_number, record_number, idtyp, i, addr = 0;
     file_table_entry *f;
-    file_record *record;
+    file_record *record = NULL;
     uint32_t *rec;
     page_ptr target_page;
     xdf_record_header header;
@@ -2248,12 +2248,10 @@ int c_xdfput(
             record = (file_record *) f->cur_entry;
         } else {
             // file is xdf sequential
-            if (handle > 0) {
-                // Rewrite record
-                addr = address_from_handle(handle, f);
-                c_waread(iun, f->head_keys, addr, MAX_PRIMARY_LNG);
-                record = (file_record *) f->head_keys;
-            }
+            // Rewrite record
+            addr = address_from_handle(handle, f);
+            c_waread(iun, f->head_keys, addr, MAX_PRIMARY_LNG);
+            record = (file_record *) f->head_keys;
         }
         idtyp = record->idtyp;
         addr = record->addr;

@@ -1061,10 +1061,10 @@ int C_fstmatch_parm(int handle, int datevalid, int ni, int nj, int nk,
   }
 //  if (! Requests[first_R].in_use) return 1;        /* aucune requete desire ou exclure */
 
+  date = datevalid;
   Lib_Log(APP_LIBFST, APP_EXTRA, "%s: fstprm date=%d ip1=%d ip2=%d ip3=%d nomvar=\"%s\" typvar=\"%s\" etiket=\"%s\"\n",
           __func__, date, ip1, ip2, ip3, nomvar, typvar, etiket);
   translatable = FstCanTranslateName(nomvar) ;
-  date = datevalid;
 
   if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) {
     char buffer[1024];

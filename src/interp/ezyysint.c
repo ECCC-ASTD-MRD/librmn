@@ -58,6 +58,7 @@ int32_t c_ezyysint(float *zout, float *zin,int32_t gdout,int32_t gdin) {
         c_gdkey2rowcol(yan_gdin,  &yan_gdrow_in,  &yan_gdcol_in);
     } else {
         yin_gdin = gdin;
+        yan_gdin = -1;
         yin_gdrow_in = gdrow_in;
         yin_gdcol_in = gdcol_in;
     }

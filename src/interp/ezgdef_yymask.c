@@ -24,11 +24,10 @@
 #include "ez_funcdef.h"
 
 
-int32_t c_ezgdef_yymask(_Grille *subgd)
-{
-    int32_t i0, i1, j0, j1;
-
+int32_t c_ezgdef_yymask(_Grille *subgd) {
     int32_t k = 0;
+    int32_t i0 = 0;
+    int32_t i1 = 0;
     for (int32_t i = 0; i < subgd->ni; i++) {
         if (subgd->ax[i] >= 45.0 && subgd->ax[i] <= 315.0) {
             k++;
@@ -36,22 +35,26 @@ int32_t c_ezgdef_yymask(_Grille *subgd)
             i1 = i;
         }
     }
-     int32_t yni = k;
-     k = 0;
-     for (int32_t i = 0; i < subgd->nj; i++) {
+    int32_t yni = k;
+    int32_t j0 = 0;
+    int32_t j1 = 0;
+    k = 0;
+    for (int32_t i = 0; i < subgd->nj; i++) {
         if (subgd->ay[i] >= -45.0 && subgd->ay[i] <= 45.0) {
             k++;
             if (k == 1) j0 = i;
             j1 = i;
         }
     }
-     int32_t ynj = k;
-     int32_t mask_gdid = c_ezgdef_fmem(yni,ynj,subgd->grtyp,subgd->grref,subgd->fst.igref[IG1],subgd->fst.igref[IG2],subgd->fst.igref[IG3],subgd->fst.igref[IG4],&subgd->ax[i0],&subgd->ay[j0]);
-     subgd->mymaskgrid = mask_gdid;
-     subgd->mymaskgridi0 = i0;
-     subgd->mymaskgridi1 = i1;
-     subgd->mymaskgridj0 = j0;
-     subgd->mymaskgridj1 = j1;
+    int32_t ynj = k;
+    const int32_t mask_gdid = c_ezgdef_fmem(yni, ynj, subgd->grtyp, subgd->grref,
+        subgd->fst.igref[IG1], subgd->fst.igref[IG2], subgd->fst.igref[IG3], subgd->fst.igref[IG4],
+        &subgd->ax[i0], &subgd->ay[j0]);
+    subgd->mymaskgrid = mask_gdid;
+    subgd->mymaskgridi0 = i0;
+    subgd->mymaskgridi1 = i1;
+    subgd->mymaskgridj0 = j0;
+    subgd->mymaskgridj1 = j1;
 
     if (groptions.verbose > 0) {
         int32_t mask_gdrow_id, mask_gdcol_id;

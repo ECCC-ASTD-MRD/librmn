@@ -344,7 +344,7 @@ int  compact_integer( void *unpackedArrayOfInt, void *packedHeader, void *packed
     int minSignedInteger=0, maxSignedInteger=0;
     uint32_t minUnsignedInteger=0, maxUnsignedInteger=0;
     uint32_t maxRange;
-    uint32_t maxSpan;
+    uint32_t maxSpan = 0;
 
 
     int positiveMask;
@@ -611,7 +611,7 @@ int  compact_short( void *unpackedArrayOfShort, void *packedHeader, void *packed
     int minSignedInteger=0, maxSignedInteger=0;
     uint32_t minUnsignedInteger=0, maxUnsignedInteger=0;
     uint32_t maxRange;
-    uint32_t maxSpan;
+    uint32_t maxSpan = 0;
 
 
     int positiveMask;
@@ -849,7 +849,7 @@ int  compact_char( void *unpackedArrayOfBytes, void *packedHeader, void *packedA
     int minSignedInteger=0, maxSignedInteger=0;
     uint32_t minUnsignedInteger=0, maxUnsignedInteger=0;
     uint32_t maxRange;
-    uint32_t maxSpan;
+    uint32_t maxSpan = 0;
 
 
     int positiveMask;
