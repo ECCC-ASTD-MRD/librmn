@@ -1014,13 +1014,13 @@ int c_fstecr(
     buffer->data[buffer->aux_index+1] = 0;
 
     char typvar[3] = {' ', ' ', '\0'};
-    strncpy(typvar, in_typvar, strlen(in_typvar));
+    strncpy(typvar, in_typvar, Min(strlen(typvar), strlen(in_typvar)));
     char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
-    strncpy(nomvar, in_nomvar, strlen(in_nomvar));
+    strncpy(nomvar, in_nomvar, Min(strlen(nomvar), strlen(in_nomvar)));
     char etiket[13] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' , ' ' , '\0'};
-    strncpy(etiket, in_etiket, strlen(in_etiket));
+    strncpy(etiket, in_etiket, Min(strlen(etiket), strlen(in_etiket)));
     char grtyp[2] = {' ', '\0'};
-    strncpy(grtyp, in_grtyp, strlen(in_grtyp));
+    strncpy(grtyp, in_grtyp, Min(strlen(grtyp), strlen(in_grtyp)));
 
     /* set stdf_entry to address of buffer->data for building keys */
     stdf_dir_keys * stdf_entry = (stdf_dir_keys *) &(buffer->data);
@@ -1439,10 +1439,10 @@ int c_fst_edit_dir_plus(
         return(ERR_NO_FILE);
     }
 
-    l1 = strlen(in_typvar);
-    l2 = strlen(in_nomvar);
-    l3 = strlen(in_etiket);
-    l4 = strlen(in_grtyp);
+    l1 = Min(strlen(typvar), strlen(in_typvar));
+    l2 = Min(strlen(nomvar), strlen(in_nomvar));
+    l3 = Min(strlen(etiket), strlen(in_etiket));
+    l4 = Min(strlen(grtyp), strlen(in_grtyp));
 
     strncpy(typvar, in_typvar, l1);
     strncpy(nomvar, in_nomvar, l2);
@@ -1696,9 +1696,9 @@ int c_fstinfx(
     char typvar[3] = {' ', ' ', '\0'};
     char nomvar[5] = {' ', ' ', ' ', ' ', '\0'};
 
-    strncpy(etiket, in_etiket, strlen(in_etiket));
-    strncpy(typvar, in_typvar, strlen(in_typvar));
-    strncpy(nomvar, in_nomvar, strlen(in_nomvar));
+    strncpy(etiket, in_etiket, Min(strlen(etiket), strlen(in_etiket)));
+    strncpy(typvar, in_typvar, Min(strlen(typvar), strlen(in_typvar)));
+    strncpy(nomvar, in_nomvar, Min(strlen(nomvar), strlen(in_nomvar)));
     Lib_Log(APP_LIBFST,APP_DEBUG,"%s: iun %d recherche: datev=%d etiket=[%s] ip1=%d ip2=%d ip3=%d typvar=[%s] nomvar=[%s]\n",__func__,iun,datev,etiket,ip1,ip2,ip3,typvar,nomvar);
 
     index_fnom = fnom_index(iun);
