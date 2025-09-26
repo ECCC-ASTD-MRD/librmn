@@ -78,6 +78,35 @@ static inline int32_t base_fst_type(const int32_t type_flag) {
 //! 512+256+32+1 no interference with turbo pack (128) and missing value (64) flags
 #define FST_TYPE_MAGIC 801
 
+#define FSTD_MISSING_FLAG 64 //!< When this flag is ON in a datatype, it indicates that some data points are missing
+
+//! Determine whether the given type is real: R, E or F, compressed or not, with or without missing values
+static inline int32_t is_type_real(const int32_t type_flag) {
+    return ((base_fst_type(type_flag) == FST_TYPE_REAL_IEEE) ||
+            (base_fst_type(type_flag) == FST_TYPE_REAL_OLD_QUANT) ||
+            (base_fst_type(type_flag) == FST_TYPE_REAL));
+}
+//! Determine whether the given type is complex, with/without compression, with/without missing values
+static inline int32_t is_type_complex(const int32_t type_flag) {
+    return (base_fst_type(type_flag) == FST_TYPE_COMPLEX);
+}
+
+//! Determine whether the given type has compression enabled
+static inline int32_t is_type_turbopack(const int32_t type_flag) {
+    return ((type_flag & FST_TYPE_TURBOPACK) == FST_TYPE_TURBOPACK);
+}
+
+//! Determine whether the given type is using missing values
+static inline int32_t has_type_missing(const int32_t type_flag) {
+    return ((type_flag & FSTD_MISSING_FLAG) == FSTD_MISSING_FLAG);
+}
+
+//! Determine whether the given type is integer (signed or unsigned)
+static inline int32_t is_type_integer(const int32_t type_flag) {
+    return ((base_fst_type(type_flag) == FST_TYPE_SIGNED) ||
+            (base_fst_type(type_flag) == FST_TYPE_UNSIGNED));
+}
+
 void upgrade_size(void* dest, const int dest_size, void* src, const int src_size, const int64_t num_elem,
                   const int is_integer);
 int32_t c_fst_is_rsf(const int iun);

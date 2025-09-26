@@ -116,6 +116,11 @@ int c_fstecr_rsf(
         rec.pack_bits = rec.data_bits;
     }
 
+    // Assume data is 64 bits if we request 64-bit "compression" for real/complex types
+    if (rec.pack_bits == 64 && (is_type_real(in_datyp_ori) || is_type_complex(in_datyp_ori))) {
+        rec.data_bits = 64;
+    }
+
     //! \bug field_in should be const in a function that's meant only to write data to a file.
     //! Unfortunately fst24_write_rsf modifies the record object (not the actual field's data).
     //! We therefore cannot have it to const here. Since rec.data is an const, compilers throw

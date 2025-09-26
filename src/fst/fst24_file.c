@@ -346,6 +346,16 @@ static inline int32_t update_attributes_from_rsf_info(
     record->file_offset = record_info->wa;
     record->total_stored_bytes = record_info->rl;
 
+    if (record_info->rl > fst24_record_data_size(record) + record->num_meta_bytes + sizeof(RSF_record)) { // With some small buffer
+        Lib_Log(APP_LIBFST, APP_ERROR,
+            "%s: Record data on disk (%llu) is larger than computed value (%lld)\n",
+            __func__, record_info->rl, fst24_record_data_size(record) + record->num_meta_bytes + sizeof(RSF_record));
+        if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) {
+            fst24_record_print(record);
+        }
+        return FALSE;
+    }
+
     return TRUE;
 }
 
@@ -1344,6 +1354,14 @@ int32_t fst24_write(
         }
     }
 
+    if (record->pack_bits > record->data_bits) {
+        Lib_Log(APP_LIBFST, APP_WARNING,
+            "%s: Trying to pack a record into more bits (%d) than its original data (%d). "
+            "Setting pack_bits to %d (uncompressed)\n",
+            __func__, record->pack_bits, record->data_bits, record->data_bits);
+        record->pack_bits = record->data_bits;
+    }
+
     // Use the skip_filter option, to *not* miss the record because of the global filter
     fst_query_options rewrite_options = default_query_options;
     rewrite_options.skip_filter = 1;
@@ -1555,8 +1573,7 @@ int32_t fst24_get_record_by_index(
 
         if (record_info.rec_type == RT_NULL) return FALSE; // Error retrieving the record
 
-        update_attributes_from_rsf_info(record, RSF_Make_key(file->file_index_backend, index), &record_info);
-        return TRUE;
+        return update_attributes_from_rsf_info(record, RSF_Make_key(file->file_index_backend, index), &record_info);
     }
     else if (file->type == FST_XDF) {
         const int32_t key = fst24_make_xdf_handle_from_index(index, file->file_index_backend);

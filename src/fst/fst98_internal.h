@@ -25,25 +25,6 @@
         return(ERR_OUT_RANGE);\
     }
 
-static inline int32_t is_type_real(const int32_t type_flag) {
-    return ((base_fst_type(type_flag) == FST_TYPE_REAL_IEEE) ||
-            (base_fst_type(type_flag) == FST_TYPE_REAL_OLD_QUANT) ||
-            (base_fst_type(type_flag) == FST_TYPE_REAL));
-}
-static inline int32_t is_type_complex(const int32_t type_flag) {
-    return (base_fst_type(type_flag) == FST_TYPE_COMPLEX);
-}
-static inline int32_t is_type_turbopack(const int32_t type_flag) {
-    return ((type_flag & FST_TYPE_TURBOPACK) == FST_TYPE_TURBOPACK);
-}
-static inline int32_t has_type_missing(const int32_t type_flag) {
-    return ((type_flag & FSTD_MISSING_FLAG) == FSTD_MISSING_FLAG);
-}
-static inline int32_t is_type_integer(const int32_t type_flag) {
-    return ((base_fst_type(type_flag) == FST_TYPE_SIGNED) ||
-            (base_fst_type(type_flag) == FST_TYPE_UNSIGNED));
-}
-
 //! Swap (in-place) the two halves of each 64-bit element in the given array
 static inline void swap_words(void* array, const int32_t num_elem64) {
     register int32_t temp32, *src, *dest;
