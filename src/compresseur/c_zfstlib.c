@@ -84,7 +84,7 @@ int armn_compress(
     float rlog2;
 
 #if defined (Little_Endian)
-    int limite;
+    int limite = 0;
 #endif
 
     int initial_compression_level;

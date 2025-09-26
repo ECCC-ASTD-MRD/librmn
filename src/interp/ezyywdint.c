@@ -62,6 +62,7 @@ int32_t c_ezyywdint(float *uuout, float *vvout, float *uuin,  float *vvin, int32
   else
      {
      yin_gdin = gdin;
+     yan_gdin = -1;
      yin_gdrow_in = gdrow_in;
      yin_gdcol_in = gdcol_in;
      }

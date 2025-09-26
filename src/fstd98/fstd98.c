@@ -2350,7 +2350,7 @@ int c_fstluk(
 #ifdef use_old_signed_pack_unpack_code
                 // fprintf(stderr, "OLD UNPACK CODE ======================================\n");
                 int *field_out;
-                short *s_field_out;
+                short *s_field_out = NULL;
                 signed char *b_field_out;
                 if (xdf_short || xdf_byte) {
                     field_out = alloca(nelm * sizeof(int));

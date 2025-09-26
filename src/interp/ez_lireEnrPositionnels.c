@@ -134,13 +134,12 @@ int32_t LireEnrPositionnels(_Grille *gr, int32_t iunit, int32_t ip1, int32_t ip2
     strcpy(nomvarx, ">>  ");
     }
 
-  trouve_x = 0;
+  Cles_ax = c_fstinf(intiunit, &nix, &njx, &nkx,moins1, etikx, ip1, ip2, tmpip3, typvarx, nomvarx);
   if (gr->ni == 0 || gr->ni == -1)
    {
    gr->ni = nix;
    }
-  Cles_ax = c_fstinf(intiunit, &nix, &njx, &nkx,moins1, etikx, ip1, ip2, tmpip3, typvarx, nomvarx);
-
+  trouve_x = 0;
   while (trouve_x == 0 && Cles_ax > 0)
     {
      if (Cles_ax > 0) {
@@ -210,12 +209,12 @@ int32_t LireEnrPositionnels(_Grille *gr, int32_t iunit, int32_t ip1, int32_t ip2
 
   if (gr->grtyp[0] != 'U') /* not a U grid */
   { /* search for the second grid descriptor */
+     Cles_ay = c_fstinf(intiunit, &niy, &njy, &nky,moins1, etiky, ip1, ip2, tmpip3, typvary, nomvary);
      if (gr->nj == 0 || gr->nj == -1)
         {
         gr->nj = njy;
         }
      trouve_y = 0;
-     Cles_ay = c_fstinf(intiunit, &niy, &njy, &nky,moins1, etiky, ip1, ip2, tmpip3, typvary, nomvary);
      while (trouve_y == 0 && Cles_ay > 0)
        {
        ier = c_fstprm(Cles_ay, &dateo, &deet, &npas, &niy, &njy, &nky, &nbits,
