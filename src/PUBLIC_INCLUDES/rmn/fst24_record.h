@@ -34,6 +34,7 @@
 #include <stdlib.h>
 
 #include "rmn/fst_sz.h"
+#include "rmn/fst98.h"
 
 //! Smallest amount of bytes in multiples of 4 that can contain the given number of bytes
 #define ALIGN_TO_4(val) ((val + 3) & 0xfffffffc)
@@ -214,12 +215,14 @@ typedef struct {
 //! \{
 //! Number of elements contained in the given record
 static inline int64_t fst24_record_num_elem(const fst_record* const record) {
-    return record->ni * record->nj * record->nk;
+    return (int64_t)record->ni * record->nj * record->nk;
 }
 
 //! Number of data bytes in record
 static inline int64_t fst24_record_data_size(const fst_record* record) {
-    return (fst24_record_num_elem(record) * record->data_bits) / 8;
+    const int64_t num_elem = fst24_record_num_elem(record);
+    const int factor = is_type_complex(record->data_type) ? 2 : 1;
+    return (num_elem * record->data_bits * factor) / 8;
 }
 
 int32_t      fst24_record_is_valid(const fst_record* record);

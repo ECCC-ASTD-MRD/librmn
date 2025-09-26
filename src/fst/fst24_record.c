@@ -751,12 +751,20 @@ void fill_with_search_meta(
         record->data_type = fst98_meta->datyp;
         record->data_bits = fst98_meta->dasiz;
         record->pack_bits = fst98_meta->nbits;
+
         if (record->data_bits == 0) {
             if (record->pack_bits > 32) {
                 record->data_bits = 64;
             } else {
                 record->data_bits = 32;
             }
+        }
+        
+        // Sanity check
+        if (record->pack_bits > record->data_bits) {
+            Lib_Log(APP_LIBFST, APP_WARNING,
+                "%s: pack_bits (%d) is greater than data_bits (%d). This might cause issues\n",
+                __func__, record->pack_bits, record->data_bits);
         }
 
         record->deet = fst98_meta->deet;
