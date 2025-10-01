@@ -726,6 +726,8 @@ int c_fnom(
 
                     if (access(filename, F_OK)  == -1) {
                         /* not under ARMNLIB either */
+                        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: Unable to find file '%s'\n",
+                                __func__, FGFDT[entry].file_name);
                         goto fnom_error;
                     }
                 }
@@ -784,12 +786,15 @@ int c_fnom(
 
 fnom_error:
     if (ier < 0) {
-        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: could not open file %s, iun %d\n", __func__, FGFDT[entry].file_name, liun);
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: could not open file %s, iun %d (ier = %d)\n",
+                __func__, FGFDT[entry].file_name, liun, ier);
         c_fclos(liun);
     }
-    release_unit_number(liun);
+    else {
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s: There was an error\n", __func__);
+    }
 
-    Lib_Log(APP_LIBRMN, APP_ERROR, "%s: returning with error (%d)\n", __func__, ier);
+    release_unit_number(liun);
 
     return -1;
 }
