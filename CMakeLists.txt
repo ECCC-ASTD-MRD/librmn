@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.20)
 message(STATUS "(EC) Generating librmn Makefiles")
 
 # Append EC specific module path
-foreach(DIR_PATH ${CMAKE_SOURCE_DIR}/cmake_rpn/modules $ENV{EC_CMAKE_MODULE_PATH})
+foreach(DIR_PATH $ENV{EC_CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake_rpn/modules)
     if (EXISTS ${DIR_PATH} AND IS_DIRECTORY ${DIR_PATH})
         message(STATUS "(EC) Adding ${DIR_PATH} to CMAKE_MODULE_PATH")
         list(APPEND CMAKE_MODULE_PATH ${DIR_PATH})
