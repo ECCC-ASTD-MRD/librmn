@@ -950,6 +950,7 @@ int c_mrbrep(
         new_nmots = diff_nmots * 2;
         if (new_nmots > 0) {
             err = c_xdfins(buf, tblval, bitpos, new_nmots, 32, 0);
+            if (err < 0) return err;
             for (i = blkno; i < buf->buf78.buf8; i++) {
                 block[i].bit0 += diff_nmots;
             }
@@ -1017,6 +1018,7 @@ int c_mrbxtr(
     /* extract list of elements */
     if (nelements > 0) {
         err = c_xdfxtr(buf, lstele, bitpos, nelements, 16, 2);
+        if (err < 0) return err;
     }
 
     /* extract array of values */
@@ -1024,6 +1026,7 @@ int c_mrbxtr(
     bitpos = bitpos + nnbits;
     nombre = nele * nval * nt;
     err = c_xdfxtr(buf, tblval, bitpos, nombre, nbit, datyp);
+    if (err < 0) return err;
 
     if ((datyp == 2) || (datyp == 4) || (datyp == 6)) {
         /* set all bits of missing values to 1 */
@@ -1160,6 +1163,7 @@ int c_mrfput(
         stnid[9] = '\0';
         Lib_Log(APP_LIBFST,APP_INFO,"%s: STNID=%s IDTYP=%3d LAT=%5d LON=%5d DX=%4d DY=%4d DATE=%8d TEMPS=%4d, FLGS=%8d\n",__func__,stnid, idtyp, lat, lon, dx, dy, date, temps, flgs);
     }
+
     return 0;
 }
 
