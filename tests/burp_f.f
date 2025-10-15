@@ -88,7 +88,64 @@
 
 ***PROGRAM TESTBRP
 *
+      
+      module error_count
+      use app
+      implicit none
+         integer :: num_errors = 0
+      contains
+
+         SUBROUTINE TESTIT(IER, expected_min, expected_max,
+     &                     expected_val, message)
+         implicit none
+         INTEGER, intent(in) :: IER
+         integer, intent(in), optional :: expected_min
+         integer, intent(in), optional :: expected_max
+         integer, intent(in), optional :: expected_val
+         character(len=*), intent(in), optional :: message
+
+         integer :: l_expected_min, l_expected_max
+         character(len=:), allocatable :: msg
+
+         msg = ' '
+         l_expected_min = 0
+         l_expected_max = 0
+         if (present(expected_min)) then
+            l_expected_min = expected_min
+            if (.not. present(expected_max)) 
+     &         l_expected_max = huge(l_expected_max)
+         endif
+         if (present(expected_max)) then
+            l_expected_max = expected_max
+            if (.not. present(expected_min))
+     &         l_expected_min = -(huge(l_expected_min))
+         endif
+         if (present(expected_val)) then
+            l_expected_min = expected_val
+            l_expected_max = expected_val
+         endif
+         if (present(message)) msg = message
+
+         IF ((IER .LT. l_expected_min) .or.
+     &       (IER .gt. l_expected_max)) THEN
+            WRITE(app_msg,444) msg, IER, l_expected_min, l_expected_max
+            call app_log(APP_ERROR, app_msg)
+            num_errors = num_errors + 1
+            error stop 1
+         ELSE 
+            call App_Log(APP_DEBUG,' --- REUSSI ---')
+         ENDIF 
+444      FORMAT(' <<< ERREUR >>> ', A, ', IER = ',I8,
+     &          ', expected in range [' ,I8, ', ', I8, ']')
+         RETURN
+         END
+
+      end module error_count
+
       PROGRAM TESTBRP
+      use iso_fortran_env
+      use ieee_arithmetic, only: ieee_is_nan
+      use error_count
       IMPLICIT NONE
 
 *
@@ -98,7 +155,8 @@
 *     PROGRAMME POUR TESTER LE PROGICIEL DES FICHIERS BURP
 *
 *MODULES
-      INTEGER*4 time
+
+      INTEGER(kind=int32) :: time
       INTEGER FNOM,MRFCLS,MRFGET,MRFLOC,MRFOPN,MRFPRM,MRFPUT,MRBCVT
       INTEGER MRBADD,MRBDEL,MRBHDR,MRBINI,MRBLEN,MRBLOC,MRBPRM
       INTEGER MRBREP,MRBXTR,MRBUPD,HRJUST,MRFVOI,HLJUST, MRBRPT,
@@ -107,7 +165,7 @@
      %MRFGOC, qrbnbdt
       INTEGER MRBCOL, MRBDCL,MRFNBR, MRBLOCX, MRBTYP, MRBTBL,
      % MRBPRML
-      EXTERNAL REMPLI,TESTIT, qrbnbdt
+      EXTERNAL REMPLI, qrbnbdt
       EXTERNAL FNOM,MRFCLS,MRFGET,MRFLOC,MRFOPN,MRFPRM,MRFPUT,
      % MRBTBL
       EXTERNAL MRBADD,MRBDEL,MRBHDR,MRBINI,MRBLEN,MRBLOC,MRBPRM,
@@ -124,9 +182,9 @@
       INTEGER BUFE(20000),ETBLVAL(8000)
       REAL RVAL(500)
       REAL rtablo(10), rtabloc(10)
-      REAL*8 rtablo8(10), rtablo8c(10)
+      REAL(kind=real64) :: rtablo8(10), rtablo8c(10)
       complex ctablo(10), ctabloc(10)
-      complex*16 ctablo8(10), ctablo8c(10)
+      complex(kind=real64) ctablo8(10), ctablo8c(10)
       integer rliste8(20),cliste(20),cliste8(40)
       integer rliste8c(20),clistec(20),cliste8c(40)
       INTEGER BIT0,BLKNO,LSTELEA(10),LSTELEB(4),LSTELEC(3),LSTELEE(
@@ -136,14 +194,14 @@
       INTEGER LBITS,LEFT,IER,IER1,IER2,IER3,I,J,IPOS
       INTEGER SUP(2),XAUX(2),NSUP,NXAUX
       INTEGER TBLCOMP(500),LSTCOMP(10)
-      CHARACTER*9 STNID,OPVALC
+      CHARACTER(len=9) STNID,OPVALC
       INTEGER TEMPS,FLGS,IDTYP,LATI,LONG,ELEV,DRCV,DATE,OARS,RUN,
      %NBLK
       INTEGER DX, DY, ZEROCPL
       INTEGER NELE,NVAL,NT,BTYP,NBIT,DATYP,LONENR, LONMAX, BFAM,
      %BDESC
       INTEGER BKTYP, BKSTP, BKNAT
-      CHARACTER*8 LISTE(5),DEF1(5),DEF2(5)
+      CHARACTER(len=8) LISTE(5),DEF1(5),DEF2(5)
       INTEGER USRTBL(10), CUSRTBL(3,10), RELEM
       INTEGER TBLBURP(4,20)
       INTEGER TBLPRM(10,30)
@@ -162,6 +220,7 @@
       DATA USRTBL /63000, 63010, 63123, 63124, 63125,63200, 63201,
      % 63222, 63234, 63255 /
 *
+      num_errors = 0
 
       IPOS = -1
       CALL CCARD(LISTE,DEF1,DEF2,5,IPOS)
@@ -229,11 +288,12 @@
       DO 23004 I = 1,12
 
 *        CALL REMPLI(TBLVAL,3,5,7)
-         DO 23006 IER = 1,3
-            TBLVAL(IER) = I
+         DO 23006 J = 1,3
+            TBLVAL(J) = I
 23006    CONTINUE 
          IER1 = MRBADD(BUFC,BLKNO,3,1,1,5,12,I,32,BIT0,2,LSTELEC,
      %   TBLVAL)
+         CALL TESTIT(IER1)
          IER = IER + IER1
          PRINT *,' *** INFO BLKNO, BIT0 = ',BLKNO,BIT0
 23004 CONTINUE 
@@ -339,20 +399,26 @@
       WRITE(6,*)' RUN   = ',RUN
       WRITE(6,*)' NBLK  = ',NBLK
       CALL TESTIT(IER)
+
+      ! -------------------------------------------------------------
       WRITE(6,333) 7.0,
      %'MRBLOC BFAM =5,BDESC=12,BTYP=7 BUFA-BUFB-BUFC'
       BLKNO = 0
       IER=MRBLOC(BUFA,773,0,7,BLKNO)
+      call testit(IER, expected_min = 1)
       WRITE(6,*)' BLKNO = ',IER
       IER1=MRBLOC(BUFB,5,12,7,BLKNO)
+      call testit(IER1, expected_min = 1)
       WRITE(6,*)' BLKNO = ',IER1
       IER2=MRBLOC(BUFC,773,-1,7,BLKNO)
+      call testit(IER2, expected_min = 1)
       WRITE(6,*)' BLKNO = ',IER2
-      CALL TESTIT(IER+IER1+IER2)
-      WRITE(6,333) 7.1,
-     %'MRBLOC BFAM =3,BDESC=-1,BTYP=7 BUFA-BUFB-BUFC'
-*     n'existe pas
+      ! CALL TESTIT(IER+IER1+IER2)
 
+      ! -------------------------------------------------------------
+      WRITE(6,333) 7.1,
+     %'MRBLOC BFAM =3,BDESC=-1,BTYP=7 BUFA-BUFB-BUFC (do not exist)'
+*     n'existe pas
       IER=MRBLOC(BUFA,3,-1,7,BLKNO)
       WRITE(6,*)' BLKNO = ',IER
       IER1=MRBLOC(BUFB,3,-1,7,BLKNO)
@@ -362,11 +428,12 @@
       IER = -IER
       IER1 = -IER1
       IER2 = -IER2
-      CALL TESTIT(IER+IER1+IER2)
-      WRITE(6,333) 7.2,
-     %'MRBLOC BFAM =5,BDESC=0,BTYP=7 BUFA-BUFB-BUFC'
-*     n'existe pas
+      CALL TESTIT(IER+IER1+IER2, expected_val = 3)
 
+      ! -------------------------------------------------------------
+      WRITE(6,333) 7.2,
+     %'MRBLOC BFAM =5,BDESC=0,BTYP=7 BUFA-BUFB-BUFC (do not exist)'
+*     n'existe pas
       IER=MRBLOC(BUFA,5,0,7,BLKNO)
       WRITE(6,*)' BLKNO = ',IER
       IER1=MRBLOC(BUFB,5,0,7,BLKNO)
@@ -376,7 +443,9 @@
       IER = -IER
       IER1 = -IER1
       IER2 = -IER2
-      CALL TESTIT(IER+IER1+IER2)
+      CALL TESTIT(IER+IER1+IER2, expected_val = 3)
+
+      ! -------------------------------------------------------------
       WRITE(6,333) 8.0,'MRBPRM BLOC NO 2 BUFA-BUFB-BUFC'
       IER = MRBPRM(BUFA,2,NELE,NVAL,NT,BFAM,BDESC,BTYP,NBIT,BIT0,
      %DATYP)
@@ -389,15 +458,19 @@
       IER2 = MRBPRM(BUFC,2,NELE,NVAL,NT,BFAM,BDESC,BTYP,NBIT,BIT0,
      %DATYP)
       WRITE(6,777) NELE,NVAL,NT,BFAM,BDESC,BTYP,NBIT, BIT0,DATYP
+
+      ! -------------------------------------------------------------
       WRITE(6,333) 8.1,'MRBPRML BUFA TOUS LES BLOCS'
       IER = MRBPRML(BUFA,0,TBLPRM,10,30)
-      WRITE(6,*)' NOMBRE DE BLOCS RETOURNES" ',IER
+      WRITE(6,*)' NOMBRE DE BLOCS RETOURNES" ', IER
       WRITE(6,*)' BKNO   NELE   NVAL   NT  BFAM   BDESC  BTYP '
       write(6,*)   ' NBIT    BIT0   DATYP'
       DO 23018 I = 1,IER
          WRITE(6,778)(TBLPRM(J,I),J=1,10)
 23018 CONTINUE 
-      CALL TESTIT(IER)
+      CALL TESTIT(IER, expected_val = 20)
+
+      ! -------------------------------------------------------------
       WRITE(6,333) 8.2,'MRBPRML BUFA 10 BLOCS A PARTIR DE BKNO 3'
       IER = MRBPRML(BUFA,3,TBLPRM,10,10)
       WRITE(6,*)' NOMBRE DE BLOCS RETOURNES" ',IER
@@ -406,7 +479,9 @@
       DO 23020 I = 1,IER
          WRITE(6,778)(TBLPRM(J,I),J=1,10)
 23020 CONTINUE 
-      CALL TESTIT(IER)
+      CALL TESTIT(IER, expected_min = 10, expected_max = 10)
+
+      ! -------------------------------------------------------------
       WRITE(6,333) 9.0,'MRFPUT BUFA-BUFB-BUFC'
       IER = MRFPUT(10,0,BUFA)
       IER1= MRFPUT(10,0,BUFB)
@@ -533,19 +608,24 @@
 23066    CONTINUE 
 23064 CONTINUE 
       CALL TESTIT(IER2)
+      ! -------------------------------------------------------------
       WRITE(6,333) 13.0,'MRFCLS FICHIER 10'
       IER =MRFCLS(10)
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 14.0,'MRFVOI FICHIER 10 FERME'
       IER = MRFVOI(10)
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 15.0,'MRFOPN EN MODE READ'
       IER = MRFOPN(10,'READ')
-      CALL TESTIT(IER)
+      CALL TESTIT(IER, expected_val = 303)
+      ! -------------------------------------------------------------
       WRITE(6,333) 16.0,'MRFLOC STATIO#6,DATE=901029,IDTYP=3'
       IER1 = MRFLOC(10,0,'STATION#6',3,4523,26300,901029,1118,SUP,0)
       WRITE(6,*)' HANDLE = ',IER1
-      CALL TESTIT(IER1)
+      CALL TESTIT(IER1, expected_min = 100)
+      ! -------------------------------------------------------------
       WRITE(6,333) 17.0,'MRFGET DU RAPPORT A POSITION HANDLE'
       IER = MRFGET(IER1,BUFD)
       DO 23068 I=22,7180
@@ -554,10 +634,12 @@
          ENDIF 
 23068 CONTINUE 
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 18.0,'MRFPRM DE L''ENREGISTREMENT LU'
       IER = MRFPRM(IER1,STNID,IDTYP,LATI,LONG,DX,DY,DATE,TEMPS,FLGS,
      %SUP,0,LONENR)
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,850)
       WRITE(6,800)STNID,TEMPS,LATI,LONG,DX,DY,FLGS,DATE,IDTYP,LONENR
       WRITE(6,333) 18.1,' MRBLOC ET MRBPRM DE TOUS LES BLOCKS'
@@ -573,12 +655,14 @@
          BLKNO = MRBLOC(BUFD,-1,-1,-1,BLKNO)
          GOTO 23072
       ENDIF 
+      ! -------------------------------------------------------------
       WRITE(6,333) 19.0,
      %'MRFLOC PROCHAIN STATIO#6,DATE=901029,IDTYP=3'
       IER1 = MRFLOC(10,IER1,'STATION#6',3,4523,26300,901029,1143,SUP
      %,0)
       WRITE(6,*)' HANDLE = ',IER1
-      CALL TESTIT(IER1)
+      CALL TESTIT(IER1, expected_min = 100)
+      ! -------------------------------------------------------------
       WRITE(6,333) 20.0,'MRFGET DU RAPPORT A POSITION HANDLE'
       IER = MRFGET(IER1,BUFD)
       DO 23074 I=22,7180
@@ -587,22 +671,28 @@
          ENDIF 
 23074 CONTINUE 
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 21.0,'MRFPRM DE L''ENREGISTREMENT LU'
       IER = MRFPRM(IER1,STNID,IDTYP,LATI,LONG,DX,DY,DATE,TEMPS,FLGS,
      %SUP,0,LONENR)
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,850)
       WRITE(6,800)STNID,TEMPS,LATI,LONG,DX,DY,FLGS,DATE,IDTYP,LONENR
       WRITE(6,333) 21.1,'MRFMXL DU FICHIER 10'
       LONMAX = MRFMXL(10)
       WRITE(6,*)'LONMAX = ',LONMAX
-      CALL TESTIT(LONMAX)
+      CALL TESTIT(LONMAX, expected_min = 0, expected_max = 100000)
+      ! -------------------------------------------------------------
       WRITE(6,333) 21.2,' MRFOPC - MSGLVL MIS A FATAL'
       IER = MRFOPC('MSGLVL','FATAL')
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 22.0,'MRFOPN FICHIER 20 MODE CREATE'
       IER = MRFOPN(20,'CREATE')
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
+      ier1 = 0
       IF((DEF2(5).EQ. 'NUL'))THEN
          WRITE(6,333) 23.0,'MRBUPD-MRFPUT BUFB DATE = 1 A 8000'
          DO 23080 I=1,8000
@@ -610,8 +700,8 @@
      %      18934,1500,1200,1452,3,I,0,2,SUP,0,XAUX,0)
             IER1=IER1+MRFPUT(20,0,BUFB)
 23080    CONTINUE 
-         CALL TESTIT(IER)
-         CALL TESTIT(IER1)
+         CALL TESTIT(IER, message = 'mrbupd')
+         CALL TESTIT(IER1, message = 'mrfput')
          IF((DEF2(4).NE. 'NUL'))THEN
             WRITE(6,333) 24.0,
      %      'MRFLOC DATE =100,8000 INCR=100 BOUCLE=50'
@@ -656,9 +746,12 @@
             IER = MRFLOC(20,0,'STATION#9',4,-1,-1,I,-1,SUP,0)
          ENDIF 
       ENDIF 
+      CALL TESTIT (IER, expected_min = 1)
+      ! -------------------------------------------------------------
       WRITE(6,333) 24.1,' MRFOPC - MSGLVL MIS INFORMATIF'
       IER1 = MRFOPC('MSGLVL','INFORMATIF')
-      CALL TESTIT (IER)
+      CALL TESTIT (IER1)
+      ! -------------------------------------------------------------
       WRITE(6,333) 24.2,'MRFDEL DU DERNIER ENREGISTREMENT'
       IER = MRFDEL(IER)
       CALL TESTIT(IER)
@@ -667,9 +760,11 @@
 *      IER = MRFCLS(10)
 *      CALL TESTIT(IER)
 
+      ! -------------------------------------------------------------
       WRITE(6,333) 25.1,'MRFCLS FICHIER 20'
       IER = MRFCLS(20)
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 26.0,'MRBCOL LSTELEA'
       IER =  MRBCOL(LSTELEA,CLISTEA,10)
       WRITE(6,*)' LSTELEA'
@@ -685,6 +780,7 @@
          ENDIF 
 23096 CONTINUE 
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 26.2,'MRBCOV LSTELEB'
       IER = 0
       DO 23100 I = 1,4
@@ -694,6 +790,7 @@
          ENDIF 
 23100 CONTINUE 
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 26.3,'MRBDCV LSTELEB'
       IER = 0
       DO 23104 I = 1,4
@@ -703,13 +800,16 @@
          ENDIF 
 23104 CONTINUE 
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 27.0,'MRFOPR MISSING = 99999.99'
       IER = MRFOPR('MISSING',99999.99)
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 27.1,'MRFGOR VALEUR DE MISSING'
       IER = MRFGOR('MISSING',OPVALR)
       WRITE(6,*)' MISSING = ',OPVALR
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 27.2,'MRBCVT LSTELEB DE BUFR A REEL'
       CALL REMPLI(TBLVAL,4,5,7)
 *     mettre des valeurs manquantes et negatives
@@ -729,6 +829,7 @@
       WRITE(6,*)' RVAL'
       WRITE(6,*)(RVAL(I),I=1,140)
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 27.3,'MRBCVT LSTELEB DE  REEL A BUFR '
       DO 23108 I =1,140
          TBLCOMP(I) = 0
@@ -737,11 +838,44 @@
       WRITE(6,*)' TBLCOMP'
       WRITE(6,*)(TBLCOMP(I),I=1,140)
       CALL TESTIT(IER)
+
+      BLOCK
+         INTEGER, dimension(1, 2, 2) :: table_int
+         REAL, dimension(1, 2, 2) :: table_real
+         INTEGER :: elem_id
+
+         write(6, 333) 28.0, 'MRBCVT with missing element'
+
+         elem_id = -123456
+         table_int = 0
+         table_real = 0.0
+
+         IER = MRBCVT(elem_id, table_int, table_real, 1, 2, 2, 0)
+         call TESTIT(IER)
+         if (.not. all(ieee_is_nan(table_real(:, :, :)))) then
+            write(6, *) 
+     &         'Wrong values for element that was not found, MRBCVT'
+            write(6, *) table_real
+            error stop 1
+         end if
+
+         IER = MRBCVT(elem_id, table_int, table_real, 1, 2, 2, 1)
+         call TESTIT(IER)
+         if (.not. all(table_int(:, :, :) == -1)) then
+            write(6, *) 
+     &         'Wrong values for element that was not found, MRBCVT'
+            write(6, *) table_int
+            error stop 1
+         end if
+      END BLOCK
+
+      ! -------------------------------------------------------------
       WRITE(6,333) 30.0,'MRBINI BUFE'
       NSUP = 0
       NXAUX = 0
       IER3 = MRBINI(10,BUFE,0333,ishft(-1,-(32-(3))),'STATION#3',4,
      %450,600,0,0,100,68,910224,90,1,SUP,NSUP,XAUX,NXAUX)
+      ! -------------------------------------------------------------
       WRITE(6,333) 30.1,
      %'MRBADD (3 FOIS) POUR RAPPORT BUFE DIM en 16 BITS'
       IER= 0
@@ -772,6 +906,7 @@
       IER = IER + IER1
       PRINT *,' *** INFO BLKNO, BIT0 = ',BLKNO,BIT0
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 30.2,'MRBXTR POUR BLOC3 BUFE'
       IER = MRBXTR(BUFE,3,CLISTEE,ETBLVAL)
       DO 23110 I = 1,4
@@ -786,6 +921,7 @@
          ENDIF 
 23114 CONTINUE 
       CALL TESTIT (IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 30.3,'MRBPRM POUR BLOC 1 BUFE'
       IER = MRBPRM(BUFE,1,NELE,NVAL,NT,BFAM,BDESC,BTYP,NBIT,BIT0,
      %DATYP)
@@ -793,6 +929,7 @@
      %' NELE   NVAL   NT  BFAM   BDESC  BTYP   NBIT    BIT0   DATYP'
       WRITE(6,777) NELE,NVAL,NT,BFAM,BDESC,BTYP,NBIT, BIT0,DATYP
       CALL TESTIT (IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 30.4,'MRBPRM POUR BLOC 2 BUFE'
       IER = MRBPRM(BUFE,2,NELE,NVAL,NT,BFAM,BDESC,BTYP,NBIT,BIT0,
      %DATYP)
@@ -800,6 +937,7 @@
      %' NELE   NVAL   NT  BFAM   BDESC  BTYP   NBIT    BIT0   DATYP'
       WRITE(6,777) NELE,NVAL,NT,BFAM,BDESC,BTYP,NBIT, BIT0,DATYP
       CALL TESTIT (IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 30.5,'MRBPRM POUR BLOC 3 BUFE'
       IER = MRBPRM(BUFE,3,NELE,NVAL,NT,BFAM,BDESC,BTYP,NBIT,BIT0,
      %DATYP)
@@ -807,20 +945,25 @@
      %' NELE   NVAL   NT  BFAM   BDESC  BTYP   NBIT    BIT0   DATYP'
       WRITE(6,777) NELE,NVAL,NT,BFAM,BDESC,BTYP,NBIT, BIT0,DATYP
       CALL TESTIT (IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 30.5,'MRBDEL POUR BLOC 2 BUFE'
       IER = MRBDEL(BUFE,2)
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 31.0 ,' MRFNBR FICHIER 10 OUVERT'
-      IER = MRFNBR(10)
-      WRITE(6,*)' NOMBRE D''ENREGISTREMENTS=',IER
-      CALL TESTIT(IER)
+      IER1 = MRFNBR(10)
+      WRITE(6,*)' NOMBRE D''ENREGISTREMENTS=',IER1
+      CALL TESTIT(IER1, expected_val = 303)
+      ! -------------------------------------------------------------
       WRITE(6,333) 40.0,'MRFCLS FICHIER 10'
       IER = MRFCLS(10)
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 40.1 ,' MRFNBR FICHIER 10 FERME'
       IER = MRFNBR(10)
       WRITE(6,*)' NOMBRE D''ENREGISTREMENTS=',IER
-      CALL TESTIT(IER)
+      CALL TESTIT(IER, expected_min = IER1, expected_max = IER1)
+      ! -------------------------------------------------------------
       WRITE(6,333) 41.0,'MRBSCT ELEMENTS DE L''USAGER'
       DO 23118 I = 1, 10
          CUSRTBL(1,I) = MRBCOV(USRTBL(I))
@@ -840,73 +983,83 @@
 *                               20192 PAS REPETITIF
 *                               20195 PAS REPETITIF
 
+      ! -------------------------------------------------------------
       WRITE(6,333)42.0,' MRBRPT 20004 PAS REPETITIF'
       RELEM = MRBCOV(20004)
       IER = MRBRPT(RELEM)
       WRITE(6,*)' REPETE =', IER
       CALL TESTIT (IER)
-      WRITE(6,333)42.1,' MRBRPT 20003 REPETITIF'
+      ! -------------------------------------------------------------
+      WRITE(6,333)42.1,' MRBRPT 20003 PAS REPETITIF'
       RELEM = MRBCOV(20003)
       IER = MRBRPT(RELEM)
       WRITE(6,*)' REPETE =', IER
       CALL TESTIT (IER)
+      ! -------------------------------------------------------------
       WRITE(6,333)42.2,' MRBRPT 14192 REPETITIF'
       RELEM = MRBCOV(14192)
       IER = MRBRPT(RELEM)
       WRITE(6,*)' REPETE =', IER
-      CALL TESTIT (IER)
+      CALL TESTIT (IER, expected_val = 1)
+      ! -------------------------------------------------------------
       WRITE(6,333)42.3,' MRBRPT 14193 REPETITIF'
       RELEM = MRBCOV(14193)
       IER = MRBRPT(RELEM)
       WRITE(6,*)' REPETE =', IER
-      CALL TESTIT (IER)
+      CALL TESTIT (IER, expected_val = 1)
+      ! -------------------------------------------------------------
       WRITE(6,333)42.4,' MRBRPT 14194 REPETITIF'
       RELEM = MRBCOV(14194)
       IER = MRBRPT(RELEM)
       WRITE(6,*)' REPETE =', IER
-      CALL TESTIT (IER)
+      CALL TESTIT (IER, expected_val = 1)
+      ! -------------------------------------------------------------
       WRITE(6,333)42.5,' MRBRPT 20192 PAS REPETITIF'
       RELEM = MRBCOV(20192)
       IER = MRBRPT(RELEM)
       WRITE(6,*)' REPETE =', IER
       CALL TESTIT (IER)
+      ! -------------------------------------------------------------
       WRITE(6,333)42.6,' MRBRPT 20195 PAS REPETITIF'
       RELEM = MRBCOV(20195)
       IER = MRBRPT(RELEM)
       WRITE(6,*)' REPETE =', IER
       CALL TESTIT (IER)
+      ! -------------------------------------------------------------
       WRITE(6,333)42.7,' MRBRPT 0  ELEMENT ILLEGAL'
       IER = MRBRPT(0)
       WRITE(6,*)' REPETE =', IER
-      IF((IER.EQ. -37))THEN
-         IER = -IER
-      ENDIF 
-      CALL TESTIT (IER)
+      CALL TESTIT (IER, expected_val = 37)
+      ! -------------------------------------------------------------
       WRITE(6,333)42.8,' MRBRPT 65700 ELEMENT ILLEGAL'
       IER = MRBRPT(65700)
       WRITE(6,*)' REPETE =', IER
-      IF((IER.EQ. -37))THEN
-         IER = -IER
-      ENDIF 
-      CALL TESTIT (IER)
+      CALL TESTIT (IER, expected_val = 37)
+      ! -------------------------------------------------------------
       WRITE(6,333) 43.0,' MRFOPC - MSGLVL MIS A TRIVIAL'
       IER = MRFOPC('MSGLVL','TRIVIAL')
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 43.1,' MRFOPN - FICHIER 10'
       IER = MRFOPN(10,'READ')
-      CALL TESTIT(IER)
+      CALL TESTIT(IER, expected_val = 303)
+      ! -------------------------------------------------------------
       WRITE(6,333) 43.2, ' MRFCLS - FICHIER 10'
       IER = MRFCLS(10)
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 43.3,' MRFOPC - MSGLVL MIS A FATAL'
       IER = MRFOPC('MSGLVL','FATAL')
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 43.4,' MRFOPN - FICHIER 10'
       IER = MRFOPN(10,'READ')
-      CALL TESTIT(IER)
+      CALL TESTIT(IER, expected_val = 303)
+      ! -------------------------------------------------------------
       WRITE(6,333) 43.5, ' MRFCLS - FICHIER 10'
       IER = MRFCLS(10)
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333)44.0, ' MRBINI BUFA - TEST AVEC ZERO BLOCKS'
       IER = MRFOPN(10,'APPEND')
       DO 23124 I= 2, 8000
@@ -935,7 +1088,7 @@
       IER = MRFPUT(10,0,BUFA)
       IER = MRFLOC(10,0,'S*A*I**12',-1,-1,-1,920108,-1,SUP,0)
       WRITE(6,*)' HANDLE DE L''ENREGISTREMENT AVEC ZERO BLOCS:',IER
-      CALL TESTIT(IER)
+      CALL TESTIT(IER, expected_min = 1)
       DO 23126 I= 2, 8000
          BUFA(I) = 0
 23126 CONTINUE 
@@ -957,11 +1110,13 @@
       WRITE(6,*)' RUN   = ',RUN
       WRITE(6,*)' NBLK  = ',NBLK
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 45.0 ,'MRBTYP EN MODE -1'
       WRITE(6,*)' BKNAT =3, BKTYP = 92, BKSTP = 13'
       BTYP = MRBTYP(3,92,13,-1)
       WRITE(6,*) ' BTYP = ', BTYP
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 45.1,'MRBTYP EN MODE 1'
       IER = MRBTYP(BKNAT,BKTYP,BKSTP,BTYP)
       WRITE(6,*)' BKNAT = ',BKNAT,' BKTYP = ',BKTYP,' BKSTP = ',
@@ -971,6 +1126,7 @@
          IER = -1
       ENDIF 
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 46.0, 'MRBADD BUFA AVEC BTYP COMPOSITE'
       DO 23130 I = 1,20
          CALL REMPLI(TBLVAL,10,5,7)
@@ -980,6 +1136,7 @@
          PRINT *,' *** INFO BLKNO, BIT0 = ',BLKNO,BIT0
 23130 CONTINUE 
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 46.1,
      %' MRBLOC  ET MRBLOCX DES MEMES ENREGISTREMENTS'
       IER2 = 0
@@ -994,33 +1151,37 @@
          ENDIF 
 23132 CONTINUE 
       CALL TESTIT(IER2)
+      ! -------------------------------------------------------------
       WRITE(6,333) 46.2, ' MRBLOCX BKNAT=-1, BKTYP=10,BKSTP=13'
       IER1 = MRBLOCX(BUFA,5,12,-1,10,13,0)
       WRITE(6,*)' MRBLOCX BLKNO = ',IER1
-      CALL TESTIT(IER1)
+      CALL TESTIT(IER1, expected_val = 10)
+      ! -------------------------------------------------------------
       WRITE(6,333) 46.3, ' MRBLOCX BKNAT=3, BKTYP=-1,BKSTP=13'
       IER1 = MRBLOCX(BUFA,5,12,3,-1,13,0)
       WRITE(6,*)' MRBLOCX BLKNO = ',IER1
-      CALL TESTIT(IER1)
+      CALL TESTIT(IER1, expected_val = 1)
+      ! -------------------------------------------------------------
       WRITE(6,333) 46.4, ' MRBLOCX BKNAT=3, BKTYP=10,BKSTP=-1'
       IER1 = MRBLOCX(BUFA,5,12,3,10,-1,0)
       WRITE(6,*)' MRBLOCX BLKNO = ',IER1
-      CALL TESTIT(IER1)
+      CALL TESTIT(IER1, expected_val = 10)
+      ! -------------------------------------------------------------
       WRITE(6,333) 46.5, ' MRBLOCX BKNAT=-1, BKTYP=-1,BKSTP=-1'
       IER1 = MRBLOCX(BUFA,5,12,-1,-1,-1,0)
       WRITE(6,*)' MRBLOCX BLKNO = ',IER1
-      CALL TESTIT(IER1)
+      CALL TESTIT(IER1, expected_val = 1)
+      ! -------------------------------------------------------------
       WRITE(6,333) 46.6, ' MRBLOCX TOUT A -1 SAUF BKTYP = 10'
       IER1 = MRBLOCX(BUFA,-1,-1,-1,10,-1,0)
       WRITE(6,*)' MRBLOCX BLKNO = ',IER1
-      CALL TESTIT(IER1)
+      CALL TESTIT(IER1, expected_val = 10)
+      ! -------------------------------------------------------------
       WRITE(6,333) 46.7, ' MRBTYP MODE 0 TOUS A VALEUR MAX'
       BTYP = MRBTYP(15,127,15,-1)
       WRITE(6,*)' BTYP = ', BTYP
-      IF((BTYP.NE. 32767))THEN
-         IER = -1
-      ENDIF 
-      CALL TESTIT (IER)
+      CALL TESTIT (BTYP, expected_val = 32767)
+      ! -------------------------------------------------------------
       WRITE(6,333) 46.8,' MRBTYP MODE 1 TOUS VALEUR MAX'
       IER = MRBTYP(BKNAT,BKTYP,BKSTP,BTYP)
       IF(((BKNAT.NE. 15).OR. (BKTYP.NE. 127).OR. (BKSTP.NE. 15))
@@ -1028,6 +1189,7 @@
          IER = -1
       ENDIF 
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 46.9,' MRBTYP MODE -1 TOUS a zero'
       IER = MRBTYP(0,0,0,-1)
       IF((IER.NE. 0))THEN
@@ -1042,6 +1204,7 @@
       IER = MRFOPC('MSGLVL','TRIVIAL')
 
 
+      ! -------------------------------------------------------------
       WRITE(6,333) 50.0,' MRBADD datyp = 6'
       NSUP = 0
       NXAUX = 0
@@ -1082,6 +1245,7 @@
 *
 *real*8
 *
+      ! -------------------------------------------------------------
       WRITE(6,333) 50.1,' MRBADD datyp = 7'
       do i = 1,10
          rtablo8(i) = float(i)
@@ -1134,6 +1298,7 @@
 *
 *complex
 *
+      ! -------------------------------------------------------------
       WRITE(6,333) 50.2,' MRBADD datyp = 8'
 
       do i = 1,10
@@ -1187,10 +1352,11 @@
 *
 *complex*16
 *
+      ! -------------------------------------------------------------
       WRITE(6,333) 50.2,' MRBADD datyp = 9'
 
       do i = 1,10
-         ctablo8(i) = dcmplx(float(i),float(i))
+         ctablo8(i) = cmplx(float(i),float(i), kind=real64)
       enddo
 
       do i = 1,40,4
@@ -1293,6 +1459,7 @@
       call testit(ier)
       
 *
+      ! -------------------------------------------------------------
       WRITE(6,333) 50.5,' MRBXTR datyp = 6'
 
       do i = 1,10
@@ -1323,6 +1490,7 @@
 *
 *real*8
 *
+      ! -------------------------------------------------------------
       WRITE(6,333) 50.6,' MRBXTR datyp = 7'
       do i = 1,10
          rtablo8(i) = float(i)
@@ -1363,6 +1531,7 @@
 *
 *complex
 *
+      ! -------------------------------------------------------------
       WRITE(6,333) 50.7,' MRBXTR datyp = 8'
 
       do i = 1,10
@@ -1404,10 +1573,11 @@
 *
 *complex*16
 *
+      ! -------------------------------------------------------------
       WRITE(6,333) 50.8,' MRBXTR datyp = 9'
 
       do i = 1,10
-         ctablo8(i) = dcmplx(float(i),float(i))
+         ctablo8(i) = cmplx(float(i),float(i), kind=real64)
       enddo
 
       do i = 1,40,4
@@ -1458,6 +1628,7 @@
       call testit(ier)
 
 *
+      ! -------------------------------------------------------------
       WRITE(6,333) 51.0,' MRBREP datyp = 6'
 
       do i = 1,10
@@ -1488,6 +1659,7 @@
 *
 *real*8
 *
+      ! -------------------------------------------------------------
       WRITE(6,333) 51.1,' MRBREP datyp = 7'
       do i = 1,10
          rtablo8(i) = float(i) * 2.0
@@ -1529,6 +1701,7 @@
 *
 *complex
 *
+      ! -------------------------------------------------------------
       WRITE(6,333) 51.2,' MRBREP datyp = 8'
 
       do i = 1,10
@@ -1570,10 +1743,11 @@
 *
 *complex*16
 *
+      ! -------------------------------------------------------------
       WRITE(6,333) 51.3,' MRBREP datyp = 9'
 
       do i = 1,10
-         ctablo8(i) = dcmplx(float(i) * 2.0,float(i) *3.0)
+         ctablo8(i) = cmplx(float(i) * 2.0,float(i) *3.0, kind=real64)
       enddo
 
       do i = 1,40,4
@@ -1624,9 +1798,11 @@
 
       call testit(ier)
  6789 continue
+      ! -------------------------------------------------------------
       WRITE(6,333) 59.0, 'MRFCLS FICHIER 10'
       IER = MRFCLS(10)
       CALL TESTIT(IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 60.0, 'MRBTBL AVEC TOUS LES ELEMENTS DE LSTELEA'
       DO 23142 I = 1, 10
          TBLBURP(1,I) = MRBCOV(LSTELEA(I))
@@ -1638,6 +1814,7 @@
      %   ,I),TBLBURP(4,I)
 23144 CONTINUE 
       CALL TESTIT (IER)
+      ! -------------------------------------------------------------
       WRITE(6,333) 60.1, 'MRBTBL AVEC LES ELEMENTS DE USAGER'
       DO 23146 I = 1, 10
          TBLBURP(1,I) = MRBCOV(USRTBL(I))
@@ -1653,6 +1830,7 @@
 *
 *       tester l'allocation de bits
 *
+      ! -------------------------------------------------------------
       WRITE(6,333) 70.0, 'qrbnbdt datyp=2,sans manquants'
       do i = 1, 7
          bufa(i) = i
@@ -1723,6 +1901,7 @@
       call testit(ier)
 
       WRITE(6,*)'*************** FIN DES TESTS ***************'
+      WRITE(6, '(A, I12)') 'num_errors = ', num_errors
 333   FORMAT(' --- TEST ',F4.1,2X,A,' ---')
 400   FORMAT(1X,' STNID = ',3X,A9)
 444   FORMAT(1X,A4,2X,A4)
@@ -1736,18 +1915,6 @@
      %'  IDTYP  LNGR'/)
 1202  FORMAT(3X,I5,7X,I9,4X,E12.4)
       STOP
-      END
-      SUBROUTINE TESTIT(IER)
-      INTEGER IER
-      IF( (IER.LT. 0))THEN
-         WRITE(6,444) IER
-         STOP
-      ELSE 
-         WRITE(6,555)
-      ENDIF 
-444   FORMAT(' <<< ERREUR >>> ,IER = ',I5)
-555   FORMAT(' --- REUSSI ---')
-      RETURN
       END
       SUBROUTINE REMPLI(TABLEAU,NI,NJ,NK)
       INTEGER NI,NJ,NK
