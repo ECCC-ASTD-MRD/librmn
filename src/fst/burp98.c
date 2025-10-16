@@ -522,6 +522,7 @@ int c_mrbadd(
     }
     indx = (buf->nbits) / (8 * sizeof(uint32_t));
     pos = (uint32_t *) &(buf->data[indx]);
+
     *pos = 0;
     left = 8 * sizeof(uint32_t);
     bits_added = 0;
@@ -543,7 +544,7 @@ int c_mrbadd(
         bits_added += 16;
     }
 
-    buf->nbits += (bits_added +63) / 64 * 64;
+    buf->nbits += ((bits_added + 63) / 64) * 64;
     err = c_xdfins(buf, (uint32_t *)&entete, buf->buf9, DIMENT,
         8 * sizeof(uint32_t), 0);
     if (err < 0) return err;
@@ -1125,7 +1126,11 @@ int c_mrfput(
     burprec->info.nblks = buf->buf78.buf8;
 
     new_handle = (handle > 0) ? -handle : handle;
-    c_xdfput(iun, new_handle, buf);
+    const int status = c_xdfput(iun, new_handle, buf);
+    if (status != 0) {
+        // There was an error
+        return status;
+    }
     if (Lib_LogLevel(APP_LIBFST,NULL)>=APP_INFO) {
         nsup = 0;
         nxaux = 0;
