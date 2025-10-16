@@ -61,8 +61,8 @@ function mrbini(iun, buf, temps, flgs, stnid, idtyp, lati, long, dx, dy, elev, i
     integer, intent(inout) :: nxaux
     !> Additionnal primary keys
     integer, dimension(nsup), intent(in) :: sup
-    !> Data array that will contain the records
-    integer, dimension(*), intent(out) :: buf
+    !> Data array that will contain the records. The first entry in that array is the size of the buffer (in words)
+    integer, dimension(*), intent(inout) :: buf
     !> Additionnal auxilary keys
     integer, dimension(nxaux), intent(in) :: xaux
 
