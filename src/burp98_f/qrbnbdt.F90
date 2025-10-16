@@ -46,6 +46,15 @@ integer function qrbnbdt(nbit, datyp, tblval, tbldim)
 
     integer :: tblmax, tblmin, erreur
 
+    ! SUPVAL:TABLEAU DE REFERENCE POUR TROUVER LE NOMBRE DE BITS REQUIS
+    integer, dimension(32), parameter :: SUPVAL = [                                                 &
+               1,        2,         4,         8,        16,         32,          64,         128,  &
+             256,      512,      1024,      2048,      4096,       8192,       16384,       32768,  &
+           65536,   131072,    262144,    524288,   1048576,    2097152,     4194304,     8388608,  &
+        16777216, 33554432,  67108864, 134217728, 268435456,  536870912,  1073741824,  2147483647   &
+    ]
+    integer :: i
+
     erreur = 0
     if (nbit <= 0) nbit = 1
 
@@ -81,17 +90,19 @@ integer function qrbnbdt(nbit, datyp, tblval, tbldim)
 
     ! determiner le nombre de bits a utiliser
     ! si la valeur maximale occupe tous les bits requis, ou si il y ades valeurs manquantes (=-1), on rajoute 1 bit
-    if (tblmax >= 2 ** nbit) then
-        nbit = nbit + 1
-        do while (tblmax < 2 ** nbit - 1 .and. nbit <= 32)
-            nbit = nbit + 1
-        end do
-        if (nbit == 32) then
-            write(app_msg, *) 'QRBNDT: On code avec NBIT=32et DATYP=2'
-            call lib_log(app_libfst, app_warning, app_msg)
-            erreur = ercmpr
-        end if
+    if (tblmax >= SUPVAL(nbit)) then
+        do i = nbit + 1, 32
+            if (tblmax < SUPVAL(i)) then
+                nbit = i
+                if (tblmax < SUPVAL(i) - 1) nbit = nbit - 1
+                goto 100
+            endif
+        enddo
+        write(app_msg,*) 'QRBNDT: On code avec NBIT=32 et DATYP=2'
+        call Lib_Log(APP_LIBFST, APP_WARNING, app_msg)       
+        erreur = ercmpr
     endif
+100 continue
 
     ! s'assurer que les parametres sont valables:
     ! si nbit = 32 ==> datyp = 2

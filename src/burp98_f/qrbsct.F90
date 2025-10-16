@@ -84,7 +84,7 @@ integer function qrbsct(tableau, tabdim, nelelu)
         travail = mrbcov( travail )
 
         ! verifier si l'element est repetitif. si oui, on allume le bit correspondant au no d'element dans rpetitif
-        if (index('mm', ligne(85:85)) /= 0 ) PUTBIT(rpetitif, 1, travail, 1)
+        if (index('Mm', ligne(85:85)) /= 0 ) PUTBIT(rpetitif, 1, travail, 1)
 
         if (ligne(51:51) /= '*') then
             i = i + 1
