@@ -180,42 +180,42 @@ uint32_t get_origin_date32(const int64_t valid_date, const int32_t timestep_size
 //! \param dest Destination array. *Must not overlap with the source array.*
 //! \param src Source array. *Must not overlap with the destination array.*
 //! \param num_elem Number of elements to convert.
-inline void downsize_int_64_32(int32_t* restrict dest, const int64_t* restrict src, const int64_t num_elem) {
+static inline void downsize_int_64_32(int32_t* restrict dest, const int64_t* restrict src, const int64_t num_elem) {
     for (int64_t i = 0; i < num_elem; i++) {
         dest[i] = src[i];
     }
 }
 
 //! \copydoc downsize_int_64_32
-inline void downsize_int_64_16(int16_t* restrict dest, const int64_t* restrict src, const int64_t num_elem) {
+static inline void downsize_int_64_16(int16_t* restrict dest, const int64_t* restrict src, const int64_t num_elem) {
     for (int64_t i = 0; i < num_elem; i++) {
         dest[i] = src[i];
     }
 }
 
 //! \copydoc downsize_int_64_32
-inline void downsize_int_64_8(int8_t* restrict dest, const int64_t* restrict src, const int64_t num_elem) {
+static inline void downsize_int_64_8(int8_t* restrict dest, const int64_t* restrict src, const int64_t num_elem) {
     for (int64_t i = 0; i < num_elem; i++) {
         dest[i] = src[i];
     }
 }
 
 //! \copydoc downsize_int_64_32
-inline void downsize_int_32_16(int16_t* restrict dest, const int32_t* restrict src, const int64_t num_elem) {
+static inline void downsize_int_32_16(int16_t* restrict dest, const int32_t* restrict src, const int64_t num_elem) {
     for (int64_t i = 0; i < num_elem; i++) {
         dest[i] = src[i];
     }
 }
 
 //! \copydoc downsize_int_64_32
-inline void downsize_int_32_8(int8_t* restrict dest, const int32_t* restrict src, const int64_t num_elem) {
+static inline void downsize_int_32_8(int8_t* restrict dest, const int32_t* restrict src, const int64_t num_elem) {
     for (int64_t i = 0; i < num_elem; i++) {
         dest[i] = src[i];
     }
 }
 
 //! \copydoc downsize_int_64_32
-inline void downsize_int_16_8(int8_t* restrict dest, const int16_t* restrict src, const int64_t num_elem) {
+static inline void downsize_int_16_8(int8_t* restrict dest, const int16_t* restrict src, const int64_t num_elem) {
     for (int64_t i = 0; i < num_elem; i++) {
         dest[i] = src[i];
     }
@@ -225,42 +225,42 @@ inline void downsize_int_16_8(int8_t* restrict dest, const int16_t* restrict src
 //! \param dest Destination array. *Must not overlap with the source array.*
 //! \param src Source array. *Must not overlap with the destination array.*
 //! \param num_elem Number of elements to convert.
-inline void upsize_int_8_64(int64_t* restrict dest, const int8_t* restrict src, const int64_t num_elem) {
+static inline void upsize_int_8_64(int64_t* restrict dest, const int8_t* restrict src, const int64_t num_elem) {
     for (int64_t i = 0; i < num_elem; i++) {
         dest[i] = src[i];
     }
 }
 
 //! \copydoc downsize_int_8_64
-inline void upsize_int_8_32(int32_t* restrict dest, const int8_t* restrict src, const int64_t num_elem) {
+static inline void upsize_int_8_32(int32_t* restrict dest, const int8_t* restrict src, const int64_t num_elem) {
     for (int64_t i = 0; i < num_elem; i++) {
         dest[i] = src[i];
     }
 }
 
 //! \copydoc downsize_int_8_64
-inline void upsize_int_8_16(int16_t* restrict dest, const int8_t* restrict src, const int64_t num_elem) {
+static inline void upsize_int_8_16(int16_t* restrict dest, const int8_t* restrict src, const int64_t num_elem) {
     for (int64_t i = 0; i < num_elem; i++) {
         dest[i] = src[i];
     }
 }
 
 //! \copydoc downsize_int_8_64
-inline void upsize_int_16_64(int64_t* restrict dest, const int16_t* restrict src, const int64_t num_elem) {
+static inline void upsize_int_16_64(int64_t* restrict dest, const int16_t* restrict src, const int64_t num_elem) {
     for (int64_t i = 0; i < num_elem; i++) {
         dest[i] = src[i];
     }
 }
 
 //! \copydoc downsize_int_8_64
-inline void upsize_int_16_32(int32_t* restrict dest, const int16_t* restrict src, const int64_t num_elem) {
+static inline void upsize_int_16_32(int32_t* restrict dest, const int16_t* restrict src, const int64_t num_elem) {
     for (int64_t i = 0; i < num_elem; i++) {
         dest[i] = src[i];
     }
 }
 
 //! \copydoc downsize_int_8_64
-inline void upsize_int_32_64(int64_t* restrict dest, const int32_t* restrict src, const int64_t num_elem) {
+static inline void upsize_int_32_64(int64_t* restrict dest, const int32_t* restrict src, const int64_t num_elem) {
     for (int64_t i = 0; i < num_elem; i++) {
         dest[i] = src[i];
     }
