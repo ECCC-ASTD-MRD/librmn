@@ -33,6 +33,7 @@ end module
 
 !> Convert between real and integer
 integer function mrbcvt(liste,  tblval, rval, nele, nval, nt, mode)
+    use, intrinsic :: ieee_arithmetic
     use app
     use mrb_cvt_sct_tbl
     implicit none
@@ -81,6 +82,7 @@ integer function mrbcvt(liste,  tblval, rval, nele, nval, nt, mode)
 
     integer i, j, k, l, referen, zerocpl
     real    echele
+    real :: local_NaN
 
     mrbcvt = -1
     if( premier ) then
@@ -94,6 +96,7 @@ integer function mrbcvt(liste,  tblval, rval, nele, nval, nt, mode)
     endif
 
     zerocpl = not( 0 )
+    local_NaN = ieee_value(local_NaN, ieee_quiet_nan)
 
     do i = 1, nele
         ! trouver l'index j pointant a l'element dans tableau
@@ -131,6 +134,16 @@ integer function mrbcvt(liste,  tblval, rval, nele, nval, nt, mode)
                     enddo
                 enddo
             endif
+        else
+            if (mode .eq. 0) then
+               rval(I, :, :) = local_NaN
+            else
+               tblval(I, :, :) = -1
+            endif
+            ! The message would appear very frequently in actual usage
+            ! write(app_msg, '(A, I5, A, I8, A)') 'Element index ', I, ', value ', LISTE(I), &
+            !       ' not found in conversion table'
+            ! call Lib_Log(APP_LIBRMN, APP_WARNING, app_msg)
         endif
     enddo
     mrbcvt = 0
