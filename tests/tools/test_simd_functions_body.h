@@ -149,6 +149,8 @@ int main(int argc, char **argv){
   print_v4i(">> 0", v4ra) ;
   v4ra = alignr_v4i(v4h, v4l, 1) ;
   print_v4i(">> 1", v4ra) ;
+  v4ra = alignr_v4i(v4h, v4l, 2) ;
+  print_v4i(">> 2", v4ra) ;
   v4ra = alignr_v4i(v4h, v4l, 4) ;
   print_v4i(">> 4", v4ra) ;
 

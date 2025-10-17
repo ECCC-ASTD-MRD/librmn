@@ -153,7 +153,7 @@ _mm256_set_m128i(_mm_alignr_epi8(_mm256_extracti128_si256(a, 1), _mm256_extracti
 #if defined(__AVX2__)
 
 #undef _mm_alignr_epi32
-#define _mm_alignr_epi32(VH, VL, IMM8) _mm_alignr_epi8(VH, VL, IMM8*4)
+#define _mm_alignr_epi32(VH, VL, IMM8) _mm_alignr_epi8(VH, VL, (IMM8&0x3)*4)
 
 #undef _mm256_alignr_epi32
 #define _mm256_alignr_epi32(VH, VL, IMM8)  \
@@ -508,7 +508,7 @@ SIMD_FN(SIMD_STATIC, __m128i,16, alignr_v16c(__m128i A, __m128i B, int imm8) , R
 SIMD_FN(SIMD_STATIC, __m128i,16, bsrli2_v128(__m128i A, __m128i B, int imm8) , R.u8[i] = ((i+imm8)>31) ? 0 : (((i+imm8)<16) ? B.u8[i+imm8] : A.u8[i+imm8-16]) )
 SIMD_FN(SIMD_STATIC, __m256i,32, bsrli2_v256(__m256i A, __m256i B, int imm8) , R.u8[i] = (i+imm8)<32 ? B.u8[i+imm8] : A.u8[i+imm8-32] )
 SIMD_FN(SIMD_STATIC, __m256i, 8, alignr_v8i(__m256i A, __m256i B, int imm8) , imm8 &= 7 ; R.i32[i] = (i+imm8)<8 ? B.i32[i+imm8] : A.i32[i+imm8-8] )
-SIMD_FN(SIMD_STATIC, __m128i, 4, alignr_v4i(__m128i A, __m128i B, int imm8) , imm8 &= 7 ; R.i32[i] = (i+imm8)<4 ? B.i32[i+imm8] : A.i32[i+imm8-4] )
+SIMD_FN(SIMD_STATIC, __m128i, 4, alignr_v4i(__m128i A, __m128i B, int imm8) , imm8 &= 3 ; R.i32[i] = (i+imm8)<4 ? B.i32[i+imm8] : A.i32[i+imm8-4] )
 
 SIMD_FN(SIMD_STATIC, __m256i, 8, max_v8i( __m256i A, __m256i B ) , R.i32[i] = (A.i32[i] > B.i32[i]) ? A.i32[i] : B.i32[i] )
 SIMD_FN(SIMD_STATIC, __m128i, 4, max_v4i( __m128i A, __m128i B ) , R.i32[i] = (A.i32[i] > B.i32[i]) ? A.i32[i] : B.i32[i] )
