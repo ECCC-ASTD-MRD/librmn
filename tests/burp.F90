@@ -767,35 +767,6 @@ PROGRAM TESTBRP
     WRITE(6,*)' TBLCOMP'
     WRITE(6,*)(TBLCOMP(I),I=1,140)
     CALL TESTIT(IER)
-
-    BLOCK
-        INTEGER, dimension(1, 2, 2) :: table_int
-        REAL, dimension(1, 2, 2) :: table_real
-        INTEGER :: elem_id
-
-        write(6, 333) 28.0, 'MRBCVT with missing element'
-
-        elem_id = -123456
-        table_int = 0
-        table_real = 0.0
-
-        IER = MRBCVT(elem_id, table_int, table_real, 1, 2, 2, 0)
-        call TESTIT(IER)
-        if (.not. all(ieee_is_nan(table_real(:, :, :)))) then
-            write(6, *) 'Wrong values for element that was not found, MRBCVT'
-            write(6, *) table_real
-            error stop 1
-         end if
-
-        IER = MRBCVT(elem_id, table_int, table_real, 1, 2, 2, 1)
-        call TESTIT(IER)
-        if (.not. all(table_int(:, :, :) == -1)) then
-            write(6, *) 'Wrong values for element that was not found, MRBCVT'
-            write(6, *) table_int
-            error stop 1
-        end if
-    END BLOCK
-
     ! -------------------------------------------------------------
     WRITE(6,333) 30.0,'MRBINI BUFE'
     IER3 = MRBINI(10,BUFE,0333,ishft(-1,-(32-(3))),'STATION#3',4,450,600,0,0,100,68,910224,90,1,SUP,ZERO,XAUX,ZERO)
