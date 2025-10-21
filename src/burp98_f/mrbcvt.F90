@@ -21,7 +21,6 @@
 !**S/PMRBCVT - FAIRE UNE CONVERSION D'UNITES
       FUNCTION MRBCVT( LISTE,  TBLVAL, RVAL, NELE, NVAL, NT, MODE)
       use app
-      use, intrinsic :: ieee_arithmetic
       IMPLICIT NONE
       INTEGER  MRBCVT, MRBSCT, MRBTBL, NELE, NVAL, NT, MODE,  &
      &         LISTE(NELE), TBLVAL(NELE, NVAL, NT), NSLOTS,  &
@@ -93,8 +92,6 @@
       INTEGER I, J, K, L, REFEREN, ZEROCPL
       REAL    ECHELE
 
-      REAL :: local_NaN
-
       MRBCVT = -1
       IF( PREMIER ) THEN
           MRBCVT = QRBSCT(TABLEAU,MAXNELE,NELELU)
@@ -107,7 +104,6 @@
       ENDIF
 
       ZEROCPL = NOT( 0 )
-      local_NaN = ieee_value(local_NaN, ieee_quiet_nan)
 
       DO 50 I = 1, NELE
 !        TROUVER L'INDEX J POINTANT A L'ELEMENT DANS TABLEAU
@@ -145,16 +141,6 @@
 30                  CONTINUE
 40               CONTINUE
             ENDIF
-         ELSE
-            IF (MODE .EQ. 0) then
-               RVAL(I, :, :) = local_NaN
-            ELSE
-               TBLVAL(I, :, :) = -1
-            END IF
-            ! The message would appear very frequently in actual usage
-            ! write(app_msg, '(A, I5, A, I8, A)') 'Element index ', I, ', value ', LISTE(I), &
-            !       ' not found in conversion table'
-            ! call Lib_Log(APP_LIBRMN, APP_WARNING, app_msg)
          ENDIF
 50       CONTINUE
 
