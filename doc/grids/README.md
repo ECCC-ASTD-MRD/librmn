@@ -238,10 +238,12 @@ The records mapped on a '#' grid use the following conventions:
 * IG3 is the starting point in the X direction on the master grid.
 * IG4 is the starting point in the Y direction on the master grid.
 * IP1 and IP2 take the normal values.
-* IP3 is the tile number (according to this numbering scheme, here shown for a 3x3 tile set)
+* IP3 is the tile number (See the tiled numbering scheme below)
 
-Master Grid
+### Tile numbering scheme
+Here is an example for a 3 X 3 space set
 |   |   |   |
+| - | - | - |
 | 7 | 8 | 9 |
 | 4 | 5 | 6 |
 | 1 | 2 | 3 |
