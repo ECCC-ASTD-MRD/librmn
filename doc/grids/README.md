@@ -11,13 +11,13 @@ The actual convention supports the following grids:
 * [E: Global/Local Area Rotated Latlon Grids](#E)
 * [G: Global/Hemispheric 'Gaussian'](#G)
 * [L: Cylindrical Equidistant (alias lat-lon)](#L)
-* [N: North Polar stereographic](#N&S)
-* [S: South Polar stereographic](#N&S)
+* [N: North Polar stereographic](#N and S)
+* [S: South Polar stereographic](#N and S)
 * [U: Universal](#U)
 * [X: Unstructured](#X)
 * [Y: Latlon Clouds](#Y)
 * [Z: Irregular Cartesian](#Z)
-* ['#': Local Area (Tiled)](##)
+* ['#': Local Area (Tiled)](#\#)
 
 One can also define, in a polar stereographic or lat-lon projection, and within certain limits, a cartesian grid with an irregular mesh (like the one used in the Finite Element model).
 
@@ -128,7 +128,7 @@ The conversion from real to integer values may cause some loss of precision.
 
 
 
-## N&S
+## N and S
 
 These grids are polar stereographic; the 'N' grid is defined in the northern hemisphere, the 'S' grid in the southern hemisphere.
 These grids are defined by the parameters PI, PJ, D60 and DGRW.
@@ -207,8 +207,10 @@ Here is a recipe to read positional records after having read a data record:
 1. Do an `FSTPRM` of the record that has been read.
 2. Get the IG1, IG2, IG3 values of that record.
 3. Set IP1POS=IG1, IP2POS=IG2, IP3POS=IG3, and locate the corresponding "^^" and ">>" records with the help of an `FSTINF` call.
-    `ikeyver = FSTINF(iun, NIVER, NJVER, NKVER, -1, -1, ip1pos, ip2pos, ip3pos, ' ','^^')`
-    `ikeyhor = FSTINF(iun, NIHOR, NJHOR, NKHOR, -1, -1, ip1pos, ip2pos, ip3pos, ' ','>>')`
+    ```
+    ikeyver = FSTINF(iun, NIVER, NJVER, NKVER, -1, -1, ip1pos, ip2pos, ip3pos, ' ','^^')
+    ikeyhor = FSTINF(iun, NIHOR, NJHOR, NKHOR, -1, -1, ip1pos, ip2pos, ip3pos, ' ','>>')
+    ```
 4. Read the positional records.
 
 
@@ -221,7 +223,7 @@ This grid is a cartesian grid with a non-constant mesh. As for the 'Y' grid, the
 
 
 
-## #
+## \#
 
 This grid is a special case of the 'Z' grid, in the sense that they are a subset of a more larger grid. Like the other 'Z' grids, they need navigational records to be geographically located on the earth, except thay their area spans only one area of the grid.
 
@@ -237,13 +239,13 @@ The records mapped on a '#' grid use the following conventions:
 * IG4 is the starting point in the Y direction on the master grid.
 * IP1 and IP2 take the normal values.
 * IP3 is the tile number (according to this numbering scheme, here shown for a 3x3 tile set)
-    Master Grid
-    |   |   |   |
-    | 7 | 8 | 9 |
-    | 4 | 5 | 6 |
-    | 1 | 2 | 3 |
+Master Grid
+|   |   |   |
+| 7 | 8 | 9 |
+| 4 | 5 | 6 |
+| 1 | 2 | 3 |
 
-In the above example, the tile #8 has the following properties
+In the above example, the tile 8 has the following properties
 It is of dimensions (118,138) and starts at point (119,277) on the master grid, thus it covers the area (118:236,277:354) on the master grid.
 
 
