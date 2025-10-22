@@ -11,8 +11,8 @@ The actual convention supports the following grids:
 * [E: Global/Local Area Rotated Latlon Grids](#E)
 * [G: Global/Hemispheric 'Gaussian'](#G)
 * [L: Cylindrical Equidistant (alias lat-lon)](#L)
-* [N: North Polar stereographic](#N and S)
-* [S: South Polar stereographic](#N and S)
+* [N: North Polar stereographic](#N-and-S)
+* [S: South Polar stereographic](#N-and-S)
 * [U: Universal](#U)
 * [X: Unstructured](#X)
 * [Y: Latlon Clouds](#Y)
@@ -239,6 +239,7 @@ The records mapped on a '#' grid use the following conventions:
 * IG4 is the starting point in the Y direction on the master grid.
 * IP1 and IP2 take the normal values.
 * IP3 is the tile number (according to this numbering scheme, here shown for a 3x3 tile set)
+
 Master Grid
 |   |   |   |
 | 7 | 8 | 9 |
