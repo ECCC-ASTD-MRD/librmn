@@ -34,12 +34,12 @@ Here is the description of the grid types currently supported in RPN standard fi
 This is a lat-lon grid covering either an hemisphere or the whole globe. There is no grid point at the pole and at the equator, and the first latitude has an offset of 0.5 grid point. The first longitude is 0deg. (the Greenwich meridian), and is not repeated at the end of the grid. The latitudinal grid length is 180/NJ for a global grid, 90/NJ otherwise. The longitudinal grid length is 360/NI. For such a grid,
 
 * IG1 contains the domain of the grid:
-    0. Global
-    1. Northern Hemisphere
-    2. Southern Hemisphere
+    * 0 Global
+    * 1 Northern Hemisphere
+    * 2 Southern Hemisphere
 * IG2 contains the orientation of the grid:
-    0. South -> North (pt (1,1) is at the bottom of the grid)
-    1. North -> South (pt (1,1) is at the top of the grid)
+    * 0 South -> North (pt (1,1) is at the bottom of the grid)
+    * 1 North -> South (pt (1,1) is at the top of the grid)
 * IG3 should be 0.
 * IG4 should be 0.
 
@@ -52,12 +52,12 @@ This is a lat-lon grid covering either an hemisphere or the whole globe. There i
 The 'B' grid is a lat-lon grid covering either an hemisphere or the whole globe. There is a grid point at the pole and at the equator (if the grid is hemispheric or global with NJ odd). The first longitude is 0deg. (the Greenwich meridian), and is repeated at the end of the grid. The latitudinal grid length is 180/(NJ-1) for a global grid, 90/(NJ-1) otherwise. The longitudinal grid length is 360/(NI-1). For such a grid,
 
 * IG1 contains the domain of the grid:
-    0. Global
-    1. Northern Hemisphere
-    2. Southern Hemisphere
+    * 0 Global
+    * 1 Northern Hemisphere
+    * 2 Southern Hemisphere
 * IG2 contains the orientation of the grid:
-    0. South -> North (pt (1,1) is at the bottom of the grid)
-    1. North -> South (pt (1,1) is at the top of the grid)
+    * 0 South -> North (pt (1,1) is at the bottom of the grid)
+    * 1 North -> South (pt (1,1) is at the top of the grid)
 * IG3 should be 0.
 * IG4 should be 0.
 
@@ -82,12 +82,12 @@ The IG1..IG4 values of the L grid axes can be set by this call to `CXGAIG`
 The 'G' grid is a gaussian grid covering either an hemisphere or the whole globe. This grid is used in the spectral model; it is very much alike the 'A' grid, except that the latitudes are not equidistant. There is no grid point at the pole and at the equator. The first longitude is 0deg. (the Greenwich meridian), and is not repeated at the end of the grid. The longitudinal grid length is 360/NI. For such a grid,
 
 * IG1 contains the domain of the grid:
-    0. Global
-    1. Northern Hemisphere
-    2. Southern Hemisphere
+    * 0 Global
+    * 1 Northern Hemisphere
+    * 2 Southern Hemisphere
 * IG2 contains the orientation of the grid:
-    0. South -> North (pt (1,1) is at the bottom of the grid)
-    1. North -> South (pt (1,1) is at the top of the grid)
+    * 0 South -> North (pt (1,1) is at the bottom of the grid)
+    * 1 North -> South (pt (1,1) is at the top of the grid)
 * IG3 should be 0.
 * IG4 should be 0.
 
