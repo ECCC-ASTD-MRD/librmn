@@ -574,9 +574,12 @@ search_metadata* make_search_metadata(
 
         stdf_entry->deet = record->deet;
         stdf_entry->nbits = record->pack_bits;
-        stdf_entry->ni = record->ni;
+        stdf_entry->ni_a = record->ni & 0xffffff;
+        stdf_entry->ni_b = record->ni >> 24;
         stdf_entry->gtyp = grtyp[0];
-        stdf_entry->nj = record->nj;
+        stdf_entry->nj_a = record->nj & 0xffffff;
+        stdf_entry->nj_b = (record->nj & 0x0f000000) >> 24;
+        stdf_entry->nj_c = record->nj >> 28;
         // propagate missing values flag
         stdf_entry->datyp = record->data_type;
         // this value may be changed later in the code to eliminate improper flags
@@ -610,7 +613,6 @@ search_metadata* make_search_metadata(
         stdf_entry->typvar =
             (ascii6(typvar[0]) <<  6) |
             (ascii6(typvar[1]));
-        stdf_entry->pad3 = 0;
         stdf_entry->nomvar =
             (ascii6(nomvar[0]) << 18) |
             (ascii6(nomvar[1]) << 12) |
@@ -619,9 +621,7 @@ search_metadata* make_search_metadata(
         stdf_entry->ip1 = record->ip1;
         stdf_entry->levtyp = 0;
         stdf_entry->ip2 = record->ip2;
-        stdf_entry->pad5 = 0;
         stdf_entry->ip3 = record->ip3;
-        stdf_entry->pad6 = 0;
         stdf_entry->date_stamp = stamp_from_date(record->datev);
         stdf_entry->dasiz = record->data_bits;
     }

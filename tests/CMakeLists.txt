@@ -396,6 +396,11 @@ if (EC_INIT_DONE LESS 2)
                     $<TARGET_FILE:gen_abort_file> $<TARGET_FILE:fst_check> $<TARGET_FILE:fst_force_close>
         )
 
+        add_executable(fst_large_record EXCLUDE_FROM_ALL fst/fst_large_record.c)
+        target_link_libraries(fst_large_record rmn::rmn)
+        add_test(NAME fst_large_record COMMAND $<TARGET_FILE:fst_large_record>)
+        add_dependencies(check fst_large_record)
+
         if(BUILD_PYTHON)
             add_dependencies(check _rmn)
             add_test( NAME python_import_package_compiled COMMAND bash -c "${set_pythonpath} ${Python_EXECUTABLE} -c 'import compiled-rmn'")

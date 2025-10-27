@@ -2072,9 +2072,9 @@ int c_xdfopn(
                         stdf_entry->addr = (directory[i].swa >> 2) +1;
                         stdf_entry->deet = directory[i].deet;
                         stdf_entry->nbits = directory[i].nbits;
-                        stdf_entry->ni = directory[i].ni;
+                        stdf_entry->ni_a = directory[i].ni;
                         stdf_entry->gtyp = directory[i].grtyp;
-                        stdf_entry->nj = directory[i].nj;
+                        stdf_entry->nj_a = directory[i].nj;
                         stdf_entry->datyp = directory[i].datyp;
                         stdf_entry->nk = directory[i].nk;
                         stdf_entry->ubc = 0;
@@ -2100,7 +2100,7 @@ int c_xdfopn(
                         stdf_entry->pad2 = 0;
                         stdf_entry->etikbc = 0;
                         stdf_entry->typvar = ascii6(directory[i].typvar) << 6;
-                        stdf_entry->pad3 = 0;
+                        stdf_entry->ni_b = 0;
                         stdf_entry->nomvar =
                             (ascii6((directory[i].nomvar >>  8) & 0xff) << 18) |
                             (ascii6((directory[i].nomvar      ) & 0xff) << 12);
@@ -2108,9 +2108,9 @@ int c_xdfopn(
                         stdf_entry->ip1 = directory[i].ip1;
                         stdf_entry->levtyp = 0;
                         stdf_entry->ip2 = directory[i].ip2;
-                        stdf_entry->pad5 = 0;
+                        stdf_entry->nj_b = 0;
                         stdf_entry->ip3 = directory[i].ip3;
-                        stdf_entry->pad6 = 0;
+                        stdf_entry->nj_c = 0;
                         stdf_entry->date_stamp = directory[i].date;
                         deet = stdf_entry->deet;
                         npas = stdf_entry->npas;
@@ -3388,9 +3388,9 @@ static int32_t next_match(
                 stde->addr = (seq_entry->swa >> 2) +1;
                 stde->deet = seq_entry->deet;
                 stde->nbits = seq_entry->nbits;
-                stde->ni = seq_entry->ni;
+                stde->ni_a = seq_entry->ni;
                 stde->gtyp = seq_entry->grtyp;
-                stde->nj = seq_entry->nj;
+                stde->nj_a = seq_entry->nj;
                 stde->datyp = seq_entry->datyp;
                 stde->nk = seq_entry->nk;
                 stde->ubc = 0;
@@ -3417,7 +3417,7 @@ static int32_t next_match(
                 stde->pad2 = 0;
                 stde->etikbc = 0;
                 stde->typvar = ascii6(seq_entry->typvar) << 6;
-                stde->pad3 = 0;
+                stde->ni_b = 0;
                 stde->nomvar =
                     (ascii6((seq_entry->nomvar >>  8) & 0xff) << 18) |
                     (ascii6((seq_entry->nomvar      ) & 0xff) << 12);
@@ -3425,9 +3425,9 @@ static int32_t next_match(
                 stde->ip1 = seq_entry->ip1;
                 stde->levtyp = 0;
                 stde->ip2 = seq_entry->ip2;
-                stde->pad5 = 0;
+                stde->nj_b = 0;
                 stde->ip3 = seq_entry->ip3;
-                stde->pad6 = 0;
+                stde->nj_c = 0;
                 stde->date_stamp = seq_entry->date;
                 deet = stde->deet;
                 npas = stde->npas;

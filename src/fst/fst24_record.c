@@ -488,8 +488,8 @@ int32_t fst24_record_validate_params(const fst_record* record) {
         all_good = 0;
     }
 
-    if (!is_valid_int_param(record->ni, 1, NI_MAX, "ni")) all_good = 0;
-    if (!is_valid_int_param(record->nj, 1, NJ_MAX, "nj")) all_good = 0;
+    if (!is_valid_int_param(record->ni, 1, NI_EXTENDED_MAX, "ni")) all_good = 0;
+    if (!is_valid_int_param(record->nj, 1, NJ_EXTENDED_MAX, "nj")) all_good = 0;
     if (!is_valid_int_param(record->nk, 1, NK_MAX, "nk")) all_good = 0;
     if (!is_valid_int_param(record->deet, 0, DEET_MAX, "deet")) all_good = 0;
     if (!is_valid_int_param(record->npas, 0, NPAS_MAX, "npas")) all_good = 0;
@@ -566,9 +566,6 @@ void make_search_criteria(
 
         fst98_mask->pad1 = 0;
         fst98_mask->pad2 = 0;
-        fst98_mask->pad3 = 0;
-        fst98_mask->pad5 = 0;
-        fst98_mask->pad6 = 0;
         fst98_mask->pad7 = 0;
         fst98_mask->deleted = 0;
         fst98_mask->select = 0;
@@ -585,11 +582,21 @@ void make_search_criteria(
         if (!query->options.stamp_norun) fst98_mask->date_stamp &= ~(0x7);
         if (record->datev == default_fst_record.datev) fst98_mask->date_stamp = 0;
 
-        fst98_meta->ni = record->ni;
-        if ((record->ni == default_fst_record.ni)) fst98_mask->ni = 0;
+        fst98_meta->ni_a = record->ni & 0xffffff;
+        fst98_meta->ni_b = record->ni >> 24;
+        if ((record->ni == default_fst_record.ni)) {
+            fst98_mask->ni_a = 0;
+            fst98_mask->ni_b = 0;
+        }
 
-        fst98_meta->nj = record->nj;
-        if ((record->nj == default_fst_record.nj)) fst98_mask->nj = 0;
+        fst98_meta->nj_a = record->nj & 0xffffff;
+        fst98_meta->nj_b = (record->nj & 0x0f000000) >> 24;
+        fst98_meta->nj_c = record->nj >> 28;
+        if ((record->nj == default_fst_record.nj)) {
+            fst98_mask->nj_a = 0;
+            fst98_mask->nj_b = 0;
+            fst98_mask->nj_c = 0;
+        }
 
         fst98_meta->nk = record->nk;
         if ((record->nk == default_fst_record.nk)) fst98_mask->nk = 0;
@@ -745,8 +752,8 @@ void fill_with_search_meta(
         record->dateo = cracked.date_stamp;
         record->datev = cracked.date_valid;
 
-        record->ni = fst98_meta->ni;
-        record->nj = fst98_meta->nj;
+        record->ni = fst98_meta->ni_a | (fst98_meta->ni_b << 24);
+        record->nj = fst98_meta->nj_a | (fst98_meta->nj_b << 24) | (fst98_meta->nj_c << 28);
         record->nk = fst98_meta->nk;
         record->data_type = fst98_meta->datyp;
         record->data_bits = fst98_meta->dasiz;
