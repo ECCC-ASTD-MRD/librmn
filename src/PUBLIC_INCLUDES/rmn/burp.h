@@ -63,6 +63,7 @@ int c_mrbxtr(void *buffer, int bkno, uint32_t *lstele, uint32_t *tblval);
 
 int c_mrfget(int handle, void *buffer);
 int c_mrfput(const int iun, const int handle, void *buffer);
+int c_mrfbfl(int iun);
 
 
 
