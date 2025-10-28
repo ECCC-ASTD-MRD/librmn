@@ -2258,8 +2258,6 @@ int32_t fst24_read_record_rsf(
             record_fst->data_bits = 8;
     }
 
-    Lib_Log(APP_LIBFST, APP_WARNING, "%s: data_bits = %d\n", __func__, record_fst->data_bits);
-
     // Extract metadata from record if present
     if (record_fst->do_not_touch.extended_meta_size > 0) {
         // Located after the search keys

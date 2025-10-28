@@ -165,6 +165,10 @@ int main() {
             }
             if (!same) return !same;
         }
+
+        free(orig);
+        free(packed);
+        free(unpacked);
     }
 
 
@@ -218,6 +222,10 @@ int main() {
             }
             if (!same) return !same;
         }
+
+        free(orig);
+        free(packed);
+        free(unpacked);
     }
 
     printf("\nUnsigned short with fixed width\n");
@@ -270,6 +278,10 @@ int main() {
             }
             if (!same) return !same;
         }
+
+        free(orig);
+        free(packed);
+        free(unpacked);
     }
 
     printf("\nUnsigned char with width auto detection\n");
@@ -322,6 +334,10 @@ int main() {
             }
             if (!same) return !same;
         }
+
+        free(orig);
+        free(packed);
+        free(unpacked);
     }
 
     printf("\nUnsigned char with fixed width\n");
@@ -374,6 +390,10 @@ int main() {
             }
             if (!same) return !same;
         }
+
+        free(orig);
+        free(packed);
+        free(unpacked);
     }
     return 0;
 }

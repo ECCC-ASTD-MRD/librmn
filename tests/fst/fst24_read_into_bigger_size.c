@@ -233,6 +233,7 @@ static int create_file(const int is_rsf) {
 
     App_Log(APP_INFO, "Done writing records\n");
 
+    fst24_query_free(q);
     if (!fst24_close(f)) {
         App_Log(APP_ERROR, "Unable to close file!\n");
         return -1;
@@ -615,6 +616,8 @@ static int test_read_into_bigger_size(const int is_rsf) {
             return -1;
         }
         compare_int_arrays(rec.data, 64, data_mask, 32, DATA_SIZE * DATA_SIZE);
+
+        fst24_query_free(q);
     }
     // ---------- END MASK (1 BIT) --------------
 
@@ -649,6 +652,8 @@ static int test_read_into_bigger_size(const int is_rsf) {
             return -1;
         }
         compare_int_arrays(rec.data, 8, data_i8, 8, DATA_SIZE * DATA_SIZE);
+
+        fst24_query_free(q);
     }
 
     // ---------- END INT 32 compressed to 12 --------------

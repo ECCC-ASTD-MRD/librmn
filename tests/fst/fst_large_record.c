@@ -74,6 +74,7 @@ int create_file(const int is_rsf) {
     }
 
     fst24_record_free(&rec);
+    free(dummy_data);
 
     return 0;
 }
