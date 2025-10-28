@@ -32,7 +32,7 @@ string(REGEX MATCH "([0-9]+)" SOVERSION ${PROJECT_VERSION})
 include(GNUInstallDirs)
 set(CMAKE_INSTALL_LIBDIR lib CACHE INTERNAL "Install dir for libs" FORCE)  # Avoid using lib64, cache when in super-project
 
-ec_build_info()
+ec_build_info("" TRUE)
 include(ec_compiler_presets)
 
 # Need to add HAVE_RMN definition for auto-registering librmn within App
