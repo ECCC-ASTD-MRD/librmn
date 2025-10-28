@@ -2228,8 +2228,16 @@ int32_t fst24_read_record_rsf(
         return ERR_BAD_HNDL;
     }
 
+    int32_t status = 0;
     int requested_num_bits = record_fst->data_bits;
     update_attributes_from_rsf_info(record_fst, record_fst->do_not_touch.handle, &record_info);
+
+    if (record_fst->data_bits < record_fst->pack_bits) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot handle data size (%d bits) smaller than packed size (%d bits)\n",
+            __func__, record_fst->data_bits, record_fst->pack_bits);
+        status = -1;
+        goto end_read;
+    }
 
     // Determine into what size we are reading (only 8, 16, 32 and 64 allowed)
     const int32_t original_num_bits = record_fst->data_bits;
@@ -2250,6 +2258,8 @@ int32_t fst24_read_record_rsf(
             record_fst->data_bits = 8;
     }
 
+    Lib_Log(APP_LIBFST, APP_WARNING, "%s: data_bits = %d\n", __func__, record_fst->data_bits);
+
     // Extract metadata from record if present
     if (record_fst->do_not_touch.extended_meta_size > 0) {
         // Located after the search keys
@@ -2257,9 +2267,8 @@ int32_t fst24_read_record_rsf(
     }
 
     // Extract data
-    int32_t ier = 0;
     if (metadata_only != 1)
-        ier = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1, original_num_bits);
+        status = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1, original_num_bits);
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;
@@ -2269,8 +2278,9 @@ int32_t fst24_read_record_rsf(
         fst24_record_print_short(record_fst, &f, 0, "(fst) Read : ");
     }
 
+end_read:
     free(work_space);
-    return ier;
+    return status;
 }
 
 //! Read a record from an XDF file
