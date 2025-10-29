@@ -1,4 +1,4 @@
-#include "rmn_build_info_fnct.h"
+#include "rmn_build_info.h"
 
 
 int main() {
