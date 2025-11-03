@@ -3645,7 +3645,7 @@ int c_fstopi(
         if (getmode) {
             if (getmode == 2) val = App->LogLevel[APP_LIBFST];
             } else {
-                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option 'MSGLVL' , %d -> %s\n",
+                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option 'MSGLVL' , %d -> %d\n",
                     __func__, App->LogLevel[APP_LIBFST], value);
                 App->LogLevel[APP_LIBFST] = (TApp_LogLevel)value;
             }
