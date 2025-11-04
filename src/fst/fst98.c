@@ -553,6 +553,9 @@ void crack_std_parms(
 
     cracked_parms->aammjj = 0;
     cracked_parms->hhmmss = 0;
+
+    cracked_parms->ni = stdf_entry->ni_a | (stdf_entry->ni_b << 24);
+    cracked_parms->nj = stdf_entry->nj_a | (stdf_entry->nj_b << 24) | (stdf_entry->nj_c << 28);
 }
 
 
@@ -733,7 +736,7 @@ void print_std_parms(
     }
 
     if (strstr(option, "NINJNK")) {
-        snprintf(v_dims, sizeof(v_dims), " %7d %7d %5d", stdf_entry->ni, stdf_entry->nj, stdf_entry->nk);
+        snprintf(v_dims, sizeof(v_dims), " %7d %7d %5d", cracked.ni, cracked.nj, stdf_entry->nk);
     } else {
         v_dims[0] = '\0';
     }
@@ -1397,9 +1400,12 @@ int c_fstecr_xdf(
     stdf_entry->addr = 0xffffffff;
     stdf_entry->deet = deet;
     stdf_entry->nbits = nbits;
-    stdf_entry->ni = ni;
+    stdf_entry->ni_a = ni;
+    stdf_entry->ni_b = 0;
     stdf_entry->gtyp = grtyp[0];
-    stdf_entry->nj = nj;
+    stdf_entry->nj_a = nj;
+    stdf_entry->nj_b = 0;
+    stdf_entry->nj_c = 0;
     // propagate missing values flag
     stdf_entry->datyp = datyp | is_missing;
     // this value may be changed later in the code to eliminate improper flags
@@ -1433,7 +1439,6 @@ int c_fstecr_xdf(
     stdf_entry->typvar =
         (ascii6(typvar[0]) <<  6) |
         (ascii6(typvar[1]));
-    stdf_entry->pad3 = 0;
     stdf_entry->nomvar =
         (ascii6(nomvar[0]) << 18) |
         (ascii6(nomvar[1]) << 12) |
@@ -1443,9 +1448,7 @@ int c_fstecr_xdf(
     stdf_entry->ip1 = ip1;
     stdf_entry->levtyp = 0;
     stdf_entry->ip2 = ip2;
-    stdf_entry->pad5 = 0;
     stdf_entry->ip3 = ip3;
-    stdf_entry->pad6 = 0;
     stdf_entry->date_stamp = stamp_from_date(datev);
 
     int handle = 0;
@@ -2308,10 +2311,12 @@ int c_fstinfx_xdf(
 
     search_mask->pad1 = 0;
     search_mask->pad2 = 0;
-    search_mask->pad3 = 0;
+    search_mask->ni_a = 0;
+    search_mask->ni_b = 0;
     search_mask->dasiz = 0;
-    search_mask->pad5 = 0;
-    search_mask->pad6 = 0;
+    search_mask->nj_a = 0;
+    search_mask->nj_b = 0;
+    search_mask->nj_c = 0;
     search_mask->pad7 = 0;
     search_mask->deleted = 0;
     search_mask->select = 0;
@@ -2319,9 +2324,7 @@ int c_fstinfx_xdf(
     search_mask->addr = 0;
     search_mask->deet = 0;
     search_mask->nbits = 0;
-    search_mask->ni = 0;
     search_mask->gtyp = 0;
-    search_mask->nj = 0;
     search_mask->datyp = 0;
     search_mask->nk = 0;
     search_mask->ubc = 0;
@@ -2442,8 +2445,8 @@ int c_fstinfx_xdf(
         fte->build_primary(fte->target, pkeys, fte->cur_mask, pmask, index, 1);
         init_ip_vals();
     }
-    *ni = stdf_entry->ni;
-    *nj = stdf_entry->nj;
+    *ni = stdf_entry->ni_a; // Ignore larger bits for XDF
+    *nj = stdf_entry->nj_a; // Ignore larger bits for XDF
     *nk = stdf_entry->nk;
     free(stdf_entry);
     free(search_mask);
@@ -3003,8 +3006,8 @@ int c_fstluk_xdf(
     int ier = c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);
     if (ier < 0) return ier;
 
-    *ni = stdf_entry.ni;
-    *nj = stdf_entry.nj;
+    *ni = stdf_entry.ni_a; // Ignore larger bits for XDF
+    *nj = stdf_entry.nj_a; // Ignore larger bits for XDF
     *nk = stdf_entry.nk;
     // Get missing data flag
     int has_missing = stdf_entry.datyp & FSTD_MISSING_FLAG;
@@ -3063,7 +3066,8 @@ int c_fstluk_xdf(
         return ERR_STDF_VERSION;
     }
 
-    int nelm = stdf_entry.ni * stdf_entry.nj * stdf_entry.nk;
+    // Ignore larger ni and nj bits for XDF (so only ni_a, nj_a)
+    int nelm = stdf_entry.ni_a * stdf_entry.nj_a * stdf_entry.nk;
     if (stdf_entry.datyp == 8) nelm *= 2;
 
     int npak = -(stdf_entry.nbits);
@@ -3641,7 +3645,7 @@ int c_fstopi(
         if (getmode) {
             if (getmode == 2) val = App->LogLevel[APP_LIBFST];
             } else {
-                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option 'MSGLVL' , %d -> %s\n",
+                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option 'MSGLVL' , %d -> %d\n",
                     __func__, App->LogLevel[APP_LIBFST], value);
                 App->LogLevel[APP_LIBFST] = (TApp_LogLevel)value;
             }
@@ -4012,8 +4016,8 @@ int c_fstprm_xdf(
 
     crack_std_parms(stdf_entry, &cracked);
 
-    *ni = stdf_entry->ni;
-    *nj = stdf_entry->nj;
+    *ni = stdf_entry->ni_a; // Ignore larger bits for XDF
+    *nj = stdf_entry->nj_a; // Ignore larger bits for XDF
     *nk = stdf_entry->nk;
     *dateo = cracked.date_stamp;
     *deet = stdf_entry->deet;
@@ -4346,8 +4350,8 @@ int c_fstsui_xdf(
 
     int addr, lng, idtyp;
     c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16);
-    *ni = stdf_entry->ni;
-    *nj = stdf_entry->nj;
+    *ni = stdf_entry->ni_a; // Ignore larger bits for XDF
+    *nj = stdf_entry->nj_a; // Ignore larger bits for XDF
     *nk = stdf_entry->nk;
     free(stdf_entry);
     return handle;
@@ -4517,9 +4521,12 @@ int c_fstvoi_xdf(
                 stdf_entry->addr = (seq_entry->swa >> 2) +1;
                 stdf_entry->deet = seq_entry->deet;
                 stdf_entry->nbits = seq_entry->nbits;
-                stdf_entry->ni = seq_entry->ni;
+                stdf_entry->ni_a = seq_entry->ni;
+                stdf_entry->ni_b = 0;
                 stdf_entry->gtyp = seq_entry->grtyp;
-                stdf_entry->nj = seq_entry->nj;
+                stdf_entry->nj_a = seq_entry->nj;
+                stdf_entry->nj_b = 0;
+                stdf_entry->nj_c = 0;
                 stdf_entry->datyp = seq_entry->datyp;
                 stdf_entry->nk = seq_entry->nk;
                 stdf_entry->ubc = 0;
@@ -4546,7 +4553,6 @@ int c_fstvoi_xdf(
                 stdf_entry->pad2 = 0;
                 stdf_entry->etikbc = 0;
                 stdf_entry->typvar = ascii6(seq_entry->typvar) << 6;
-                stdf_entry->pad3 = 0;
                 stdf_entry->nomvar =
                 (ascii6((seq_entry->nomvar >>  8) & 0xff) << 18) |
                 (ascii6((seq_entry->nomvar      ) & 0xff) << 12);
@@ -4554,9 +4560,7 @@ int c_fstvoi_xdf(
                 stdf_entry->ip1 = seq_entry->ip1;
                 stdf_entry->levtyp = 0;
                 stdf_entry->ip2 = seq_entry->ip2;
-                stdf_entry->pad5 = 0;
                 stdf_entry->ip3 = seq_entry->ip3;
-                stdf_entry->pad6 = 0;
                 stdf_entry->date_stamp = seq_entry->date;
                 int deet = stdf_entry->deet;
                 int npas = stdf_entry->npas;

@@ -574,9 +574,12 @@ search_metadata* make_search_metadata(
 
         stdf_entry->deet = record->deet;
         stdf_entry->nbits = record->pack_bits;
-        stdf_entry->ni = record->ni;
+        stdf_entry->ni_a = record->ni & 0xffffff;
+        stdf_entry->ni_b = record->ni >> 24;
         stdf_entry->gtyp = grtyp[0];
-        stdf_entry->nj = record->nj;
+        stdf_entry->nj_a = record->nj & 0xffffff;
+        stdf_entry->nj_b = (record->nj & 0x0f000000) >> 24;
+        stdf_entry->nj_c = record->nj >> 28;
         // propagate missing values flag
         stdf_entry->datyp = record->data_type;
         // this value may be changed later in the code to eliminate improper flags
@@ -610,7 +613,6 @@ search_metadata* make_search_metadata(
         stdf_entry->typvar =
             (ascii6(typvar[0]) <<  6) |
             (ascii6(typvar[1]));
-        stdf_entry->pad3 = 0;
         stdf_entry->nomvar =
             (ascii6(nomvar[0]) << 18) |
             (ascii6(nomvar[1]) << 12) |
@@ -619,9 +621,7 @@ search_metadata* make_search_metadata(
         stdf_entry->ip1 = record->ip1;
         stdf_entry->levtyp = 0;
         stdf_entry->ip2 = record->ip2;
-        stdf_entry->pad5 = 0;
         stdf_entry->ip3 = record->ip3;
-        stdf_entry->pad6 = 0;
         stdf_entry->date_stamp = stamp_from_date(record->datev);
         stdf_entry->dasiz = record->data_bits;
     }
@@ -2228,8 +2228,16 @@ int32_t fst24_read_record_rsf(
         return ERR_BAD_HNDL;
     }
 
+    int32_t status = 0;
     int requested_num_bits = record_fst->data_bits;
     update_attributes_from_rsf_info(record_fst, record_fst->do_not_touch.handle, &record_info);
+
+    if (record_fst->data_bits < record_fst->pack_bits) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot handle data size (%d bits) smaller than packed size (%d bits)\n",
+            __func__, record_fst->data_bits, record_fst->pack_bits);
+        status = -1;
+        goto end_read;
+    }
 
     // Determine into what size we are reading (only 8, 16, 32 and 64 allowed)
     const int32_t original_num_bits = record_fst->data_bits;
@@ -2257,9 +2265,8 @@ int32_t fst24_read_record_rsf(
     }
 
     // Extract data
-    int32_t ier = 0;
     if (metadata_only != 1)
-        ier = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1, original_num_bits);
+        status = fst24_unpack_data(record_fst->data, record_rsf->data, record_fst, skip_unpack, 1, original_num_bits);
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_INFO) {
         fst_record_fields f = default_fields;
@@ -2269,8 +2276,9 @@ int32_t fst24_read_record_rsf(
         fst24_record_print_short(record_fst, &f, 0, "(fst) Read : ");
     }
 
+end_read:
     free(work_space);
-    return ier;
+    return status;
 }
 
 //! Read a record from an XDF file

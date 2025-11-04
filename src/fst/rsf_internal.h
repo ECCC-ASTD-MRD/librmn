@@ -380,8 +380,8 @@ typedef struct {
 typedef struct directory_block directory_block ;
 
 #ifndef NDEBUG
-#define DIR_BLOCK_SIZE 512
-#define DIR_SLOTS_INCREMENT 8
+#define DIR_BLOCK_SIZE (1024*4)
+#define DIR_SLOTS_INCREMENT 64
 #else
 #define DIR_BLOCK_SIZE 131072
 #define DIR_SLOTS_INCREMENT 512
@@ -442,7 +442,6 @@ typedef struct _RSF_File {
     RSF_Match_fn *matchfn ;        //!< pointer to metadata matching function
     directory_block *dirblocks ;   //!< first "block" of directory data (linked list)
     vdir_entry **vdir ;            //!< pointer to table of vdir_entry pointers (reallocated larger if it gets too small)
-    sparse_entry *sparse_segs ;    //!< pointer to table of sparse segments
     uint64_t vdir_size ;           //!< worst case of total size of vdir entries (future size of directory record in file)
     uint64_t seg_base ;            //!< base address in file of the current active segment (0 if only one segment)
     uint64_t file_wa0 ;            //!< file address origin (normally 0) (used for file within file access)
@@ -457,8 +456,6 @@ typedef struct _RSF_File {
     uint32_t num_deleted_records ; //!< Number of records that have the RT_DEL type (included in the total)
     uint32_t vdir_slots ;          //!< current size of vdir[] table of pointers to directory entries
     uint32_t vdir_used ;           //!< number of used pointers in vdir[] table
-    uint32_t sparse_table_used ;   //!< number of used entries in sparse_segments table
-    uint32_t sparse_table_size ;   //!< size of sparse_segments table
     int32_t  slot ;                //!< Slot where this file is located in the list of open files (-1 if invalid)
     uint32_t nwritten ;            //!< number of records written (useful when closing after write)
     int32_t  lock ;                //!< used to lock the file for thread safety

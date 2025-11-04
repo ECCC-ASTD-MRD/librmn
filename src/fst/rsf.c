@@ -335,8 +335,10 @@ static void RSF_Vdir_setup(RSF_File *fp){
         fp->vdir_size = DISK_VDIR_BASE_SIZE;                           // record size of an empty directory
     }
     if (fp->vdir_used >= fp->vdir_slots) {                             // table is full, reallocate with a larger size
-        fp->vdir_slots += DIR_SLOTS_INCREMENT;                         // increase number of slots
-        // reallocate vdir table with a larger size
+        const int increment = (fp->vdir_slots / 2) > DIR_SLOTS_INCREMENT ? (fp->vdir_slots / 2) : DIR_SLOTS_INCREMENT;
+        fp->vdir_slots += increment;                         // increase number of slots
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Reallocating vdir table with a larger size (%u entries)\n",
+                __func__, fp->vdir_slots);
         fp->vdir = (vdir_entry **) realloc(fp->vdir, fp->vdir_slots * sizeof(void *));
         for(int i = fp->vdir_used; i < fp->vdir_slots; i++) {
             fp->vdir[i] = NULL;                                          // nullify new slots
@@ -621,23 +623,7 @@ static int32_t RSF_Read_directory(
         }
 
         const uint64_t segment_size = RSF_32_to_64(sos.sseg);
-        uint64_t sos_seg = RSF_32_to_64(sos.seg);                      // would be 0 for a sparse segment
         if (segment_size == 0) break;                               // open, compact segment, this is the last segment
-        // remember free space in non open sparse segments
-        if (sos_seg == 0 && sos.head.rlm == 0) {                 // ONLY process sparse segments NOT currently open for write
-            if (fp->sparse_segs == NULL) {                          // sparse segments table not allocated yet
-                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: allocating sparse_segs table\n", __func__);
-                fp->sparse_segs = malloc(1024 * sizeof(sparse_entry));
-                fp->sparse_table_size = 1024;
-                fp->sparse_table_used = 0;
-            }
-            fp->sparse_segs[fp->sparse_table_used].base = segment_offset;
-            fp->sparse_segs[fp->sparse_table_used].size = segment_size - sizeof(start_of_segment);
-            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: segment %d sparse at %12.12lx, space available = %ld, rlm = %d\n",
-                    __func__, num_segments-1, fp->sparse_segs[fp->sparse_table_used].base,
-                    fp->sparse_segs[fp->sparse_table_used].size, sos.head.rlm);
-            if (fp->sparse_table_used < fp->sparse_table_size - 1) fp->sparse_table_used++;  // do not overflow table
-        }
         const uint64_t vdir_offset  = RSF_32_to_64(sos.vdir);  // offset of vdir within segment
         const uint64_t vdir_size    = RSF_32_to_64(sos.vdirs); // vdir size from start of record
 
