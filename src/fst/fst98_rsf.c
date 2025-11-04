@@ -827,8 +827,8 @@ int c_fstprm_rsf(
     stdf_special_parms cracked;
     crack_std_parms(stdf_entry, &cracked);
 
-    *ni = stdf_entry->ni;
-    *nj = stdf_entry->nj;
+    *ni = stdf_entry->ni_a | (stdf_entry->ni_b << 24);
+    *nj = stdf_entry->nj_a | (stdf_entry->nj_b << 24) | (stdf_entry->nj_c << 28);
     *nk = stdf_entry->nk;
     *dateo = cracked.date_stamp;
     *deet = stdf_entry->deet;

@@ -21,9 +21,9 @@ uint16_t* data_u16 = NULL;
 uint8_t* data_u8 = NULL;
 uint32_t* data_mask = NULL;
 
-void clear_data(void);
+static void clear_data(void);
 
-int init_data(const int size) {
+static int init_data(const int size) {
     clear_data();
 
     data_d = (double*)malloc(size * size * sizeof(double));
@@ -58,7 +58,7 @@ int init_data(const int size) {
     return 0;
 }
 
-void clear_data(void) {
+static void clear_data(void) {
     if (data_d) free(data_d);
     if (data_f) free(data_f);
     if (data_i64) free(data_i64);
@@ -84,7 +84,7 @@ void clear_data(void) {
     data_mask = NULL;
 }
 
-inline uint64_t get_elem(const void* array, const int index, const int elem_size) {
+static inline uint64_t get_elem(const void* array, const int index, const int elem_size) {
     switch(elem_size) {
         case 8: return ((uint8_t*)array)[index];
         case 16: return ((uint16_t*)array)[index];
@@ -94,7 +94,7 @@ inline uint64_t get_elem(const void* array, const int index, const int elem_size
     }
 }
 
-void compare_int_arrays(const void* a, const int size_a, const void* b, const int size_b, const int num_elem) {
+static void compare_int_arrays(const void* a, const int size_a, const void* b, const int size_b, const int num_elem) {
     for (int i = 0; i < num_elem; i++) {
         const uint64_t elem_a = get_elem(a, i, size_a);
         const uint64_t elem_b = get_elem(b, i, size_b);
@@ -121,7 +121,7 @@ void compare_int_arrays(const void* a, const int size_a, const void* b, const in
     }
 }
 
-int create_file(const int is_rsf) {
+static int create_file(const int is_rsf) {
     const char* filename = is_rsf ? rsf_filename : xdf_filename;
     remove(filename);
 
@@ -233,6 +233,7 @@ int create_file(const int is_rsf) {
 
     App_Log(APP_INFO, "Done writing records\n");
 
+    fst24_query_free(q);
     if (!fst24_close(f)) {
         App_Log(APP_ERROR, "Unable to close file!\n");
         return -1;
@@ -241,7 +242,7 @@ int create_file(const int is_rsf) {
     return 0;
 }
 
-int test_read_into_bigger_size(const int is_rsf) {
+static int test_read_into_bigger_size(const int is_rsf) {
     App_Log(APP_INFO, "Testing %s\n", is_rsf ? "RSF" : "XDF");
     if (create_file(is_rsf) != 0) return -1;
 
@@ -615,6 +616,8 @@ int test_read_into_bigger_size(const int is_rsf) {
             return -1;
         }
         compare_int_arrays(rec.data, 64, data_mask, 32, DATA_SIZE * DATA_SIZE);
+
+        fst24_query_free(q);
     }
     // ---------- END MASK (1 BIT) --------------
 
@@ -649,6 +652,8 @@ int test_read_into_bigger_size(const int is_rsf) {
             return -1;
         }
         compare_int_arrays(rec.data, 8, data_i8, 8, DATA_SIZE * DATA_SIZE);
+
+        fst24_query_free(q);
     }
 
     // ---------- END INT 32 compressed to 12 --------------

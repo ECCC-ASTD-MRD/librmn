@@ -202,7 +202,6 @@ static int create_file(const int is_rsf) {
 
         fst24_record_copy_metadata(&solution_record, &base_record, FST_META_ALL);
         solution_record.ip1 = 13;
-        solution_record.metadata = Meta_Copy(ext_meta);
         Meta_DefVar(solution_record.metadata, NULL, NULL, NULL, "New description", NULL);
         WRITE_CHECK(solution_file, &solution_record);
 
@@ -229,6 +228,8 @@ static int create_file(const int is_rsf) {
         App_Log(APP_ERROR, "%s: Unable to close file '%s'\n", __func__, solution_filename);
         return -1;
     }
+
+    fst24_record_free(&solution_record);
 
     return 0;
 }

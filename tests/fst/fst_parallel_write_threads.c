@@ -123,7 +123,7 @@ int test_parallel_write() {
         test_file = NULL;
 
         if (data != NULL) free(data);
-    }
+    } // end omp parallel
 
     if (num_errors > 0) {
         App_Log(APP_ERROR, "%s: There have been %d errors\n", __func__, num_errors);
@@ -135,7 +135,6 @@ int test_parallel_write() {
         App_Log(APP_ERROR, "Unable to open file after it was closed\n");
         return -1;
     }
-
 
     fst24_print_summary(test_file, NULL);
 

@@ -280,7 +280,7 @@ void c_env_var_cracker(
             int result = check_start_end_char(values, strlen(values));
 
             if (result == NONMATCHING) {
-                return;
+                goto end;
             }
 
             if (result >= QUOTES) {
@@ -331,6 +331,7 @@ void c_env_var_cracker(
         }
     }
 
+end:
     if (name) {
         free(name);
     }

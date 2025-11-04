@@ -343,6 +343,7 @@ static int test24(const int is_rsf) {
 
         fst24_record_free(&duplicates[0]);
         fst24_record_free(&duplicates[1]);
+        fst24_query_free(q);
     }
 
     // Case 2
@@ -369,6 +370,7 @@ static int test24(const int is_rsf) {
 
         fst24_record_free(&duplicates[0]);
         fst24_record_free(&duplicates[1]);
+        fst24_query_free(q);
     }
 
     // Case 3
@@ -389,6 +391,7 @@ static int test24(const int is_rsf) {
         }
 
         fst24_record_free(&duplicates[0]);
+        fst24_query_free(q);
     }
 
     // Case 4
@@ -415,6 +418,7 @@ static int test24(const int is_rsf) {
 
         fst24_record_free(&duplicates[0]);
         fst24_record_free(&duplicates[1]);
+        fst24_query_free(q);
     }
 
     // Case 5
@@ -441,6 +445,7 @@ static int test24(const int is_rsf) {
 
         fst24_record_free(&duplicates[0]);
         fst24_record_free(&duplicates[1]);
+        fst24_query_free(q);
     }
 
     // Case 6
@@ -461,6 +466,7 @@ static int test24(const int is_rsf) {
         }
 
         fst24_record_free(&duplicates[0]);
+        fst24_query_free(q);
     }
 
     if (fst24_close(test_file) != TRUE) {
