@@ -93,7 +93,7 @@ subroutine test_fst98_interface(is_rsf)
     end do
 
     ! ----- fstecr with npak > 0 -----
-    status = fstecr(data_array(:, i), work_array, 2, iun, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,           &
+    status = fstecr(data_array(:, 3), work_array, 2, iun, DATE, TIMESTEP_SIZE, TIMESTEP_NUM,           &
                             NUM_DATA, 1, 1,                                                            &
                             111, 222, 333,                                                             &
                             'XX', 'YYYY', 'ETIKET', 'X',                                               &
