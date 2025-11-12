@@ -1208,7 +1208,7 @@ void c_checda(
     //! [in] Unit number
     const int iun
 ) {
-    for (int *pt = dastat; pt < &dastat[MAXWAFILES]; pt++) {
+    for (int *pt = dastat; pt < &dastat[MAXWAFILES - 1]; pt++) {
         if (*pt == iun) {
             *pt = 0;
             break;
@@ -1237,21 +1237,21 @@ void c_readda(
     const int offset
 ) {
     int *pt = dastat;
-    while (pt < &dastat[MAXWAFILES] && *pt != iun) {
+    while (pt < &dastat[MAXWAFILES - 1] && *pt != iun) {
        pt++;
     }
 
-    if ( pt <= &dastat[MAXWAFILES] ) {
+    if (pt <= &dastat[MAXWAFILES - 1]) {
         if (*pt == iun) {
-            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: consecutive calls to readda without call to checda, iun=%d\n",__func__,iun);
+            Lib_Log(APP_LIBRMN, APP_ERROR, "%s: consecutive calls to readda without call to checda, iun=%d\n", __func__, iun);
             return;
         }
     }
     c_waread(iun, buf, (offset - 1) * blkSize + 1, nwords * blkSize);
     for (pt = dastat; pt < &dastat[MAXWAFILES]; pt++) {
-        if ( *pt == 0 ) break ;
+        if ( *pt == 0 ) break;
         if (  pt >= &dastat[MAXWAFILES] ) {
-            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: recompiler avec MAXWAFILES++\n",__func__);
+            Lib_Log(APP_LIBRMN, APP_ERROR, "%s: recompiler avec MAXWAFILES++\n", __func__);
             return;
         }
     }
@@ -1285,20 +1285,20 @@ void c_writda(
     const int offset
 ) {
     int *pt = dastat;
-    while (pt < &dastat[MAXWAFILES] && *pt != iun) {
+    while (pt < &dastat[MAXWAFILES - 1] && *pt != iun) {
         pt++;
     }
-    if ( pt <= &dastat[MAXWAFILES] ) {
+    if ( pt <= &dastat[MAXWAFILES - 1] ) {
         if (*pt == iun) {
-            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: consecutive calls to writda without call to checda, iun=%d\n",__func__,iun);
+            Lib_Log(APP_LIBRMN, APP_ERROR, "%s: consecutive calls to writda without call to checda, iun=%d\n", __func__, iun);
             return;
         }
     }
     c_wawrit(iun, buf, (offset - 1) * blkSize + 1, nwords * blkSize);
     for (pt = dastat; pt < &dastat[MAXWAFILES]; pt++) {
-        if( *pt == 0 ) break ;
-        if (  pt >= &dastat[MAXWAFILES] ) {
-            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: recompiler avec MAXWAFILES++\n",__func__);
+        if(*pt == 0) break;
+        if (pt >= &dastat[MAXWAFILES]) {
+            Lib_Log(APP_LIBRMN, APP_ERROR, "%s: recompiler avec MAXWAFILES++\n", __func__);
             return;
         }
     }
@@ -1611,8 +1611,14 @@ static void scrap_page(
     int found_a_page = 0;
     Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:ind0=%d, ind1=%d\n",__func__,ind0,ind1);
 
+    const int indl = ind1 >= MAXWAFILES ? MAXWAFILES - 1 : ind1;
+    if (indl != ind1) {
+        Lib_Log(APP_LIBRMN, APP_WARNING, "%s:ind1(%d) >= MAXWAFILES(%d)! Clipping to MAXWAFILES - 1 (%d)!\n",
+            __func__, ind1, MAXWAFILES, indl);
+    }
+
     // Trouver la page la moins utile
-    for (int j = ind0; j <= ind1; j++) {
+    for (int j = ind0; j <= indl; j++) {
         for (int i = 0; i < wafile[j].nb_page_in_use; i++) {
              Lib_Log(APP_LIBRMN,APP_EXTRA,"%s: j=%d, i=%d age0=%d\n",__func__,j,i,wafile[j].page[i].access_count);
              if (wafile[j].page[i].access_count < age0) {
@@ -1637,7 +1643,7 @@ static void scrap_page(
         if (ier != sizeof(uint32_t) * nm) {
             Lib_Log(APP_LIBRMN,APP_FATAL,"%s: cannot write page, fd=%d\n",__func__,wafile[fl0].file_desc);
             Lib_Log(APP_LIBRMN,APP_FATAL,"%s: trying to write %d words buffer=%p, fileadr=%d\n",__func__,nm,(void *)wafile[fl0].page[pg0].page_adr,wafile[fl0].page[pg0].wa0-1);
-            Lib_Log(APP_LIBRMN,APP_FATAL,"%s: ier=%d,fl0=%d,ind0=%d,ind1=%d\n",__func__,ier,fl0,ind0,ind1);
+            Lib_Log(APP_LIBRMN,APP_FATAL,"%s: ier=%d,fl0=%d,ind0=%d,ind1=%d\n",__func__,ier,fl0,ind0,indl);
             perror("FATAL WA ERROR");
             exit(1);
         }
