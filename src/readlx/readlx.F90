@@ -821,8 +821,12 @@ SUBROUTINE qqlx_ins(ivar, key, icount, limits, ityp, xtern)
     ! TROUVER LA CLE
     CALL low2up(key, ikey)
     ipnt = NENTRY
-    DO WHILE (ipnt >  0 .AND. ikey /= NAMES(ipnt))
-        ipnt = ipnt - 1
+    DO WHILE (ipnt > 0)
+        if (ikey /= NAMES(ipnt)) then
+            ipnt = ipnt - 1
+        else
+            exit
+        end if
     END DO
 
     IF (ipnt == 0) THEN
@@ -873,8 +877,12 @@ SUBROUTINE qlx_look(IVAR, KEY, ICOUNT, LIMITS, ITYP)
     ! TROUVER LA CLE
     CALL LOW2UP(KEY, IKEY)
     IPNT = NENTRY
-    DO WHILE (IPNT >  0 .AND. IKEY .NE. NAMES(IPNT))
-        IPNT = IPNT - 1
+    DO WHILE (IPNT > 0)
+        if (IKEY .NE. NAMES(IPNT)) then
+            IPNT = IPNT - 1
+        else
+            exit
+        end if
     END DO
     IF (IPNT ==  0) THEN
         ITYP = -1

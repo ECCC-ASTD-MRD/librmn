@@ -54,9 +54,6 @@ endif()
 option(BUILD_PYTHON "Build Python interface" OFF)
 
 set(RMN_BUILD_SHARED ON)
-if (${RMN_LLVM_ADDRESS_SANITIZER})
-    set(RMN_BUILD_SHARED OFF)
-endif()
 
 #set(FIND_LIBRARY_USE_LIB64_PATHS TRUE)
 #find_package(json-c CONFIG REQUIRED)
@@ -153,8 +150,8 @@ add_dependencies(rmn-static rmn_build_info json-c libudunits2-static)
 
 # Build shared library from object of rmn
 if (${RMN_BUILD_SHARED})
-    add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
-    target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2-shared LibXml2::LibXml2)
+        add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
+        target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2-shared LibXml2::LibXml2)
 endif()
 
 foreach(TARGET ${TARGETS})
@@ -262,8 +259,9 @@ foreach(TARGET IN ITEMS ${TARGETS})
     if (${RMN_LLVM_ADDRESS_SANITIZER})
         target_compile_options(${TARGET} PUBLIC
                 $<$<COMPILE_LANG_AND_ID:C,IntelLLVM>:-fsanitize=address>
+                $<$<COMPILE_LANG_AND_ID:Fortran,IntelLLVM>:-fsanitize=address>
         )
-        target_link_options(${TARGET} PUBLIC
+        target_link_options(${TARGET} INTERFACE
                 $<$<COMPILE_LANG_AND_ID:C,IntelLLVM>:-fsanitize=address>
                 $<$<COMPILE_LANG_AND_ID:Fortran,IntelLLVM>:-fsanitize=address>
         )
