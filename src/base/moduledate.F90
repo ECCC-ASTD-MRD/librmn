@@ -42,16 +42,16 @@ contains
         implicit none
         integer, intent(in) :: year, month, day
         integer :: jd
-        jd = day - 32075 + 1461 * (year + 4800 + (month-14)/12) / 4 &
-                + 367 * (month - 2 - (month-14)/12 * 12) / 12 &
-                - 3 * ((year + 4900 + (month-14)/12) / 100) / 4
+        jd = day - 32075 + 1461 * (year + 4800 + (month - 14) / 12) / 4 &
+                + 367 * (month - 2 - (month - 14) / 12 * 12) / 12 &
+                - 3 * ((year + 4900 + (month - 14) / 12) / 100) / 4
     end function julian_day
 
     pure function is_bissextile(year) result(res)
         implicit none
         integer, intent(in) :: year
         logical :: res
-        res = ( ( (MOD(year, 4) == 0).and.(MOD(year, 100) /= 0) ) .or. (MOD(year, 400) == 0) )
+        res = ( ( (MOD(year, 4) == 0) .and. (MOD(year, 100) /= 0) ) .or. (MOD(year, 400) == 0) )
     end function is_bissextile
 
     !> Check whether the given truedate is valid (date > jan 1, 1980 if 5 sec interval, else > jan 1, 1900)
@@ -59,7 +59,7 @@ contains
         implicit none 
         integer, intent(in) :: tdate
         logical :: is_valid
-        is_valid = ((tdate.ge.0) .or. ((tdate.lt.0) .and. (tdate >= td1900).and.(mod(tdate-td1900, 720) == 0)))
+        is_valid = ((tdate >= 0) .or. ((tdate < 0) .and. (tdate >= td1900) .and. (mod(tdate - td1900, 720) == 0)))
     end function is_validtd
 
     !> check that year, month, day, zulu have valid values (for what?)
@@ -67,11 +67,14 @@ contains
         implicit none
         integer, intent(in) :: year, month, day, zulu
         logical :: is_valid
-        is_valid = ( &
-            (year.ge.1900) .and. (year.lt.2236) .and. &
-            (month.le.12) .and. (day.le.mdays(month)) .and. &
-            (zulu.le.23) .and. &
-            (month.gt.0) .and. (day.gt.0) .and. (zulu.ge.0))
+        is_valid = &
+            (year >= 1900) .and. (year < 2236) .and.  &
+            (month <= 12) .and. &
+            (zulu <= 23) .and. &
+            (month > 0) .and. (day > 0) .and. (zulu >= 0)
+        if (is_valid) then
+            is_valid = (day <= mdays(month)) 
+        endif
     end function is_validtm
 
     !> Not sure, there was no comment to say what this verifies
@@ -80,10 +83,13 @@ contains
         integer, intent(in) :: year, month, day, zulu
         logical :: is_valid
         is_valid = ( &
-            (year  >= 0) .and. (year  <  10000) .and.           &
-            (month >  0) .and. (month <= 12)    .and.           &
-            (day   >  0) .and. (day   <= mdays(month))    .and. &
+            (year  >= 0) .and. (year  <  10000) .and. &
+            (month >  0) .and. (month <= 12) .and. &
+            (day   >  0) .and. &
             (zulu  >= 0) .and. (zulu  <= 23) )
+        if (is_valid) then
+            is_valid = day <= mdays(month)
+        end if
     end function is_validtme
 end module rmn_md_helpers
 
@@ -456,19 +462,19 @@ SUBROUTINE date_add_sub (IDATE1, IDATE2, NHOURS, want_adding, want_rounding)
 !         - IF DIFDATR OR DIFDATI RECEIVE BAD ARGUMENTS, THEY SEND
 !           BACK NHOURS=2**30
 !         - THERE ARE THREE STYLES OF DATES (ALL USE INTEGERS):
-!            -OLD: AN INTEGER(.LT.123 200 000) OF THE FOLLOWING
+!            -OLD: AN INTEGER( < 123 200 000) OF THE FOLLOWING
 !             FORM: MMDDYYZZR
 !               MM = MONTH OF THE YEAR (1-12)
 !               DD = DAY OF THE MONTH (1-31)
 !               YY = YEAR(00-99)=>OLD STYLE ONLY GOOD BEFORE 2000/1/1
 !               ZZ = HOUR(00-23)
 !               R  = RUN (0-9) KEPT FOR BACKWARD COMPATIBILITY
-!            -NEW: AN INTEGER(.GE.123 200 000) THAT CONTAINS THE
+!            -NEW: AN INTEGER( >= 123 200 000) THAT CONTAINS THE
 !             TRUE DATE(NUMBER OF 5 SECONDS INTERVALS SINCE 1980/1/1
 !             00H00), COMPUTED LIKE THIS:
 !               FALSE_DATE=NEW_DATE_TIME_STAMP-123 200 000
 !               TRUE_DATE=(FALSE_DATE/10)*8+MOD(FALSE_DATE, 10)
-!            -EXTENDED: AN UNSIGNED INTEGER(.GE.3 000 000 000) THAT
+!            -EXTENDED: AN UNSIGNED INTEGER( >= 3 000 000 000) THAT
 !             CONTAINS THE EXTENDED TRUE DATE (NUMBER OF HOURS SINCE
 !             0000/1/1 00H), COMPUTED LIKE THIS:
 !               EXT_FALSE_DATE=EXT_DATE_TIME_STAMP-3 000 000 000
@@ -497,16 +503,16 @@ SUBROUTINE date_add_sub (IDATE1, IDATE2, NHOURS, want_adding, want_rounding)
 
  3    continue
 
-      if (idate2 .lt. -1 .or. idate1 .lt. -1) then
-        if (idate1 .gt. -1) then
+      if (idate2 < -1 .or. idate1 < -1) then
+        if (idate1 > -1) then
           result=naetwed(idate1, pdate1, pdate2, -3)
-          if(result.ne.0) then
+          if(result /= 0) then
              write(app_msg, *) 'ddiaft: label 1,idate1:', idate1
              call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
              goto 2
           endif
           result=naetwed(tdate1, pdate1, pdate2, +7)
-          if(result.ne.0) then
+          if(result /= 0) then
              write(app_msg, *) 'ddiaft: label 2,pdate1,pdate2:', pdate1(1), pdate2
              call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
              goto 2
@@ -519,7 +525,7 @@ SUBROUTINE date_add_sub (IDATE1, IDATE2, NHOURS, want_adding, want_rounding)
         idate(1)=idate1
         result=naetwed(tdate1, idate, runnum, 1)
       endif
-      if(result.ne.0) then
+      if(result /= 0) then
          write(app_msg, *) 'ddiaft: label 3,idate1:', idate1
          call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
          goto 2
@@ -527,17 +533,17 @@ SUBROUTINE date_add_sub (IDATE1, IDATE2, NHOURS, want_adding, want_rounding)
 
  1    continue
       call Get_calendar_Status_int( no_leap_years, ccclx_days )
-      if (idate2 .lt. -1 .or. &
-         (idate1 .lt. -1 .and. .not.want_adding)) then
-        if (idate2 .gt.-1) then
+      if (idate2 < -1 .or. &
+         (idate1 < -1 .and. .not.want_adding)) then
+        if (idate2 > -1) then
            result=naetwed(idate2, pdate1, pdate2, -3)
-           if(result.ne.0) then
+           if(result /= 0) then
              write(app_msg, *) 'ddiaft: label 4,idate2:', idate2
              call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
              goto 2
            endif
            result=naetwed(tdate2, pdate1, pdate2, +7)
-           if(result.ne.0) then
+           if(result /= 0) then
               write(app_msg, *) 'ddiaft: label 5,pdate1,pdate2:', pdate1(1), pdate2
               call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
               goto 2
@@ -546,7 +552,7 @@ SUBROUTINE date_add_sub (IDATE1, IDATE2, NHOURS, want_adding, want_rounding)
            idate(1)=idate2
            result=naetwed(tdate2, idate, runnum, 6)
         endif
-        if(result.ne.0) then
+        if(result /= 0) then
            write(app_msg, *) 'ddiaft: label 6,idate2:', idate2
            call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
            goto 2
@@ -559,7 +565,7 @@ SUBROUTINE date_add_sub (IDATE1, IDATE2, NHOURS, want_adding, want_rounding)
           endif
           result=naetwed(tdate1, idate, runnum, -6)
           idate1=idate(1)
-          if (result.ne.0) then
+          if (result /= 0) then
              write(app_msg, *) 'ddiaft: after if adding,if rounding', tdate1
              call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
              goto 2
@@ -574,14 +580,14 @@ SUBROUTINE date_add_sub (IDATE1, IDATE2, NHOURS, want_adding, want_rounding)
       else
         idate(1)=idate2
         result=naetwed(tdate2, idate, runnum, 1)
-        if(result.ne.0) then
+        if(result /= 0) then
            write(app_msg, *) 'ddiaft: label 1,idate2:', idate2
            call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
            goto 2
         endif
         if (want_adding) then
            goextend=.false.
-           rounding=want_rounding.or.(tdate2.lt.0)
+           rounding=want_rounding.or.(tdate2 < 0)
            if (rounding) then
               tdate2=(tdate2+sign(360, tdate2))/720*720
               addit = 720*nint(nhours, 8)
@@ -602,13 +608,13 @@ SUBROUTINE date_add_sub (IDATE1, IDATE2, NHOURS, want_adding, want_rounding)
            endif
            if (goextend) then ! exiting regular date range for extended range
              result=naetwed(idate2, pdate1, pdate2, -3)
-             if(result.ne.0) then
+             if(result /= 0) then
                 write(app_msg, *) 'ddiaft: label 7,idate2:', idate2
                 call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
                 goto 2
              endif
              result=naetwed(tdate2, pdate1, pdate2, +7)
-             if(result.ne.0) then
+             if(result /= 0) then
                 write(app_msg, *) 'ddiaft: label 8,pdate1,pdate2:', pdate1(1), pdate2
                 call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
                 goto 2
@@ -624,7 +630,7 @@ SUBROUTINE date_add_sub (IDATE1, IDATE2, NHOURS, want_adding, want_rounding)
              result=naetwed(tdate1, idate, runnum, -1)
              idate1=idate(1)
            endif
-           if (result.ne.0) then
+           if (result /= 0) then
               write(app_msg, *) 'ddiaft: after if adding,if rounding', tdate1
               call lib_log(APP_LIBRMN, APP_DEBUG, app_msg)
               goto 2
@@ -682,13 +688,13 @@ INTEGER FUNCTION itdmag2(IDATE)
     integer dtpr(2), tmpr, year, result
 
     year=idate(4)
-    if ((year.ge.0) .and. (year.le.99)) then
+    if ((year >= 0) .and. (year <= 99)) then
         year=year+1900
     endif
     dtpr(1)=year*10000+idate(2)*100+idate(3)
     tmpr=idate(5)*1000000+(idate(6)/6000)*10000+ mod(idate(6)/100, 60)*100
     result=naetwed(idate(14), dtpr, tmpr, 3)
-    if(result.ne.0) idate(14)=101010101
+    if(result /= 0) idate(14)=101010101
 
     itdmag2 = idate(14)
 end
@@ -741,7 +747,7 @@ SUBROUTINE dmagtp2 (IDATE)
 
     result=naetwed(idt, tpr, tmpr, -3)
     dtpr = tpr(1)
-    if (result.ne.0) then
+    if (result /= 0) then
         idt=101010101
         dtpr=19101010
         tmpr=10000000
@@ -1336,7 +1342,7 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
 
     masque32=ishft(-1_8, -32) ! = Z'00000000FFFFFFFF'
 
-    if (abs(mode).gt.7 .or. mode.eq.0) goto 4
+    if (abs(mode) > 7 .or. mode == 0) goto 4
     naetwed=0
     stamp8 = 0
     stamp = 0
@@ -1362,11 +1368,11 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
     ! mode=-3 : from stamp(old or new) to printable
 
  1    stamp=dat1
-    ! stamp .lt. -1 means extended stamp
-    if (stamp.lt.-1) goto 103
+    ! stamp < -1 means extended stamp
+    if (stamp < -1) goto 103
     dat2(1)=0
     dat3=0
-    if (stamp.ge.tdstart) then
+    if (stamp >= tdstart) then
         ! stamp is a new date-time stamp
         tdate=(stamp-tdstart)/10*8+mod(stamp-tdstart, 10)
         call datec(jd1900+(tdate-td1900)/17280, year, month, day)
@@ -1384,7 +1390,7 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
         tmpr=zulu*1000000
     endif
     if (.not.is_validtm(year, month, day, zulu)) goto 4
-    if ((month .eq. 2) .and. (day .eq. 29)) then
+    if ((month == 2) .and. (day == 29)) then
         if (.not. is_bissextile(year)) goto 4
     endif
     dat2(1)=dtpr
@@ -1407,11 +1413,11 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
     zulu=mod(tmpr/1000000, 100)
     second=mod(tmpr/10000, 100)*60+mod(tmpr/100, 100)
     if (.not.is_validtm(year, month, day, zulu)) goto 4
-    if ((month .eq. 2) .and. (day .eq. 29)) then
+    if ((month == 2) .and. (day == 29)) then
         if (.not. is_bissextile(year)) goto 4
     endif
     tdate=(julian_day(year, month, day)-jd1980)*17280+zulu*720+second/5
-    if (year.ge.2000 .or. (year.ge.1980 .and. second.ne.0)) then
+    if (year >= 2000 .or. (year >= 1980 .and. second /= 0)) then
         ! encode it in a new date-time stamp
             stamp=tdstart+(tdate/8)*10+mod(tdate, 8)
     else
@@ -1447,7 +1453,7 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
     zulu=mod(tmpr/1000000, 100)
     second=mod(tmpr/10000, 100)*60+mod(tmpr/100, 100)
     if (.not.is_validtm(year, month, day, zulu)) goto 4
-    if ((month .eq. 2) .and. (day .eq. 29)) then
+    if ((month == 2) .and. (day == 29)) then
         if (.not. is_bissextile(year)) goto 4
     endif
     dat1=(julian_day(year, month, day)-jd1980)*17280+zulu*720+second/5
@@ -1456,9 +1462,9 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
     ! mode=-1 : from (true_date and run_number) to stamp
  3    tdate=dat1
     runnb=dat3
- 33   if((runnb.gt.9) .or. (.not.is_validtd(tdate))) goto 4
+ 33   if((runnb > 9) .or. (.not.is_validtd(tdate))) goto 4
     ! use new stamp if > jan 1, 2000 or fractional hour
-    if (tdate.ge.td2000 .or. mod(tdate, 720).ne.0) then
+    if (tdate >= td2000 .or. mod(tdate, 720) /= 0) then
         ! encode it in a new date-time stamp, ignore run nb
         stamp=tdstart+(tdate/8)*10+mod(tdate, 8)
     else
@@ -1473,11 +1479,11 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
 
     ! mode=1 : from stamp(old or new) to (true_date and run_number)
  5    stamp=dat2(1)
-      if (stamp.ge.tdstart) then
+      if (stamp >= tdstart) then
 ! stamp is a new date-time stamp
          tdate=(stamp-tdstart)/10*8+mod(stamp-tdstart, 10)
          runnb=0
-      else if (stamp .lt. -1) then
+      else if (stamp < -1) then
         call lib_log(APP_LIBRMN, APP_ERROR, 'naetwed: newdate error mode 1, negative stamp')
         goto 4
       else
@@ -1518,7 +1524,7 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
       zulu=mod(tmpr/1000000, 100)
       minute=mod(tmpr/10000, 100)
       if (.not.is_validtme(year, month, day, zulu)) goto 4
-      if ((month .eq. 2) .and. (day .eq. 29)) then
+      if ((month == 2) .and. (day == 29)) then
          if (.not. is_bissextile(year)) goto 4
       endif
       tdate=julian_day(year, month, day)
@@ -1555,7 +1561,7 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
       zulu=mod(tdate, 24)
       minute=0
       if (.not.is_validtme(year, month, day, zulu)) goto 4
-      if ((month .eq. 2) .and. (day .eq. 29)) then
+      if ((month == 2) .and. (day == 29)) then
          if (.not. is_bissextile(year)) goto 4
       endif
       dat2(1)=year*10000+month*100+day
@@ -1586,7 +1592,7 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
 
 105   continue
       stamp=dat2(1)
-      if (stamp .lt. -1) then
+      if (stamp < -1) then
         stamp8=stamp
         stamp8=iand(masque32, stamp8)
         dat1=0
@@ -1603,7 +1609,7 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
         dat1=tdate
         dat3=0
       else
-        if (stamp.ge.tdstart) then
+        if (stamp >= tdstart) then
 ! stamp is a new date-time stamp
           tdate=(stamp-tdstart)/10*8+mod(stamp-tdstart, 10)
           call datec(jd1900+(tdate-td1900)/17280, year, month, day)
@@ -1632,7 +1638,7 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
       call datec(jd0+tdate/24, year, month, day)
       zulu=mod(tdate, 24)
       if (.not.is_validtme(year, month, day, zulu)) goto 4
-      if ((month .eq. 2) .and. (day .eq. 29)) then
+      if ((month == 2) .and. (day == 29)) then
          if (.not. is_bissextile(year)) goto 4
       endif
       minute=0
@@ -1655,7 +1661,7 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
       zulu=mod(tmpr/1000000, 100)
       second=mod(tmpr/10000, 100)*60+mod(tmpr/100, 100)
       if (.not.is_validtme(year, month, day, zulu)) goto 4
-      if ((month .eq. 2) .and. (day .eq. 29)) then
+      if ((month == 2) .and. (day == 29)) then
          if (.not. is_bissextile(year)) goto 4
       endif
       dat1=(julian_day(year, month, day)-jd0)*24+zulu
