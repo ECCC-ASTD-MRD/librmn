@@ -387,8 +387,8 @@
 
  3    adding=.false.
 !      print *,'Debug+ difdat ',idate1,idate2
-      if (idate2 .lt. -1 .or. idate1 .lt. -1) then
-        if (idate1 .gt. -1) then
+      if (idate2 < -1 .or. idate1 < -1) then
+        if (idate1 > -1) then
           result=naetwed(idate1,pdate1,pdate2,-3)
           if(result.ne.0) then
              write(app_msg,*) 'ddiaft: label 1,idate1:',idate1
@@ -415,9 +415,9 @@
 
  1    continue
       call Get_calendar_Status_int( no_leap_years,ccclx_days )
-      if (idate2 .lt. -1 .or. &
-         (idate1 .lt. -1 .and. .not.adding)) then
-        if (idate2 .gt.-1) then
+      if (idate2 < -1 .or. &
+         (idate1 < -1 .and. .not.adding)) then
+        if (idate2 > -1) then
            result=naetwed(idate2,pdate1,pdate2,-3)
            if(result.ne.0) then
              write(app_msg,*) 'ddiaft: label 4,idate2:',idate2
@@ -466,7 +466,7 @@
         endif
         if (adding) then
            goextend=.false.
-           rounding=rounding.or.(tdate2.lt.0)
+           rounding=rounding.or.(tdate2 < 0)
            if (rounding) then
               tdate2=(tdate2+sign(360,tdate2))/720*720
               addit = 720*nint(nhours,8)
@@ -579,7 +579,7 @@
       integer, external :: naetwed
       integer dtpr(2),tmpr,year,result
       year=idate(4)
-      if ((year.ge.0) .and. (year.le.99)) then
+      if ((year >= 0) .and. (year <= 99)) then
          year=year+1900
       endif
       dtpr(1)=year*10000+idate(2)*100+idate(3)
@@ -1253,72 +1253,33 @@
       integer tdate,runnb,stamp,tmpr,dtpr,td1900,td2000
       integer year,month,day,zulu,second,minute, max_offset
       integer tdstart,jd2236,jd1980,jd1900,jd0,jd10k,exception
-      integer , dimension(12) :: mdays
-      integer(8) date_unsigned,stamp8,masque32
+      integer(8) date_unsigned, stamp8, masque32
       integer(8), save :: troisg=3000000000_8
 !!!   integer(8), save :: troisg=transfer(Z'B2D05E00',1_8)
 !!!   equivalence (stamp,stamp8)
       external itdmag2, dmagtp2
       integer itdmag2
+      integer, dimension(12), parameter :: mdays = (/31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/)
+
       data tdstart /123200000/,jd1980 /2444240/,jd1900 /2415021/
       data jd0 /1721060/,jd10k /5373485/, max_offset /109572750/
       data jd2236 /2537742/, exception /16663825/
       data td2000 /126230400/, td1900 /-504904320/
-      data mdays /31,29,31,30,31,30,31,31,30,31,30,31/
-!
-      integer :: jd
-      logical :: bissextile,validtd,validtm,validtme
-!
-!!!   integer(4), save :: w32=1
-!!!   integer(2)    w16(2)
-!!!   equivalence ( w16(1) , w32 )
-!!!   data          w32/1/
-!
-!     calculates julian calendar day
-!     see CACM letter to editor by Fliegel and Flandern 1968
-!     page 657
-!
-      jd(year,month,day)=day-32075+1461*(year+4800+(month-14)/12)/4 &
-           +367*(month-2-(month-14)/12*12)/12 &
-           -3*((year+4900+(month-14)/12)/100)/4
-!
-!     check that date > jan 1, 1980 if 5 sec interval, else > jan 1,1900
-!
-      validtd(tdate)=((tdate.ge.0) .or. ((tdate.lt.0) .and.  &
-           (tdate >= td1900).and.(mod(tdate-td1900,720) == 0)))
-!
-!     check that year,month,day,zulu have valid values
-!
-      validtm(year,month,day,zulu)=(                  &
-           (year.ge.1900) .and. (year.lt.2236) .and.  &
-           (month.le.12) .and. (day.le.mdays(month))  &
-           .and. (zulu.le.23) .and.                   &
-           (month.gt.0) .and. (day.gt.0) .and. (zulu.ge.0))
-!
-      validtme(year,month,day,zulu)=(                 &
-           (year  >= 0) .and. (year  <  10000) .and.  &
-           (month >  0) .and. (month <= 12)    .and.  &
-           (day   >  0) .and. (day   <= mdays(month))    .and. &
-           (zulu  >= 0) .and. (zulu  <= 23) )
-!
-      bissextile(year) =  ( ( (MOD(year,4)   == 0)   &
-                         .and.(MOD(year,100) /= 0) ) &
-                         .or. (MOD(year,400) == 0) )
-!
+
       masque32=ishft(-1_8,-32) ! = Z'00000000FFFFFFFF'
 !
-      if (abs(mode).gt.7 .or. mode.eq.0) goto 4
+      if (abs(mode) > 7 .or. mode.eq.0) goto 4
       naetwed=0 ; stamp8 = 0 ; stamp = 0
       goto (106,104,103,101,1,2,3,4,5,6,7,100,102,105,107),(mode+8)
 !
 !     mode=-3 : from stamp(old or new) to printable
 !
  1    stamp=dat1
-!     stamp .lt. -1 means extended stamp
-      if (stamp.lt.-1) goto 103
+!     stamp < -1 means extended stamp
+      if (stamp < -1) goto 103
       dat2(1)=0
       dat3=0
-      if (stamp.ge.tdstart) then
+      if (stamp >= tdstart) then
 !     stamp is a new date-time stamp
          tdate=(stamp-tdstart)/10*8+mod(stamp-tdstart,10)
          call datec(jd1900+(tdate-td1900)/17280,year,month,day)
@@ -1365,7 +1326,7 @@
          if (.not. bissextile(year)) goto 4
       endif
       tdate=(jd(year,month,day)-jd1980)*17280+zulu*720+second/5
-      if (year.ge.2000 .or. (year.ge.1980 .and. second.ne.0)) then
+      if (year >= 2000 .or. (year >= 1980 .and. second.ne.0)) then
 !        encode it in a new date-time stamp
          stamp=tdstart+(tdate/8)*10+mod(tdate,8)
       else
@@ -1416,9 +1377,9 @@
 !
  3    tdate=dat1
       runnb=dat3
- 33   if((runnb.gt.9) .or. (.not.validtd(tdate))) goto 4
+ 33   if((runnb > 9) .or. (.not.validtd(tdate))) goto 4
 !     use new stamp if > jan 1, 2000 or fractional hour
-      if (tdate.ge.td2000 .or. mod(tdate,720).ne.0) then
+      if (tdate >= td2000 .or. mod(tdate,720).ne.0) then
 !     encode it in a new date-time stamp, ignore run nb
          stamp=tdstart+(tdate/8)*10+mod(tdate,8)
       else
@@ -1436,11 +1397,11 @@
 !     mode=1 : from stamp(old or new) to (true_date and run_number)
 !
  5    stamp=dat2(1)
-      if (stamp.ge.tdstart) then
+      if (stamp >= tdstart) then
 !     stamp is a new date-time stamp
          tdate=(stamp-tdstart)/10*8+mod(stamp-tdstart,10)
          runnb=0
-      else if (stamp .lt. -1) then
+      else if (stamp < -1) then
         call lib_log(APP_LIBRMN,APP_ERROR,'naetwed: newdate error mode 1, negative stamp')
         goto 4
       else
@@ -1505,7 +1466,7 @@
       dat2(1)= 0 ; dat3=0
       date_unsigned = stamp8
 !!!   if (w16(1).eq.0) date_unsigned = ishft(stamp8,-32)
-      if (date_unsigned <  troisg .or. &
+      if (date_unsigned < troisg .or. &
           date_unsigned >= troisg + max_offset) then
         write(app_msg,*)'naetwed: newdate error, invalid stamp for mode -5, stamp=',stamp
         call lib_log(APP_LIBRMN,APP_ERROR,app_msg)
@@ -1529,7 +1490,7 @@
 104   continue
       tdate=dat1
       if (tdate == exception .or.      &      ! 1901010101
-         (tdate/24+jd0) <  jd1900 .or. &
+         (tdate/24+jd0) < jd1900 .or. &
          (tdate/24+jd0) >= jd2236) then ! extended stamp
          stamp=(tdate/8)*10+mod(tdate,8)
          date_unsigned=stamp + troisg
@@ -1547,7 +1508,7 @@
 !
 105   continue
       stamp=dat2(1)
-      if (stamp .lt. -1) then
+      if (stamp < -1) then
         stamp8=stamp ; stamp8=and(masque32,stamp8)
         dat1=0
         dat3=0
@@ -1564,7 +1525,7 @@
         dat1=tdate
         dat3=0
       else
-        if (stamp.ge.tdstart) then
+        if (stamp >= tdstart) then
 !     stamp is a new date-time stamp
           tdate=(stamp-tdstart)/10*8+mod(stamp-tdstart,10)
           call datec(jd1900+(tdate-td1900)/17280,year,month,day)
@@ -1628,6 +1589,69 @@
 !     error: bad mode or bad arguments
 !
  4    naetwed=1
-      return
-      end
 
+      return
+
+      contains
+
+
+      logical function validtm(year, month, day, zulu)
+         implicit none
+
+         integer, intent(in) :: year, month, day, zulu
+
+         validtm = &
+            (year >= 1900) .and. (year < 2236) .and.  &
+            (month > 0) .and. (month <= 12) .and. &
+            (zulu >= 0) .and. (zulu <= 23) .and. &
+            (day > 0)
+         if (validtm) validtm = day <= mdays(month)
+      end function
+
+
+      logical function validtme(year, month, day, zulu)
+         implicit none
+
+         integer, intent(in) :: year, month, day, zulu
+
+         validtme = &
+            (year >= 0) .and. (year < 10000) .and. &
+            (month > 0) .and. (month <= 12) .and. &
+            (day > 0) .and. &
+            (zulu >= 0) .and. (zulu <= 23)
+         if (validtme) validtme = (day <= mdays(month))
+      end function
+
+
+      !> Calculates julian calendar day
+      integer function jd(year, month, day)
+         implicit none
+
+         integer, intent(in) :: year, month, day
+
+         !> See CACM letter to editor by Fliegel and Flandern 1968 page 657
+         jd = day - 32075 + 1461 * (year + 4800 + (month - 14) / 12) / 4 + &
+            367 * (month - 2 - (month - 14) / 12 * 12) / 12 - &
+            3 * ( (year + 4900 + (month - 14) / 12) / 100) / 4
+      end function
+
+
+      !> Check that date > jan 1, 1980 if 5 sec interval, else > jan 1,1900
+      logical function validtd(tdate)
+         implicit none
+
+         integer, intent(in) :: tdate
+
+         validtd = (tdate >= 0) .or. ((tdate < 0) .and. (tdate >= td1900) .and. (mod(tdate - td1900, 720) == 0))
+      end function
+
+
+      logical function bissextile(year)
+         implicit none
+
+         integer, intent(in) :: year
+
+         bissextile = ( (MOD(year, 4) == 0) .and. (MOD(year, 100) /= 0) ) .or. (MOD(year, 400) == 0)
+      end function
+
+      end
