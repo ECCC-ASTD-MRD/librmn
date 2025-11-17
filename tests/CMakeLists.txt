@@ -161,7 +161,7 @@ if (EC_INIT_DONE LESS 2)
 
             add_executable(multi_open EXCLUDE_FROM_ALL fst/multi_open.c)
             target_link_libraries(multi_open rmn::rmn-ompi)
-            add_test(NAME multi_open COMMAND ${MPIEXEC_EXECUTABLE} $<TARGET_FILE:multi_open>)
+            add_test(NAME multi_open COMMAND ${MPIEXEC_EXECUTABLE} --bind-to none $<TARGET_FILE:multi_open>)
             add_dependencies(test_execs multi_open)
         endif()
 
