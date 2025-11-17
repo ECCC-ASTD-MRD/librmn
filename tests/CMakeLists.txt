@@ -158,6 +158,11 @@ if (EC_INIT_DONE LESS 2)
             add_test(NAME fst_parallel_write_threads COMMAND $<TARGET_FILE:fst_parallel_write_threads>)
             add_dependencies(test_execs fst_parallel_write_threads)
             set_property(TEST fst_parallel_write_threads PROPERTY ENVIRONMENT "FST_OPTIONS=\"SEGMENT_SIZE_MB=10\"" "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
+
+            add_executable(multi_open EXCLUDE_FROM_ALL fst/multi_open.c)
+            target_link_libraries(multi_open rmn::rmn-ompi)
+            add_test(NAME multi_open COMMAND ${MPIEXEC_EXECUTABLE} $<TARGET_FILE:multi_open>)
+            add_dependencies(test_execs multi_open)
         endif()
 
         add_executable(fst_compression EXCLUDE_FROM_ALL fst/fst_compression.c)
