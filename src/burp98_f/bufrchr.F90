@@ -32,6 +32,8 @@ integer function bufrchr(elem, tableau, nele)
     !> Sorted array of elements
     integer, intent(in) :: tableau(3, nele)
 
+    !> \return Index of the element in the array or -1 if not found
+
     integer :: fin, debut, milieu
 
     bufrchr = -1

@@ -21,6 +21,7 @@
 
       !> Fortran interface for fnom and related functions
       interface
+         !> \see c_fnom
           integer function fnom(iun, nom, ftype, flrec)
               implicit none
               integer :: iun

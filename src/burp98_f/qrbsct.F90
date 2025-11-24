@@ -34,17 +34,19 @@ integer function qrbsct(tableau, tabdim, nelelu)
     !> Number of elements read
     integer, intent(out) :: nelelu
 
+    !> \return 0 on success, error code otherwise
+
     integer, external :: mrbcov
     integer :: maxelm, i, iun, pathlng, travail, ier, io_status
-    character(len=128) ligne
-    character(len=256) path, path1
+    character(len = 128) :: ligne
+    character(len = 256) :: path, path1
 
 #include <rmn/fnom.hf>
     ! For PUTBIT
 #include <ftnmacros.hf>
 
     call getenv('MA_TABLEBURP_PERSONNELLE', path1)
-    pathlng = len_trim( path1 )
+    pathlng = len_trim(path1)
     if (pathlng > 0) then
         write(*, *) ' ***********************ATTENTION***********************'
         write(*, *) ' *                                                     *'
@@ -55,7 +57,7 @@ integer function qrbsct(tableau, tabdim, nelelu)
         badtbl = 1
     else
         call getenv('CMCCONST', path)
-        pathlng = len_trim( path )
+        pathlng = len_trim(path)
         path1 = path(1:pathlng) // '/table_b_bufr'
     endif
 
@@ -81,10 +83,10 @@ integer function qrbsct(tableau, tabdim, nelelu)
 
         ! conversion des nom de variables a des entiers de 16 bits
         read(ligne(1:6),'(i6)') travail
-        travail = mrbcov( travail )
+        travail = mrbcov(travail)
 
         ! verifier si l'element est repetitif. si oui, on allume le bit correspondant au no d'element dans rpetitif
-        if (index('Mm', ligne(85:85)) /= 0 ) PUTBIT(rpetitif, 1, travail, 1)
+        if (index('Mm', ligne(85:85)) /= 0) PUTBIT(rpetitif, 1, travail, 1)
 
         if (ligne(51:51) /= '*') then
             i = i + 1
@@ -107,6 +109,6 @@ integer function qrbsct(tableau, tabdim, nelelu)
         nelelu = i
     endif
 
-    ier = fclos( iun )
+    ier = fclos(iun)
     qrbsct = 0
 end
