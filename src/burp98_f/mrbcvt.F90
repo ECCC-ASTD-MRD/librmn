@@ -52,6 +52,8 @@ integer function mrbcvt(liste,  tblval, rval, nele, nval, nt, mode)
     !> Real values
     real, intent(inout) :: rval(nele, nval, nt)
 
+    !> \return 0 on success, error code otherwise
+
     !> A reference table is consulted to find the scaling factor and reference value to apply to the converted variable.
     !> The reference table is initialized by \ref mrbsct which is executed on the first call to \ref mrbcvt
 
@@ -60,15 +62,15 @@ integer function mrbcvt(liste,  tblval, rval, nele, nval, nt, mode)
 
     !******************************************************************************
     !       la matrice tableau contient:
-    !          tableau(1,i) - code de l'element i
-    !          tableau(2,i) - facteur a appliquer a l'element i
-    !          tableau(3,i) - valeur de reference a ajouter a l'element i
+    !          tableau(1, i) - code de l'element i
+    !          tableau(2, i) - facteur a appliquer a l'element i
+    !          tableau(3, i) - valeur de reference a ajouter a l'element i
     !       la variable nelelu indique le nombre d'elements present dans le
     !       fichier bufr
     !
     !       pour coder la valeur d'un element avant un appel a mrfput, on fait
     !       l'operation suivante:
-    !       element(i)_code = element(i) * tableau(2,i) - tableau(3,i)
+    !       element(i)_code = element(i) * tableau(2, i) - tableau(3, i)
     !
     !       on ne fait aucune conversion lorsque qu'un element est deja code
     !       comme par exemple pour les differents marqueurs.
@@ -79,13 +81,13 @@ integer function mrbcvt(liste,  tblval, rval, nele, nval, nt, mode)
     !       qu'il doit consulter le tableau tblval pour obtenir cet elememt
     !*****************************************************************************
 
-    integer i, j, k, l, referen, zerocpl
-    real    echele
+    integer :: i, j, k, l, referen, zerocpl
+    real :: echele
 
     mrbcvt = -1
-    if( premier ) then
-        mrbcvt = qrbsct(tableau,maxnele,nelelu)
-        if(mrbcvt .eq. -erbtab) return
+    if (premier) then
+        mrbcvt = qrbsct(tableau, maxnele, nelelu)
+        if (mrbcvt /= 0) return
 
         ! trier le tableau par element en ordre croissant
         ! (necessaire pour la recherche binaire que l'on fait plus tard)
@@ -93,28 +95,28 @@ integer function mrbcvt(liste,  tblval, rval, nele, nval, nt, mode)
         premier = .false.
     endif
 
-    zerocpl = not( 0 )
+    zerocpl = not(0)
 
     do i = 1, nele
         ! trouver l'index j pointant a l'element dans tableau
-        echele  = 1.0
+        echele = 1.0
         referen = 0
         j = bufrchr(liste(i), tableau, nelelu)
-        if(j .gt. 0) then
-            echele  = 10.0 ** tableau(2,j)
-            referen = tableau(3,j)
-            ! print *,'debug+ echele=',echele,' tableau(2,j)=',tableau(2,j)
-            ! print *,'debug+ referen=',referen
+        if (j > 0) then
+            echele  = 10.0 ** tableau(2, j)
+            referen = tableau(3, j)
+            ! print *, 'debug+ echele=', echele, ' tableau(2, j)=', tableau(2, j)
+            ! print *, 'debug+ referen=', referen
 
             ! conversion de code bufr a unites cmc
-            if(mode .eq. 0) then
+            if (mode == 0) then
                 do l = 1, nt
                     do k = 1, nval
-                        if(tblval(i,k,l) .eq. zerocpl) then
-                            rval(i,k,l) = manque
+                        if (tblval(i, k, l) == zerocpl) then
+                            rval(i, k, l) = manque
                         else
-                            if(tblval(i,k,l) .lt. 0) tblval(i,k,l) = tblval(i,k,l) + 1
-                            rval(i,k,l) = float(tblval(i,k,l) + referen)/echele
+                            if (tblval(i, k, l) < 0) tblval(i, k, l) = tblval(i, k, l) + 1
+                            rval(i, k, l) = float(tblval(i, k, l) + referen)/echele
                         endif
                     enddo
                 enddo
@@ -122,11 +124,11 @@ integer function mrbcvt(liste,  tblval, rval, nele, nval, nt, mode)
                 ! codage bufr
                 do l = 1, nt
                     do k = 1, nval
-                        if(rval(i,k,l) .eq. manque) then
-                            tblval(i,k,l) = zerocpl
+                        if (rval(i, k, l) == manque) then
+                            tblval(i, k, l) = zerocpl
                         else
-                            tblval(i,k,l) = nint(rval(i,k,l) * echele) - referen
-                            if(tblval(i,k,l) .lt. 0) tblval(i,k,l) = tblval(i,k,l) - 1
+                            tblval(i, k, l) = nint(rval(i, k, l) * echele) - referen
+                            if (tblval(i, k, l) < 0) tblval(i, k, l) = tblval(i, k, l) - 1
                         endif
                     enddo
                 enddo
@@ -148,14 +150,14 @@ integer function mrbsct(tblusr, neleusr)
 
     !> Add user defined elements to the standard table. If the standard table was not yep initialized, \ref qrbset is first called.
 
-    external qrbsct, bufrchr, qbrptri
-    integer  qrbsct, bufrchr
+    external :: qbrptri
+    integer, external :: qrbsct, bufrchr
     integer :: i, j
 
     mrbsct = -1
-    if( premier ) then
-        mrbsct = qrbsct(tableau,maxnele,nelelu)
-        if (mrbsct .eq. -erbtab) return
+    if (premier) then
+        mrbsct = qrbsct(tableau, maxnele, nelelu)
+        if (mrbsct /= 0) return
 
     ! trier le tableau par element en ordre croissant
     ! (necessaire pour la recherche binaire que l'on fait plus tard)
@@ -169,7 +171,7 @@ integer function mrbsct(tblusr, neleusr)
     do j = 1, neleusr
         nelelu = nelelu + 1
         do i = 1, 3
-            tableau(i,nelelu) = tblusr(i,j)
+            tableau(i, nelelu) = tblusr(i, j)
         enddo
     enddo
     mrbsct = 0
@@ -177,11 +179,17 @@ end
 
 
 !> Remplir un tableau a partir de tableburp
-integer FUNCTION MRBTBL(TBLBURP, NSLOTS, NELE)
+integer function mrbtbl(tblburp, nslots, nele)
     use app
     use mrb_cvt_sct_tbl
-    IMPLICIT NONE
-    INTEGER  NELE, NSLOTS,TBLBURP(NSLOTS, NELE)
+    implicit none
+
+    !> Number of elements to process
+    integer, intent(in) :: nele
+    integer, intent(in) :: nslots
+    integer, intent(inout) :: tblburp(nslots, nele)
+
+    !> \return 0 on success, error code otherwise
 
     !     SOUS-PROGRAMME SERVANT A REMPLIR LE TABLEAU TBLBURP
     !     A PARTIR DES DESCRIPTIONS D'ELEMENTS TROUVEES DANS
@@ -215,33 +223,33 @@ integer FUNCTION MRBTBL(TBLBURP, NSLOTS, NELE)
     mrbtbl = -1
 
     ! s'assurer que la valeur de nslots est bonne
-    if(nslots .ne. ncellmax) then
-        write(app_msg,*) 'MRBTBL: Dimension NCELL incorrecte'
-        call lib_log(app_libfst,app_warning,app_msg)
+    if (nslots /= ncellmax) then
+        write(app_msg, *) 'MRBTBL: Dimension NCELL incorrecte'
+        call lib_log(app_libfst, app_warning, app_msg)
         mrbtbl = errcell
         return
     endif
 
-    if( premier ) then
-        mrbtbl = qrbsct(tableau,maxnele,nelelu)
-        if (mrbtbl .eq. -erbtab) return
+    if (premier) then
+        mrbtbl = qrbsct(tableau, maxnele, nelelu)
+        if (mrbtbl == erbtab) return
 
-    ! trier le tableau par element en ordre croissant
-    ! (necessaire pour la recherche binaire que l'on fait plus tard)
+        ! trier le tableau par element en ordre croissant
+        ! (necessaire pour la recherche binaire que l'on fait plus tard)
         call qbrptri(tableau, 3, nelelu)
         premier = .false.
     endif
 
     ! traiter chaque element du tableau tblburp
     do i = 1, nele
-    ! trouver l'index j pointant a l'element dans tableau
-        j = bufrchr(tblburp(1,i), tableau, nelelu)
-        if(j .gt. 0) then
-            tblburp(2,i) = tableau(2,j)
-            tblburp(3,i) = tableau(3,j)
-            tblburp(4,i) = 1
+        ! trouver l'index j pointant a l'element dans tableau
+        j = bufrchr(tblburp(1, i), tableau, nelelu)
+        if (j > 0) then
+            tblburp(2, i) = tableau(2, j)
+            tblburp(3, i) = tableau(3, j)
+            tblburp(4, i) = 1
         else
-            tblburp(4,i) = 0
+            tblburp(4, i) = 0
         endif
     enddo
     mrbtbl = 0
