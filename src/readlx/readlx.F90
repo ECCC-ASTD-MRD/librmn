@@ -904,10 +904,13 @@
 
       CALL LOW2UP(KEY,IKEY)
       IPNT=NENTRY
-23000 IF((IPNT.GT. 0 .AND. IKEY.NE.NAMES(IPNT)))THEN
-         IPNT = IPNT - 1
-         GOTO 23000
-      ENDIF
+      DO WHILE (IPNT > 0)
+         if (IKEY /= NAMES(IPNT)) then
+            IPNT = IPNT - 1
+         else
+            exit
+         end if
+      END DO
 
       IF((IPNT.EQ.0))THEN
          NENTRY=NENTRY+1
@@ -959,10 +962,13 @@
 
       CALL LOW2UP(KEY,IKEY)
       IPNT=NENTRY
-23012 IF((IPNT.GT. 0 .AND. IKEY.NE.NAMES(IPNT)))THEN
-         IPNT = IPNT - 1
-         GOTO 23012
-      ENDIF
+      DO WHILE (IPNT > 0)
+         if (IKEY /= NAMES(IPNT)) then
+            IPNT = IPNT - 1
+         else
+            exit
+         end if
+      END DO
       IF((IPNT.EQ. 0))THEN
          ITYP = -1
          IVAR = 0
