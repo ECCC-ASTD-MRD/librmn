@@ -1,3 +1,5 @@
+# `rmn` Python module
+
 ## Examples
 
 See [demos](./demos) subdirectory for some files that expand on the APIs demonstrated
