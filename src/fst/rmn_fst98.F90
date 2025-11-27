@@ -15,7 +15,7 @@ module rmn_fst98
     use rmn_libc, only: c_memset
     implicit none
 #define C_INTERFACE_ONLY
-#include "rmn/fst98_interface.hf"
+#include "fst98_interface.hf"
 
     interface fstouv
         ! /*****************************************************************************

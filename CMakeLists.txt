@@ -368,6 +368,7 @@ if(WITH_OMPI)
 endif()
 foreach(MOD_DIR ${MOD_DIRS})
     install(FILES
+        ${MODULE_BASE_DIR}/${MOD_DIR}/convert_ip123_int.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/f_c_strings_mod.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_circular_buffer_module.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_common.mod
@@ -376,12 +377,11 @@ foreach(MOD_DIR ${MOD_DIRS})
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst24.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst24_record.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst98.mod
-        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_jar.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_gmm.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_jar.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_libc.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_meta.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_msg.mod
-        ${MODULE_BASE_DIR}/${MOD_DIR}/convert_ip123_int.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/whiteboard_mod.mod
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${MOD_DIR})
 endforeach()
