@@ -320,12 +320,56 @@ end subroutine test_fst98_interface
 
 end module test_fst98_interface_module
 
+module blind_calls_mod
+    implicit none
+    private
+
+    public :: test_blind_calls
+
+contains
+    subroutine test_blind_calls()
+        use App
+        implicit none
+
+        integer, external :: fstecr, fnom, fstouv, fstfrm, fclos
+        integer :: status, iun
+
+        integer, dimension(10) :: field, work
+        character(len=1024) :: cmd
+
+        call App_Log(APP_ALWAYS, 'Testing blind calls')
+
+        ! Remove file(s) so that we have a fresh start
+        write(cmd, '(A, 1(1X, A))') 'rm -fv ', 'blind_calls.fst'
+        call execute_command_line(trim(cmd))
+
+        iun = 0
+        status = fnom(iun, 'blind_calls.fst', 'STD+RND', 0)
+        if (status /= 0) error stop 1
+        status = fstouv(iun, 'RND+RSF')
+        if (status < 0) error stop 1
+
+        status = fstecr(field, work, 1, iun, 0, 0, 0, 1, 1, 1, 0, 0, 0, ' ', ' ', ' ', ' ', 0, 0, 0, 0, 0, .false.)
+        if (status < 0) error stop 1
+        status = fstecr(field, work, 1, iun, 0, 0, 0, 1, 1, 1, 0, 0, 0, ' ', ' ', ' ', ' ', 0, 0, 0, 0, 0, .true.)
+        if (status < 0) error stop 1
+        status = fstecr(field, work, 1, iun, 0, 0, 0, 1, 1, 1, 0, 0, 0, ' ', ' ', ' ', ' ', 0, 0, 0, 0, 0, .false.)
+        if (status < 0) error stop 1
+
+        status = fstfrm(iun)
+        status = fclos(iun)
+    end subroutine test_blind_calls
+
+end module blind_calls_mod
+
 program fst_interface
     use test_fst98_interface_module
+    use blind_calls_mod
     implicit none
 
     call test_fst98_interface(.false.)
     call test_fst98_interface(.true.)
+    call test_blind_calls()
 
     call App_Log(APP_INFO, 'Test successful')
 

@@ -694,9 +694,9 @@ module rmn_fst98
             character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
         end subroutine fstecr_d
 
-        module subroutine fstecr_h(halfwords, work, npak, iun, date, deet, npas, ni, nj, nk, &
+        module function fstecr_h(halfwords, work, npak, iun, date, deet, npas, ni, nj, nk, &
                             ip1, ip2, ip3, typvar, nomvar, etiket, &
-                            grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
+                            grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
             implicit none
 #define IgnoreTypeKindRank halfwords, work
 #define ExtraAttributes
@@ -705,11 +705,12 @@ module rmn_fst98
             integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
             integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
             character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-        end subroutine fstecr_h
+            integer(C_INT) :: status
+        end function fstecr_h
 
-        module subroutine fstecr_b(bytes, work, npak, iun, date, deet, npas, ni, nj, nk, &
+        module function fstecr_b(bytes, work, npak, iun, date, deet, npas, ni, nj, nk, &
                             ip1, ip2, ip3, typvar, nomvar, etiket, &
-                            grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
+                            grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
             implicit none
 #define IgnoreTypeKindRank bytes, work
 #define ExtraAttributes
@@ -718,7 +719,8 @@ module rmn_fst98
             integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
             integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
             character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-        end subroutine fstecr_b
+            integer(C_INT) :: status
+        end function fstecr_b
 
         ! /*****************************************************************************
         !  *                              F S T E C R _ S                              *
@@ -1144,3 +1146,88 @@ contains
                         typvar, nomvar, etiket, ' ', ig1, ig2, ig3, ig4, -1)
     end function fst_edit_dir
 end module rmn_fst98
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! For compatibility with existing code, we provide these wrappers that are
+! called when users only specify the functions as `external`, without using the module
+function fstecr(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                    ip1, ip2, ip3, typvar, nomvar, etiket, &
+                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
+    use rmn_fst98, only: fstecr_l
+    use iso_c_binding
+    implicit none
+    integer(C_INT), dimension(*), intent(in) :: field, work
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp
+    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
+    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+    logical, intent(IN) :: rewrite
+    integer(C_INT) :: status
+
+    status = fstecr_l(field, work, npak, iun, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,      &
+                      typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
+end function fstecr
+
+function fstecr_s(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                  ip1, ip2, ip3, typvar, nomvar, etiket, &
+                  grtyp, ig1, ig2, ig3, ig4, datyp, rewrite, lngstr) result(status)
+    use rmn_fst98, only: fstecr_mod => fstecr_s
+    use iso_c_binding
+    implicit none
+    integer(C_INT), dimension(*), intent(in) :: field, work
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4, lngstr
+    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+    integer(C_INT) :: status
+    status = fstecr_mod(field, work, npak, iun, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,    &
+                        typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp, rewrite, lngstr)
+end function fstecr_s
+
+function fstecr_h(halfwords, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                    ip1, ip2, ip3, typvar, nomvar, etiket, &
+                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
+    use iso_c_binding
+    use rmn_fst98, only: fstecr_mod => fstecr_h
+    implicit none
+    integer(C_INT16_T), dimension(*), intent(in) :: halfwords, work
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
+    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+    integer(C_INT) :: status
+
+    status = fstecr_mod(halfwords, work, npak, iun, date, deet, npas, ni, nj, nk,       &
+                    ip1, ip2, ip3, typvar, nomvar, etiket,                              &
+                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
+end function fstecr_h
+
+function fstecr_b(bytes, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                    ip1, ip2, ip3, typvar, nomvar, etiket, &
+                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
+    use iso_c_binding
+    use rmn_fst98, only: fstecr_mod => fstecr_b
+    implicit none
+    integer(C_INT8_T), dimension(*), intent(in) :: bytes, work
+    integer(C_INT), intent(IN) :: iun
+    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
+    character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+    integer(C_INT) :: status
+    status = fstecr_mod(bytes, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                    ip1, ip2, ip3, typvar, nomvar, etiket, &
+                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
+end function fstecr_b
+
+integer function fstcvt(nom, typ, etik, grtp, cnom, ctyp, cetik, cgrtp, holacar)
+    use rmn_fst98, only: fstcvt2
+    implicit none
+    integer, intent(inout) :: nom, typ, etik(3), grtp
+    character(len=*), intent(inout) :: cnom, ctyp, cetik, cgrtp
+    logical, intent(in) :: holacar
+    fstcvt = fstcvt2(nom, typ, etik, grtp, cnom, ctyp, cetik, cgrtp, holacar)
+end function fstcvt
+
+! END --- compatibility functions (to remove f77names in C)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
