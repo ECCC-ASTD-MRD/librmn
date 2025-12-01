@@ -49,19 +49,19 @@ typedef struct {
     // NOTE: Any modification to this whole struct must be reflected exactly
     // in the Python Ctypes definition python/rmn/fstrecord.py
 
-    //!> Internal implementation details
+    //!> Internal implementation details \private
     struct {
-        int32_t version;  //!< Version marker
-        int32_t deleted;  //!< Whether the record is deleted
-        int64_t handle;   //!< Handle to specific record (if stored in a file)
-        int64_t alloc;    //!< Size of allocated memody for data
-        int32_t flags;    //!< Record status flags
-        uint8_t fst_version;         //!< Version of FST used to write the record (when reading old files)
-        uint8_t num_search_keys;     //!< Number of directory search keys (32-bit units)
-        uint16_t extended_meta_size; //!< Size of extended metadata (32-bit units)
-        size_t stored_data_size;     //!< Size of the data on disk (32-bit units)
-        size_t unpacked_data_size;   //!< Initial size of the unpacked data (32-bit units)
-        const void* stringified_meta; //!< Direct pointer to the extended metadata in the directory
+        int32_t version;  //!< Version marker \private
+        int32_t deleted;  //!< Whether the record is deleted \private
+        int64_t handle;   //!< Handle to specific record (if stored in a file) \private
+        int64_t alloc;    //!< Size of allocated memody for data \private
+        int32_t flags;    //!< Record status flags \private
+        uint8_t fst_version;         //!< Version of FST used to write the record (when reading old files) \private
+        uint8_t num_search_keys;     //!< Number of directory search keys (32-bit units) \private
+        uint16_t extended_meta_size; //!< Size of extended metadata (32-bit units) \private
+        size_t stored_data_size;     //!< Size of the data on disk (32-bit units) \private
+        size_t unpacked_data_size;   //!< Initial size of the unpacked data (32-bit units) \private
+        const void* stringified_meta; //!< Direct pointer to the extended metadata in the directory \private
     } do_not_touch;
 
     // 64-bit elements first

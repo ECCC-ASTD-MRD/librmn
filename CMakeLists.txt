@@ -120,19 +120,20 @@ add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
     BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf_ ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__
-    COMMAND sed -e "'s/ \"/ </g'" -e "'s/\"/>/g'" ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf > ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90
+    COMMAND sed -e "s/ \"/ </g" -e "s/\"/>/g" ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf > ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90
     COMMAND cp -av ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard_constants.h   ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     COMMAND cp -av ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard_constants_2.h ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
     COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/whiteboard_type.hf >> ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
     COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/whiteboard_type.hf >> ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
     COMMAND ${CMAKE_Fortran_COMPILER} -I${CMAKE_CURRENT_SOURCE_DIR}/include -I${CMAKE_CURRENT_SOURCE_DIR}/src/PUBLIC_INCLUDES -I${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard -E ${CMAKE_CURRENT_BINARY_DIR}/whiteboard_header.F90 > ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf_
-    COMMAND grep -Ev "'^#|^[ ]*$|^[ ]*!'" ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf_ > ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__
-    COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__ >>${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
-    COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__ >>${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
+    COMMAND grep -Ev "^#|^[ ]*$|^[ ]*!" ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf_ > ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__
+    COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__ >> ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf
+    COMMAND cat ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf__ >> ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard_2.hf
     COMMENT "Generating WhiteBoard.hf and WhiteBoard_2.hf"
     MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/src/whiteboard/WhiteBoard.hf
     DEPENDS ${WHITEBOARD_HEADER_DEPS}
 
+    VERBATIM
     USES_TERMINAL
 )
 # Add a custom target to regenerate WhiteBoard.hf
@@ -367,6 +368,7 @@ if(WITH_OMPI)
 endif()
 foreach(MOD_DIR ${MOD_DIRS})
     install(FILES
+        ${MODULE_BASE_DIR}/${MOD_DIR}/convert_ip123_int.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/f_c_strings_mod.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_circular_buffer_module.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_common.mod
@@ -375,12 +377,11 @@ foreach(MOD_DIR ${MOD_DIRS})
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst24.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst24_record.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst98.mod
-        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_jar.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_gmm.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_jar.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_libc.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_meta.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_msg.mod
-        ${MODULE_BASE_DIR}/${MOD_DIR}/convert_ip123_int.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/whiteboard_mod.mod
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${MOD_DIR})
 endforeach()
