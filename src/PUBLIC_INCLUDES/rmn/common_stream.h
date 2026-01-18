@@ -109,6 +109,15 @@
 #undef STREAM_PUT_0
 #define STREAM_PUT_0(s) { PUT_0((s).acc_i, (s).insert, (s).in) }
 
+// insert v into stream, set nbits to 10/18/26/34 according to number of bits needed
+#undef STREAM_PUT_BHW
+#define STREAM_PUT_BHW(s, v, nbits) { uint32_t c = ((v >> 8) ? 1 : 0) + ((v >> 16) ? 1 : 0) + ((v >> 24) ? 1 : 0) ; \
+                                      uint32_t TbItS = (1 + c) << 3 ; \
+                                      STREAM_PUT_NBITS(s, c , 2) ; \
+                                      STREAM_PUT_NBITS(s, v , TbItS) ; \
+                                      nbits = TbItS + 2 ; \
+                                    }
+
 // alignment calls should be preceded or followed with STREAM_INSERT_CHECK
 // align insertion point to a 32/16/8 bit boundary (an appropriate number of 0 bits will be inserted into accumulator)
 // unsafe, assumes that 32/16/8 bits can be safely inserted
@@ -183,6 +192,15 @@
 #undef STREAM_GET_1
 #define STREAM_GET_1(s, w32) { GET_1((s).acc_x, (s).xtract, w32, (s).out) }
 
+// extract encoded 8/16/24/32 bit v from stream s, set nbits to number of bits extracted (2 + item length)
+#undef STREAM_GET_BHW
+#define STREAM_GET_BHW(s, v, nbits) { uint32_t c ; \
+                                      STREAM_GET_NBITS(s, c , 2) ; \
+                                      uint32_t TbItS = (1 + c) << 3 ; \
+                                      STREAM_GET_NBITS(s, v , TbItS) ; \
+                                      nbits = TbItS + 2 ; \
+                                    }
+
 // alignment calls should be preceded or followed with STREAM_XTRACT_CHECK
 // align extraction point to a 32/16/8 bit boundary
 // unsafe, assumes that 32/16/8 bits can be safely extracted
@@ -196,6 +214,10 @@
 // ===============================================================================================
 // TODO : add status argument to STREAM_REWIND, STREAM_REWRITE, STREAM_FLUSH ?
 //
+// return number of bits needed to encode/decode an 8/16/24/32 bit item in v
+#undef STREAM_BITS_BHW
+#define STREAM_BITS_BHW(v, nbits) { uint32_t c = 2 + 8 + ((v >> 8) ? 8 : 0) + ((v >> 16) ? 8 : 0) + ((v >> 24) ? 8 : 0) ; nbits = c ; }
+
 // rewind a bit stream to read it from the beginning (potentially force valid read mode)
 // push any pending insertion data into stream then set extract position to beginning of stream
 #undef STREAM_REWIND
