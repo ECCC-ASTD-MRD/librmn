@@ -415,6 +415,11 @@ if (EC_INIT_DONE LESS 2)
         add_test(NAME fst_large_record COMMAND $<TARGET_FILE:fst_large_record>)
         add_dependencies(test_execs fst_large_record)
 
+        add_executable(fst_ignore_msglvl EXCLUDE_FROM_ALL fst/fst_ignore_msglvl.c)
+        target_link_libraries(fst_ignore_msglvl rmn::rmn)
+        # add_test(NAME fst_ignore_msglvl COMMAND $<TARGET_FILE:fst_ignore_msglvl>)
+        add_dependencies(test_execs fst_ignore_msglvl)
+
         if(BUILD_PYTHON)
             add_dependencies(test_execs _rmn)
             add_test( NAME python_import_package_compiled COMMAND bash -c "${set_pythonpath} ${Python_EXECUTABLE} -c 'import compiled-rmn'")
