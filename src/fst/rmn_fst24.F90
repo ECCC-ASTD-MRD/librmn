@@ -107,6 +107,7 @@ contains
 
     !> \return Name of the file if open, an empty string otherwise
     function fst24_file_get_name(this) result(name)
+        use rmn_libc, only: c_strlen
         implicit none
         class(fst_file), intent(in) :: this
         character(len=:), pointer :: name
@@ -115,7 +116,7 @@ contains
 
         if (this % is_open()) then
             c_name = fst24_file_name(this % file_ptr)
-            call c_f_strpointer(c_name, name, 4096)
+            call c_f_strpointer(c_name, name, c_strlen(c_name))
         else
             name = ''
         end if
