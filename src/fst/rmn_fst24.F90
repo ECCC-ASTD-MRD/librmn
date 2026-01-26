@@ -21,7 +21,7 @@ module rmn_fst24
         procedure, pass   :: open     => fst24_file_open        !< \copydoc fst24_file_open
         procedure, pass   :: close    => fst24_file_close       !< \copydoc fst24_file_close
         procedure, pass   :: close_unlink => fst24_file_close_unlink       !< \copydoc fst24_file_close_unlink
-        procedure, pass   :: get_num_records => fst24_file_get_num_records !< fst24_file_get_num_records 
+        procedure, pass   :: get_num_records => fst24_file_get_num_records !< fst24_file_get_num_records
         procedure, pass   :: get_unit => fst24_file_get_unit    !< \copydoc fst24_file_get_unit
         procedure, pass   :: is_rsf   => fst24_file_is_rsf      !< \copydoc fst24_file_is_rsf
         procedure, pass   :: get_c_ptr => fst24_file_get_c_ptr  !< \private \copydoc fst24_file_get_c_ptr
@@ -34,7 +34,7 @@ module rmn_fst24
 
         procedure, pass :: flush => fst24_file_flush !< \copydoc fst24_file_flush
         procedure, pass :: print_summary => fst24_file_print_summary !< \copydoc fst24_file_print_summary
-        procedure, pass :: unlink => fst24_file_unlink  !< \copydoc fst24_file_unlink  
+        procedure, pass :: unlink => fst24_file_unlink  !< \copydoc fst24_file_unlink
 
         ! Sequential files
         procedure, pass :: eof    => fst24_file_eof !< \copydoc fst24_file_eof
@@ -85,7 +85,7 @@ contains
         logical :: is_valid
 
         integer(C_INT32_T) :: c_is_valid
-        
+
         is_valid = .false.
         c_is_valid = fst24_is_valid(trim(filename) // achar(0))
         if (c_is_valid == 1) is_valid = .true.
@@ -109,14 +109,17 @@ contains
     function fst24_file_get_name(this) result(name)
         use rmn_libc, only: c_strlen
         implicit none
-        class(fst_file), intent(in) :: this
-        character(len=:), pointer :: name
 
+        class(fst_file), intent(in) :: this
+        character(len = :), pointer :: name
+
+        integer :: strlen
         type(C_PTR) :: c_name
 
         if (this % is_open()) then
             c_name = fst24_file_name(this % file_ptr)
-            call c_f_strpointer(c_name, name, c_strlen(c_name))
+            strlen = c_strlen(c_name)
+            call c_f_strpointer(c_name, name, strlen)
         else
             name = ''
         end if
@@ -155,7 +158,7 @@ contains
 
 !        type(character(len=:)), allocatable, dimension(:) :: c_filenames
 !        integer(C_INT32_T) :: n
-      
+
 !        allocate(character(len=size(filenames,dim=1)) :: c_filenames(4096))
 !        do while (n<size(filenames,dim=1))
 !            c_filenames(n)=trim(filenames(n))//achar(0)
@@ -288,7 +291,7 @@ contains
 
     !> \copybrief fst24_new_query
     !> \return A valid fst_query if the inputs are valid (open file, OK criteria struct), an invalid query otherwise
-    function fst24_file_new_query(this,                                                                             & 
+    function fst24_file_new_query(this,                                                                             &
             dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
             ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors) result(query)
@@ -410,7 +413,7 @@ contains
         do i = 1, max_num_records
             if (present(records)) then
                if (.not. this % find_next(records(i))) return
-            else 
+            else
                if (.not. this % find_next()) return
             endif
             num_found = num_found + 1
@@ -460,7 +463,7 @@ contains
         !> Where to get the data being written (optional). Can also be specified by setting the
         !> `data` attribute of the record being read.
         type(C_PTR), intent(in), optional :: data
-     
+
         type(C_PTR) :: prev_data
         integer(C_INT32_T) :: c_rewrite, c_status
 
@@ -519,7 +522,7 @@ contains
 
         if (present(string)) then
             fields = fst24_make_fields_from_string(string)
-        else 
+        else
             fields = fst24_make_fields(dateo=dateo, datev=datev, datestamps=datestamps, level=level,                    &
                                    data_type=data_type, nijk=nijk, deet=deet, npas=npas, ip1=ip1, ip2=ip2, ip3=ip3,     &
                                    decoded_ip=decoded_ip, grid_info=grid_info, ig1234=ig1234, typvar=typvar,            &
@@ -604,7 +607,7 @@ contains
     function fst24_file_weo(this,level) result(status)
         implicit none
         class(fst_file), intent(inout) :: this
-        integer, intent(in) :: level 
+        integer, intent(in) :: level
 
         integer(C_INT32_T) :: status
 
@@ -638,7 +641,7 @@ contains
     subroutine fst_query_rewind(this)
         implicit none
         class(fst_query), intent(inout) :: this
-        integer(C_INT32_T) :: c_status 
+        integer(C_INT32_T) :: c_status
         if (this % is_valid()) c_status = fst24_rewind_search(this % query_ptr)
     end subroutine fst_query_rewind
 
