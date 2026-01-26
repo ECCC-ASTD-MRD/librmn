@@ -70,6 +70,8 @@ int nb_remap = 0;
 static char *fst_backend = NULL;
 //! Segment size for RSF, when writing in parallel (in MB)
 static int32_t segment_size_mb = 1000;
+//! Whether to ignore the MSGLVL option in fstopc and fstopi
+static int32_t ignore_msg_level = 0;
 
 #define PRNT_OPTIONS_LEN 128
 
@@ -3573,15 +3575,20 @@ int c_fstopc(
     //! [in] Operation mode (0: set option, 1: print option, 2: get option)
     const int getmode
 ) {
+    if (initialize_fst98() <= 0) return -1; // Error message should already be printed
+
     int val = 0;
 
     if (strcmp(option, "MSGLVL") == 0) {
+        Lib_Log(APP_LIBFST, APP_INFO, "%s: MSGLVL option is deprecated\n", __func__);
         if (getmode) {
             if (getmode == 2) val = App->LogLevel[APP_LIBFST];
         } else {
-            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option 'MSGLVL' , %d -> %s\n",
-                __func__, App->LogLevel[APP_LIBFST], value);
-            val = Lib_LogLevel(APP_LIBFST, (char*)value);
+            if (ignore_msg_level == 0) {
+                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option 'MSGLVL' , %d -> %s\n",
+                    __func__, App->LogLevel[APP_LIBFST], value);
+                val = Lib_LogLevel(APP_LIBFST, (char*)value);
+            }
         }
         if (getmode == 1) {
             Lib_Log(APP_LIBFST, APP_INFO, "%s: option 'MSGLVL' , %d\n", __func__, App->LogLevel[APP_LIBFST]);
@@ -3638,20 +3645,25 @@ int c_fstopi(
     //! [in] Operation mode (1: print option, 0: set option, 2: get option)
     const int getmode
 ) {
+    if (initialize_fst98() <= 0) return -1; // Error message should already be printed
+
     int val = 0;
 
     if (strcmp(option, "MSGLVL") == 0) {
         Lib_Log(APP_LIBFST, APP_INFO, "%s: MSGLVL option is deprecated\n", __func__);
         if (getmode) {
             if (getmode == 2) val = App->LogLevel[APP_LIBFST];
-            } else {
+        } else {
+            if (ignore_msg_level == 0) {
                 Lib_Log(APP_LIBFST, APP_DEBUG, "%s: option 'MSGLVL' , %d -> %d\n",
                     __func__, App->LogLevel[APP_LIBFST], value);
                 App->LogLevel[APP_LIBFST] = (TApp_LogLevel)value;
             }
-            if (getmode == 1) {
-                Lib_Log(APP_LIBFST, APP_INFO, "%s: option 'MSGLVL' , %d\n", __func__, App->LogLevel[APP_LIBFST]);
-            }
+        }
+
+        if (getmode == 1) {
+            Lib_Log(APP_LIBFST, APP_INFO, "%s: option 'MSGLVL' , %d\n", __func__, App->LogLevel[APP_LIBFST]);
+        }
         return val;
     }
 
@@ -3689,6 +3701,8 @@ int c_fstopl(
     //! [in] Operation mode (1: print option, 0: set option, 2: get option)
     const int getmode
 ) {
+    if (initialize_fst98() <= 0) return -1; // Error message should already be printed
+
     int val = 0;
 
     if (strcmp(option, "FASTIO") == 0) {
@@ -4816,6 +4830,8 @@ void c_fst_env_var(
             Lib_Log(APP_LIBFST, APP_WARNING, "%s: Invalid value for key %s (%s). Must be a positive integer."
                     " Keeping default value %d\n", __func__, cle, content, segment_size_mb);
         }
+    } else if (strcasecmp(cle, "IGNORE_MSGLVL") == 0) {
+        ignore_msg_level = 1;
     } else {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: cle %s non reconnue, index=%d valeur=%s\n", __func__, cle, index, content);
     }
