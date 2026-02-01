@@ -3786,13 +3786,13 @@ int c_fstcheck(
         return c_fstcheck_xdf(filePath);
     }
 }
-
+int initialize_fnom(void) ;
 //! Initialize global fst98 structures and variables.
 //! Uses the fst98 mutex.
 //! \return The maximum number of FST98 files that can be open simultaneously, or 0 if there is an error
 static int initialize_fst98(void) {
     if (MAX_FST98_FILES > 0) return MAX_FST98_FILES; // fst98 already initialized
-    if (MAX_FNOM_FILES <= 0) {
+    if (initialize_fnom() <= 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot initialize fst (98) if fnom has never been called/initialized\n", __func__);
         return MAX_FNOM_FILES;
     }
