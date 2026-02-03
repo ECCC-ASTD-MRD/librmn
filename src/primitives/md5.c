@@ -42,6 +42,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
+#include "App.h"
 
 // 32-bit integer manipulation macros (little endian)
 #ifndef GET_ULONG_LE
@@ -296,8 +298,10 @@ int md5_file( char *path, unsigned char output[16] )
     unsigned char buf[1024];
 
     memset(output,0,16);
-    if( ( f = fopen( path, "rb" ) ) == NULL )
+    if((f = fopen(path, "rb")) == NULL){
+        Lib_Log(APP_LIBRMN, APP_ERROR, "%s(): failed to open file '%s': %s\n", __func__, path, strerror(errno));
         return( 1 );
+    }
 
     md5_starts( &ctx );
 
