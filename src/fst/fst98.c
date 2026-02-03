@@ -3792,8 +3792,8 @@ int c_fstcheck(
 //! \return The maximum number of FST98 files that can be open simultaneously, or 0 if there is an error
 static int initialize_fst98(void) {
     if (MAX_FST98_FILES > 0) return MAX_FST98_FILES; // fst98 already initialized
-    if (MAX_FNOM_FILES <= 0) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot initialize fst (98) if fnom has never been called/initialized\n", __func__);
+    if (initialize_fnom() <= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot initialize fst (98) if fnom has not been properly initialized\n", __func__);
         return MAX_FNOM_FILES;
     }
 
