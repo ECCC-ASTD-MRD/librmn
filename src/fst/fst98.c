@@ -3793,7 +3793,7 @@ int initialize_fnom(void) ;
 static int initialize_fst98(void) {
     if (MAX_FST98_FILES > 0) return MAX_FST98_FILES; // fst98 already initialized
     if (initialize_fnom() <= 0) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot initialize fst (98) if fnom has never been called/initialized\n", __func__);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot initialize fst (98) if fnom has not been properly initialized\n", __func__);
         return MAX_FNOM_FILES;
     }
 

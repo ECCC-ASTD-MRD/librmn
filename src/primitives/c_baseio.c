@@ -322,7 +322,7 @@ static void finalize_fnom(void); // forward declare
 //! If fnom is already initialized, do nothing.
 //! *Uses the fnom mutex*
 //! \return Max number of files that can be managed by fnom. 0 if there was an error.
-/*static*/ int initialize_fnom(void) {
+int initialize_fnom(void) {
     if (MAX_FNOM_FILES > 0) return MAX_FNOM_FILES; // Already initialized
 
     // --- START critical region ---
