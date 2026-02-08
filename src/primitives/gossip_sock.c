@@ -2368,7 +2368,7 @@ int read_data_file(char *file_name, char *buffer, int size)   /*   %ENTRY%   */
 /* connect to default server, default channel will be */
 /* $GOSSIPSERVER env. var. or default one "mgi"       */
 /*   return socket descriptor                         */
-int connect_to_server()
+int connect_to_server(void)
 {
   int fserver = connect_to_channel_by_name("");
 
