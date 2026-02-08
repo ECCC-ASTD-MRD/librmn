@@ -158,7 +158,7 @@ void start_client_thread_2(
     int fclient,
     char *command,
     void *data,
-    void (*user_server)()
+    void (*user_server)(void)
 );
 
 #ifdef __cplusplus
