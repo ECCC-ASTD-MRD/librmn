@@ -46,7 +46,10 @@
 
 
 #if defined(__APPLE__) && defined(__MACH__)
-#   include <sys/limits.h>
+#   include <sys/syslimits.h>
+#   define off64_t off_t
+#   define lseek64 lseek
+#   define open64 open
 #endif
 
 #include <fcntl.h>

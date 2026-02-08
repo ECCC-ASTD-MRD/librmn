@@ -81,14 +81,18 @@ size_t SparseConcatFile(
 
     if (diag == 0) Lib_Log(APP_LIBFST, APP_INFO, "%s: appending %s to %s\n", __func__, name2, name1);
     fdi = 0 ;
-    if (diag == 0) fdi = open(name2, O_RDONLY | O_LARGEFILE);  // input file
+    // sparse_concat.c:84:49: error: use of undeclared identifier 'O_LARGEFILE'
+    // 84 |     if (diag == 0) fdi = open(name2, O_RDONLY | O_LARGEFILE);  // input file
+    //    |                                                 ^
+
+    if (diag == 0) fdi = open(name2, O_RDONLY);  // input file
     if (fdi < 0) return 0;
 
     if (diag) {
-        fdo = open(name1, O_RDONLY | O_LARGEFILE);  // open as input file
+        fdo = open(name1, O_RDONLY);  // open as input file
         fdi = fdo;
     } else {
-        fdo = open(name1, O_RDWR | O_CREAT | O_LARGEFILE, 0777);
+        fdo = open(name1, O_RDWR | O_CREAT, 0777);
     }
     if (fdo < 0) return 0;
 
