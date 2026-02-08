@@ -228,7 +228,7 @@ int32_t f77name(create_thread)(void *(*function)(void *), void *arg)
    if ( pthread_create(&thread_id, NULL, function, arg) ) {
       return(-1);
    } else {
-      return(thread_id);
+      return((int32_t)thread_id);
    }
 }
 
@@ -240,7 +240,7 @@ int c_create_thread(void *(*function)(void *), void *arg)
 /*! Wait for a thread to terminate */
 int32_t f77name(join_thread)(int32_t *id)
 {
-   pthread_t thread_id = *id;
+   pthread_t thread_id = (pthread_t) *id;
    return( pthread_join(thread_id, NULL) );
 }
 
@@ -253,13 +253,13 @@ int c_join_thread(int id)
 /*! Get current thread id */
 int32_t f77name(id_thread)()
 {
-   return(pthread_self());
+   return((int32_t)pthread_self());
 }
 
 /*! Get current thread id */
 int c_id_thread(void)
 {
-   return(pthread_self());
+   return((int32_t)pthread_self());
 }
 
 /*! Store address of an argument into a list */
