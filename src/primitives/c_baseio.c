@@ -46,7 +46,7 @@
 
 
 #if defined(__APPLE__) && defined(__MACH__)
-#   include <sys/limits.h>
+#   include <sys/syslimits.h>
 #endif
 
 #include <fcntl.h>
