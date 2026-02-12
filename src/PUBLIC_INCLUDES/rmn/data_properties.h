@@ -43,7 +43,7 @@ static inline int int_min_abs(block_properties bp){
   uint32_t min1, min2 ;
   if(bp.maxs.i <= 0) return -bp.maxs.i ;  // all negative or 0
   if(bp.mins.i >= 0) return bp.mins.i ;   // all positive or 0
-  min1 = bp.maxu.i ;                      // smallest positive value
+  min1 = bp.minu.i ;                      // smallest positive value
   min2 = -bp.maxu.i ;                     // negative value closest to zero
   return (min1 < min2) ? min1 : min2 ;
 }
