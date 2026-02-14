@@ -73,7 +73,7 @@ if(NOT ${CMAKE_FIND_PACKAGE_NAME}_FOUND)
    load_targets(static)
    load_targets(shared)
    add_library(${CMAKE_FIND_PACKAGE_NAME}::${CMAKE_FIND_PACKAGE_NAME} ALIAS ${CMAKE_FIND_PACKAGE_NAME}::${CMAKE_FIND_PACKAGE_NAME}-${_shared_or_static})
-   if(WITH_OMPI)
+   if(@WITH_OMPI@)
       add_library(${CMAKE_FIND_PACKAGE_NAME}::${CMAKE_FIND_PACKAGE_NAME}-ompi ALIAS ${CMAKE_FIND_PACKAGE_NAME}::${CMAKE_FIND_PACKAGE_NAME}-ompi-${_shared_or_static})
    endif()
 
