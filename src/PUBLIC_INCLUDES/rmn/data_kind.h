@@ -24,15 +24,19 @@
 // expected data type codes
 typedef enum {
   bad_data    = 0,     // invalid
-  int_data    = 1,     // 32 bit signed integers
-  uint_data   = 2,     // 32 bit unsigned integers
-  float_data  = 3,     // 32 bit floats
-  raw_data    = 4,     // any 32 bit items (block_properties likely to be meaningless)
-  large_data  = 5,     // items use a multiple of 32 bits (block_properties are meaningless)
-  any_data    = 6,     // unknown or unspecified
+  byte_data   = 1,     // 8 bit signed integers
+  ubyte_data  = 2,     // 8 bit unsigned integers
+  short_data  = 3,     // 16 bit signed integers
+  ushort_data = 4,     // 16 bit unsigned integers
+  int_data    = 5,     // 32 bit signed integers
+  uint_data   = 6,     // 32 bit unsigned integers
   long_data   = 7,     // 64 bit signed integers
   ulong_data  = 8,     // 64 bit unsigned integers
-  double_data = 9      // 64 bit doubles
+  float_data  = 9,     // 32 bit floats
+  double_data =10,     // 64 bit doubles
+  raw_data    =11,     // any 32 bit items (block_properties likely to be meaningless)
+  large_data  =12,     // items use a multiple of 32 bits (block_properties are meaningless)
+  any_data    =13      // unknown or unspecified (block_properties likely to be meaningless)
 } data_kind ;
 
 static inline int data_kind_valid(int kind){
