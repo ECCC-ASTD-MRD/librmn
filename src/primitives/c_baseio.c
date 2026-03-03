@@ -2283,7 +2283,8 @@ static int qqcopen(
             }
         }
         if (fd == -1) {
-            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: %s filename=(%s) !\n",__func__,errmsg,FGFDT[indf].file_name);
+            Lib_Log(APP_LIBRMN,APP_ERROR,"%s: %s. File %s: %s\n",
+                    __func__, errmsg, FGFDT[indf].file_name, strerror(errno));
             reset_wafile_slot(ind);
             return -1;
         }
