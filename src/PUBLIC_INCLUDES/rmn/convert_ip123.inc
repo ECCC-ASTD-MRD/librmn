@@ -27,6 +27,7 @@
       integer, parameter :: KIND_SAMPLES=15
       integer, parameter :: KIND_MTX_IND=17
       integer, parameter :: KIND_M_PRES=21
+      integer, parameter :: KIND_HYBRID_HEIGHT=21
 
       interface encode_ip
 
