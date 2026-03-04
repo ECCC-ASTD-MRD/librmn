@@ -82,20 +82,20 @@ module convert_ip123_int
     ! TABLES
     ! kind     name              description                  range of values
     !
-    !   0  KIND_ABOVE_SEA   height (m) above mean sea level (-20, 000 -> 100, 000)
-    !   1  KIND_SIGMA       sigma coordinates               (0.0 -> 1.0)
-    !   2  KIND_PRESSURE    pressure (mb)                   (0 -> 1100)
-    !   3  KIND_ARBITRARY   arbitrary number, no units      (-4.8e8 -> 1.0e10)
-    !   4  KIND_ABOVE_GND   height (m) above ground         (-20, 000 -> 100, 000)
-    !   5  KIND_HYBRID      hybrid coordinates              (0.0 -> 1.0)
-    !   6  KIND_THETA       theta coordinates               (1 -> 200, 000)
-    !   7  KIND_BELOW_SEA   depth (m) below mean sea level  (0 -> 20, 000)
-    !  10  KIND_HOURS       time (hours)                    (0.0 -> 1.0e10)
-    !  15  KIND_SAMPLES     reserved (integer value)        (0 -> 1 999 999)
-    !  17  KIND_MTX_IND     conversion matrix x subscript)  (1.0 -> 1.0e10)
-    !                       (shared with kind = 1
-    !  21  KIND_M_PRES      pressure-meters                 (0 -> 1, 000, 000) fact = 1E+4
-    !                       (shared with kind = 5)
+    !   0  KIND_ABOVE_SEA     height (m) above mean sea level (-20, 000 -> 100, 000)
+    !   1  KIND_SIGMA         sigma coordinates               (0.0 -> 1.0)
+    !   2  KIND_PRESSURE      pressure (mb)                   (0 -> 1100)
+    !   3  KIND_ARBITRARY     arbitrary number, no units      (-4.8e8 -> 1.0e10)
+    !   4  KIND_ABOVE_GND     height (m) above ground         (-20, 000 -> 100, 000)
+    !   5  KIND_HYBRID        hybrid pressure coordinates     (0.0 -> 1.0)
+    !   6  KIND_THETA         theta coordinates               (1 -> 200, 000)
+    !   7  KIND_BELOW_SEA     depth (m) below mean sea level  (0 -> 20, 000)
+    !  10  KIND_HOURS         time (hours)                    (0.0 -> 1.0e10)
+    !  15  KIND_SAMPLES       reserved (integer value)        (0 -> 1 999 999)
+    !  17  KIND_MTX_IND       conversion matrix x subscript)  (1.0 -> 1.0e10)
+    !                         (shared with kind = 1
+    !  21  KIND_HYBRID_HEIGHT hybrid height                   (0 -> 1, 000, 000) fact = 1E+4
+    !                         (shared with kind = 5)
     !
     ! return FLAGS for encode/decode functions (more than one flag may be set)
     !  CONVERT_OK     ( 0 = no FLAG set)
@@ -133,7 +133,8 @@ module convert_ip123_int
     integer, public, parameter :: KIND_HOURS = 10
     integer, public, parameter :: KIND_SAMPLES = 15
     integer, public, parameter :: KIND_MTX_IND = 17
-    integer, public, parameter :: KIND_M_PRES = 21
+    integer, public, parameter :: KIND_M_PRES=21
+    integer, public, parameter :: KIND_HYBRID_HEIGHT = 21
 
     interface encode_ip
         module procedure encode_ip_0

@@ -21,13 +21,13 @@ SUBROUTINE CONVIP_plus( ip, p, kind, mode, string, flagv )
     !> |    2 |        [0; 1100] | Pressure (mb)                                                                        |
     !> |    3 | [-4.8e8; 1.0e10] | Arbitrary code                                                                       |
     !> |    4 | [-20000; 100000] | Height above ground level (m)                                                        |
-    !> |    5 |       [0.0; 1.0] | Hybrid coordinates                                                                   |
+    !> |    5 |       [0.0; 1.0] | Hybrid pressure coordinates                                                                   |
     !> |    6 |      [1; 200000] | Theta coordinates                                                                    |
     !> |    7 |       [0; 20000] | Depth under water surface (m)                                                        |
     !> |   10 |    [0.0; 1.0e10] | Time (hours)                                                                         |
     !> |   15 |                  | Reserved                                                                             |
     !> |   17 |    [1.0; 1.0e10] | X index of the conversion matrix (shared with kind=1 because of the exclusive range) |
-    !> |   21 |     [0; 1000000] | Pressure-metres (shared with kind=5 because of the exclusive range)                  |
+    !> |   21 |     [0; 1000000] | Hybrid height (shared with kind=5 because of the exclusive range)                  |
     !> |   23 |                  | Reserved                                                                             |
     integer, intent(INOUT) :: kind
     !> Operation mode
@@ -619,7 +619,7 @@ function kind_to_string(code) RESULT(string)
     character(len=2), save, dimension(0:Max_Kind) :: kinds = &
         (/  ' m', 'sg', 'mb', '  ', ' M', 'hy', 'th', 'm-',                       &
             '??', '??', ' H', '??', '??', '??', '??', '_0',                       &
-            '??', '[]', '??', '??', '??', 'mp', '??', '??',                       &
+            '??', '[]', '??', '??', '??', 'hh', '??', '??',                       &
             '??', '??', '??', '??', '??', '??', '??', '_1' /)
 
 
