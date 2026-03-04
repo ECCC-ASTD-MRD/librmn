@@ -25,6 +25,7 @@
 #define KIND_SAMPLES 15
 #define KIND_MTX_IND 17
 #define KIND_M_PRES 21
+#define KIND_HYBRID_HEIGHT 21
 
 //! IP level info
 /*!
@@ -44,13 +45,13 @@ typedef struct { /*  */
         |    2 | Pressure (mb)                             |        0, 1100 |
         |    3 | Arbitrary code                            | -4.8e8, 1.0e10 |
         |    4 | Height above ground level (m)             | -20000, 100000 |
-        |    5 | Hybrid coordinate                         |       0.0, 1.0 |
+        |    5 | Hybrid pressure coordinate                |       0.0, 1.0 |
         |    6 | Theta coordinate                          |      1, 200000 |
         |    7 | Height below sea level                    |      0, 20000  |
         |   10 | Time (h)                                  |  0.0, 200000.0 |
         |   15 | Reserved (integer)                        |                |
         |   17 | X index of the conversion matrix          |    1.0, 1.0e10 |
-        |   21 | Pressure-metre                            |     0, 1000000 |
+        |   21 | Hybrid height                             |     0, 1000000 |
      */
     int kind;
 } ip_info;
