@@ -82,15 +82,24 @@ fst_record* fst24_record_new(
 int32_t fst24_record_free(
     fst_record* record      //!< [in] record pointer
 ) {
-
+    // Data
     if ((record->data != NULL) && (record->do_not_touch.alloc > 0)) {
         record->do_not_touch.alloc = 0;
         if (!(record->do_not_touch.flags & FST_REC_ASSIGNED))
             free(record->data);
         record->data = NULL; 
     }
+
+    // Extended metadata
     Meta_Free(record->metadata);
     record->metadata = NULL;
+
+    // Data map
+    if (record->data_blocks.map != NULL) {
+        free(record->data_blocks.map);
+        record->data_blocks.map = NULL;
+    }
+
     return(TRUE);
 }
 
@@ -520,7 +529,8 @@ int32_t fst24_record_validate_params(const fst_record* record) {
                                     FST_TYPE_REAL,
                                     FST_TYPE_REAL_IEEE,
                                     FST_TYPE_REAL_OLD_QUANT,
-                                    FST_TYPE_COMPLEX };
+                                    FST_TYPE_COMPLEX,
+                                  };
     const int32_t base_type = base_fst_type(record->data_type);
     int32_t ok_type = 0;
     for (unsigned int i = 0; i < sizeof(valid_types) / sizeof(int32_t); i++) {
@@ -716,14 +726,27 @@ void fill_with_search_meta(
     const search_metadata* meta,    //!< The packed searched metadata
     const fst_file_type type        //!< File type (RSF, XDF, other?)
 ) {
-
+    // Reset a few things first ------------------------------------
     record->do_not_touch.fst_version = default_fst_record.do_not_touch.fst_version;
     record->do_not_touch.num_search_keys = sizeof(stdf_dir_keys) / sizeof(uint32_t); // Default for XDF
+
+    Meta_Free(record->metadata);
     record->do_not_touch.extended_meta_size = 0;
+    record->metadata = NULL;
+    record->do_not_touch.stringified_meta = NULL;
+
+    record->data_blocks.size_x = 0;
+    record->data_blocks.size_y = 0;
+    record->data_blocks.map_size = 0;
+    if (record->data_blocks.map != NULL) {
+        free(record->data_blocks.map);
+        record->data_blocks.map = NULL;
+    }
+    // -------------------------------------------------------------
 
     const stdf_dir_keys* fst98_meta = &(meta->fst98_meta); // Default for XDF
 
-    if (type != FST_XDF) {
+    if (type == FST_RSF) {
         uint8_t rsf_version = meta->rsf_reserved.version;
 
         fst24_reserved_t reserved = meta->fst24_reserved;
@@ -801,17 +824,17 @@ void fill_with_search_meta(
 
     // Here, we implement reading content for next-generation FST (anything that goes beyond the stdf_dir_keys struct)
 
-    Meta_Free(record->metadata);
-    record->metadata = NULL;
-    record->do_not_touch.stringified_meta = NULL;
-
     if (record->do_not_touch.fst_version <= 0) {
         // Nothing in particular
     }
-    else if (record->do_not_touch.fst_version <= 1) {
+    else if (record->do_not_touch.fst_version <= 2) {
         if (record->do_not_touch.extended_meta_size > 0) {
             // Right after the search keys
             record->do_not_touch.stringified_meta = (uint32_t *)meta + record->do_not_touch.num_search_keys;
+        }
+
+        if (record->do_not_touch.fst_version >= 2) {
+            record->data_blocks.map_size = meta->rsf_reserved.datamap_size;
         }
     }
     else {

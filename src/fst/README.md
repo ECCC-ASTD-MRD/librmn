@@ -1277,6 +1277,16 @@ int32_t fst24_force_close(
     const char* filename //!< Name of the file whose flag needs resetting. Must be a valid RPN Standard file
 );
 
+//! Read only data map + metadata for the given record
+//!
+//! Thread safety: This function may be called concurrently by several threads on *different records* that belong to
+//! the same file. However, it cannot be called concurrently on the same fst_record object.
+//!
+//! \return A pointer to the data map, NULL if error (or there is no data map)
+void* fst24_read_data_map(
+    fst_record* record //!< [in,out] Record for which we want to read the data map. Must have a valid handle!
+);
+
 //! Read a segment of a file, without reading anything else from that file.
 //! For best results, this function should only be called with the offset and size given by an `fst_record` from that
 //! same, previously-opened file.
@@ -1291,11 +1301,10 @@ int32_t fst24_read_raw_record(
 );
 
 //! Decode the given raw data pointer as if it were the content of an RSF record.
-//! This function reserves the right to modify the input data if needed (swap endianness)
 //! \return A properly initialized fst_record object. If we were successful in decoding the data, the record `data`
 //!         pointer will be valid; if we were not successful, the `data` pointer will be NULL.
 fst_record fst24_decode_data_rsf(
-    //!> [in] Input data to be extracted
+    //!> [in] Input data to be extracted (it will not be modified)
     void* data,
     //!> [in,out] [Optional] If non-NULL, must point to a sufficiently large space to hold the entire extracted data
     void* dest_data

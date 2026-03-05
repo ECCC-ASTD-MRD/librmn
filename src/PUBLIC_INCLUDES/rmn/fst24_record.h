@@ -10,7 +10,7 @@
 //! It has to take at most 8 bits, so its maximum value is 255
 #endif
 
-#define FST24_VERSION_COUNT  1
+#define FST24_VERSION_COUNT  2
 
 #define FST24_VERSION_OFFSET_C 1010101000u
 #define FST24_VERSION_OFFSET_F 1010101000_int32
@@ -48,6 +48,8 @@ typedef struct fst24_file_ fst_file;
 typedef struct {
     // NOTE: Any modification to this whole struct must be reflected exactly
     // in the Python Ctypes definition python/rmn/fstrecord.py
+    // NOTE: As a safetey mechanism, the version (\ref FST24_VERSION_COUNT) must be incremented
+    // whenever a change is made to this struct.
 
     //!> Internal implementation details \private
     struct {
@@ -63,6 +65,14 @@ typedef struct {
         size_t unpacked_data_size;   //!< Initial size of the unpacked data (32-bit units) \private
         const void* stringified_meta; //!< Direct pointer to the extended metadata in the directory \private
     } do_not_touch;
+
+    //!> How the data is divided into blocks when stored. Also used for filtering (compaction, compression, etc.)
+    struct {
+        uint16_t size_x; //!< Size of data blocks along x (in number of elements)
+        uint16_t size_y; //!< Size of data blocks along y (in number of elements)
+        uint32_t map_size; //!< Size of data map (32-bit units)
+        void* map;  //!< Pointer to data map content
+    } data_blocks;
 
     // 64-bit elements first
 
@@ -126,6 +136,12 @@ typedef struct {
                          .unpacked_data_size = 0,                                           \
                          .stringified_meta = NULL,                                          \
                         },                                                                  \
+                                                                                            \
+        .data_blocks = {.size_x = 0,                                                        \
+                        .size_y = 0,                                                        \
+                        .map_size = 0,                                                      \
+                        .map = NULL,                                                        \
+                       },                                                                   \
                                                                                             \
         .file     = NULL,                                                                   \
         .data     = NULL,                                                                   \
@@ -240,7 +256,7 @@ void         fst24_record_diff(const fst_record* a, const fst_record* b);
 int32_t      fst24_record_copy_metadata(fst_record* dest, const fst_record* src, int What);
 //! \}
 
-int32_t fst24_record_validate_default(const fst_record* fortran_record, const size_t fortran_size);
+int32_t fst24_record_validate_default_record(const fst_record* fortran_record, const size_t fortran_size);
 
 #else
 
@@ -255,6 +271,11 @@ int32_t fst24_record_validate_default(const fst_record* fortran_record, const si
         integer(C_SIZE_T)  :: stored_data_size = 0
         integer(C_SIZE_T)  :: unpacked_data_size = 0
         integer(C_INTPTR_T):: stringified_meta = 0
+
+        integer(C_INT16_T) :: block_size_x = 0
+        integer(C_INT16_T) :: block_size_y = 0
+        integer(C_INT32_T) :: map_size = 0
+        type(C_PTR)        :: data_map = C_NULL_PTR
 
         type(C_PTR)        :: file     = C_NULL_PTR
         type(C_PTR)        :: data     = C_NULL_PTR

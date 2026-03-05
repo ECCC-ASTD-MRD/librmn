@@ -151,6 +151,13 @@ class fst_record(ctypes.Structure):
         ('_stringified_meta', ctypes.c_void_p),
         # End do-not-touch
 
+        # The data-blocks struct
+        ('block_size_x', ctypes.c_uint16),
+        ('block_size_y', ctypes.c_uint16),
+        ('data_map_size', ctypes.c_uint32),
+        ('_data_map', ctypes.c_void_p),
+        # End of data-blocks
+
         ('_file', ctypes.c_void_p),
         ('_data', ctypes.c_void_p),
         ('metadata', ctypes.c_void_p),

@@ -23,13 +23,13 @@ subroutine ez_irgdint_1_w(zo, px, py, npts, ax, ay, z, ni, j1, j2, wrap)
     use interp_mod, only: zlin64
     implicit none
 
-    integer, intent(in) :: npts, ni, wrap
+    integer, intent(in) :: npts, ni, j1, j2, wrap
     real, intent(out) :: zo(npts)
     real, intent(in) :: px(npts), py(npts)
     real, intent(in) :: ax(ni), ay(j1:j2)
     real, intent(in) :: z(ni, j1:j2)
 
-    integer i, j, j1, j2, n, iplus1, limite
+    integer i, j, n, iplus1, limite
     real(kind = real64) :: x, y, x1, x2, y1, y2, dx, dy
 
     do n = 1, npts

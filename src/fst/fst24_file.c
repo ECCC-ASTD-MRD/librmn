@@ -449,13 +449,16 @@ void fst24_bounds(
 
     // Loop on data type to avoid type casting as much as possible
     switch (record->data_type) {
-        case 0: case 128:
+        case FST_TYPE_BINARY:
+        case FST_TYPE_BINARY | FST_TYPE_TURBOPACK:
             // binary
             *Min = 0;
             *Max = 1;
             break;
 
-        case 1: case 5: case 6: {
+        case FST_TYPE_REAL_OLD_QUANT:
+        case FST_TYPE_REAL_IEEE:
+        case FST_TYPE_REAL: {
             // floating point
             double dmin = DBL_MAX;
             double dmax = DBL_MIN;
@@ -474,7 +477,7 @@ void fst24_bounds(
             break;
         }
 
-        case 2: {
+        case FST_TYPE_UNSIGNED: {
             // integer, short integer or byte stream
             uint64_t umin = ULONG_MAX;
             uint64_t umax = 0;
@@ -495,7 +498,7 @@ void fst24_bounds(
             break;
         }
 
-        case 3: {
+        case FST_TYPE_CHAR: {
             //! \todo WTF is character
             // character
             char cmin = CHAR_MAX;
@@ -515,7 +518,8 @@ void fst24_bounds(
             break;
         }
 
-        case 4: case 132: {
+        case FST_TYPE_SIGNED:
+        case FST_TYPE_SIGNED | FST_TYPE_TURBOPACK: {
             // signed integer
             int64_t lmin = LONG_MAX;
             int64_t lmax = 0;
@@ -536,7 +540,8 @@ void fst24_bounds(
             break;
         }
 
-        case 7: case 135:
+        case FST_TYPE_STRING:
+        case FST_TYPE_STRING | FST_TYPE_TURBOPACK:
             break;
     }
 }
@@ -765,8 +770,6 @@ int32_t fst24_write_rsf(
     // Increment date by timestep size
     record->datev = get_valid_date32(record->dateo, record->deet, record->npas);
 
-    // allocate and initialize a buffer interface for RSF_Put
-    // an extra 512 bytes are allocated for cluster alignment purpose (seq). Are they???
     //TODO Remove any reference to remap_table?
     if (! image_mode_copy) {
         for (int i = 0; i < nb_remap; i++) {
@@ -897,26 +900,41 @@ int32_t fst24_write_rsf(
     record->do_not_touch.unpacked_data_size = fst24_record_data_size(record) / sizeof(uint32_t); // 32-bit units
 
     record->num_meta_bytes = rec_metadata_size * sizeof(uint32_t);
-    RSF_record* new_record = RSF_New_record(rsf_file, rec_metadata_size, rec_metadata_size, RT_DATA, num_data_bytes, NULL, 0);
+
+    const size_t total_payload_bytes = num_data_bytes + record->data_blocks.map_size * sizeof(uint32_t);;
+    RSF_record* new_record = RSF_New_record(
+        rsf_file, rec_metadata_size, rec_metadata_size, RT_DATA, total_payload_bytes, NULL, 0);
     if (new_record == NULL) {
-        Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to create new new_record with %ld bytes\n", __func__, num_data_bytes);
+        Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to create new new_record with %ld bytes\n",
+                __func__, total_payload_bytes);
         return(ERR_MEM_FULL);
     }
-    
     search_metadata* meta = (search_metadata *) new_record->meta;
     stdf_dir_keys* stdf_entry = &meta->fst98_meta;
-
-    record->data_type = data_type | has_missing;
-    make_search_metadata(record, meta);
-    new_record->data_size = elem_size;
-    uint32_t* record_data = new_record->data;
-    RSF_Record_set_num_elements(new_record, num_word32, sizeof(uint32_t));
 
     // Insert json metadata
     if (metastr) {
         // Copy metadata into RSF record struct, just after directory metadata
         memcpy((char *)(meta + 1), metastr, metalen);
     }
+
+    // Insert data map, just after json metadata and before actual data (it's part of the "payload")
+    if (record->data_blocks.map != NULL) {
+        new_record->data_map_size = record->data_blocks.map_size;
+        new_record->data_map = new_record->data;
+
+        // Move data pointer forward (it's after the data map), adjust max data size accordingly
+        new_record->data = (char*)new_record->data_map + sizeof(uint32_t) * record->data_blocks.map_size;
+        new_record->data_size = num_data_bytes;
+
+        memcpy(new_record->data_map, record->data_blocks.map, record->data_blocks.map_size * sizeof(uint32_t));
+    }
+
+    record->data_type = data_type | has_missing;
+    make_search_metadata(record, meta);
+    new_record->data_size = elem_size;
+    uint32_t* record_data = new_record->data;
+    RSF_Record_set_num_elements(new_record, num_word32, sizeof(uint32_t));
 
     uint32_t * field_u32 = field;
     if (field_f != NULL) {
@@ -1168,12 +1186,12 @@ int32_t fst24_write_rsf(
                 }
                 break;
 
-
             case FST_TYPE_STRING:
             case FST_TYPE_STRING | FST_TYPE_TURBOPACK:
                 // character string
                 if (is_type_turbopack(data_type)) {
-                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: extra compression not available, data type %d reset to FST_TYPE_STRING (%d)\n",
+                    Lib_Log(APP_LIBFST, APP_WARNING,
+                            "%s: extra compression not available, data type %d reset to FST_TYPE_STRING (%d)\n",
                             __func__, stdf_entry->datyp, FST_TYPE_STRING);
                     data_type = FST_TYPE_STRING;
                     stdf_entry->datyp = data_type;
@@ -1185,14 +1203,14 @@ int32_t fst24_write_rsf(
                 Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid data_type=%d\n", __func__, data_type);
                 return ERR_BAD_DATYP;
         } // end switch
-    } // end if image mode copy
+    } // end if/else image mode copy
 
     record->data_type = stdf_entry->datyp;
     record->pack_bits = stdf_entry->nbits;
     record->data_bits = stdf_entry->dasiz;
 
     // write new_record to file and add entry to directory
-    const int64_t record_handle = RSF_Put_record(rsf_file, new_record, num_data_bytes);
+    const int64_t record_handle = RSF_Put_record(rsf_file, new_record, total_payload_bytes);
     record->do_not_touch.handle = record_handle;
     record->file_index = RSF_Key64_to_index(record_handle);
 
@@ -1209,7 +1227,12 @@ int32_t fst24_write_rsf(
     if (field_f != NULL) free(field_f);
     if (field_missing != NULL) free(field_missing);
 
-    return record_handle > 0 ? TRUE : -1;
+    if (record_handle <= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error writing RSF record to file\n", __func__, record_handle);
+        return -1;
+    }
+
+    return TRUE;
 }
 
 
@@ -1220,6 +1243,11 @@ int32_t fst24_write_xdf(
     if (record->metadata != NULL) {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: Trying to write a record that contains extended metadata in an XDF file."
                 " This is not supported, we will ignore that metadata. (file %s)\n", __func__, record->file->path);
+    }
+
+    if (record->data_blocks.map != NULL) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Trying to write a record that contains a data map in an XDF file."
+                " This is not supported, we will ignore the data map. (file %s)\n", __func__, record->file->path);
     }
 
     if (record->data == NULL) {
@@ -2345,10 +2373,15 @@ int32_t fst24_read_record_rsf(
         return ERR_BAD_HNDL;
     }
 
-    int32_t status = 0;
-    int requested_num_bits = record_fst->data_bits;
+    const int requested_num_bits = record_fst->data_bits;
     update_attributes_from_rsf_info(record_fst, record_fst->do_not_touch.handle, &record_info);
+    if (record_fst->data_blocks.map_size > 0) {
+        // data_map pointer should have been freed by the update attributes function
+        record_fst->data_blocks.map = (uint32_t*)malloc(record_fst->data_blocks.map_size * sizeof(uint32_t));
+        memcpy(record_fst->data_blocks.map, record_rsf->data_map, record_fst->data_blocks.map_size * sizeof(uint32_t));
+    }
 
+    int32_t status = 0;
     if (record_fst->data_bits < record_fst->pack_bits) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Cannot handle data size (%d bits) smaller than packed size (%d bits)\n",
             __func__, record_fst->data_bits, record_fst->pack_bits);
@@ -2447,6 +2480,47 @@ int32_t fst24_read_record_xdf(
     return handle;
 }
 
+//! Read only data map + metadata for the given record
+//!
+//! Thread safety: This function may be called concurrently by several threads on *different records* that belong to
+//! the same file. However, it cannot be called concurrently on the same fst_record object.
+//!
+//! \return A pointer to the data map, NULL if error (or there is no data map)
+void* fst24_read_data_map(
+    fst_record* record //!< [in,out] Record for which we want to read the data map. Must have a valid handle!
+) {
+    if (!fst24_record_is_valid(record) || record->do_not_touch.handle < 0) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid record\n", __func__);
+       return NULL;
+    }
+
+    if (record->data_blocks.map != NULL) return record->data_blocks.map;
+
+    if (!fst24_is_open(record->file)) {
+       Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n",__func__);
+       return NULL;
+    }
+
+    if (record->file->type == FST_RSF) {
+        if (record->do_not_touch.fst_version < 2 || record->data_blocks.map_size <= 0) {
+            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: No data map for record with key 0x%x in RSF file %s\n",
+                    __func__, record->do_not_touch.handle, record->file->path);
+            return NULL;
+        }
+
+        if (fst24_read_record_rsf(record, 1, 1) != 0) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read data map from RSF file %s\n", __func__, record->file->path);
+            return NULL;
+        }
+
+        return record->data_blocks.map;
+    }
+
+    Lib_Log(APP_LIBFST, APP_WARNING, "%s: No data map for file type %d (%s)\n", __func__, record->file->type, record->file->path);
+    return NULL;
+}
+
+
 //! Read only metadata for the given record
 //!
 //! Thread safety: This function may be called concurrently by several threads on *different records* that belong to
@@ -2461,14 +2535,14 @@ void* fst24_read_metadata(
        return NULL;
     }
 
+    if (record->metadata != NULL) return record->metadata;
+
     if (!fst24_is_open(record->file)) {
        Lib_Log(APP_LIBFST, APP_ERROR, "%s: File not open\n",__func__);
        return NULL;
     }
 
     if (record->file->type == FST_RSF) {
-        if (record->metadata != NULL) return record->metadata;
-
         if (record->do_not_touch.fst_version > 0) {
             record->metadata = Meta_Parse((const char*)(record->do_not_touch.stringified_meta));
             return record->metadata; // If version > 0, we already have it.
