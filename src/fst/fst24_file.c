@@ -1,6 +1,7 @@
-#include <stdlib.h>
+#include <errno.h>
 #include <float.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include <pthread.h>
 
@@ -2759,4 +2760,43 @@ void print_non_default_options(const fst_query_options* const options) {
     if (ptr == buffer) sprintf(ptr, "[none]");
 
     Lib_Log(APP_LIBFST, APP_ALWAYS, "options: %s\n", buffer);
+}
+
+//! Read a segment of a file, without reading anything else from that file.
+//! For best results, this function should only be called with the offset and size given by an `fst_record` from that
+//! same, previously-opened file.
+//! *There could have been some changes to the file between the time the offset/size were determined and the time it
+//! is read by this function. For example, in an XDF file, the record could have been overwritten. In an RSF file, it
+//! could have been marked as deleted. Neither change will prevent reading the record by this function.*
+int32_t fst24_read_raw_record(
+    const char* const filename, //!< [in] Name of the file where the record is stored
+    const size_t offset,        //!< [in] Offset of the record in the file
+    const size_t num_bytes,     //!< [in] Number of bytes to read (this must correspond to the size of the record)
+    void* const dest            //!< [in,out] Pointer to an already-allocated space where to put the data
+) {
+    // Open the file
+    const int fd = open(filename, O_RDONLY);
+    if (fd < 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to open file %s: %s\n", __func__, filename, strerror(errno));
+        return -1;
+    }
+
+    // Read + close the file
+    lseek(fd, offset, SEEK_SET);
+    const ssize_t num_read = read(fd, dest, num_bytes);
+    close(fd);
+
+    // Check if succeeded
+    if (num_read == num_bytes) return TRUE;
+
+    // Did not read full record
+    if (num_read >= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Did not read full record from %s -> only %lld bytes\n",
+                __func__, filename, num_read);
+        }
+    else {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error while reading record from %s: %s\n",
+                __func__, filename, strerror(errno));
+    }
+    return -1;
 }

@@ -45,6 +45,7 @@ function_fnames="
    fst24_close_unlink
    fst24_eof
    fst24_force_close
+   fst24_read_raw_record
 "
 
 query_fnames="

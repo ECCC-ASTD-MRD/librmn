@@ -98,31 +98,20 @@ int run_test(const int is_rsf) {
 
     uint32_t* raw_record = (uint32_t*)malloc(rec.total_stored_bytes + 3);
 
-    const int fd = open(filename, O_RDONLY);
-    if (fd < 0) {
-        App_Log(APP_ERROR, "%s: Unable to open test file (system call)\n", __func__);
+    if (fst24_read_raw_record(filename, rec.file_offset, rec.total_stored_bytes, raw_record) != TRUE) {
         return -1;
     }
-
-    lseek(fd, rec.file_offset, SEEK_SET);
-    const ssize_t num_read = read(fd, raw_record, rec.total_stored_bytes);
 
     {
         char buffer[1024 * 2];
         char* ptr = buffer;
-        for (int i = 0; i < num_read / sizeof(uint32_t); i++) {
+        for (int i = 0; i < rec.total_stored_bytes / sizeof(uint32_t); i++) {
             if (i % 4 == 0) ptr += sprintf(ptr, "\n");
             ptr += sprintf(ptr, "%8x ", raw_record[i]);
         }
         App_Log(APP_VERBATIM, "Raw record content: %s\n", buffer);
     }
 
-    if (num_read != rec.total_stored_bytes) {
-        App_Log(APP_ERROR, "%s: Unable to read raw record from file. %lu\n", __func__, num_read);
-        return -1;
-    }
-
-    close(fd);
     free(raw_record);
     fst24_query_free(q);
     fst24_record_free(&rec);

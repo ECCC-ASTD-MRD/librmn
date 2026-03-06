@@ -266,7 +266,8 @@ static uint32_t RSF_Is_file_valid(
 
     // check validity of fp->slot
     if ((fp->slot < 0) || (fp->slot >= max_rsf_files_open)) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: slot number found in file handle is invalid\n", __func__);
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: slot number found in file handle is invalid %d (max %lu - 1)\n",
+                __func__, fp->slot, max_rsf_files_open);
         return 0;                   // not in file handle table
     }
     if (fp != rsf_files[fp->slot] ) {
