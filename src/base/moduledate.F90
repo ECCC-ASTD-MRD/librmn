@@ -1600,7 +1600,7 @@ INTEGER FUNCTION naetwed(DAT1, DAT2, DAT3, MODE)
         date_unsigned = stamp8
         if (date_unsigned < troisg .or. &
            date_unsigned > troisg + max_offset) then
-           write(app_msg, *)'naetwed: newdate error, nvalid stamp for mode -6, stamp=', stamp
+           write(app_msg, *)'naetwed: newdate error, invalid stamp for mode -6, stamp=', stamp
            call lib_log(APP_LIBRMN, APP_ERROR, app_msg)
            goto 4
         endif
