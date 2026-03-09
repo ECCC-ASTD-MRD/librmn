@@ -1932,6 +1932,52 @@ int32_t fst24_find_count(
     return count;
 }
 
+//! Decode the given raw data pointer as if it were the content of an RSF record.
+//! This function reserves the right to modify the input data if needed (swap endianness)
+//! \return A properly initialized fst_record object. If we were successful in decoding the data, the record `data`
+//!         pointer will be valid; if we were not successful, the `data` pointer will be NULL.
+fst_record fst24_decode_data_rsf(
+    //!> [in] Input data to be extracted
+    void* data,
+    //!> [in,out] [Optional] If non-NULL, must point to a sufficiently large space to hold the entire extracted data
+    void* dest_data
+) {
+
+    // First interpret the RSF record
+    RSF_record rsf_rec = RSF_as_record(data);
+    if (rsf_rec.data == NULL) return default_fst_record; // Error trying to interpret the data as an RSF record
+
+
+    // Extract metadata
+    fst_record rec = default_fst_record;
+    const search_metadata* meta = (const search_metadata*)rsf_rec.meta;
+    fill_with_search_meta(&rec, meta, FST_RSF);
+
+    // Allocate space if needed
+    void* dest = dest_data;
+    if (dest == NULL) {
+        rec.do_not_touch.alloc = fst24_record_data_size(&rec);
+        dest = malloc(rec.do_not_touch.alloc);
+        if (dest == NULL) {
+            Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to allocate memory for unpacking record data\n", __func__);
+            return rec;
+        }
+    }
+
+    // Extract metadata from record if present
+    if (rec.do_not_touch.extended_meta_size > 0) {
+        // Located after the search keys
+        rec.metadata = Meta_Parse((char*)((uint32_t*)rsf_rec.meta + rec.do_not_touch.num_search_keys));
+    }
+
+    // Unpack the data
+    const int32_t status = fst24_unpack_data(dest, rsf_rec.data, &rec, 0, 1, rec.data_bits);
+
+    // Indicate success
+    if (status == 0) rec.data = dest;
+
+    return rec;
+}
 
 //! Unpack the given data array, according to the given record information.
 //! \return 0 on success, negative if error.

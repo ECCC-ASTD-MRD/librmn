@@ -5,10 +5,10 @@ const char * const filename_rsf = "record_offset_size.rsf";
 const char * const filename_xdf = "record_offset_size.xdf";
 
 #define NUM_DATA 10
-// const float data1[NUM_DATA] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f};
-// const float data2[NUM_DATA] = {0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f};
-const int   data3[NUM_DATA] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-// const int   data4[NUM_DATA] = {-1, -2, -3, -4, -5, -6, -7, -8, -9};
+// const float data1[NUM_DATA] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 99.0f};
+// const float data2[NUM_DATA] = {0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 9.9f};
+const int   data3[NUM_DATA] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 99};
+// const int   data4[NUM_DATA] = {-1, -2, -3, -4, -5, -6, -7, -8, -9, -99};
 
 int create_file(const int is_rsf) {
     const char * const filename = is_rsf ? filename_rsf : filename_xdf;
@@ -98,10 +98,12 @@ int run_test(const int is_rsf) {
 
     uint32_t* raw_record = (uint32_t*)malloc(rec.total_stored_bytes + 3);
 
+    // Read the bytes
     if (fst24_read_raw_record(filename, rec.file_offset, rec.total_stored_bytes, raw_record) != TRUE) {
         return -1;
     }
 
+    // Dump the data that was read
     {
         char buffer[1024 * 2];
         char* ptr = buffer;
@@ -109,7 +111,28 @@ int run_test(const int is_rsf) {
             if (i % 4 == 0) ptr += sprintf(ptr, "\n");
             ptr += sprintf(ptr, "%8x ", raw_record[i]);
         }
-        App_Log(APP_VERBATIM, "Raw record content: %s\n", buffer);
+        App_Log(APP_VERBATIM, "Raw record content (%p): %s\n", raw_record, buffer);
+    }
+
+    if (is_rsf) {
+        // Try to decode the bytes
+        fst_record local_rec = fst24_decode_data_rsf(raw_record, NULL);
+        if (local_rec.data == NULL) {
+            App_Log(APP_ERROR, "%s: Could not unpack raw record\n", __func__);
+            return -1;
+        }
+
+        // Print record data
+        {
+            char buffer[1024];
+            char* ptr = buffer;
+            for (int i = 0; i < local_rec.ni; i++) {
+                ptr += sprintf(ptr, "%3d ", ((int32_t*)local_rec.data)[i]);
+            }
+            App_Log(APP_ALWAYS, "Record data, after extraction: %s\n", buffer);
+        }
+
+        fst24_record_free(&local_rec);
     }
 
     free(raw_record);

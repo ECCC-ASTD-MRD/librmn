@@ -2182,12 +2182,75 @@ RSF_record *RSF_Get_record(
     return record;
 }
 
+//!> Interpret the given address as pointing to an RSF record and create an RSF_record object based on it.
+//!> \return A properly initialized RSF_record objet with a valid `data` pointer if we were successful in interpreting
+//!>         the content at the given address. If we were not, the `data` pointer of the returned object will be null.
+RSF_record RSF_as_record(
+    //!> [in,out] Pointer to data that should be interpreted as an RSF record. 
+    //!>          Bytes might be swapped if endianness is different.
+    void* addr
+) {
+    RSF_record rec;
+    memset(&rec, 0, sizeof(rec));
+
+    if (addr == NULL) return rec; // Nothing there...
+
+    // Validate start of record
+    rec.sor = addr;
+    const start_of_record* sor = rec.sor;
+    if (sor->zr != ZR_SOR) {
+        if (sor->rt == ZR_SOR) {
+            Lib_Log(APP_LIBFST, APP_ERROR,
+                "%s: Looks like the provided record was stored on an other-endian system. "
+                "We'll need to swap the bytes, but that's not implemented yet.\n", __func__);
+            return rec;
+        }
+        else {
+            Lib_Log(APP_LIBFST, APP_ERROR,
+                "%s: Invalid start-of-record marker (0x%x, expected 0x%x). "
+                "Cannot interpret the given data (%p) as an RSF record\n", __func__, sor->zr, ZR_SOR, addr);
+            return rec;
+        }
+    }
+
+    // Get size/type information
+    rec.rec_meta = sor->rlm; // full metadata length
+    rec.dir_meta = sor->rlmd; // directory metadata length
+    rec.rsz = RSF_32_to_64(sor->rl);        // record length
+    rec.rec_type = sor->rt;
+
+    // Set up some pointers
+    rec.meta = (uint32_t*)((char*)(rec.sor) + sizeof(start_of_record));
+    rec.eor = (char*)addr + rec.rsz - sizeof(end_of_record);
+
+    // Validate end of record
+    const end_of_record* eor = rec.eor;
+    if (eor->zr != ZR_EOR) {
+        Lib_Log(APP_LIBFST, APP_ERROR,
+            "%s: Invalid end-of-record marker (0x%x, expected 0x%x). "
+            "Cannot interpret the given data (%p) as an RSF record\n", __func__, eor->zr, ZR_EOR, addr);
+        return rec;
+    }
+
+    // Setting the data pointer marks this function as successful
+    rec.data = (char*)rec.meta + sizeof(uint32_t) * rec.rec_meta;
+    rec.data_size = (char*)rec.eor - (char*)rec.data;
+    rec.max_data = rec.data_size;
+
+    return rec;
+}
+
+//!> Get the current number of non-deleted "data" records. This excludes RSF records use for the formatting structure,
+//!> such as start- and end-of-record, start- and end-of-segment records
 uint32_t RSF_Get_num_records(RSF_handle h) {
     const RSF_File * const fp = (RSF_File *) h.p;
     if (! RSF_Is_file_valid(fp) ) return UINT_MAX;
     return fp->vdir_used - fp->num_deleted_records;
 }
 
+//!> Get the number of non-deleted "data" records that were present when opening the file.
+//!> This excludes RSF records use for the formatting structure,
+//!> such as start- and end-of-record, start- and end-of-segment records
 uint32_t RSF_Get_num_records_at_open(RSF_handle h) {
     const RSF_File * const fp = (RSF_File *) h.p;
     if (! RSF_Is_file_valid(fp) ) return UINT_MAX;
@@ -3309,13 +3372,13 @@ int32_t RSF_Get_file_slot(RSF_handle h) {
   return fp->slot;
 }
 
-void print_start_of_record(start_of_record* sor) {
+void print_start_of_record(const start_of_record* sor) {
   Lib_Log(APP_LIBFST, APP_ALWAYS,
           "type %s, rec meta length %d, zr %x, length %d, dir meta length %d, unused bits %d, elem length %d\n",
           rt_to_str(sor->rt), sor->rlm, sor->zr, RSF_32_to_64(sor->rl), sor->rlmd, sor->ubc, sor->dul);
 }
 
-void print_start_of_segment(start_of_segment* sos) {
+void print_start_of_segment(const start_of_segment* sos) {
   Lib_Log(APP_LIBFST, APP_ALWAYS, "head: "); print_start_of_record(&sos->head);
   char marker[9];
   strncpy(marker, (const char*)sos->sig1, sizeof(marker) - 1);
@@ -3324,4 +3387,15 @@ void print_start_of_segment(start_of_segment* sos) {
          "sig1 %s, sign %x, size (exc) %lu, size (inc) %lu, dir record offset %lu, dir record size %lu\n",
          marker, sos->sign, RSF_32_to_64(sos->seg), RSF_32_to_64(sos->sseg), RSF_32_to_64(sos->vdir),
          RSF_32_to_64(sos->vdirs));
+}
+
+void RSF_print_record(const RSF_record* record) {
+    Lib_Log(APP_LIBFST, APP_ALWAYS,
+            "Record at %p: sor at %p, meta %p, data %p, eor %p\n"
+            "data size %llu, max data %llu, rec size %lld, dir meta %d, rec meta %d, elem size %d\n"
+            "rec type %s, rec class %d\n",
+            record, record->sor, record->meta, record->data, record->eor,
+            record->data_size, record->max_data, record->rsz, record->dir_meta, record->rec_meta, record->elem_size,
+            rt_to_str(record->rec_type), record->rec_class
+        );
 }
