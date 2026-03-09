@@ -208,7 +208,15 @@ typedef struct {
               dul:8;  //!< Data unit length (0/1/2/4/8) (for endianness management)
 } start_of_record ;
 
-#define SOR {RT_DATA, 0, ZR_SOR, {0, 0}, 0, 0, 0}
+#define SOR ((start_of_record){                             \
+        .rt     = RT_DATA,                                  \
+        .rlm    = 0,                                        \
+        .zr     = ZR_SOR,                                   \
+        .rl     = {0, 0},                                   \
+        .rlmd   = 0,                                        \
+        .ubc    = 0,                                        \
+        .dul    = 0,                                        \
+    })
 
 //! Check whether the given start-of-record is valid and is of the specified record type
 //! \return The type stored in the start-of-record if valid, 0 otherwise
@@ -252,7 +260,12 @@ typedef struct {
     uint32_t rt:8, rlm:16, zr:8 ;    //! Record end marker (ZR_EOR), metadata length (32 bit units), record type
 } end_of_record ;
 
-#define EOR {{0, 0}, RT_DATA, 0,ZR_EOR }
+#define EOR ((end_of_record){                   \
+        .rl  = {0, 0},                          \
+        .rt  = RT_DATA,                         \
+        .rlm = 0,                               \
+        .zr  = ZR_EOR,                          \
+    })
 
 //! Retrieve record length from end_of_record and verify whether the type matches what's expected
 //! \return Record length, 0 if invalid
@@ -537,22 +550,40 @@ static inline const char* open_mode_to_str(const int mode) {
 }
 
 //! \{
-//! \name Meta0 content
+//! \name Reserved metadata content
+
+typedef struct {
+    union {
+        struct {
+            uint8_t record_type;    //!< Type of the stored record
+            uint8_t record_class;   //!< Class of the stored record
+            uint8_t version;        //!< Counter of the RSF version
+            uint8_t unused;
+            uint32_t datamap_size;      //!< Size of the record datamap in 32-bit units
+        };
+        uint32_t meta[2];
+    };
+}
+RSF_Reserved;
 
 //! Assemble the Meta0 32-bit element:
 //! | ---- 31-24 ---- | ---- 23-16 ---- | ---- 15-08 ---- | ---- 07-00 ---- |
 //! | - nothing yet - | --- version --- |  record class - | - record type - |
 //! \return The encoded element
-static inline uint32_t make_meta0(
+static inline uint32_t rsf_make_meta0(
     const uint8_t record_class,
     const uint8_t record_type
 ) {
-    const uint32_t meta0 = (RSF_VERSION_COUNT << 16) | (record_class << 8) | (record_type);
-    return meta0;
+    RSF_Reserved r;
+    r.meta[0] = 0;
+    r.record_class = record_class;
+    r.record_type = record_type;
+    r.version = RSF_VERSION_COUNT;
+    return r.meta[0];
 }
 
-//! Extract items from the Meta0 32-bit element. See \ref make_meta0 for structure
-static inline void extract_meta0(
+//! Extract items from the Meta0 32-bit element. See \ref rsf_make_meta0 for structure
+static inline void rsf_extract_meta0(
     const uint32_t meta0,               //!< [in]  Encoded Meta0
     uint8_t * const version,            //!< [out] RSF version
     rsf_rec_class * const record_class, //!< [out]

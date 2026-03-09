@@ -394,7 +394,7 @@ static int64_t RSF_Add_vdir_entry(
     uint8_t version;
     rsf_rec_class rec_class;
     rsf_rec_type rec_type;
-    extract_meta0(meta[0], &version, &rec_class, &rec_type);
+    rsf_extract_meta0(meta[0], &version, &rec_class, &rec_type);
     if (rec_type == RT_DEL) fp->num_deleted_records++;
 
     fp->vdir[fp->vdir_used] = entry;     // enter pointer to entry into vdir array
@@ -510,8 +510,8 @@ static int64_t RSF_Scan_vdir(
         uint8_t mask_version;
         rsf_rec_class mask_class;
         rsf_rec_type mask_type;
-        extract_meta0(mask0, &mask_version, &mask_class, &mask_type);
-        extract_meta0(criteria[0], &crit_version, &crit_class, &crit_type);
+        rsf_extract_meta0(mask0, &mask_version, &mask_class, &mask_type);
+        rsf_extract_meta0(criteria[0], &crit_version, &crit_class, &crit_type);
 
         crit_type &= mask_type;            // low level record type match target
 
@@ -558,7 +558,7 @@ static int64_t RSF_Scan_vdir(
         uint8_t rec_version;
         rsf_rec_class rec_class;
         rsf_rec_type rec_type;
-        extract_meta0(meta[0], &rec_version, &rec_class, &rec_type);
+        rsf_extract_meta0(meta[0], &rec_version, &rec_class, &rec_type);
 
         // the first element of meta, mask, criteria is pre-processed here, and sent to matching function
         reject_a_priori = ((crit_type != 0) && (crit_type != rec_type)) || (rec_type == RT_DEL);    // record type mismatch ?
@@ -709,7 +709,7 @@ static int64_t RSF_Write_vdir(RSF_File * const fp){
     disk_vdir * const vdir = (disk_vdir *) p;
     end_of_record * const eorp = (end_of_record *) (p + dir_rec_size - sizeof(end_of_record));  // point to eor at end of record
 
-    vdir->sor = (start_of_record)SOR;                 // Initialize to default (to avoid uninitialized memory)
+    vdir->sor = SOR;                                  // Initialize to default (to avoid uninitialized memory)
     vdir->sor.rt = RT_VDIR;                           // adjust start of record
     vdir->sor.rlm = 1;                                // indicates variable length metadata
     RSF_64_to_32(vdir->sor.rl, dir_rec_size);         // record length
@@ -1416,7 +1416,7 @@ int64_t RSF_Put_bytes(
     }
 
     if (record != NULL) meta = record->meta;
-    meta[0] = make_meta0(record->rec_class, record->rec_type);
+    meta[0] = rsf_make_meta0(record->rec_class, record->rec_type);
     meta[1] = 0; // Datamap size
 
     if (record != NULL && ((start_of_record *) record->sor)->dul == 0) {
@@ -1548,7 +1548,7 @@ int32_t RSF_Delete_record(
         uint8_t version;
         rsf_rec_class record_class;
         rsf_rec_type record_type;
-        extract_meta0(r.meta[0], &version, &record_class, &record_type);
+        rsf_extract_meta0(r.meta[0], &version, &record_class, &record_type);
         r.sor.rt = RT_DEL;
 
         // print_start_of_record(&r.sor);
@@ -1563,7 +1563,7 @@ int32_t RSF_Delete_record(
 
         // Change the directory on disk
         const uint32_t index = key64_to_index(key);
-        fp->vdir[index]->meta[0] = make_meta0(record_class, RT_DEL);
+        fp->vdir[index]->meta[0] = rsf_make_meta0(record_class, RT_DEL);
         const uint32_t entry_offset = RSF_32_to_64(fp->vdir[index]->entry_offset);
         if (entry_offset > 0) {
             lseek(fp->fd, entry_offset, SEEK_SET);
@@ -1618,7 +1618,7 @@ int32_t RSF_Rewrite_record_meta(
     uint8_t version;
     rsf_rec_class record_class;
     rsf_rec_type record_type;
-    extract_meta0(info.meta[0], &version, &record_class, &record_type);
+    rsf_extract_meta0(info.meta[0], &version, &record_class, &record_type);
 
     const uint8_t num_reserved = num_rsf_reserved[version];
     const size_t num_changed_bytes = num_meta_bytes - num_reserved * sizeof(uint32_t);
@@ -1961,7 +1961,7 @@ RSF_record_info RSF_Get_record_info_by_index(
     uint8_t version;
     rsf_rec_class record_class;
     rsf_rec_type record_type;
-    extract_meta0(fp->vdir[index]->meta[0], &version, &record_class, &record_type);
+    rsf_extract_meta0(fp->vdir[index]->meta[0], &version, &record_class, &record_type);
 
     if (record_type == RT_DEL) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Trying to get a deleted record (index %d)\n", __func__, index);
@@ -3116,7 +3116,7 @@ void RSF_Dump(char *name, int verbose){
         nc = read(fd, data, read_len);               // read metadata part
         lseek(fd, datalen - nc, SEEK_CUR);           // skip rest of record
         ndata = datalen/sizeof(int32_t) - sor.rlm;
-        extract_meta0(data[0], &version, &rec_class, &rec_type);
+        rsf_extract_meta0(data[0], &version, &rec_class, &rec_type);
         fprintf(stderr,"  %s %2d %2x %6d*%d, %2d [", buffer, version, rec_class, ndata, sor.dul, sor.rlm);
         num_meta = sor.rlm <= max_num_meta ? sor.rlm : max_num_meta - 1;
         const int first = version == 0 ? RSF_META_RESERVED_V0 : RSF_META_RESERVED;
@@ -3252,7 +3252,7 @@ void RSF_Dump(char *name, int verbose){
           rl = RSF_32_to_64(ventry->rl);
           const uint32_t entry_offset = RSF_32_to_64(ventry->entry_offset);
           meta = &(ventry->meta[0]);
-          extract_meta0(meta[0], &version, &rec_class, &rec_type);
+          rsf_extract_meta0(meta[0], &version, &rec_class, &rec_type);
           fprintf(stderr," [%6d] %s [%s] %s %1d %5d %5d %s",
                   i, truncated_hex(buf1, wa, 9), truncated_hex(buf2, wa+l_offset, 9),
                   truncated_hex(buf3, entry_offset, 9), ventry->dul, mlr, ml,readable_size(buf4, rl, 6));

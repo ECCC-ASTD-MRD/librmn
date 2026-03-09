@@ -559,19 +559,17 @@ search_metadata* make_search_metadata(
 
 
     // RSF reserved metadata
-    for (int i = 0; i < RSF_META_RESERVED; i++) {
-        meta->rsf_reserved[i] = 0;
-    }
+    memset(&meta->rsf_reserved, 0, sizeof(RSF_Reserved));
     
     // FST reserved metadata
-    meta->fst24_reserved[0] = fst24_reserved_0(record->do_not_touch.extended_meta_size);
+    meta->fst24_reserved = make_fst24_reserved(record->do_not_touch.extended_meta_size);
 
     // fst98 metadata 
     {
-        (void)stdf_entry->deleted; // Reserved by RSF. Don't write anything here!
-        (void)stdf_entry->select;  // Reserved by RSF. Don't write anything here!
-        (void)stdf_entry->lng;     // Reserved by RSF. Don't write anything here!
-        (void)stdf_entry->addr;    // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->deleted; // Reserved by RSF/FST. Don't write anything here!
+        (void)stdf_entry->select;  // Reserved by RSF/FST. Don't write anything here!
+        (void)stdf_entry->lng;     // Reserved by RSF/FST. Don't write anything here!
+        (void)stdf_entry->addr;    // Reserved by RSF/FST. Don't write anything here!
 
         stdf_entry->deet = record->deet;
         stdf_entry->nbits = record->pack_bits;
