@@ -1,6 +1,7 @@
-#include <stdlib.h>
+#include <errno.h>
 #include <float.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include <pthread.h>
 
@@ -558,19 +559,17 @@ search_metadata* make_search_metadata(
 
 
     // RSF reserved metadata
-    for (int i = 0; i < RSF_META_RESERVED; i++) {
-        meta->rsf_reserved[i] = 0;
-    }
+    memset(&meta->rsf_reserved, 0, sizeof(RSF_Reserved));
     
     // FST reserved metadata
-    meta->fst24_reserved[0] = fst24_reserved_0(record->do_not_touch.extended_meta_size);
+    meta->fst24_reserved = make_fst24_reserved(record->do_not_touch.extended_meta_size);
 
     // fst98 metadata 
     {
-        (void)stdf_entry->deleted; // Reserved by RSF. Don't write anything here!
-        (void)stdf_entry->select;  // Reserved by RSF. Don't write anything here!
-        (void)stdf_entry->lng;     // Reserved by RSF. Don't write anything here!
-        (void)stdf_entry->addr;    // Reserved by RSF. Don't write anything here!
+        (void)stdf_entry->deleted; // Reserved by RSF/FST. Don't write anything here!
+        (void)stdf_entry->select;  // Reserved by RSF/FST. Don't write anything here!
+        (void)stdf_entry->lng;     // Reserved by RSF/FST. Don't write anything here!
+        (void)stdf_entry->addr;    // Reserved by RSF/FST. Don't write anything here!
 
         stdf_entry->deet = record->deet;
         stdf_entry->nbits = record->pack_bits;
@@ -1933,6 +1932,52 @@ int32_t fst24_find_count(
     return count;
 }
 
+//! Decode the given raw data pointer as if it were the content of an RSF record.
+//! This function reserves the right to modify the input data if needed (swap endianness)
+//! \return A properly initialized fst_record object. If we were successful in decoding the data, the record `data`
+//!         pointer will be valid; if we were not successful, the `data` pointer will be NULL.
+fst_record fst24_decode_data_rsf(
+    //!> [in] Input data to be extracted
+    void* data,
+    //!> [in,out] [Optional] If non-NULL, must point to a sufficiently large space to hold the entire extracted data
+    void* dest_data
+) {
+
+    // First interpret the RSF record
+    RSF_record rsf_rec = RSF_as_record(data);
+    if (rsf_rec.data == NULL) return default_fst_record; // Error trying to interpret the data as an RSF record
+
+
+    // Extract metadata
+    fst_record rec = default_fst_record;
+    const search_metadata* meta = (const search_metadata*)rsf_rec.meta;
+    fill_with_search_meta(&rec, meta, FST_RSF);
+
+    // Allocate space if needed
+    void* dest = dest_data;
+    if (dest == NULL) {
+        rec.do_not_touch.alloc = fst24_record_data_size(&rec);
+        dest = malloc(rec.do_not_touch.alloc);
+        if (dest == NULL) {
+            Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to allocate memory for unpacking record data\n", __func__);
+            return rec;
+        }
+    }
+
+    // Extract metadata from record if present
+    if (rec.do_not_touch.extended_meta_size > 0) {
+        // Located after the search keys
+        rec.metadata = Meta_Parse((char*)((uint32_t*)rsf_rec.meta + rec.do_not_touch.num_search_keys));
+    }
+
+    // Unpack the data
+    const int32_t status = fst24_unpack_data(dest, rsf_rec.data, &rec, 0, 1, rec.data_bits);
+
+    // Indicate success
+    if (status == 0) rec.data = dest;
+
+    return rec;
+}
 
 //! Unpack the given data array, according to the given record information.
 //! \return 0 on success, negative if error.
@@ -2759,4 +2804,43 @@ void print_non_default_options(const fst_query_options* const options) {
     if (ptr == buffer) sprintf(ptr, "[none]");
 
     Lib_Log(APP_LIBFST, APP_ALWAYS, "options: %s\n", buffer);
+}
+
+//! Read a segment of a file, without reading anything else from that file.
+//! For best results, this function should only be called with the offset and size given by an `fst_record` from that
+//! same, previously-opened file.
+//! *There could have been some changes to the file between the time the offset/size were determined and the time it
+//! is read by this function. For example, in an XDF file, the record could have been overwritten. In an RSF file, it
+//! could have been marked as deleted. Neither change will prevent reading the record by this function.*
+int32_t fst24_read_raw_record(
+    const char* const filename, //!< [in] Name of the file where the record is stored
+    const size_t offset,        //!< [in] Offset of the record in the file
+    const size_t num_bytes,     //!< [in] Number of bytes to read (this must correspond to the size of the record)
+    void* const dest            //!< [in,out] Pointer to an already-allocated space where to put the data
+) {
+    // Open the file
+    const int fd = open(filename, O_RDONLY);
+    if (fd < 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to open file %s: %s\n", __func__, filename, strerror(errno));
+        return -1;
+    }
+
+    // Read + close the file
+    lseek(fd, offset, SEEK_SET);
+    const ssize_t num_read = read(fd, dest, num_bytes);
+    close(fd);
+
+    // Check if succeeded
+    if (num_read == num_bytes) return TRUE;
+
+    // Did not read full record
+    if (num_read >= 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Did not read full record from %s -> only %lld bytes\n",
+                __func__, filename, num_read);
+        }
+    else {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error while reading record from %s: %s\n",
+                __func__, filename, strerror(errno));
+    }
+    return -1;
 }

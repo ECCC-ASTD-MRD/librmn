@@ -1276,6 +1276,30 @@ int32_t fst24_eof(const fst_file* const file);
 int32_t fst24_force_close(
     const char* filename //!< Name of the file whose flag needs resetting. Must be a valid RPN Standard file
 );
+
+//! Read a segment of a file, without reading anything else from that file.
+//! For best results, this function should only be called with the offset and size given by an `fst_record` from that
+//! same, previously-opened file.
+//! *There could have been some changes to the file between the time the offset/size were determined and the time it
+//! is read by this function. For example, in an XDF file, the record could have been overwritten. In an RSF file, it
+//! could have been marked as deleted. Neither change will prevent reading the record by this function.*
+int32_t fst24_read_raw_record(
+    const char* const filename, //!< [in] Name of the file where the record is stored
+    const size_t offset,        //!< [in] Offset of the record in the file
+    const size_t num_bytes,     //!< [in] Number of bytes to read (this must correspond to the size of the record)
+    void* const dest            //!< [in,out] Pointer to an already-allocated space where to put the data
+);
+
+//! Decode the given raw data pointer as if it were the content of an RSF record.
+//! This function reserves the right to modify the input data if needed (swap endianness)
+//! \return A properly initialized fst_record object. If we were successful in decoding the data, the record `data`
+//!         pointer will be valid; if we were not successful, the `data` pointer will be NULL.
+fst_record fst24_decode_data_rsf(
+    //!> [in] Input data to be extracted
+    void* data,
+    //!> [in,out] [Optional] If non-NULL, must point to a sufficiently large space to hold the entire extracted data
+    void* dest_data
+);
 ```
 
 ### Query Functions

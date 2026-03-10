@@ -10,15 +10,16 @@
 typedef struct fst24_file_ fst_file; // Forward declare
 typedef struct fst_query_ fst_query; // Forward declare
 
-typedef struct {
+typedef struct
+{
     //!> Several encodings can represent the same floating point value stored in an IP. When setting ip1_all
     //!> (and ip2_all, and ip3_all), we indicate that we want to match with any encoding that result in the same
     //!> encoded value in the given criterion. If not set, we will only match with the specific encoding given.
     int32_t ip1_all;
-    int32_t ip2_all; //!< When trying to match a certain IP2, match all encodings that result in the same encoded value
-    int32_t ip3_all; //!< When trying to match a certain IP3, match all encodings that result in the same encoded value
-    int32_t stamp_norun; //!< Datestamp contains a run in the first 3 bits that must not be checked (used in older files)
-    int32_t skip_filter; //!< A filter can be specified with the "excdes" mechanism. Enabling this option disables the filter this query.
+    int32_t ip2_all;               //!< When trying to match a certain IP2, match all encodings that result in the same encoded value
+    int32_t ip3_all;               //!< When trying to match a certain IP3, match all encodings that result in the same encoded value
+    int32_t stamp_norun;           //!< Datestamp contains a run in the first 3 bits that must not be checked (used in older files)
+    int32_t skip_filter;           //!< A filter can be specified with the "excdes" mechanism. Enabling this option disables the filter this query.
     int32_t skip_grid_descriptors; //!< When searching, ignore grid descriptor records
 } fst_query_options;
 
@@ -63,6 +64,10 @@ int32_t   fst24_unlink(fst_file* const file);
 int32_t   fst24_print_summary(fst_file* const file, const fst_record_fields* const fields);
 int32_t   fst24_flush(const fst_file* const file);
 int32_t   fst24_force_close(const char* filename);
+int32_t   fst24_read_raw_record(const char *const filename, const size_t offset, const size_t num_bytes,
+                                void *const dest);
+
+fst_record fst24_decode_data_rsf(void* data, void* dest);
 //! @}
 
 #endif // RMN_FST_FILE_H__

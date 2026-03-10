@@ -247,5 +247,6 @@ int32_t RSF_Basic_check(const char* filename) ;
 int64_t RSF_Checkpoint(RSF_handle h) ;
 int32_t RSF_Reset_write_flag(const int32_t file_descriptor, const int full_reset) ;
 
+void RSF_print_record(const RSF_record* record);
 
 #endif // RMN_RSF_H__
