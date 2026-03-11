@@ -17,11 +17,11 @@ include:
      file: '/ci/.gitlab-ci-config.yml'
 
 # Add needed mpi flag for the tests in this project
-test:rhel-8-amd64_gnu-14.2.0:
+test:rhel-9-amd64_gnu-11.4.1:
    variables:
       ORD_SOUMET_MPI : mpi
 
-test:rhel-8-amd64_gnu-15.1.0:
+test:rhel-9-amd64_gnu-15.2.0:
    variables:
       ORD_SOUMET_MPI : mpi
 
