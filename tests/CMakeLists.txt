@@ -8,6 +8,22 @@ if (EC_INIT_DONE LESS 2)
    if(BUILD_TESTING)
         message(STATUS "(EC) Generating librmn tests")
 
+        # Check MPI implementation to be able to give the proper flags when running tests
+        find_program(RPN_MPIRUN mpirun)
+        if (${RPN_MPIRUN} STREQUAL "RPN_MPIRUN-NOTFOUND")
+            message(FATAL_ERROR "mpirun not found. Won't be able to configure the version.")
+        else()
+            execute_process(
+                COMMAND ${RPN_MPIRUN} --version 2>&1
+                COMMAND grep -E -o "Open MPI"
+                OUTPUT_VARIABLE MPI_IMPLEMENTATION
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+            if ("x${MPI_IMPLEMENTATION}" STREQUAL "xOpen MPI")
+                set(OVERSUBSCRIBE_FLAG -oversubscribe)
+                set(BIND_FLAG -bind-to none)
+            endif()
+        endif()
+
         # Helper module
         add_library(test_helper STATIC EXCLUDE_FROM_ALL rmn_test_helper.F90 fst/generate_fstd_module.F90)
         target_link_libraries(test_helper rmn::rmn)
@@ -165,7 +181,9 @@ if (EC_INIT_DONE LESS 2)
 
             add_executable(multi_open EXCLUDE_FROM_ALL fst/multi_open.c)
             target_link_libraries(multi_open rmn::rmn-ompi)
-            add_test(NAME multi_open COMMAND ${MPIEXEC_EXECUTABLE} --bind-to none $<TARGET_FILE:multi_open>)
+            add_test(
+                NAME multi_open
+                COMMAND ${MPIEXEC_EXECUTABLE} ${BIND_FLAG} ${MPIEXEC_NUMPROC_FLAG} 4 ${OVERSUBSCRIBE_FLAG} $<TARGET_FILE:multi_open>)
             add_dependencies(test_execs multi_open)
         endif()
 
