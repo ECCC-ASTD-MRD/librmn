@@ -715,24 +715,20 @@ void fill_with_search_meta(
     const stdf_dir_keys* fst98_meta = &(meta->fst98_meta); // Default for XDF
 
     if (type != FST_XDF) {
-        uint8_t rsf_version;
-        rsf_rec_class dummy_rc;
-        rsf_rec_type dummy_rt;
-        extract_meta0(meta->rsf_reserved[0], &rsf_version, &dummy_rc, &dummy_rt);
+        uint8_t rsf_version = meta->rsf_reserved.version;
 
-        uint32_t reserved0 = meta->fst24_reserved[0];
+        fst24_reserved_t reserved = meta->fst24_reserved;
 
         if (rsf_version == 0) {
             // RSF version 0 record structure (FST version can only be 0, in that case)
             search_metadata_version_0_0* meta_old = (search_metadata_version_0_0*)meta;
-            reserved0 = meta_old->fst24_reserved[0];
+            reserved.meta[0] = meta_old->fst24_reserved[0];
             fst98_meta = &(meta_old->fst98_meta);
         }
 
-        decode_fst24_reserved_0(reserved0,
-                                &record->do_not_touch.fst_version,
-                                &record->do_not_touch.num_search_keys,
-                                &record->do_not_touch.extended_meta_size);
+        record->do_not_touch.fst_version = reserved.version;
+        record->do_not_touch.num_search_keys = reserved.num_keys;
+        record->do_not_touch.extended_meta_size = reserved.extended_meta_size;
     }
 
     if (record->do_not_touch.fst_version > FST24_VERSION_COUNT) {

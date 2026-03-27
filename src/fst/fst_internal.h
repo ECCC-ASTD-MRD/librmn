@@ -7,6 +7,7 @@
 #include "qstdir.h"
 #include "rmn/fst24_file.h"
 #include "rmn/fst24_record.h"
+#include "rsf_internal.h"
 
 //! Number of 32-bit elements in the search metadata that are reserved for
 //! the fst24 implementation. See \ref search_metadata
@@ -14,18 +15,30 @@
 //! In VERSION 1: 1 reserved spot  (the other one was transferred to the RSF layer)
 #define FST_META_RESERVED 1
 
+//! A set of reserved 32-bit words at the start of FST record metadata
+typedef struct {
+    union {
+        struct {
+            uint16_t extended_meta_size; //!< Size of extended metadata in 32-bit elements
+            uint8_t  num_keys; //!< Total number of keys in the metadata (including all reserved slots)
+            uint8_t  version; //!< FST version number
+        };
+        uint32_t meta[1];
+    };
+} fst24_reserved_t;
+
 //! Object that encodes the criteria for a search into an FST file
 //! It is meant to be compatible with both RSF and XDF files, and to remain backward-compatible
 //! when the criteria change (they can only be added)
-//! Reserved 0: Contains version, number of search keys, size of extended metadata (see \ref fst24_reserved_0)
+//! Reserved 0 (FST): Contains version, number of search keys, size of extended metadata (see \ref fst24_reserved_t)
 //! The metadata structure for an FST record is as follows:
 //! - Search (directory) metadata, including fst24 reserved keys and RSF reserved keys
 //! - Extended (JSON) metadata
 typedef struct {
     union {
         struct {
-            uint32_t rsf_reserved[RSF_META_RESERVED];       //!< Reserved for RSF backend usage
-            uint32_t fst24_reserved[FST_META_RESERVED];   //!< Reserved RSF fst24 interface
+            RSF_Reserved rsf_reserved;
+            fst24_reserved_t fst24_reserved;
         };
 
         // Elements that are inherited from the fst98 interface
@@ -50,7 +63,7 @@ typedef struct {
     #define tmp_FST_RESERVED_0 2
     union {
         struct {
-            uint32_t rsf_reserved[tmp_RSF_RESERVED_0];
+            uint32_t rsf_reserved_uint[tmp_RSF_RESERVED_0];
             uint32_t fst24_reserved[tmp_FST_RESERVED_0];
         };
         struct {
@@ -64,25 +77,15 @@ typedef struct {
 
 //! The first reserved 32-bit word contains the version, number of search keys (32-bit elements)
 //! and size of extended metadata in 32-bit elements
+//! (layout on little-endian architecture)
 //! |    31 - 24     |    23 - 16     |            15 - 0              |
 //! | -- version --- | -- num keys -- | --- num ext meta elements ---- |
-static inline uint32_t fst24_reserved_0(const uint16_t extended_meta_size) {
-    const uint8_t version = FST24_VERSION_COUNT;
-    return version << 24 |
-           ((sizeof(search_metadata) / sizeof(uint32_t)) << 16) |
-           extended_meta_size;
-}
-
-//! See \ref fst24_reserved_0 for description of reserved entry 0
-static inline void decode_fst24_reserved_0(
-    const uint32_t reserved_0,
-    uint8_t* fst24_version_count,   //!< [out] Version count of the library that stored the record
-    uint8_t* num_criteria,          //!< [out] Number of search criteria (32-bit keys)
-    uint16_t* ext_meta_size         //!< [out] Size of extended metadata in 32-bit units
-) {
-    *fst24_version_count = (reserved_0 & 0xff000000) >> 24;  // Left-most byte
-    *num_criteria = (reserved_0 & 0x00ff0000) >> 16;         // Second byte
-    *ext_meta_size = (reserved_0 & 0x0000ffff);              // Third + fourth bytes
+static inline fst24_reserved_t make_fst24_reserved(const uint16_t extended_meta_size) {
+    fst24_reserved_t r;
+    r.version = FST24_VERSION_COUNT;
+    r.num_keys = sizeof(search_metadata) / sizeof(uint32_t);
+    r.extended_meta_size = extended_meta_size;
+    return r;
 }
 
 //! Object used to describe a search query into a standard file.

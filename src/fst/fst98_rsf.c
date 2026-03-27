@@ -1054,15 +1054,11 @@ int c_fst_edit_dir_plus_rsf(
     }
 
     const search_metadata* meta = (const search_metadata*) record_info.meta;
-    uint8_t fst24_version_count;
-    uint8_t num_criteria;
-    uint16_t ext_meta_size;
-    decode_fst24_reserved_0(meta->fst24_reserved[0], &fst24_version_count, &num_criteria, &ext_meta_size);
 
-    if (fst24_version_count != FST24_VERSION_COUNT) {
+    if (meta->fst24_reserved.version != FST24_VERSION_COUNT) {
         Lib_Log(APP_LIBFST, APP_ERROR,
                 "%s: Record was written with FST version %d, but this library can only write records for version %d\n",
-                __func__, fst24_version_count, FST24_VERSION_COUNT);
+                __func__, meta->fst24_reserved.version, FST24_VERSION_COUNT);
         return ERR_STDF_VERSION;
     }
 
