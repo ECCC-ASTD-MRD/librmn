@@ -1028,7 +1028,7 @@ subroutine inzono3(poids, rang, theta, ndeltat, deltat, mode, dznsrf, surfac, &
     end do
 
     iecr = fstecr_s(trim( chaine ), wk, -8 , iun, dateo, deet, npas, nic, njc, nkc, ip1, ip2, ip3, &
-        typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp, rewrit, len_trim(chaine))
+        typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp, rewrit)
     if (iecr .lt. 0) then
         if (lun_out .gt. 0) write(lun_out, 6004) iecr
         nil = exfin('InZono3', 'Erreur 4', 'NON')

@@ -752,7 +752,7 @@ contains
     character(len=12) :: eti
     status = 1
     ninjnk = max(1,ni) * max(1,nj) * max(1,nk)
-    if (ninjnk > lngstr) return
+    if (ninjnk > len(field)) return
     nom = nomvar
     typ = typvar
     gty = grtyp
@@ -762,16 +762,6 @@ contains
                 ig1, ig2, ig3, ig4, datyp, rewrite)
   end procedure
 
-  module procedure fstecr_str
-    implicit none
-    integer ninjnk
-    ninjnk = max(1,ni) * max(1,nj) * max(1,nk)
-    status = 1
-    if (ninjnk > len(string)) return
-    status = fstecr_s(string, work, npak, iun, date, deet, npas, ni, nj, nk, &
-                      ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
-                      ig1, ig2, ig3, ig4, datyp, rewrite, len(string))
-  end procedure
 
 ! /***************************************************************************** 
 !  *                             F S T E F F                                   *
