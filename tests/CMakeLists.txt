@@ -55,6 +55,7 @@ if (EC_INIT_DONE LESS 2)
             get_target_property(LIBRARY_DIR ${TEST_TARGET} BINARY_DIR)
             set_target_properties(${TEST_TARGET} PROPERTIES Fortran_MODULE_DIRECTORY ${LIBRARY_DIR}/mod)
             target_include_directories(${TEST_TARGET} INTERFACE ${LIBRARY_DIR}/mod)
+            target_include_directories(${TEST_TARGET} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
             # target_compile_definitions(${TEST_TARGET} PRIVATE _POSIX_C_SOURCE=199309L)
 
             # Includes
