@@ -658,12 +658,11 @@ contains
     !> Checkpoint read or write for all known types
     integer function gmm_checkpoint_all(read_or_write)
         use app
+        use rmn_fnom
         implicit none
 
         logical :: read_or_write
         integer :: code, istat, ier
-
-#include <rmn/fnom.hf>
 
         external :: qqexit
 

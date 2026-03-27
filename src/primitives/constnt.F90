@@ -50,6 +50,7 @@ end subroutine dummy_do_nothing_routine
 subroutine constnt_x(valeur, flag, nom, mode0, bcast_mpi, datatype, root, comm, ierror)
     use, intrinsic :: iso_fortran_env, only : real64
     use app
+    use rmn_fnom
     implicit none
 
     !> Valeur de la constante demandée, ajoutée ou modifiée
@@ -96,7 +97,6 @@ subroutine constnt_x(valeur, flag, nom, mode0, bcast_mpi, datatype, root, comm, 
 
     external bcast_mpi
     integer mode
-#include <rmn/fnom.hf>
 
 !NOTE
 !     SI ON AJOUTE UNE CONSTANTE (MODE=2), NE PAS OUBLIER DE

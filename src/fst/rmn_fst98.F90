@@ -13,6 +13,7 @@
 module rmn_fst98
     use rmn_fst_common
     use rmn_libc, only: c_memset
+    use rmn_fnom
     implicit none
 #define C_INTERFACE_ONLY
 #include "fst98_interface.hf"

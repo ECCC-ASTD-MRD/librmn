@@ -29,12 +29,12 @@ contains
   end function
 
   module function fstouv_auto(name, iun, options) result (status) ! calls fnom and fstouv
+    use rmn_fnom
     implicit none
     integer(C_INT), intent(OUT) :: iun
     character(len=*), intent(IN) :: name
     character(len=*), intent(IN), optional :: options
     integer(C_INT) :: status
-    integer, external :: fnom
 
     iun = 0
     if(present(options)) then

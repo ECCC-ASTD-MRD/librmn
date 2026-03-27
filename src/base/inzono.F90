@@ -100,8 +100,6 @@ subroutine inzono(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     integer :: ifrm, iecr, inbr, ierr, nil, exfin
     external exfin, qqexit, strgr4a
 
-#include <rmn/fnom.hf>
-
     character(len = 1) :: typvar
     character(len = 4) :: etivar
     character(len = 2) :: nomvar
@@ -480,8 +478,6 @@ subroutine inzono2(poids, rang, theta, ndeltat, deltat, mode, dznsrf, zsurfac, &
     ! Declaration des fonctions fstxxx et de leurs parametres.
     integer :: ifrm, iecr, inbr, ierr, nil, exfin
     external exfin, qqexit, strgr4a
-
-#include <rmn/fnom.hf>
 
     character(len = 1) :: typvar
     character(len = 4) :: etivar
@@ -872,8 +868,6 @@ subroutine inzono3(poids, rang, theta, ndeltat, deltat, mode, dznsrf, surfac, &
     ! Declaration des fonctions fstxxx et de leurs parametres.
     integer :: ifrm, iecr, inbr, ierr, nil, exfin
     external exfin, qqexit
-
-#include <rmn/fnom.hf>
 
     character(len = 1) :: typvar
     character(len = 4) :: nomvar

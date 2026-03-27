@@ -205,9 +205,9 @@ end
 ! Read gribtable
 integer function qqqgbld()
     use igaxg95_helper
+    use rmn_fnom
     implicit none
 
-#include <rmn/fnom.hf>
     character(len = 256) :: filename, armnlib
     character(len = 512) :: buffer
     integer ier, strlen, iun
