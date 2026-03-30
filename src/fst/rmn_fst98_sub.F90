@@ -743,7 +743,7 @@ contains
 !  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
 !  *                                                                           * 
 !  *****************************************************************************/
-  module procedure fstecr_s
+  module procedure fstecr_si
     implicit none
     integer ninjnk
     character(len=4)  :: nom
@@ -760,6 +760,15 @@ contains
     status = fstecr(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                 ip1, ip2, ip3, f_c_string(typ), f_c_string(nom), f_c_string(eti), f_c_string(gty),  &
                 ig1, ig2, ig3, ig4, datyp, rewrite)
+  end procedure
+
+  module procedure fstecr_sl
+    implicit none
+    integer :: rewrite_i
+    rewrite_i = FST_NO
+    if (rewrite) rewrite_i = FST_YES
+    status = fstecr_si(field, work, npak, iun, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,           &
+                       typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp, rewrite_i)
   end procedure
 
 
