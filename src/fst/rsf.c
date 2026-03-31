@@ -2179,7 +2179,7 @@ RSF_record *RSF_Get_record(
 RSF_record RSF_as_record(
     //!> [in] Pointer to data that should be interpreted as an RSF record. 
     //!>          Bytes might be swapped if endianness is different.
-    const void* const addr
+    void* const addr
 ) {
     RSF_record rec;
     memset(&rec, 0, sizeof(rec));

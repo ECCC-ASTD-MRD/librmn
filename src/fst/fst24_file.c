@@ -2010,8 +2010,8 @@ fst_record fst24_decode_data_xdf(
 //! \return A properly initialized fst_record object. If we were successful in decoding the data, the record `data`
 //!         pointer will be valid; if we were not successful, the `data` pointer will be NULL.
 fst_record fst24_decode_data_rsf(
-    //!> [in] Input data to be extracted
-    const void* data,
+    //!> [in] Input data to be extracted (it will not be modified)
+    void* data,
     //!> [in,out] [Optional] If non-NULL, must point to a sufficiently large space to hold the entire extracted data
     void* dest_data
 ) {
