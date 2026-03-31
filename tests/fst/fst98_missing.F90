@@ -178,8 +178,6 @@ contains
 #define CHECK_STATUS(cmd) s=cmd;s=vs(s,__LINE__)
 #define CHK(cmd) st=cmd;s=vs(st,__LINE__)
 
-    integer, external :: fnom
-
     integer :: status, st, i, s
     integer, parameter :: ASIZE=16             ! ASIZE should be kept even because of complex tests
     integer, dimension(ASIZE) :: work

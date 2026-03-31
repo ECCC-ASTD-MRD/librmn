@@ -1944,6 +1944,7 @@ END
 SUBROUTINE readlx(UNIT, KEND, KERR)
     use app
     use rmn_common
+    use rmn_fnom
     use readlx_qlxbuff
     use readlx_qlxfmt
     use qlx_token, only: typ, token, inexpr, zval
@@ -1963,7 +1964,6 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
     EXTERNAL :: qlxinx, qlx_bak, qlx_err, qlx_tok, qlx_fnd, qlx_asg, qlx_call, qlx_xpr, qlx_flsh
     external :: get_value_at_address, set_value_at_address
 
-#include <rmn/fnom.hf>
     integer(kind = int64) :: LOCCNT, LOCVAR
     Integer IICNT
     INTEGER LIMITS, ITYP

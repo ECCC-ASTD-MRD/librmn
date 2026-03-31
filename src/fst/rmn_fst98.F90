@@ -13,6 +13,7 @@
 module rmn_fst98
     use rmn_fst_common
     use rmn_libc, only: c_memset
+    use rmn_fnom
     implicit none
 #define C_INTERFACE_ONLY
 #include "fst98_interface.hf"
@@ -112,6 +113,72 @@ module rmn_fst98
             integer(C_INT) :: status
         end function fstecr_l
     end interface ! fstecr
+
+    interface fstecr_s
+        ! /*****************************************************************************
+        !  *                              F S T E C R _ S                              *
+        !  *                                                                           *
+        !  *Object                                                                     *
+        !  *   Writes record to file.                                                  *
+        !  *                                                                           *
+        !  *Arguments                                                                  *
+        !  *                                                                           *
+        !  *  IN  string  character string to write to the file                        *
+        !  *  IN  work    work field (kept for backward compatibility)                 *
+        !  *  IN  npak    number of bits kept for the elements of the field (-npak)    *
+        !  *  IN  iun     unit number associated to the file                           *
+        !  *  IN  date    date time stamp                                              *
+        !  *  IN  deet    length of a time step in seconds                             *
+        !  *  IN  npas    time step number                                             *
+        !  *  IN  ni      first dimension of the data field                            *
+        !  *  IN  nj      second dimension of the data field                           *
+        !  *  IN  nk      third dimension of the data field                            *
+        !  *  IN  ip1     vertical level                                               *
+        !  *  IN  ip2     forecast hour                                                *
+        !  *  IN  ip3     user defined identifier                                      *
+        !  *  IN  typvar  type of field (forecast, analysis, climatology)              *
+        !  *  IN  nomvar  variable name                                                *
+        !  *  IN  etiket  label                                                        *
+        !  *  IN  grtyp   type of geographical projection                              *
+        !  *  IN  ig1     first grid descriptor                                        *
+        !  *  IN  ig2     second grid descriptor                                       *
+        !  *  IN  ig3     third grid descriptor                                        *
+        !  *  IN  ig4     fourth grid descriptor                                       *
+        !  *  IN  datyp   data type of the elements                                    *
+        !  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
+        !  *                                                                           *
+        !  *****************************************************************************/
+        module function fstecr_si(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                            ip1, ip2, ip3, typvar, nomvar, etiket, &
+                            grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
+            implicit none
+            character(len=*), intent(IN) :: field
+#define IgnoreTypeKindRank work
+#define ExtraAttributes
+#include <rmn/IgnoreTypeKindRank.hf>
+            integer(C_INT), intent(IN) :: iun
+            integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
+            integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
+            character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+            integer(C_INT) :: status
+        end function fstecr_si
+
+        module function fstecr_sl(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+                            ip1, ip2, ip3, typvar, nomvar, etiket, &
+                            grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
+            implicit none
+            character(len=*), intent(IN) :: field
+#define IgnoreTypeKindRank work
+#define ExtraAttributes
+#include <rmn/IgnoreTypeKindRank.hf>
+            integer(C_INT), intent(IN) :: iun
+            integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp
+            integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
+            character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+            logical, intent(in) :: rewrite
+            integer(C_INT) :: status
+        end function fstecr_sl
+    end interface ! fstecr_s
 
     interface
         module function fstfrm(iun) result (status)
@@ -722,67 +789,6 @@ module rmn_fst98
             integer(C_INT) :: status
         end function fstecr_b
 
-        ! /*****************************************************************************
-        !  *                              F S T E C R _ S                              *
-        !  *                                                                           *
-        !  *Object                                                                     *
-        !  *   Writes record to file.                                                  *
-        !  *                                                                           *
-        !  *Arguments                                                                  *
-        !  *                                                                           *
-        !  *  IN  string  character string to write to the file                        *
-        !  *  IN  work    work field (kept for backward compatibility)                 *
-        !  *  IN  npak    number of bits kept for the elements of the field (-npak)    *
-        !  *  IN  iun     unit number associated to the file                           *
-        !  *  IN  date    date time stamp                                              *
-        !  *  IN  deet    length of a time step in seconds                             *
-        !  *  IN  npas    time step number                                             *
-        !  *  IN  ni      first dimension of the data field                            *
-        !  *  IN  nj      second dimension of the data field                           *
-        !  *  IN  nk      third dimension of the data field                            *
-        !  *  IN  ip1     vertical level                                               *
-        !  *  IN  ip2     forecast hour                                                *
-        !  *  IN  ip3     user defined identifier                                      *
-        !  *  IN  typvar  type of field (forecast, analysis, climatology)              *
-        !  *  IN  nomvar  variable name                                                *
-        !  *  IN  etiket  label                                                        *
-        !  *  IN  grtyp   type of geographical projection                              *
-        !  *  IN  ig1     first grid descriptor                                        *
-        !  *  IN  ig2     second grid descriptor                                       *
-        !  *  IN  ig3     third grid descriptor                                        *
-        !  *  IN  ig4     fourth grid descriptor                                       *
-        !  *  IN  datyp   data type of the elements                                    *
-        !  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
-        !  *                                                                           *
-        !  *****************************************************************************/
-        module function fstecr_s(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
-                            ip1, ip2, ip3, typvar, nomvar, etiket, &
-                            grtyp, ig1, ig2, ig3, ig4, datyp, rewrite, lngstr) result(status)
-            implicit none
-#define IgnoreTypeKindRank field, work
-#define ExtraAttributes
-#include <rmn/IgnoreTypeKindRank.hf>
-            integer(C_INT), intent(IN) :: iun
-            integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
-            integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4, lngstr
-            character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-            integer(C_INT) :: status
-        end function fstecr_s
-
-        module function fstecr_str(string, work, npak, iun, date, deet, npas, ni, nj, nk, &
-                            ip1, ip2, ip3, typvar, nomvar, etiket, &
-                            grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
-            implicit none
-            character(len=*), intent(IN) :: string
-#define IgnoreTypeKindRank work
-#define ExtraAttributes
-#include <rmn/IgnoreTypeKindRank.hf>
-            integer(C_INT), intent(IN) :: iun
-            integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
-            integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
-            character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-            integer(C_INT) :: status
-        end function fstecr_str
 
         ! /*****************************************************************************
         !  *                             F S T E F F                                   *
@@ -1171,18 +1177,20 @@ end function fstecr
 
 function fstecr_s(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                   ip1, ip2, ip3, typvar, nomvar, etiket, &
-                  grtyp, ig1, ig2, ig3, ig4, datyp, rewrite, lngstr) result(status)
-    use rmn_fst98, only: fstecr_mod => fstecr_s
+                  grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
+    use rmn_fst98, only: fstecr_mod => fstecr_sl
     use iso_c_binding
     implicit none
-    integer(C_INT), dimension(*), intent(in) :: field, work
+    character(len=*), intent(in) :: field
+    integer(C_INT), dimension(*), intent(in) :: work
     integer(C_INT), intent(IN) :: iun
-    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
-    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4, lngstr
+    integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp
+    integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
+    logical, intent(in) :: rewrite
     integer(C_INT) :: status
     status = fstecr_mod(field, work, npak, iun, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,    &
-                        typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp, rewrite, lngstr)
+                        typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
 end function fstecr_s
 
 function fstecr_h(halfwords, work, npak, iun, date, deet, npas, ni, nj, nk, &

@@ -1,12 +1,12 @@
 rmnlib is a library of functions for numerical weather prediction used
-primarily by Environment and and Climate Change Canada.
+primarily by Environment and Climate Change Canada.
 
 Its main components are Standard RPN files and the EZ interpolator.
 
 
 ## Documentation
-  * [Functions reference accessible from the Internet](https://science:science@collaboration.cmc.ec.gc.ca/science/si/eng/si/libraries/rmnlib/)
-  * [More complete documentation on CMC Wiki](https://wiki.cmc.ec.gc.ca/wiki/Librmn)
+  * [Full documentation accessible from the Internet](https://hpfx.collab.science.gc.ca/~sixf000/rmn/)
+  * [Full documentation accessible at ECCC](https://goc-dx-u3.science.gc.ca/~sixf000/rmn/)
 
 ### Components
   * [Standard files](src/fst/README.md)
@@ -20,9 +20,10 @@ The code is available via Git at the following locations:
   * On ECCC network: git@gitlab.science.gc.ca:RPN-SI/librmn.git
   * For users outside ECCC: https://github.com/ECCC-ASTD-MRD/librmn.git
 
-`cmake_rpn` is included as a git submodule, as well as the `json-c` and `udunits2` dependencies.  Please clone with the
-`--recursive` option or run `git submodule update --init --recursive` in the
-git repo after having cloned.
+`cmake_rpn` is included as a git submodule, as well as the `json-c` and
+`udunits2` dependencies.  Please clone with the `--recursive` option or run
+`git submodule update --init --recursive` in the git repo after having
+cloned.
 
 
 ## Installation instructions
@@ -45,7 +46,7 @@ calling the `cmake` command.
 : Directory path for installation (`make install`)
 
 `COMPILER_SUITE`
-: `(gnu|intel|xl|nvhpc|...)` Compiler suite to be used. On ECCC systems,
+: `(gnu|intel|nvhpc|...)` Compiler suite to be used. On ECCC systems,
 the compiler loaded will be used.  If the ECCC-specific environment variables are not
 not found, the default is `gnu`.
 
@@ -73,26 +74,31 @@ explicitly specify the compiler suite to use (`-DCOMPILER_SUITE=...`).
 However, you must load the desired compiler before performing the build
 configuration.
 
-Source the right file from the `ECCI_ENV` variable, depending on the desired
-architecture.  This will load the specified compiler, set the
-`ECCI_DATA_DIR` variable for the test datasets, and set the
-`EC_CMAKE_MODULE_PATH` variable for the cmake_rpn modules.
+Load the right environment, depending on the architecture you need.  This
+will load the specified compiler and its parameters, and set the
+`EC_CMAKE_MODULE_PATH` variable for the `cmake_rpn` modules.
 
-- Example for PPP5:
-
-```
-. $ECCI_ENV/latest/ppp5/inteloneapi-2022.1.2.sh
-```
-
-- Example for CMC network and gnu 11.4.0:
+- Example for ppp7/sc7 and graniterapids specific architecture:
 
 ```
-. $ECCI_ENV/latest/ubuntu-22.04-amd-64/gnu.sh
+. r.load.dot mrd/rpn/code-tools/latest/env/rhel-9-graniterapids-64@inteloneapi-2025.1.0
 ```
 
-### Example of compiling the dev branch on a system outside ECCC:
+- Example for generic architecture on ppp7/sc7:
+
+```
+. r.load.dot mrd/rpn/code-tools/latest/env/rhel-9-amd64-64@inteloneapi-2025.1.0
+```
+
+- Example for GNU on any architecture:
+
+```
+. r.load.dot mrd/rpn/code-tools/latest/env/gnu
+```
+
+### Example of compiling the alpha branch on a system outside ECCC:
 ```bash
-git clone -b dev https://github.com/ECCC-ASTD-MRD/librmn.git
+git clone -b alpha https://github.com/ECCC-ASTD-MRD/librmn.git
 cd librmn
 git submodule update --init --recursive
 cd ..

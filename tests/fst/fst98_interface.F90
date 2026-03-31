@@ -7,7 +7,6 @@ module test_fst98_interface_module
     use rmn_test_helper
     implicit none
 
-    integer, external :: fnom
 contains
 
 subroutine test_fst98_interface(is_rsf)

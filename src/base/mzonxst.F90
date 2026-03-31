@@ -267,8 +267,6 @@ Subroutine mzonopr ( OPR, VAL )
     Integer ifrm, iecr, iprm, inbr, inf,  iluk, ierr, nil, exfin,  wkoffit
     External exfin, qqexit, wkoffit, r4astrg
 
-#include <rmn/fnom.hf>
-
     Integer :: extra1, extra2, extra3, npak, kount
     Character(len = 4) :: nomvar
     Integer :: rewrit

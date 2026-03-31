@@ -3,7 +3,7 @@ program test_large_jar
     use rmn_jar
     implicit none
 
-#include "serializer.hf"
+#include <rmn/serializer.hf>
 
     logical   :: ok
     type(jar) :: medium_jar, large_jar
