@@ -597,6 +597,6 @@ static inline void rsf_extract_meta0(
 
 void print_start_of_segment(const start_of_segment* sos);
 void print_start_of_record(const start_of_record* sor);
-RSF_record RSF_as_record(void* addr);
+RSF_record RSF_as_record(const void* const addr);
 
 #endif
