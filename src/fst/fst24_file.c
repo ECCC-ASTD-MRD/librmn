@@ -15,6 +15,7 @@
 #include "rmn/fnom.h"
 #include "rmn/Meta.h"
 #include "xdf98.h"
+#include "rmn/swap_buffer.h"
 
 const fst_query_options default_query_options = {
     .ip1_all = 0,
@@ -1932,13 +1933,85 @@ int32_t fst24_find_count(
     return count;
 }
 
+//! Decode the given raw data pointer as if it were the content of an XDF record.
+//! \return A properly initialized fst_record object. If we were successful in decoding the data, the record `data`
+//!         pointer will be valid; if we were not successful, the `data` pointer will be NULL.
+fst_record fst24_decode_data_xdf(
+    //!> [in] Input data to be extracted
+    const void* const data,
+    //!> [in,out] [Optional] If non-NULL, must point to a sufficiently large space to hold the entire extracted data
+    void* const dest_data
+) {
+    fst_record rec = default_fst_record;
+
+    union {
+        file_record rec;
+        uint32_t words[sizeof(file_record) / sizeof(uint32_t)];
+    } xdf_info;
+
+    xdf_info.rec = *(file_record*)data;
+    #ifdef Little_Endian
+        swap_buffer_endianness(xdf_info.words, sizeof(file_record) / sizeof(uint32_t));
+    #endif // Little endian
+
+    Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: rec lng = %d, addr %8x, idtyp %d\n",
+        __func__, xdf_info.rec.lng, xdf_info.rec.addr, xdf_info.rec.idtyp);
+
+    const int num_bytes = xdf_info.rec.lng * sizeof(uint64_t); 
+    uint32_t* workspace = (uint32_t*)malloc(num_bytes);
+    if (workspace == NULL) {
+        Lib_Log(APP_LIBFST, APP_FATAL, "%s: Could not allocate %d bytes for workspace\n", __func__, num_bytes);
+        return rec;
+    }
+
+    memcpy(workspace, data, num_bytes);
+    #ifdef Little_Endian
+        swap_buffer_endianness(workspace, num_bytes / sizeof(uint32_t));
+    #endif // Little endian
+
+    {
+        char buffer[1024];
+        char* ptr = buffer;
+        for (int i = 0; i < num_bytes / sizeof(uint32_t); i++) {
+            if (i % 4 == 0) ptr += sprintf(ptr, "\n");
+            ptr += sprintf(ptr, "%8x ", workspace[i]);
+        }
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: %s\n", __func__, buffer);
+    }
+
+    // Extract metadata
+    search_metadata meta;
+    meta.fst98_meta = *(stdf_dir_keys*)&workspace[0];
+    fill_with_search_meta(&rec, &meta, FST_RSF);
+    // fst24_record_print(&rec);
+
+    // Allocate space if needed
+    void* dest = dest_data;
+    if (dest == NULL) {
+        rec.do_not_touch.alloc = fst24_record_data_size(&rec);
+        dest = malloc(rec.do_not_touch.alloc);
+        if (dest == NULL) {
+            Lib_Log(APP_LIBFST, APP_FATAL, "%s: Unable to allocate memory for unpacking record data\n", __func__);
+            return rec;
+        }
+    }
+
+    // Unpack the data
+    const int32_t status = fst24_unpack_data(dest, workspace + sizeof(stdf_dir_keys) / sizeof(uint32_t) + 2, &rec, 0, 1, rec.data_bits);
+
+    // Indicate success
+    if (status == 0) rec.data = dest;
+
+    free(workspace);
+    return rec;
+}
+
 //! Decode the given raw data pointer as if it were the content of an RSF record.
-//! This function reserves the right to modify the input data if needed (swap endianness)
 //! \return A properly initialized fst_record object. If we were successful in decoding the data, the record `data`
 //!         pointer will be valid; if we were not successful, the `data` pointer will be NULL.
 fst_record fst24_decode_data_rsf(
     //!> [in] Input data to be extracted
-    void* data,
+    const void* data,
     //!> [in,out] [Optional] If non-NULL, must point to a sufficiently large space to hold the entire extracted data
     void* dest_data
 ) {
@@ -1946,7 +2019,6 @@ fst_record fst24_decode_data_rsf(
     // First interpret the RSF record
     RSF_record rsf_rec = RSF_as_record(data);
     if (rsf_rec.data == NULL) return default_fst_record; // Error trying to interpret the data as an RSF record
-
 
     // Extract metadata
     fst_record rec = default_fst_record;
