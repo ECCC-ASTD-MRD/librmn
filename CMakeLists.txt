@@ -373,6 +373,7 @@ foreach(MOD_DIR ${MOD_DIRS})
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_circular_buffer_module.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_common.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_date.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fnom.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst_common.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst24.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst24_record.mod

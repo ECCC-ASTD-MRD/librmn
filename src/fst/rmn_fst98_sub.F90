@@ -29,12 +29,12 @@ contains
   end function
 
   module function fstouv_auto(name, iun, options) result (status) ! calls fnom and fstouv
+    use rmn_fnom
     implicit none
     integer(C_INT), intent(OUT) :: iun
     character(len=*), intent(IN) :: name
     character(len=*), intent(IN), optional :: options
     integer(C_INT) :: status
-    integer, external :: fnom
 
     iun = 0
     if(present(options)) then
@@ -743,7 +743,7 @@ contains
 !  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
 !  *                                                                           * 
 !  *****************************************************************************/
-  module procedure fstecr_s
+  module procedure fstecr_si
     implicit none
     integer ninjnk
     character(len=4)  :: nom
@@ -752,7 +752,7 @@ contains
     character(len=12) :: eti
     status = 1
     ninjnk = max(1,ni) * max(1,nj) * max(1,nk)
-    if (ninjnk > lngstr) return
+    if (ninjnk > len(field)) return
     nom = nomvar
     typ = typvar
     gty = grtyp
@@ -762,16 +762,15 @@ contains
                 ig1, ig2, ig3, ig4, datyp, rewrite)
   end procedure
 
-  module procedure fstecr_str
+  module procedure fstecr_sl
     implicit none
-    integer ninjnk
-    ninjnk = max(1,ni) * max(1,nj) * max(1,nk)
-    status = 1
-    if (ninjnk > len(string)) return
-    status = fstecr_s(string, work, npak, iun, date, deet, npas, ni, nj, nk, &
-                      ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &
-                      ig1, ig2, ig3, ig4, datyp, rewrite, len(string))
+    integer :: rewrite_i
+    rewrite_i = FST_NO
+    if (rewrite) rewrite_i = FST_YES
+    status = fstecr_si(field, work, npak, iun, date, deet, npas, ni, nj, nk, ip1, ip2, ip3,           &
+                       typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, datyp, rewrite_i)
   end procedure
+
 
 ! /***************************************************************************** 
 !  *                             F S T E F F                                   *

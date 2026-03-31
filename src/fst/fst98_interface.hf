@@ -474,15 +474,16 @@ interface
     !> Write string to file
     function fstecr_s(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                     ip1, ip2, ip3, typvar, nomvar, etiket, &
-                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite, lngstr) result(status)
+                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite) result(status)
 
         implicit none
-#define IgnoreTypeKindRank field, work
+        character(len=*), intent(in) :: field
+#define IgnoreTypeKindRank work
 #define ExtraAttributes 
 #include <rmn/IgnoreTypeKindRank.hf>
         integer, intent(IN), value :: iun
         integer, intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
-        integer, intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4, lngstr
+        integer, intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
         character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
         integer :: status
     end function fstecr_s

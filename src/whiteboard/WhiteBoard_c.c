@@ -1770,7 +1770,7 @@ static char wb_get_line(
 ) {
     current_char = fgets(linebuffer, WB_MISC_BUFSZ, infile);
     if (current_char) {
-       Lib_Log(APP_LIBWB,APP_INFO,"%s: >>%s\n",__func__,linebuffer);
+       Lib_Log(APP_LIBWB,APP_INFO,"%s: >>%s",__func__,linebuffer);
     }
     if (current_char) {
         return *current_char;

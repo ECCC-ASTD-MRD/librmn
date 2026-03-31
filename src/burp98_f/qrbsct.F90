@@ -25,6 +25,7 @@
 integer function qrbsct(tableau, tabdim, nelelu)
     use app
     use rmn_burp, only: badtbl, rpetitif, erbtab, erelem
+    use rmn_fnom
     implicit none
 
     !> Second dimension of the conversion table
@@ -41,7 +42,6 @@ integer function qrbsct(tableau, tabdim, nelelu)
     character(len = 128) :: ligne
     character(len = 256) :: path, path1
 
-#include <rmn/fnom.hf>
     ! For PUTBIT
 #include <ftnmacros.hf>
 
