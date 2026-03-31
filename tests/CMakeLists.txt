@@ -100,6 +100,11 @@ if (EC_INIT_DONE LESS 2)
             add_dependencies(test_execs ${TEST_TARGET})
         endfunction()
 
+        if(BUILD_TOOLS_TESTING)
+          include(tools_tests)
+        else()
+          message(STATUS "(EC) skipping tools tests")
+        endif()
 
         # Helper module
         add_library(test_helper STATIC EXCLUDE_FROM_ALL rmn_test_helper.F90 fst/generate_fstd_module.F90)
