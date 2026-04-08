@@ -1072,7 +1072,7 @@ void print_non_wildcards(const fst_record* const record) {
 }
 
 void print_search_meta(const search_metadata* const keys, const fst_file_type type) {
-    fst_record r;
+    fst_record r = default_fst_record;
     fill_with_search_meta(&r, keys, type);
     print_non_wildcards(&r);
 }

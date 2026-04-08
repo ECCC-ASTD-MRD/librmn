@@ -68,6 +68,7 @@ int32_t   fst24_read_raw_record(const char *const filename, const size_t offset,
                                 void *const dest);
 
 fst_record fst24_decode_data_rsf(void* data, void* dest);
+fst_record fst24_decode_data_xdf(const void* data, void* dest);
 //! @}
 
 #endif // RMN_FST_FILE_H__

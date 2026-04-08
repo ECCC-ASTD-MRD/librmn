@@ -132,13 +132,13 @@ typedef struct{
     void     *eor ;      //!< end of record address ( (void *) RSF_record.d + max_data )
     uint64_t data_size ; //!< actual data size in bytes (may remain 0 in unmanaged records)
     uint64_t max_data ;  //!< maximum data payload size in bytes
-    int64_t rsz ;        //!< allocated size of RSF_record in bytes (including SOR, metadata, data and EOR)
+    int64_t rsz ;        //!< total allocated size of RSF_record in bytes (including the struct, SOR, metadata, data and EOR) (even if split)
     uint16_t dir_meta ;  //!< directory metadata size in uint32_t units
     uint16_t rec_meta ;  //!< record metadata size in uint32_t units
     uint16_t elem_size ; //!< length of data elements in d[] (1/2/4/8 bytes) (endianness management)
     uint8_t  rec_type ;  //!< Type of record (data, directory, etc)
     uint8_t  rec_class ; //!< Class of record (data vs file?) TODO clarify
-    uint8_t  d[] ;       //!< dynamic data array (bytes)
+    // Make sure this struct stays aligned to 64 bits
 } RSF_record ;
 
 //! Record information. This struct MUST BE TREATED AS READ-ONLY.
