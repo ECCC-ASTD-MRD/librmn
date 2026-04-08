@@ -155,8 +155,8 @@ class fst_record(ctypes.Structure):
         ('_data', ctypes.c_void_p),
         ('metadata', ctypes.c_void_p),
 
-        ('_file_offset', ctypes.c_size_t),
-        ('_total_stored_bytes', ctypes.c_size_t),
+        ('file_offset', ctypes.c_size_t),
+        ('total_stored_bytes', ctypes.c_size_t),
 
         ('file_index', ctypes.c_int32),
 
@@ -414,3 +414,11 @@ _fst24_read_record.restype = ctypes.c_int
 _get_default_fst_record = librmn.get_default_fst_record
 _get_default_fst_record.argtypes = tuple()
 _get_default_fst_record.restype = fst_record
+
+_fst24_decode_data_rsf = librmn.fst24_decode_data_rsf
+_fst24_decode_data_rsf.argtypes = (ctypes.c_void_p, ctypes.c_void_p)
+_fst24_decode_data_rsf.restype = fst_record
+
+_fst24_decode_data_xdf = librmn.fst24_decode_data_xdf
+_fst24_decode_data_xdf.argtypes = (ctypes.c_void_p, ctypes.c_void_p)
+_fst24_decode_data_xdf.restype = fst_record
