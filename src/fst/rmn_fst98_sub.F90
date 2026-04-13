@@ -39,10 +39,12 @@ contains
     iun = 0
     if(present(options)) then
       status = fnom(iun, trim(name), trim(options), 0)
-      status = fstouv_iun(iun, trim(options))
+!       status = fstouv_iun(iun, trim(options))
+    status = c_fstouv(iun, trim(options)//achar(0))
     else
       status = fnom(iun, trim(name),'STD+RND',0)
-      status = fstouv_iun(iun, 'RND')
+!       status = fstouv_iun(iun, 'RND')
+    status = c_fstouv(iun, 'RND'//achar(0))
     endif
   end function
 
