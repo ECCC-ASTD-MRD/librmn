@@ -246,7 +246,7 @@ Exemple for WGS84 Cylindrical (LatLon):
     AUTHORITY["EPSG","4326"]]
 ```
 # M
-Meshes are defined as as series of polygon, that have 3 or more vertices. It usually is triangles but could theoritically be other polygons, as long as they are all the same throughout the mesh. As for the Y grid, the "^^" and ">>" records defining the vertices position can only be defined on 'L', 'N' and 'S' grids. These vertices constituting the polygons should be stored in units relevant to the reference projection (degrees or meters). A third record "##" provides the list of indices to the vertices that define the polygons. The number of vertices per polygon is defined by th IG4 valueof this record. if IG4=3, these would be triangles and the record contains a stream of triplets
+Meshes are defined as as series of polygon, that have 3 or more vertices. It usually is triangles but could theoritically be other polygons, as long as they are all the same throughout the mesh. As for the Y grid, the "^^" and ">>" records defining the vertices position can only be defined on 'L', 'N' and 'S' grids. These vertices constituting the polygons should be stored in units relevant to the reference projection (degrees or meters). A third record "##" provides the list of indices to the vertices that define the polygons. The number of vertices per polygon is defined by th IG4 valueof this record. if IG4=3, these would be triangles and the record contains a stream of triplets. **Only triangles are currently supported** 
 
 ![Example of an M meshe](m.png)
 
