@@ -352,6 +352,8 @@ class TestRMNPackage(unittest.TestCase):
             rec = rmn.fst_record(**kwargs, data=data)
         self.assertRaisesRegex(ValueError, "nbits=3 is not an allowed value", invalid_kwarg_combination)
 
+    def test_validate_default_record(self):
+        self.assertTrue(rmn.is_default_record_valid())
 
 if __name__ == "__main__":
     unittest.main()

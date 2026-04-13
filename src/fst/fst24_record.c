@@ -105,6 +105,10 @@ void fst24_record_print(const fst_record* record) {
         "  Flags:  %ld\n"
         "  Alloc:  %ld\n"
         "  Handle: 0x%x\n"
+        "  Map: %d x %d (size: %d), 0x%x\n"
+        "  File offset: %lld\n"
+        "  Total stored bytes: %zu\n"
+        "  File index: %d\n"
         "  dateo: %d\n"
         "  datev: %d\n"
         "  data_type: %d\n"
@@ -119,8 +123,13 @@ void fst24_record_print(const fst_record* record) {
         "  grtyp:  \"%s\"\n"
         "  nomvar: \"%s\"\n"
         "  etiket: \"%s\"\n",
-        record->do_not_touch.version, record->file, record->data, record->metadata, record->do_not_touch.flags,
+        record->do_not_touch.version, record->file, record->data, record->metadata, 
+        record->do_not_touch.flags,
         record->do_not_touch.alloc, record->do_not_touch.handle, 
+        record->data_blocks.size_x, record->data_blocks.size_y, record->data_blocks.map_size, record->data_blocks.map,
+        (int64_t)record->file_offset, // print as signed int, since it can be -1 when not set
+        record->total_stored_bytes,
+        record->file_index,
         record->dateo, record->datev, record->data_type, record->data_bits, record->pack_bits,
         record->ni, record->nj, record->nk, record->ni * record->nj * record->nk,
         record->num_meta_bytes,
@@ -885,6 +894,11 @@ int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     if (a->do_not_touch.version != b->do_not_touch.version) return 0;
     // if (a->do_not_touch.flags != b->do_not_touch.flags) return 0;
     // if (a->do_not_touch.alloc != b->do_not_touch.alloc) return 0;
+    // if (a->data_blocks.size_x != b->data_blocks.size_x) return 0;
+    // if (a->data_blocks.size_y != b->data_blocks.size_y) return 0;
+    // if (a->data_blocks.map_size != b->data_blocks.map_size) return 0;
+    // if (a->file_offset != b->file_offset) return 0;
+    // if (a->total_stored_bytes != b->total_stored_bytes) return 0;
     if (a->dateo != b->dateo) return 0;
 //    if (a->datev != b->datev) return 0; // not to be included int check as it is derived from other info    
     if (a->data_type != b->data_type) return 0;
@@ -940,12 +954,28 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Flags:   a = %d, b = %d)\n", __func__, a->do_not_touch.flags, b->do_not_touch.flags);
     if (a->do_not_touch.alloc != b->do_not_touch.alloc)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Alloc:   a = %d, b = %d)\n", __func__, a->do_not_touch.alloc, b->do_not_touch.alloc);
+    if (a->do_not_touch.handle != b->do_not_touch.handle)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Handle:  a = 0x%llx, b = 0x%llx)\n", __func__, a->do_not_touch.handle, b->do_not_touch.handle);
+    if (a->do_not_touch.unpacked_data_size != b->do_not_touch.unpacked_data_size)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Unpacked data size: a = %d, b = %d)\n", __func__, a->do_not_touch.unpacked_data_size, b->do_not_touch.unpacked_data_size);
+    if (a->data_blocks.size_x != b->data_blocks.size_x)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Data blocks size x: a = %d, b = %d)\n", __func__, a->data_blocks.size_x, b->data_blocks.size_x);
+    if (a->data_blocks.size_y != b->data_blocks.size_y)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Data blocks size y: a = %d, b = %d)\n", __func__, a->data_blocks.size_y, b->data_blocks.size_y);
+    if (a->data_blocks.map_size != b->data_blocks.map_size)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Data blocks map size: a = %d, b = %d)\n", __func__, a->data_blocks.map_size, b->data_blocks.map_size);   
+    if (a->data_blocks.map != b->data_blocks.map)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Data blocks map: a = %p, b = %p)\n", __func__, a->data_blocks.map, b->data_blocks.map);
+    if (a->file_offset != b->file_offset)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: File offset: a = %zu, b = %zu)\n", __func__, a->file_offset, b->file_offset);
+    if (a->total_stored_bytes != b->total_stored_bytes)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Total stored bytes: a = %zu, b = %zu)\n", __func__, a->total_stored_bytes, b->total_stored_bytes);
+    if (a->file_index != b->file_index)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: File index: a = %d, b = %d)\n", __func__, a->file_index, b->file_index);
     if (a->dateo != b->dateo)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Dateo:   a = %d, b = %d)\n", __func__, a->dateo, b->dateo);
     if (a->datev != b->datev)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Datev:   a = %d, b = %d)\n", __func__, a->datev, b->datev);
-    if (a->do_not_touch.handle != b->do_not_touch.handle)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Handle:  a = 0x%llx, b = 0x%llx)\n", __func__, a->do_not_touch.handle, b->do_not_touch.handle);
     if (a->data_type != b->data_type)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: data_type:   a = %d, b = %d)\n", __func__, a->data_type, b->data_type);
     if (a->data_bits != b->data_bits)
@@ -996,7 +1026,7 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
     }
 }
 
-//! To be called from fortran. Determine whether the given FST record pointer matches the default
+//! To be called from Fortran or Python. Determine whether the given FST record pointer matches the default
 //! fst_record struct.
 //! \return 0 if they match, -1 if not
 int32_t fst24_validate_default_record(
@@ -1025,7 +1055,9 @@ int32_t fst24_validate_default_record(
             }
         }
         fst24_record_diff(&default_fst_record, fortran_record);
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "Default record (the correct one):\n");
         fst24_record_print(&default_fst_record);
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "Given record (Fortran/Python):\n");
         fst24_record_print(fortran_record);
         return -1;
     }
