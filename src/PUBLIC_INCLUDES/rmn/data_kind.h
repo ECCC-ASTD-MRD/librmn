@@ -23,33 +23,38 @@
 
 // expected data type codes
 typedef enum {
-  bad_data    =  0,     // invalid
-  byte_data   =  1,     // 8 bit signed integers
-  ubyte_data  =  2,     // 8 bit unsigned integers
-  short_data  =  3,     // 16 bit signed integers
-  ushort_data =  4,     // 16 bit unsigned integers
-  int_data    =  5,     // 32 bit signed integers
-  uint_data   =  6,     // 32 bit unsigned integers
-  long_data   =  7,     // 64 bit signed integers
-  ulong_data  =  8,     // 64 bit unsigned integers
-  float_data  =  9,     // 32 bit floats
-  double_data = 10,     // 64 bit doubles
-  raw_data    = 11,     // any 32 bit items (block_properties likely to be meaningless)
-  large_data  = 12,     // items use a multiple of 32 bits (block_properties are meaningless)
-  any_data    = 13,     // unknown or unspecified (block_properties likely to be meaningless)
-  bf16_data   = 14,     // brain float 16
-  fp16_data   = 15      // 16 bit IEEE float
+  bad_data     =  0,     // invalid
+  byte_data    =  1,     // 8 bit signed integers
+  ubyte_data   =  2,     // 8 bit unsigned integers
+  short_data   =  3,     // 16 bit signed integers
+  ushort_data  =  4,     // 16 bit unsigned integers
+  int_data     =  5,     // 32 bit signed integers
+  uint_data    =  6,     // 32 bit unsigned integers
+  long_data    =  7,     // 64 bit signed integers
+  ulong_data   =  8,     // 64 bit unsigned integers
+  float_data   =  9,     // 32 bit floats
+  double_data  = 10,     // 64 bit doubles
+  raw_data     = 11,     // any 32 bit items (block_properties likely to be meaningless)
+  large_data   = 12,     // items use a multiple of 32 bits (block_properties are meaningless)
+  any_data     = 13,     // unknown or unspecified (block_properties likely to be meaningless)
+  bf16_data    = 14,     // brain float 16
+  fp16_data    = 15,     // 16 bit IEEE float
+  quad_data    = 16,     // quadruple precision float
+  cfloat_data  = 17,     // complex float/float data
+  cdouble_data = 18      // complex double/double data
 } data_kind ;
 
 // get rid of some gcc diagnostic messages
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 // printable string associated to data kind
-static const char *printable_type[] = { "INVALID", "INT_8"  , "UINT_8", "INT_16" , "UINT_16", "INT_32" , "UINT_32", "INT_64" , 
-                                        "UINT_64", "FLOAT"  , "DOUBLE" , "RAW_32", "LARGE"  , "UNKNOWN", "BF16",    "FP16" } ;
+static const char *printable_type[] = { "INVALID", "INT_8"  , "UINT_8" , "INT_16" , "UINT_16", "INT_32" , "UINT_32", "INT_64" ,
+                                        "UINT_64", "FLOAT"  , "DOUBLE" , "RAW_32" , "LARGE"  , "UNKNOWN", "BF16"   , "FP16"   ,
+                                        "QUAD"   , "CFLOAT" , "CDOUBLE" } ;
 // size associated to data kind (-1 for invalid, 0 for unknown, huge value for large items)
-static const int32_t size_of_type[] = { -1       ,  8        ,  8      , 16       , 16        , 32       , 32       , 64 ,
-                                        64       , 32        , 64      , 32       , INT32_MAX ,  0       , 16       , 16 } ;
+static const int32_t size_of_type[] = { -1       ,  8        ,   8      , 16       , 16        , 32       , 32       , 64 ,
+                                        64       , 32        ,  64      , 32       , INT32_MAX ,  0       , 16       , 16 ,
+                                       128       , 64        , 128      } ;
 #pragma GCC diagnostic pop
 
 static inline int data_kind_valid(int kind){
