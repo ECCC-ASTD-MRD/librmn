@@ -1997,16 +1997,6 @@ fst_record fst24_decode_data_xdf(
         swap_buffer_endianness(workspace, num_bytes / sizeof(uint32_t));
     #endif // Little endian
 
-    {
-        char buffer[1024];
-        char* ptr = buffer;
-        for (int i = 0; i < num_bytes / sizeof(uint32_t); i++) {
-            if (i % 4 == 0) ptr += sprintf(ptr, "\n");
-            ptr += sprintf(ptr, "%8x ", workspace[i]);
-        }
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: %s\n", __func__, buffer);
-    }
-
     // Extract metadata
     search_metadata meta;
     meta.fst98_meta = *(stdf_dir_keys*)&workspace[0];
