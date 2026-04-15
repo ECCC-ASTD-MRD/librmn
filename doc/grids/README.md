@@ -17,6 +17,9 @@ The actual convention supports the following grids:
 * [X: Unstructured](#X)
 * [Y: Latlon Clouds](#Y)
 * [Z: Irregular Cartesian](#Z)
+* [O: Unstructured referenced](#O)
+* [W: GIS grid definition (Using WTK nomenclature)](#W)
+* [M: Meshes](#M)
 * ['#': Local Area (Tiled)](#\#)
 
 One can also define, in a polar stereographic or lat-lon projection, and within certain limits, a cartesian grid with an irregular mesh (like the one used in the Finite Element model).
@@ -177,7 +180,6 @@ In the 'U' grid, it represents the universal grid which can store any type of gr
 In the 'X' grid, the contents of the grid are not related to any geographical location on the earth. The parameters IG1 through IG4 should be set to 0. A typical application would be a theoretical experiment, like the evolution of a bubble in a cylinder.
 
 
-
 # Y
 
 The 'Y' grid represents a data set without a regular structure. A typical application is a record containing values for a stream of lat-lon points. For such a data set, one must use 2 special "positional" standard file records to define the location of each point: one record holding the horizontal positions of the points, and the other the vertical positions.
@@ -221,7 +223,32 @@ This grid is a cartesian grid with a non-constant mesh. As for the 'Y' grid, the
 
 ![Example of a Z type grid](z.gif)
 
+# O
 
+The 'O' grid is similar to the Z grid, but represent a grid that cannot be represented analytically. Each grid point has to be located by it's X and Y coordinate. As for the 'Y' grid, the deformation of the mesh is described with the help of the positional records "^^" and ">>". The positional records are 2-dimensional in each direction for this type of grid. The record containing the deformation of the grid should contain NI by NJ. The GRTYP parameter of the positional records has to be 'E', 'L', 'N' or 'S', and values have to be stored in units relevant to the reference projection (degrees or meters).
+
+![Example of an O type grid](o.png)
+
+# W
+
+The 'W' grid description allows to define a geo-reference using the Well-Known-Text(WKT) nomenclature, an [Open Geospatial Consortium (OGC)]( https://www.ogc.org/standards/wkt-crs) standard used by projects like [PROJ](https://proj.org/en/stable) and [GDAL](https://gdal.org/en/stable/). For an extensive list of CRS consult https://spatialreference.org/. [EPSG](https://en.wikipedia.org/wiki/EPSG_Geodetic_Parameter_Dataset) codes can also be used. This grid uses 2 records "PROJ" in which is the WKT string definition in ascii and an "MTRX" record containing 6 values representing the [transformation matrix](https://gdal.org/en/stable/tutorials/geotransforms_tut.html) (Translation, Scaling and Rotation) : Tx,Sx,Rx,Ty,Ry,Sy
+
+Exemple for WGS84 Cylindrical (LatLon):
+```GEOGCS["WGS 84",
+    DATUM["WGS_1984",
+        SPHEROID["WGS 84",6378137,298.257223563,
+            AUTHORITY["EPSG","7030"]],
+        AUTHORITY["EPSG","6326"]],
+    PRIMEM["Greenwich",0,
+        AUTHORITY["EPSG","8901"]],
+    UNIT["degree",0.0174532925199433,
+        AUTHORITY["EPSG","9122"]],
+    AUTHORITY["EPSG","4326"]]
+```
+# M
+Meshes are defined as as series of polygon, that have 3 or more vertices. It usually is triangles but could theoritically be other polygons, as long as they are all the same throughout the mesh. As for the Y grid, the "^^" and ">>" records defining the vertices position can only be defined on 'L', 'N' and 'S' grids. These vertices constituting the polygons should be stored in units relevant to the reference projection (degrees or meters). A third record "##" provides the list of indices to the vertices that define the polygons. The number of vertices per polygon is defined by th IG4 valueof this record. if IG4=3, these would be triangles and the record contains a stream of triplets. **Only triangles are currently supported** 
+
+![Example of an M meshe](m.png)
 
 ## \#
 
