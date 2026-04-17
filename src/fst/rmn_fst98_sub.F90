@@ -19,34 +19,25 @@ contains
 !  *  IN  options random or sequential access                                  *
 !  *                                                                           *
 !  *****************************************************************************/
-  module function fstouv_iun(iun, options) result (status)
+  module procedure fstouv_iun
     implicit none
-    integer(C_INT), intent(IN) :: iun
-    character(len=*), intent(IN) :: options
-    integer(C_INT) :: status
     ! c_fstouv will need to process option 'RSF'
     status = c_fstouv(iun, trim(options)//achar(0))
-  end function
+  end procedure
 
-  module function fstouv_auto(name, iun, options) result (status) ! calls fnom and fstouv
+  module procedure fstouv_auto
     use rmn_fnom
     implicit none
-    integer(C_INT), intent(OUT) :: iun
-    character(len=*), intent(IN) :: name
-    character(len=*), intent(IN), optional :: options
-    integer(C_INT) :: status
 
     iun = 0
     if(present(options)) then
       status = fnom(iun, trim(name), trim(options), 0)
-!       status = fstouv_iun(iun, trim(options))
-    status = c_fstouv(iun, trim(options)//achar(0))
+      status = fstouv_iun(iun, trim(options))
     else
       status = fnom(iun, trim(name),'STD+RND',0)
-!       status = fstouv_iun(iun, 'RND')
-    status = c_fstouv(iun, 'RND'//achar(0))
+      status = fstouv_iun(iun, 'RND')
     endif
-  end function
+  end procedure
 
 ! /***************************************************************************** 
 !  *                              F S T F R M                                  *
