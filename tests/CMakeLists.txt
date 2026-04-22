@@ -170,6 +170,7 @@ if (EC_INIT_DONE LESS 2)
         gen_test_target(SOURCES fst/fst_large_record.c)
         gen_test_target(DISABLE SOURCES fst/fst_ignore_msglvl.c)
         gen_test_target(SOURCES fst/fst24_data_map.c)
+        gen_test_target(SOURCES fst/fst24_wildcard.c)
 
         gen_test_target(SOURCES fst/samples/fst24_open_close.F90)
         gen_test_target(SOURCES fst/samples/fst24_open_close.c NAME fst24_open_close_c)

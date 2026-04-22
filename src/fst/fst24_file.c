@@ -1662,7 +1662,7 @@ fst_query* fst24_new_query(
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_DEBUG) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Setting search criteria\n", __func__);
-        print_non_wildcards(criteria);
+        fst24_record_print_non_default(criteria);
         print_non_default_options(&query->options);
     }
 

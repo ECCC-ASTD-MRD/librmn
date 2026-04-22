@@ -254,6 +254,7 @@ int32_t      fst24_record_has_same_meta(const fst_record* a, const fst_record* b
 int32_t      fst24_record_is_same(const fst_record* const a, const fst_record* const b);
 void         fst24_record_diff(const fst_record* a, const fst_record* b);
 int32_t      fst24_record_copy_metadata(fst_record* dest, const fst_record* src, int What);
+void         fst24_record_print_non_default(const fst_record* const record);
 //! \}
 
 int32_t fst24_record_validate_default_record(const fst_record* fortran_record, const size_t fortran_size);

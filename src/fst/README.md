@@ -9,7 +9,8 @@
     5. [Memory Management](#memory-management)
     6. [Data Types](#data-types)
     7. [Data Size](#data-size)
-    8. [Old Interface: `fst98`](#old-interface-fst98)
+    8. [String Attributes](#string-attributes)
+    9. [Old Interface: `fst98`](#old-interface-fst98)
 2. [Examples](#examples)
     1. [Opening and Closing](#opening-and-closing-a-file)
     2. [Searching and Reading](#finding-and-reading-a-record)
@@ -299,6 +300,27 @@ attribute of the `fst_record`.
 It is possible to directly read the data into an array of elements with a different size by specifiying that
 size *before* reading, by setting the `data_bits` attribute of the `fst_record`.
 [See example](#reading-into-a-different-size)
+
+## String attributes
+
+There are 4 record parameters that consist of character strings:
+- `nomvar` (4 characters)
+- `typvar` (2 characters)
+- `etiket` (12 characters)
+- `grtyp`  (1 character)
+
+They are encoded in a subset of ASCII. Allowed characters are
+letters `[A-Z]` (*not* case sensitive), digits `[0-9]`, and special characters
+`!"#$%&'()*+-,./:;<>=?@[]\^_`. Spaces are allowed *at the end* of the string and are equivalent to string termination.
+Trying to store other characters will simply result in their conversion to an allowed character.
+Searching for only spaces will match any string.
+
+### Wildcard
+
+When doing a search based on these attributes, the `fst24` interface allows using special character `~`
+as a single-character wildcard.
+This means that searching for `A~` will find `A`, `AX` and `AY`, but not `ABC`.
+To look for any `nomvar` starting with `A`, you would need to search for `A~~~`.
 
 ## Old Interface: fst98
 

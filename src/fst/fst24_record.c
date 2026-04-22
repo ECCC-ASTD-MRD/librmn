@@ -15,6 +15,10 @@ const char** fst24_record_get_descriptors(void) {
    return(FST_DESCRIPTOR);
 }
 
+static inline uint32_t is_wildcard(const char c) {
+    return c == '~' ? 0x0 : 0x3f;
+}
+
 //! Check if an fst_record is a field/reference descriptor
 //! \return TRUE (1) if it is, FALSE (0) otherwise
 int32_t fst24_record_is_descriptor(const fst_record* const record) {
@@ -667,14 +671,30 @@ void make_search_criteria(
             (ascii6(nomvar[1]) << 12) |
             (ascii6(nomvar[2]) <<  6) |
             (ascii6(nomvar[3]));
-        if (fst98_meta->nomvar == 0) fst98_mask->nomvar = 0;
+        if (fst98_meta->nomvar == 0) {
+            fst98_mask->nomvar = 0;
+        }
+        else {
+            fst98_mask->nomvar = 
+                (is_wildcard(nomvar[0]) << 18) |
+                (is_wildcard(nomvar[1]) << 12) |
+                (is_wildcard(nomvar[2]) <<  6) |
+                (is_wildcard(nomvar[3]));
+        }
 
         char typvar[FST_TYPVAR_LEN];
         copy_record_string(typvar, record->typvar, FST_TYPVAR_LEN);
         fst98_meta->typvar =
             (ascii6(typvar[0]) << 6) |
             (ascii6(typvar[1]));
-        if (fst98_meta->typvar == 0) fst98_mask->typvar = 0;
+        if (fst98_meta->typvar == 0) {
+            fst98_mask->typvar = 0;
+        }
+        else {
+            fst98_mask->typvar =
+                (is_wildcard(typvar[0]) << 6) |
+                (is_wildcard(typvar[1]));
+        }
 
         char etiket[FST_ETIKET_LEN];
         copy_record_string(etiket, record->etiket, FST_ETIKET_LEN);
@@ -696,10 +716,27 @@ void make_search_criteria(
             (ascii6(etiket[10]) <<  6) |
             (ascii6(etiket[11]));
 
-        if ((fst98_meta->etik15 == 0) && (fst98_meta->etik6a == 0)) {
+        if ((fst98_meta->etik15 == 0) && (fst98_meta->etik6a == 0) && (fst98_meta->etikbc == 0)) {
             fst98_mask->etik15 = 0;
             fst98_mask->etik6a = 0;
             fst98_mask->etikbc = 0;
+        }
+        else {
+            fst98_mask->etik15 =
+                (is_wildcard(etiket[0]) << 24) |
+                (is_wildcard(etiket[1]) << 18) |
+                (is_wildcard(etiket[2]) << 12) |
+                (is_wildcard(etiket[3]) <<  6) |
+                (is_wildcard(etiket[4]));
+            fst98_mask->etik6a =
+                (is_wildcard(etiket[5]) << 24) |
+                (is_wildcard(etiket[6]) << 18) |
+                (is_wildcard(etiket[7]) << 12) |
+                (is_wildcard(etiket[8]) <<  6) |
+                (is_wildcard(etiket[9]));
+            fst98_mask->etikbc =
+                (is_wildcard(etiket[10]) <<  6) |
+                (is_wildcard(etiket[11]));
         }
 
         fst98_meta->ig4  = record->ig4;
@@ -1089,8 +1126,9 @@ int32_t fst24_validate_default_record(
 }
 
 //! Debug function. Print record attributes that are not at their default value.
-void print_non_wildcards(const fst_record* const record) {
-    char buffer[1024];
+void fst24_record_print_non_default(const fst_record* const record) {
+    const int BUFFER_SIZE = 1024;
+    char buffer[BUFFER_SIZE];
     char* ptr = buffer;
 
     if (record->dateo != default_fst_record.dateo) ptr += snprintf(ptr, 30, "dateo=%d ", record->dateo);
@@ -1129,7 +1167,7 @@ void print_non_wildcards(const fst_record* const record) {
 void print_search_meta(const search_metadata* const keys, const fst_file_type type) {
     fst_record r = default_fst_record;
     fill_with_search_meta(&r, keys, type);
-    print_non_wildcards(&r);
+    fst24_record_print_non_default(&r);
 }
 
 //! Copy record information (including metadata *pointer*) into destination, while preserving

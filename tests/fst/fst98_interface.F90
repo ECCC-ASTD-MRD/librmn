@@ -32,9 +32,9 @@ subroutine test_fst98_interface(is_rsf)
     integer :: iun
 
     if (is_rsf) then
-        call App_Log(APP_INFO, 'Testing RSF')
+        call App_Log(APP_ALWAYS, 'Testing RSF')
     else
-        call App_Log(APP_INFO, 'Testing XDF')
+        call App_Log(APP_ALWAYS, 'Testing XDF')
     end if
 
     ! Remove file(s) so that we have a fresh start
