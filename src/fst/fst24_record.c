@@ -15,6 +15,10 @@ const char** fst24_record_get_descriptors(void) {
    return(FST_DESCRIPTOR);
 }
 
+static inline uint32_t is_wildcard(const char c) {
+    return c == '~' ? 0x0 : 0x3f;
+}
+
 //! Check if an fst_record is a field/reference descriptor
 //! \return TRUE (1) if it is, FALSE (0) otherwise
 int32_t fst24_record_is_descriptor(const fst_record* const record) {
@@ -82,15 +86,24 @@ fst_record* fst24_record_new(
 int32_t fst24_record_free(
     fst_record* record      //!< [in] record pointer
 ) {
-
+    // Data
     if ((record->data != NULL) && (record->do_not_touch.alloc > 0)) {
         record->do_not_touch.alloc = 0;
         if (!(record->do_not_touch.flags & FST_REC_ASSIGNED))
             free(record->data);
         record->data = NULL; 
     }
+
+    // Extended metadata
     Meta_Free(record->metadata);
     record->metadata = NULL;
+
+    // Data map
+    if (record->data_blocks.map != NULL) {
+        free(record->data_blocks.map);
+        record->data_blocks.map = NULL;
+    }
+
     return(TRUE);
 }
 
@@ -105,6 +118,10 @@ void fst24_record_print(const fst_record* record) {
         "  Flags:  %ld\n"
         "  Alloc:  %ld\n"
         "  Handle: 0x%x\n"
+        "  Map: %d x %d (size: %d), 0x%x\n"
+        "  File offset: %lld\n"
+        "  Total stored bytes: %zu\n"
+        "  File index: %d\n"
         "  dateo: %d\n"
         "  datev: %d\n"
         "  data_type: %d\n"
@@ -119,8 +136,13 @@ void fst24_record_print(const fst_record* record) {
         "  grtyp:  \"%s\"\n"
         "  nomvar: \"%s\"\n"
         "  etiket: \"%s\"\n",
-        record->do_not_touch.version, record->file, record->data, record->metadata, record->do_not_touch.flags,
+        record->do_not_touch.version, record->file, record->data, record->metadata, 
+        record->do_not_touch.flags,
         record->do_not_touch.alloc, record->do_not_touch.handle, 
+        record->data_blocks.size_x, record->data_blocks.size_y, record->data_blocks.map_size, record->data_blocks.map,
+        (int64_t)record->file_offset, // print as signed int, since it can be -1 when not set
+        record->total_stored_bytes,
+        record->file_index,
         record->dateo, record->datev, record->data_type, record->data_bits, record->pack_bits,
         record->ni, record->nj, record->nk, record->ni * record->nj * record->nk,
         record->num_meta_bytes,
@@ -511,7 +533,8 @@ int32_t fst24_record_validate_params(const fst_record* record) {
                                     FST_TYPE_REAL,
                                     FST_TYPE_REAL_IEEE,
                                     FST_TYPE_REAL_OLD_QUANT,
-                                    FST_TYPE_COMPLEX };
+                                    FST_TYPE_COMPLEX,
+                                  };
     const int32_t base_type = base_fst_type(record->data_type);
     int32_t ok_type = 0;
     for (unsigned int i = 0; i < sizeof(valid_types) / sizeof(int32_t); i++) {
@@ -648,14 +671,30 @@ void make_search_criteria(
             (ascii6(nomvar[1]) << 12) |
             (ascii6(nomvar[2]) <<  6) |
             (ascii6(nomvar[3]));
-        if (fst98_meta->nomvar == 0) fst98_mask->nomvar = 0;
+        if (fst98_meta->nomvar == 0) {
+            fst98_mask->nomvar = 0;
+        }
+        else {
+            fst98_mask->nomvar = 
+                (is_wildcard(nomvar[0]) << 18) |
+                (is_wildcard(nomvar[1]) << 12) |
+                (is_wildcard(nomvar[2]) <<  6) |
+                (is_wildcard(nomvar[3]));
+        }
 
         char typvar[FST_TYPVAR_LEN];
         copy_record_string(typvar, record->typvar, FST_TYPVAR_LEN);
         fst98_meta->typvar =
             (ascii6(typvar[0]) << 6) |
             (ascii6(typvar[1]));
-        if (fst98_meta->typvar == 0) fst98_mask->typvar = 0;
+        if (fst98_meta->typvar == 0) {
+            fst98_mask->typvar = 0;
+        }
+        else {
+            fst98_mask->typvar =
+                (is_wildcard(typvar[0]) << 6) |
+                (is_wildcard(typvar[1]));
+        }
 
         char etiket[FST_ETIKET_LEN];
         copy_record_string(etiket, record->etiket, FST_ETIKET_LEN);
@@ -677,10 +716,27 @@ void make_search_criteria(
             (ascii6(etiket[10]) <<  6) |
             (ascii6(etiket[11]));
 
-        if ((fst98_meta->etik15 == 0) && (fst98_meta->etik6a == 0)) {
+        if ((fst98_meta->etik15 == 0) && (fst98_meta->etik6a == 0) && (fst98_meta->etikbc == 0)) {
             fst98_mask->etik15 = 0;
             fst98_mask->etik6a = 0;
             fst98_mask->etikbc = 0;
+        }
+        else {
+            fst98_mask->etik15 =
+                (is_wildcard(etiket[0]) << 24) |
+                (is_wildcard(etiket[1]) << 18) |
+                (is_wildcard(etiket[2]) << 12) |
+                (is_wildcard(etiket[3]) <<  6) |
+                (is_wildcard(etiket[4]));
+            fst98_mask->etik6a =
+                (is_wildcard(etiket[5]) << 24) |
+                (is_wildcard(etiket[6]) << 18) |
+                (is_wildcard(etiket[7]) << 12) |
+                (is_wildcard(etiket[8]) <<  6) |
+                (is_wildcard(etiket[9]));
+            fst98_mask->etikbc =
+                (is_wildcard(etiket[10]) <<  6) |
+                (is_wildcard(etiket[11]));
         }
 
         fst98_meta->ig4  = record->ig4;
@@ -707,14 +763,27 @@ void fill_with_search_meta(
     const search_metadata* meta,    //!< The packed searched metadata
     const fst_file_type type        //!< File type (RSF, XDF, other?)
 ) {
-
+    // Reset a few things first ------------------------------------
     record->do_not_touch.fst_version = default_fst_record.do_not_touch.fst_version;
     record->do_not_touch.num_search_keys = sizeof(stdf_dir_keys) / sizeof(uint32_t); // Default for XDF
+
+    Meta_Free(record->metadata);
     record->do_not_touch.extended_meta_size = 0;
+    record->metadata = NULL;
+    record->do_not_touch.stringified_meta = NULL;
+
+    record->data_blocks.size_x = 0;
+    record->data_blocks.size_y = 0;
+    record->data_blocks.map_size = 0;
+    if (record->data_blocks.map != NULL) {
+        free(record->data_blocks.map);
+        record->data_blocks.map = NULL;
+    }
+    // -------------------------------------------------------------
 
     const stdf_dir_keys* fst98_meta = &(meta->fst98_meta); // Default for XDF
 
-    if (type != FST_XDF) {
+    if (type == FST_RSF) {
         uint8_t rsf_version = meta->rsf_reserved.version;
 
         fst24_reserved_t reserved = meta->fst24_reserved;
@@ -792,17 +861,17 @@ void fill_with_search_meta(
 
     // Here, we implement reading content for next-generation FST (anything that goes beyond the stdf_dir_keys struct)
 
-    Meta_Free(record->metadata);
-    record->metadata = NULL;
-    record->do_not_touch.stringified_meta = NULL;
-
     if (record->do_not_touch.fst_version <= 0) {
         // Nothing in particular
     }
-    else if (record->do_not_touch.fst_version <= 1) {
+    else if (record->do_not_touch.fst_version <= 2) {
         if (record->do_not_touch.extended_meta_size > 0) {
             // Right after the search keys
             record->do_not_touch.stringified_meta = (uint32_t *)meta + record->do_not_touch.num_search_keys;
+        }
+
+        if (record->do_not_touch.fst_version >= 2) {
+            record->data_blocks.map_size = meta->rsf_reserved.datamap_size;
         }
     }
     else {
@@ -885,6 +954,11 @@ int32_t fst24_record_has_same_info(const fst_record* a, const fst_record* b) {
     if (a->do_not_touch.version != b->do_not_touch.version) return 0;
     // if (a->do_not_touch.flags != b->do_not_touch.flags) return 0;
     // if (a->do_not_touch.alloc != b->do_not_touch.alloc) return 0;
+    // if (a->data_blocks.size_x != b->data_blocks.size_x) return 0;
+    // if (a->data_blocks.size_y != b->data_blocks.size_y) return 0;
+    // if (a->data_blocks.map_size != b->data_blocks.map_size) return 0;
+    // if (a->file_offset != b->file_offset) return 0;
+    // if (a->total_stored_bytes != b->total_stored_bytes) return 0;
     if (a->dateo != b->dateo) return 0;
 //    if (a->datev != b->datev) return 0; // not to be included int check as it is derived from other info    
     if (a->data_type != b->data_type) return 0;
@@ -940,12 +1014,28 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Flags:   a = %d, b = %d)\n", __func__, a->do_not_touch.flags, b->do_not_touch.flags);
     if (a->do_not_touch.alloc != b->do_not_touch.alloc)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Alloc:   a = %d, b = %d)\n", __func__, a->do_not_touch.alloc, b->do_not_touch.alloc);
+    if (a->do_not_touch.handle != b->do_not_touch.handle)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Handle:  a = 0x%llx, b = 0x%llx)\n", __func__, a->do_not_touch.handle, b->do_not_touch.handle);
+    if (a->do_not_touch.unpacked_data_size != b->do_not_touch.unpacked_data_size)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Unpacked data size: a = %d, b = %d)\n", __func__, a->do_not_touch.unpacked_data_size, b->do_not_touch.unpacked_data_size);
+    if (a->data_blocks.size_x != b->data_blocks.size_x)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Data blocks size x: a = %d, b = %d)\n", __func__, a->data_blocks.size_x, b->data_blocks.size_x);
+    if (a->data_blocks.size_y != b->data_blocks.size_y)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Data blocks size y: a = %d, b = %d)\n", __func__, a->data_blocks.size_y, b->data_blocks.size_y);
+    if (a->data_blocks.map_size != b->data_blocks.map_size)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Data blocks map size: a = %d, b = %d)\n", __func__, a->data_blocks.map_size, b->data_blocks.map_size);   
+    if (a->data_blocks.map != b->data_blocks.map)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Data blocks map: a = %p, b = %p)\n", __func__, a->data_blocks.map, b->data_blocks.map);
+    if (a->file_offset != b->file_offset)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: File offset: a = %zu, b = %zu)\n", __func__, a->file_offset, b->file_offset);
+    if (a->total_stored_bytes != b->total_stored_bytes)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Total stored bytes: a = %zu, b = %zu)\n", __func__, a->total_stored_bytes, b->total_stored_bytes);
+    if (a->file_index != b->file_index)
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: File index: a = %d, b = %d)\n", __func__, a->file_index, b->file_index);
     if (a->dateo != b->dateo)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Dateo:   a = %d, b = %d)\n", __func__, a->dateo, b->dateo);
     if (a->datev != b->datev)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Datev:   a = %d, b = %d)\n", __func__, a->datev, b->datev);
-    if (a->do_not_touch.handle != b->do_not_touch.handle)
-        Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: Handle:  a = 0x%llx, b = 0x%llx)\n", __func__, a->do_not_touch.handle, b->do_not_touch.handle);
     if (a->data_type != b->data_type)
         Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: data_type:   a = %d, b = %d)\n", __func__, a->data_type, b->data_type);
     if (a->data_bits != b->data_bits)
@@ -996,7 +1086,7 @@ void fst24_record_diff(const fst_record* a, const fst_record* b) {
     }
 }
 
-//! To be called from fortran. Determine whether the given FST record pointer matches the default
+//! To be called from Fortran or Python. Determine whether the given FST record pointer matches the default
 //! fst_record struct.
 //! \return 0 if they match, -1 if not
 int32_t fst24_validate_default_record(
@@ -1025,7 +1115,9 @@ int32_t fst24_validate_default_record(
             }
         }
         fst24_record_diff(&default_fst_record, fortran_record);
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "Default record (the correct one):\n");
         fst24_record_print(&default_fst_record);
+        Lib_Log(APP_LIBFST, APP_ALWAYS, "Given record (Fortran/Python):\n");
         fst24_record_print(fortran_record);
         return -1;
     }
@@ -1034,8 +1126,9 @@ int32_t fst24_validate_default_record(
 }
 
 //! Debug function. Print record attributes that are not at their default value.
-void print_non_wildcards(const fst_record* const record) {
-    char buffer[1024];
+void fst24_record_print_non_default(const fst_record* const record) {
+    const int BUFFER_SIZE = 1024;
+    char buffer[BUFFER_SIZE];
     char* ptr = buffer;
 
     if (record->dateo != default_fst_record.dateo) ptr += snprintf(ptr, 30, "dateo=%d ", record->dateo);
@@ -1074,7 +1167,7 @@ void print_non_wildcards(const fst_record* const record) {
 void print_search_meta(const search_metadata* const keys, const fst_file_type type) {
     fst_record r = default_fst_record;
     fill_with_search_meta(&r, keys, type);
-    print_non_wildcards(&r);
+    fst24_record_print_non_default(&r);
 }
 
 //! Copy record information (including metadata *pointer*) into destination, while preserving

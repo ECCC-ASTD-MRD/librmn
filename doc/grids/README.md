@@ -225,7 +225,7 @@ This grid is a cartesian grid with a non-constant mesh. As for the 'Y' grid, the
 
 # O
 
-The 'O' grid is similar to the Z grid, but represent a grid that cannot be represented analytically. Each grid point has to be located by it's X and Y coordinate. As for the 'Y' grid, the deformation of the mesh is described with the help of the positional records "^^" and ">>". The positional records are 2-dimensional in each direction for this type of grid. The record containing the deformation of the grid should contain NI by NJ. The GRTYP parameter of the positional records has to be 'E', 'L', 'N' or 'S', and values have to be stored in units relevant to the reference projection (degrees or meters).
+The 'O' grid is similar to the Z grid, but represent a grid that cannot be represented analytically. Each grid point has to be located by it's X and Y coordinate. As for the 'Y' grid, the deformation of the mesh is described with the help of the positional records "^^" and ">>". The positional records are 2-dimensional in each direction for this type of grid. The record containing the deformation of the grid should contain NI by NJ coordinates. The GRTYP parameter of the positional records has to be 'E', 'L', 'N' or 'S', and values have to be stored in units relevant to the reference projection (degrees or meters).
 
 ![Example of an O type grid](o.png)
 
@@ -246,7 +246,7 @@ Exemple for WGS84 Cylindrical (LatLon):
     AUTHORITY["EPSG","4326"]]
 ```
 # M
-Meshes are defined as as series of polygon, that have 3 or more vertices. It usually is triangles but could theoritically be other polygons, as long as they are all the same throughout the mesh. As for the Y grid, the "^^" and ">>" records defining the vertices position can only be defined on 'L', 'N' and 'S' grids. These vertices constituting the polygons should be stored in units relevant to the reference projection (degrees or meters). A third record "##" provides the list of indices to the vertices that define the polygons. The number of vertices per polygon is defined by th IG4 valueof this record. if IG4=3, these would be triangles and the record contains a stream of triplets. **Only triangles are currently supported** 
+Meshes are defined as as series of polygon, that have 3 or more vertices. It usually is triangles but could theoritically be other polygons, as long as they are all the same type throughout the mesh. As for the Y grid, the "^^" and ">>" records defining the vertices position can only be defined on 'L', 'N' and 'S' grids. These vertices constituting the polygons should be stored in units relevant to the reference projection (degrees or meters). A third record "##" provides the list of indices to the vertices that define the polygons. The number of vertices per polygon is defined by th IG4 value of this record. if IG4=3, these would be triangles and the record contains a stream of triplets. **Only triangles are currently supported** 
 
 ![Example of an M meshe](m.png)
 

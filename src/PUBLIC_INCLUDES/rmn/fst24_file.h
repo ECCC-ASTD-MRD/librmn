@@ -44,6 +44,7 @@ int32_t     fst24_is_rsf(const fst_file* const file);
 
 int32_t    fst24_read_record(fst_record* const record);
 void*      fst24_read_metadata(fst_record* const record);
+void*      fst24_read_data_map(fst_record* record);
 int32_t    fst24_read_next(fst_query* const query, fst_record* const record);
 int32_t    fst24_write(fst_file* const file, fst_record* const record, const int rewrite);
 int32_t    fst24_read(const fst_file* const file, const fst_record* criteria, const fst_query_options* options,
