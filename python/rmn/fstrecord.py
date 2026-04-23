@@ -151,6 +151,13 @@ class fst_record(ctypes.Structure):
         ('_stringified_meta', ctypes.c_void_p),
         # End do-not-touch
 
+        # The data-blocks struct
+        ('block_size_x', ctypes.c_uint16),
+        ('block_size_y', ctypes.c_uint16),
+        ('data_map_size', ctypes.c_uint32),
+        ('_data_map', ctypes.c_void_p),
+        # End of data-blocks
+
         ('_file', ctypes.c_void_p),
         ('_data', ctypes.c_void_p),
         ('metadata', ctypes.c_void_p),
@@ -422,3 +429,19 @@ _fst24_decode_data_rsf.restype = fst_record
 _fst24_decode_data_xdf = librmn.fst24_decode_data_xdf
 _fst24_decode_data_xdf.argtypes = (ctypes.c_void_p, ctypes.c_void_p)
 _fst24_decode_data_xdf.restype = fst_record
+
+_fst24_validate_default_record = librmn.fst24_validate_default_record
+_fst24_validate_default_record.argtypes = (ctypes.POINTER(fst_record), ctypes.c_size_t)
+_fst24_validate_default_record.restype = ctypes.c_int
+
+def is_default_record_valid() -> bool:
+    """ Check whether the default record struct in Python matches the one in C.
+    This is a safety check to make sure that the default record struct in Python
+    is correctly initialized with the correct fields and with the right values for these fields.
+    If this check fails, it means that the default record struct in Python does not
+    match the one in C, which can lead to incorrect behavior and hard-to-debug
+    errors.  This function should be called at import time to ensure that the
+    default record struct is valid before any other code tries to use it. """
+
+    default_record = _get_default_fst_record()
+    return _fst24_validate_default_record(ctypes.byref(default_record), ctypes.sizeof(default_record)) == 0

@@ -35,6 +35,14 @@ Create a file with a single record with random data:
 >>> with rmn.fst24_file(<filename>, options="R/W") as f:
 >>>     f.write(rec, rewrite=True)
 """
+
 from .fst24file import fst24_file, FstFileError, FstRewriteOpt
-from .fstrecord import fst_record, FstDataType
+from .fstrecord import fst_record, FstDataType, is_default_record_valid
+
+if not is_default_record_valid():
+    raise ImportError(
+        """Default FST record validation failed. This likely means that the FST record struct in Python does not match
+        the one in C, or that the python module does not match the version of the C rmn library.
+        Please check for any recent changes to the FST record struct and make sure they are reflected in both places."""
+    )
 # from .fst_index import get_index_data_frame, get_index_columns, read_fst_data_at_index, get_opdict_metadata

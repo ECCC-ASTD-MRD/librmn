@@ -128,16 +128,19 @@ typedef struct{   // this struct only contains a pointer to the actual full cont
 typedef struct{
     void     *sor ;      //!< start of record address ( pointer to RSF_record.d )
     uint32_t *meta ;     //!< pointer to metadata array ( sor + sizeof(sor) )
-    void     *data ;     //!< pointer to start of data payload array (data map or data)
+    uint32_t *data_map ; //!< pointer to data map (if any)
+    void     *data ;     //!< pointer to start of data payload array (located after data map)
     void     *eor ;      //!< end of record address ( (void *) RSF_record.d + max_data )
-    uint64_t data_size ; //!< actual data size in bytes (may remain 0 in unmanaged records)
-    uint64_t max_data ;  //!< maximum data payload size in bytes
-    int64_t rsz ;        //!< total allocated size of RSF_record in bytes (including the struct, SOR, metadata, data and EOR) (even if split)
+    uint64_t data_size ; //!< actual data size in bytes (excluding data map) (may remain 0 in unmanaged records)
+    uint64_t max_data ;  //!< maximum data payload size in bytes (including data map)
+    int64_t  rsz ;       //!< total allocated size of RSF_record in bytes (including the struct, SOR, metadata, data and EOR) (even if split)
     uint16_t dir_meta ;  //!< directory metadata size in uint32_t units
     uint16_t rec_meta ;  //!< record metadata size in uint32_t units
     uint16_t elem_size ; //!< length of data elements in d[] (1/2/4/8 bytes) (endianness management)
     uint8_t  rec_type ;  //!< Type of record (data, directory, etc)
     uint8_t  rec_class ; //!< Class of record (data vs file?) TODO clarify
+    uint32_t data_map_size ; //!< Size of the data map, in uint32_t units
+    uint32_t dummy ;     //!< To align d[] to 64 bits
     // Make sure this struct stays aligned to 64 bits
 } RSF_record ;
 
@@ -157,7 +160,7 @@ typedef struct{
     uint16_t elem_size ; //!< length of data elements (1/2/4/8 bytes) (endianness management)
     uint8_t rec_type ; //!< Type of the record
     uint8_t rsf_version ; //!< Version of RSF that created the record
-    // NOTE: add something for data map length ?
+    uint32_t data_map_size ; //!< Size of the data map in uint32_t units
 } RSF_record_info ;
 
 // metadata matching function (normally supplied by application)
