@@ -25,8 +25,11 @@ print(f'Setting APP_VERBOSE to SYSTEM')
 
 class TestRMNPackage(unittest.TestCase):
     def setUp(self):
-        self.input_file = "/home/sici000/ci_data/rpn-tools/stdfile.rpn"
-        self.invalid_file = "/home/sici000/.profile"
+        data_dir = os.environ["HOME"]
+        if "ECCI_DATA_DIR" in os.environ:
+            data_dir = os.environ['ECCI_DATA_DIR']
+        self.input_file = os.path.join(data_dir, "rpn-tools/stdfile.rpn")
+        self.invalid_file = os.path.join(os.environ["HOME"], ".profile")
 
         if keep_tmpdir:
             self.tmpdir = tempfile.mkdtemp()
