@@ -748,9 +748,10 @@ module rmn_fst98
             integer(C_INT) :: status
         end function fstecr_fn
 
-        module subroutine fstecr_d(dblewords, work, npak, iun, date, deet, npas, ni, nj, nk, &
+        module function fstecr_d(dblewords, work, npak, iun, date, deet, npas, ni, nj, nk, &
                             ip1, ip2, ip3, typvar, nomvar, etiket, &
-                            grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
+                            grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)  &
+                        result(status)
             implicit none
 #define IgnoreTypeKindRank dblewords, work
 #define ExtraAttributes
@@ -759,7 +760,8 @@ module rmn_fst98
             integer(C_INT), intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
             integer(C_INT), intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
             character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-        end subroutine fstecr_d
+            integer(C_INT) :: status
+        end function fstecr_d
 
         module function fstecr_h(halfwords, work, npak, iun, date, deet, npas, ni, nj, nk, &
                             ip1, ip2, ip3, typvar, nomvar, etiket, &
