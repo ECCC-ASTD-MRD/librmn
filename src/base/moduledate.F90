@@ -791,13 +791,13 @@ end
 subroutine Get_LeapYear_Status_int( no_leap_year_status )
     implicit none
     logical :: no_leap_year_status
-    character(len = 512) :: value
+    character(len = 512) :: value_str
     external :: NewDate_Options_int
 
-    value = 'year'
-    call NewDate_Options_int( value, 'get' )
+    value_str = 'year'
+    call NewDate_Options_int( value_str, 'get' )
 
-    if (value == '365_day' .or. value == '360_day') then
+    if (value_str == '365_day' .or. value_str == '360_day') then
         no_leap_year_status = .true.
     else
         no_leap_year_status = .false.
@@ -814,7 +814,7 @@ module calendar_status_info
 end
 
 
-subroutine NewDate_Options_int( value, command )
+subroutine NewDate_Options_int( value_str, command )
 
     ! A) Permits alternative calendar options, via either
     ! the NEWDATE_OPTIONS environment variable (which
@@ -827,7 +827,7 @@ subroutine NewDate_Options_int( value, command )
 
     use calendar_status_info
     implicit none
-    character(len=*) :: value, command
+    character(len=*) :: value_str, command
     external :: getenvc, up2low
 
     integer ii
@@ -856,7 +856,7 @@ subroutine NewDate_Options_int( value, command )
         endif
     endif
 
-    evalue = value
+    evalue = value_str
     call up2low( evalue, evalue )
     string = command
     call up2low( string, string )
@@ -864,11 +864,11 @@ subroutine NewDate_Options_int( value, command )
     if (string == 'get') then ! check for value of defined options
         if (evalue == 'year') then
             if (ccclx_days) then
-                value = '360_day'
+                value_str = '360_day'
             else if (no_leap_years) then
-                value = '365_day'
+                value_str = '365_day'
             else
-                value = 'gregorian'
+                value_str = 'gregorian'
             endif
         endif
     else if (string == 'set' .and. no_newdate_env_options) then
@@ -975,8 +975,8 @@ integer function LeapYear_Adjust_int(tdate1, tdate2, true_date_mode, adding)
     integer :: ier, tdate1, tdate2, inc, m1, m2, dat(2)
     integer :: annee, y1, y1L, y2, p1a(2), p1b, p2a(2), p2b
     integer :: ndays, tdate1L, tdate28f, tdate29f, addit
-    integer :: naetwed
-    external naetwed
+    integer :: date3_tmp
+    integer, external :: naetwed
 
     addit=0 ! If adding, will hold a day in units of True Dates
 
@@ -1007,17 +1007,20 @@ integer function LeapYear_Adjust_int(tdate1, tdate2, true_date_mode, adding)
     do annee = y2, y1, inc
         if (is_bissextile(annee)) then
             dat(1) = annee*10000+0228
-            ier = naetwed(tdate28f, dat, limite, print2true)
+            date3_tmp = limite
+            ier = naetwed(tdate28f, dat, date3_tmp, print2true)
             dat(1) = annee*10000+0229
             if (inc > 0) then
-                ier = naetwed(tdate29f, dat, 0, print2true)
+                date3_tmp = 0
+                ier = naetwed(tdate29f, dat, date3_tmp, print2true)
                 if (tdate29f <= tdate28f) call lib_log(APP_LIBRMN, APP_ERROR, 'LeapYear_Adjust_int: tdate29f < tdate28f')
                 if ((tdate2 <= tdate28f) .and. (tdate1L >= tdate29f)) then
                     ndays = ndays+inc
                     tdate1L = tdate1L+addit*inc
                 endif
             else
-                ier = naetwed(tdate29f, dat, limite, print2true)
+                date3_tmp = limite
+                ier = naetwed(tdate29f, dat, date3_tmp, print2true)
                 if (tdate29f <= tdate28f) call lib_log(APP_LIBRMN, APP_ERROR, 'LeapYear_Adjust_int: tdate29f < tdate28f')
                 if ((tdate2 >= tdate28f) .and. (tdate1L <= tdate29f)) then
                     ndays = ndays+inc
