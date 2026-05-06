@@ -242,7 +242,10 @@ class fst_record(ctypes.Structure):
                 return None
 
             dtype = fst_type_to_numpy_type(self.data_type, self.data_bits)
-            data_array = np.empty((self.ni, self.nj, self.nk), dtype=dtype, order='F')
+            shape = (self.ni, self.nj, self.nk) if self.nk > 1 \
+               else (self.ni, self.nj)          if self.nj > 1 \
+               else (self.ni)
+            data_array = np.empty(shape, dtype=dtype, order='F')
             self._data = data_array.ctypes.data
             res = _fst24_read_record(ctypes.byref(self))
             if res != 1:
