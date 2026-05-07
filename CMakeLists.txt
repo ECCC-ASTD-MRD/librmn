@@ -384,6 +384,7 @@ foreach(MOD_DIR ${MOD_DIRS})
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_libc.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_meta.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_msg.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_primitives.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/whiteboard_mod.mod
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${MOD_DIR})
 endforeach()
