@@ -15,10 +15,6 @@ const char** fst24_record_get_descriptors(void) {
    return(FST_DESCRIPTOR);
 }
 
-static inline uint32_t is_wildcard(const char c) {
-    return c == '~' ? 0x0 : 0x3f;
-}
-
 //! Check if an fst_record is a field/reference descriptor
 //! \return TRUE (1) if it is, FALSE (0) otherwise
 int32_t fst24_record_is_descriptor(const fst_record* const record) {
@@ -676,10 +672,10 @@ void make_search_criteria(
         }
         else {
             fst98_mask->nomvar = 
-                (is_wildcard(nomvar[0]) << 18) |
-                (is_wildcard(nomvar[1]) << 12) |
-                (is_wildcard(nomvar[2]) <<  6) |
-                (is_wildcard(nomvar[3]));
+                (fst_char_is_wildcard(nomvar[0]) << 18) |
+                (fst_char_is_wildcard(nomvar[1]) << 12) |
+                (fst_char_is_wildcard(nomvar[2]) <<  6) |
+                (fst_char_is_wildcard(nomvar[3]));
         }
 
         char typvar[FST_TYPVAR_LEN];
@@ -692,8 +688,8 @@ void make_search_criteria(
         }
         else {
             fst98_mask->typvar =
-                (is_wildcard(typvar[0]) << 6) |
-                (is_wildcard(typvar[1]));
+                (fst_char_is_wildcard(typvar[0]) << 6) |
+                (fst_char_is_wildcard(typvar[1]));
         }
 
         char etiket[FST_ETIKET_LEN];
@@ -723,20 +719,20 @@ void make_search_criteria(
         }
         else {
             fst98_mask->etik15 =
-                (is_wildcard(etiket[0]) << 24) |
-                (is_wildcard(etiket[1]) << 18) |
-                (is_wildcard(etiket[2]) << 12) |
-                (is_wildcard(etiket[3]) <<  6) |
-                (is_wildcard(etiket[4]));
+                (fst_char_is_wildcard(etiket[0]) << 24) |
+                (fst_char_is_wildcard(etiket[1]) << 18) |
+                (fst_char_is_wildcard(etiket[2]) << 12) |
+                (fst_char_is_wildcard(etiket[3]) <<  6) |
+                (fst_char_is_wildcard(etiket[4]));
             fst98_mask->etik6a =
-                (is_wildcard(etiket[5]) << 24) |
-                (is_wildcard(etiket[6]) << 18) |
-                (is_wildcard(etiket[7]) << 12) |
-                (is_wildcard(etiket[8]) <<  6) |
-                (is_wildcard(etiket[9]));
+                (fst_char_is_wildcard(etiket[5]) << 24) |
+                (fst_char_is_wildcard(etiket[6]) << 18) |
+                (fst_char_is_wildcard(etiket[7]) << 12) |
+                (fst_char_is_wildcard(etiket[8]) <<  6) |
+                (fst_char_is_wildcard(etiket[9]));
             fst98_mask->etikbc =
-                (is_wildcard(etiket[10]) <<  6) |
-                (is_wildcard(etiket[11]));
+                (fst_char_is_wildcard(etiket[10]) <<  6) |
+                (fst_char_is_wildcard(etiket[11]));
         }
 
         fst98_meta->ig4  = record->ig4;
