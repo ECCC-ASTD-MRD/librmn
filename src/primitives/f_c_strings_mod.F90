@@ -181,12 +181,14 @@ module f_c_strings_mod
         implicit none
         character(len=*), intent(OUT) :: f_str
         integer, intent(IN), value :: n
-        character(C_CHAR), dimension(n), intent(IN) :: c_str
+        character(C_CHAR), dimension(n), intent(IN), target :: c_str
 
         integer(C_SIZE_T) :: flen, clen, i
+        type(C_PTR) :: cstrptr
         flen = len(f_str)
         clen = n
-        clen = c_strnlen(c_str, clen)            ! C string cannot be longer than n bytes
+        cstrptr = C_LOC(c_str(1))
+        clen = c_strnlen(cstrptr, clen)            ! C string cannot be longer than n bytes
         clen = min(flen,clen)                    ! at most flen characters can fir in Fortran string
         do i = 1, clen
             f_str(i:i) = c_str(i)            ! copy string
@@ -194,6 +196,24 @@ module f_c_strings_mod
         if (flen > clen) f_str(clen+1:flen) = ' ' ! pad with blanks
     end subroutine strncpy_c2f
 
+    !> create a Fortran pointer to character(len=:) from C pointer
+    function c2f_str(cstrptr, ncmax) result(fstrptr)
+        implicit none
+        type(C_PTR), intent(IN), value :: cstrptr
+        integer(C_INT32_T), intent(IN), value :: ncmax
+        character(len=:), pointer :: fstrptr
+        integer(C_SIZE_T) :: nc
+        nc = c_strnlen(cstrptr, int(ncmax, kind=C_SIZE_T))
+#if defined(C_F_STRPOINTER_AVAILABLE)
+        call c_f_strpointer(cstrptr, fstrptr, nc)  ! nc is actual length, not max length
+#else
+        block
+            character(kind=C_CHAR, len=nc), pointer :: fptr
+            call c_f_pointer(cstrptr, fptr)
+            fstrptr => fptr(1:nc)
+        end block
+#endif
+    end function c2f_str
 
 #ifndef F_C_STRING_AVAILABLE
     !>Attempt at implementing new C<->Fortran strings from Fortran 202X
@@ -227,8 +247,8 @@ module f_c_strings_mod
 
         nc = 2000000000
         if(present(nchars)) nc = nchars
-        nc = c_strnlen(cstrarray, nc)
         cstrptr = C_LOC(cstrarray(1))
+        nc = c_strnlen(cstrptr, nc)
         block
             character(kind=C_CHAR, len=nc), pointer :: fptr
             call c_f_pointer(cstrptr, fptr)
