@@ -9,6 +9,7 @@ program test_meta_fortran
     type(C_PTR) obj,grid
     real(kind=REAL64), dimension(1) :: levels = [ 1.0 ]
     integer(kind=INT32) :: ok
+    character(len=:), pointer :: fstring
  
 !   Load metadata template
     ok=meta_fld%init(META_TYPE_RECORD,C_NULL_CHAR)
@@ -21,7 +22,10 @@ program test_meta_fortran
     obj=meta_file%AddHorizontalRef("RPN_GDPS_2020_25KM",.true.)
     obj=meta_file%AddVerticalRef("PRESSURE",.true.)
 
-    write(6,*) 'JSON:',meta_file%Stringify()
+    call meta_file%Stringify(fstring)
+!     fstring = meta_file%Stringify()
+    write(6,*) 'JSON:',fstring
+!     write(6,*) 'JSON:',meta_file%Stringify()
  
 !    obj=meta_fld%DefVar("air_temperature","TT","air temperature","Air temperature is the bulk temperature of the air, not the surface (skin) temperature","celsius")
     obj=meta_fld%DefVarFromDict("TT")
@@ -57,6 +61,9 @@ program test_meta_fortran
      call record % make_c_self()
      call record % from_c_self()
       meta_tmp=record%metadata
-     write(6,*) 'JSON:',meta_tmp%Stringify()
+    call meta_tmp%Stringify(fstring)
+!     fstring = meta_tmp%Stringify()
+    write(6,*) 'JSON:',fstring
+!      write(6,*) 'JSON:',meta_tmp%Stringify()
      
 end
