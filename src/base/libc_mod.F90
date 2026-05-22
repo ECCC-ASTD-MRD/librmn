@@ -4,9 +4,10 @@ module rmn_libc
     implicit none
     interface
         function c_strnlen(str, maxlen) result(strlen) bind(C, name='strnlen')
-            import :: C_CHAR, C_SIZE_T
+            import :: C_PTR, C_CHAR, C_SIZE_T
             implicit none
-            character(C_CHAR), dimension(*), intent(IN) :: str
+!             character(C_CHAR), dimension(*), intent(IN) :: str
+            type(C_PTR), intent(IN), value :: str
             integer(C_SIZE_T), intent(IN), value :: maxlen
             integer(C_SIZE_T) :: strlen
         end function c_strnlen

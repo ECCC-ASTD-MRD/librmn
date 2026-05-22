@@ -25,7 +25,9 @@ module rmn_meta
         procedure, pass :: clearqualifiers => tmeta_clearqualifiers
         procedure, pass :: addcellmethod => tmeta_addcellmethod
         procedure, pass :: clearcellmethods => tmeta_clearcellmethods
-        procedure, pass :: stringify => tmeta_stringify
+        procedure, pass :: stringify   => tmeta_stringify_s
+        procedure, pass :: stringify_s => tmeta_stringify_s
+        procedure, pass :: stringify_f => tmeta_stringify_f
         procedure, pass :: deffile => tmeta_deffile
         procedure, pass :: writefile => tmeta_writefile
         procedure, pass :: defvar => tmeta_defvar
@@ -205,14 +207,13 @@ contains
         status = meta_clearqualifiers(this%json_obj)
     end FUNCTION tmeta_clearqualifiers
 
-    FUNCTION tmeta_stringify_(this,format) result(fstring)
+    FUNCTION tmeta_stringify_f(this,format) result(fstring)   ! function flavor
         class(meta), intent(in) :: this
         integer(kind=C_INT32_T), intent(in), optional :: format
         type(C_PTR) :: cstring
-!         character(len=:), pointer :: fstring
         character(len=:), pointer :: fstring
         integer(kind=C_INT32_T) :: f
-        integer(C_SIZE_T) :: nc
+        integer(C_SIZE_T) :: nc, ncmax
         character(len=:), pointer :: fptr
 
         f=JSON_C_TO_STRING_PRETTY
@@ -221,22 +222,26 @@ contains
         endif
 
         cstring = meta_stringify(this%json_obj,f)
-        nc = c_strlen(cstring)
-!         call c_f_strpointer(cstring,fstring,nc)
+        ncmax = META_BUF_MAX     ! META_BUF_MAX not integer(C_SIZE_T)
+        nc = c_strnlen(cstring,ncmax)
+#if defined(C_F_STRPOINTER_AVAILABLE)
+        call c_f_strpointer(cstring,fstring,nc)
+#else
         block
             character(kind=C_CHAR, len=nc), pointer :: fptr2
             call c_f_pointer(cstring, fptr2)
             fstring => fptr2(1:nc)
         end block
-    end FUNCTION tmeta_stringify_
+#endif
+    end FUNCTION tmeta_stringify_f
 
-    subroutine tmeta_stringify(this,fstring, format)
+    subroutine tmeta_stringify_s(this,fstring, format)   ! subroutine flavor
         class(meta), intent(in) :: this
         integer(kind=C_INT32_T), intent(in), optional :: format
         type(C_PTR) :: cstring
         character(len=:), pointer, intent(OUT) :: fstring
         integer(kind=C_INT32_T) :: f
-        integer(C_SIZE_T) :: nc
+        integer(C_SIZE_T) :: nc, ncmax
         character(len=:), pointer :: fptr
 
         f=JSON_C_TO_STRING_PRETTY
@@ -245,14 +250,18 @@ contains
         endif
 
         cstring = meta_stringify(this%json_obj,f)
-        nc = c_strlen(cstring)
-!         call c_f_strpointer(cstring,fstring,nc)
+        ncmax = META_BUF_MAX     ! META_BUF_MAX not integer(C_SIZE_T)
+        nc = c_strnlen(cstring,ncmax)
+#if defined(C_F_STRPOINTER_AVAILABLE)
+        call c_f_strpointer(cstring,fstring,nc)
+#else
         block
             character(kind=C_CHAR, len=nc), pointer :: fptr2
             call c_f_pointer(cstring, fptr2)
             fstring => fptr2(1:nc)
         end block
-    end subroutine tmeta_stringify
+#endif
+    end subroutine tmeta_stringify_s
 
     FUNCTION tmeta_deffile(this,institution,discipline,title,source,description,state) result(status)
         class(meta), intent(inout) :: this

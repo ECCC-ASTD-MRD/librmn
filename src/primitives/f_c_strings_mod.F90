@@ -181,12 +181,14 @@ module f_c_strings_mod
         implicit none
         character(len=*), intent(OUT) :: f_str
         integer, intent(IN), value :: n
-        character(C_CHAR), dimension(n), intent(IN) :: c_str
+        character(C_CHAR), dimension(n), intent(IN), target :: c_str
 
         integer(C_SIZE_T) :: flen, clen, i
+        type(C_PTR) :: cstrptr
         flen = len(f_str)
         clen = n
-        clen = c_strnlen(c_str, clen)            ! C string cannot be longer than n bytes
+        cstrptr = C_LOC(c_str(1))
+        clen = c_strnlen(cstrptr, clen)            ! C string cannot be longer than n bytes
         clen = min(flen,clen)                    ! at most flen characters can fir in Fortran string
         do i = 1, clen
             f_str(i:i) = c_str(i)            ! copy string
@@ -227,8 +229,8 @@ module f_c_strings_mod
 
         nc = 2000000000
         if(present(nchars)) nc = nchars
-        nc = c_strnlen(cstrarray, nc)
         cstrptr = C_LOC(cstrarray(1))
+        nc = c_strnlen(cstrptr, nc)
         block
             character(kind=C_CHAR, len=nc), pointer :: fptr
             call c_f_pointer(cstrptr, fptr)
