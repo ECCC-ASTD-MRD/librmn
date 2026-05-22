@@ -25,7 +25,7 @@ module rmn_meta
         procedure, pass :: clearqualifiers => tmeta_clearqualifiers
         procedure, pass :: addcellmethod => tmeta_addcellmethod
         procedure, pass :: clearcellmethods => tmeta_clearcellmethods
-        procedure, pass :: stringify   => tmeta_stringify_s
+        procedure, pass :: stringify   => tmeta_stringify_f
         procedure, pass :: stringify_s => tmeta_stringify_s
         procedure, pass :: stringify_f => tmeta_stringify_f
         procedure, pass :: deffile => tmeta_deffile
