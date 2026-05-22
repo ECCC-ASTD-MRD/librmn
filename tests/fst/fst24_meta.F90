@@ -22,8 +22,8 @@ program test_meta_fortran
     obj=meta_file%AddHorizontalRef("RPN_GDPS_2020_25KM",.true.)
     obj=meta_file%AddVerticalRef("PRESSURE",.true.)
 
-    call meta_file%Stringify(fstring)
-!     fstring = meta_file%Stringify()
+!     call meta_file%Stringify(fstring)
+    fstring => meta_file%Stringify_f()
     write(6,*) 'JSON:',fstring
 !     write(6,*) 'JSON:',meta_file%Stringify()
  
@@ -61,8 +61,8 @@ program test_meta_fortran
      call record % make_c_self()
      call record % from_c_self()
       meta_tmp=record%metadata
-    call meta_tmp%Stringify(fstring)
-!     fstring = meta_tmp%Stringify()
+!     call meta_tmp%Stringify(fstring)
+    fstring => meta_tmp%Stringify_f()
     write(6,*) 'JSON:',fstring
 !      write(6,*) 'JSON:',meta_tmp%Stringify()
      

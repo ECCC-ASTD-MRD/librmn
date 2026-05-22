@@ -213,7 +213,7 @@ contains
         type(C_PTR) :: cstring
         character(len=:), pointer :: fstring
         integer(kind=C_INT32_T) :: f
-        integer(C_SIZE_T) :: nc, ncmax
+        integer(C_SIZE_T) :: nc
         character(len=:), pointer :: fptr
 
         f=JSON_C_TO_STRING_PRETTY
@@ -222,26 +222,16 @@ contains
         endif
 
         cstring = meta_stringify(this%json_obj,f)
-        ncmax = META_BUF_MAX     ! META_BUF_MAX not integer(C_SIZE_T)
-        nc = c_strnlen(cstring,ncmax)
-#if defined(C_F_STRPOINTER_AVAILABLE)
-        call c_f_strpointer(cstring,fstring,nc)
-#else
-        block
-            character(kind=C_CHAR, len=nc), pointer :: fptr2
-            call c_f_pointer(cstring, fptr2)
-            fstring => fptr2(1:nc)
-        end block
-#endif
+        fstring => c2f_str(cstring, META_BUF_MAX)
     end FUNCTION tmeta_stringify_f
 
-    subroutine tmeta_stringify_s(this,fstring, format)   ! subroutine flavor
+    SUBROUTINE tmeta_stringify_s(this,fstring, format)   ! subroutine flavor
         class(meta), intent(in) :: this
         integer(kind=C_INT32_T), intent(in), optional :: format
         type(C_PTR) :: cstring
         character(len=:), pointer, intent(OUT) :: fstring
         integer(kind=C_INT32_T) :: f
-        integer(C_SIZE_T) :: nc, ncmax
+        integer(C_SIZE_T) :: nc
         character(len=:), pointer :: fptr
 
         f=JSON_C_TO_STRING_PRETTY
@@ -250,18 +240,8 @@ contains
         endif
 
         cstring = meta_stringify(this%json_obj,f)
-        ncmax = META_BUF_MAX     ! META_BUF_MAX not integer(C_SIZE_T)
-        nc = c_strnlen(cstring,ncmax)
-#if defined(C_F_STRPOINTER_AVAILABLE)
-        call c_f_strpointer(cstring,fstring,nc)
-#else
-        block
-            character(kind=C_CHAR, len=nc), pointer :: fptr2
-            call c_f_pointer(cstring, fptr2)
-            fstring => fptr2(1:nc)
-        end block
-#endif
-    end subroutine tmeta_stringify_s
+        fstring => c2f_str(cstring, META_BUF_MAX)
+    end SUBROUTINE tmeta_stringify_s
 
     FUNCTION tmeta_deffile(this,institution,discipline,title,source,description,state) result(status)
         class(meta), intent(inout) :: this

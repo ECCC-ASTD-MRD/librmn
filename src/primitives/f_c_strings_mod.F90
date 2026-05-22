@@ -196,6 +196,23 @@ module f_c_strings_mod
         if (flen > clen) f_str(clen+1:flen) = ' ' ! pad with blanks
     end subroutine strncpy_c2f
 
+    function c2f_str(cstrptr, ncmax) result(fstrptr)
+        implicit none
+        type(C_PTR), intent(IN), value :: cstrptr
+        integer(C_INT32_T), intent(IN), value :: ncmax
+        character(len=:), pointer :: fstrptr
+        integer(C_SIZE_T) :: nc
+        nc = c_strnlen(cstrptr, int(ncmax, kind=C_SIZE_T))
+#if defined(C_F_STRPOINTER_AVAILABLE)
+        call c_f_strpointer(cstrptr, fstrptr, nc)
+#else
+        block
+            character(kind=C_CHAR, len=nc), pointer :: fptr
+            call c_f_pointer(cstrptr, fptr)
+            fstrptr => fptr(1:nc)
+        end block
+#endif
+    end function c2f_str
 
 #ifndef F_C_STRING_AVAILABLE
     !>Attempt at implementing new C<->Fortran strings from Fortran 202X

@@ -75,8 +75,8 @@ subroutine make_test_record()
     test_record % data_bits = 32
 
     status = test_record % metadata % init(META_TYPE_RECORD,"")
-    call test_record % metadata % stringify(fstring)
-!     fstring = test_record % metadata % stringify()
+!     call test_record % metadata % stringify(fstring)
+    fstring => test_record % metadata % stringify_f()
     write(6,*) fstring
 !     write(6,*) test_record % metadata % stringify()
 end subroutine make_test_record
