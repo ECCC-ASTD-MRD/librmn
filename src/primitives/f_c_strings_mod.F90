@@ -204,7 +204,7 @@ module f_c_strings_mod
         integer(C_SIZE_T) :: nc
         nc = c_strnlen(cstrptr, int(ncmax, kind=C_SIZE_T))
 #if defined(C_F_STRPOINTER_AVAILABLE)
-        call c_f_strpointer(cstrptr, fstrptr, nc)
+        call c_f_strpointer(cstrptr, fstrptr, nc)  ! nc is actual length, not max length
 #else
         block
             character(kind=C_CHAR, len=nc), pointer :: fptr
