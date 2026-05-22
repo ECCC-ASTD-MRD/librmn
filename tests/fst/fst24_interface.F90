@@ -76,7 +76,7 @@ subroutine make_test_record()
 
     status = test_record % metadata % init(META_TYPE_RECORD,"")
 !     call test_record % metadata % stringify(fstring)
-    fstring => test_record % metadata % stringify_f()
+    fstring => test_record % metadata % stringify_f()   ! test function version
     write(6,*) fstring
 !     write(6,*) test_record % metadata % stringify()
 end subroutine make_test_record

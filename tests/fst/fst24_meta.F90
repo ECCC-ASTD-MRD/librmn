@@ -23,7 +23,7 @@ program test_meta_fortran
     obj=meta_file%AddVerticalRef("PRESSURE",.true.)
 
 !     call meta_file%Stringify(fstring)
-    fstring => meta_file%Stringify_f()
+    fstring => meta_file%Stringify_f()   ! test function version
     write(6,*) 'JSON:',fstring
 !     write(6,*) 'JSON:',meta_file%Stringify()
  
@@ -61,8 +61,8 @@ program test_meta_fortran
      call record % make_c_self()
      call record % from_c_self()
       meta_tmp=record%metadata
-!     call meta_tmp%Stringify(fstring)
-    fstring => meta_tmp%Stringify_f()
+    call meta_tmp%Stringify_s(fstring)   ! test subroutine version
+!     fstring => meta_tmp%Stringify_f()
     write(6,*) 'JSON:',fstring
 !      write(6,*) 'JSON:',meta_tmp%Stringify()
      
