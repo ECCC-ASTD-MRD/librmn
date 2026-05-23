@@ -196,6 +196,7 @@ module f_c_strings_mod
         if (flen > clen) f_str(clen+1:flen) = ' ' ! pad with blanks
     end subroutine strncpy_c2f
 
+    !> create a Fortran pointer to character(len=:) from C pointer
     function c2f_str(cstrptr, ncmax) result(fstrptr)
         implicit none
         type(C_PTR), intent(IN), value :: cstrptr
