@@ -425,13 +425,13 @@ _get_default_fst_record = librmn.get_default_fst_record
 _get_default_fst_record.argtypes = tuple()
 _get_default_fst_record.restype = fst_record
 
-_fst24_decode_data_rsf = librmn.fst24_decode_data_rsf
-_fst24_decode_data_rsf.argtypes = (ctypes.c_void_p, ctypes.c_void_p)
-_fst24_decode_data_rsf.restype = fst_record
+fst24_decode_data_rsf = librmn.fst24_decode_data_rsf
+fst24_decode_data_rsf.argtypes = (ctypes.c_void_p, ctypes.c_void_p)
+fst24_decode_data_rsf.restype = fst_record
 
-_fst24_decode_data_xdf = librmn.fst24_decode_data_xdf
-_fst24_decode_data_xdf.argtypes = (ctypes.c_void_p, ctypes.c_void_p)
-_fst24_decode_data_xdf.restype = fst_record
+fst24_decode_data_xdf = librmn.fst24_decode_data_xdf
+fst24_decode_data_xdf.argtypes = (ctypes.c_void_p, ctypes.c_void_p)
+fst24_decode_data_xdf.restype = fst_record
 
 _fst24_validate_default_record = librmn.fst24_validate_default_record
 _fst24_validate_default_record.argtypes = (ctypes.POINTER(fst_record), ctypes.c_size_t)
