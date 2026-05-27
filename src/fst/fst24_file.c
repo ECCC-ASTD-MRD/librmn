@@ -1974,34 +1974,40 @@ fst_record fst24_decode_data_xdf(
 
     union {
         file_record rec;
-        uint32_t words[sizeof(file_record) / sizeof(uint32_t)];
+        stdf_dir_keys keys;
+        uint32_t words[sizeof(stdf_dir_keys) / sizeof(uint32_t)];
     } xdf_info;
 
-    xdf_info.rec = *(file_record*)data;
+    xdf_info.keys = *(stdf_dir_keys*)data;
     #ifdef Little_Endian
-        swap_buffer_endianness(xdf_info.words, sizeof(file_record) / sizeof(uint32_t));
+        swap_buffer_endianness(xdf_info.words, sizeof(stdf_dir_keys) / sizeof(uint32_t));
     #endif // Little endian
 
-    Lib_Log(APP_LIBFST, APP_ALWAYS, "%s: rec lng = %d, addr %8x, idtyp %d\n",
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: rec lng = %d, addr %8x, idtyp %d\n",
         __func__, xdf_info.rec.lng, xdf_info.rec.addr, xdf_info.rec.idtyp);
-
-    const int num_bytes = xdf_info.rec.lng * sizeof(uint64_t); 
-    uint32_t* workspace = (uint32_t*)malloc(num_bytes);
-    if (workspace == NULL) {
-        Lib_Log(APP_LIBFST, APP_FATAL, "%s: Could not allocate %d bytes for workspace\n", __func__, num_bytes);
-        return rec;
-    }
-
-    memcpy(workspace, data, num_bytes);
-    #ifdef Little_Endian
-        swap_buffer_endianness(workspace, num_bytes / sizeof(uint32_t));
-    #endif // Little endian
 
     // Extract metadata
     search_metadata meta;
-    meta.fst98_meta = *(stdf_dir_keys*)&workspace[0];
+    meta.fst98_meta = xdf_info.keys;
     fill_with_search_meta(&rec, &meta, FST_RSF);
     // fst24_record_print(&rec);
+
+    const size_t num_raw_bytes = xdf_info.rec.lng * sizeof(uint64_t); 
+    const size_t needed_data_size = Max(num_raw_bytes, rec.do_not_touch.unpacked_data_size * sizeof(uint32_t));
+    const size_t workspace_size = needed_data_size + 
+                                  sizeof(stdf_dir_keys) + 
+                                  128 * sizeof(uint32_t); // Enough space for the largest compression scheme + rounding up for alignment
+
+    uint32_t* workspace = (uint32_t*)malloc(workspace_size);
+    if (workspace == NULL) {
+        Lib_Log(APP_LIBFST, APP_FATAL, "%s: Could not allocate %zu bytes for workspace\n", __func__, workspace_size);
+        return rec;
+    }
+
+    memcpy(workspace, data, num_raw_bytes);
+    #ifdef Little_Endian
+        swap_buffer_endianness(workspace, num_raw_bytes / sizeof(uint32_t));
+    #endif // Little endian
 
     // Allocate space if needed
     void* dest = dest_data;
@@ -2298,7 +2304,7 @@ int32_t fst24_unpack_data(
         upgrade_size(dest, record->data_bits, f, original_num_bits, num_elem, 0);
     }
 
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Read record with key 0x%x\n", __func__, record->do_not_touch.handle);
+    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Unpacked record with key 0x%llx\n", __func__, record->do_not_touch.handle);
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) fst24_record_print_short(record, NULL, 1, NULL);
 
     if (compact_ier < 0) {

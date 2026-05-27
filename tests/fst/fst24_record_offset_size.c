@@ -106,7 +106,7 @@ int run_test(const int is_rsf) {
     {
         char buffer[1024 * 2];
         char* ptr = buffer;
-        for (int i = 0; i < rec.total_stored_bytes / sizeof(uint32_t); i++) {
+        for (int i = 0; i < rec.total_stored_bytes / sizeof(uint32_t) && i < 512; i++) {
             if (i % 4 == 0) ptr += sprintf(ptr, "\n");
             ptr += sprintf(ptr, "%8x ", raw_record[i]);
         }
@@ -115,13 +115,14 @@ int run_test(const int is_rsf) {
 
     // Try to decode the bytes
     fst_record local_rec = default_fst_record;
+    void* decoded_data = malloc(fst24_record_data_size(&rec));
     if (is_rsf) {
-        local_rec = fst24_decode_data_rsf(raw_record, NULL);
+        local_rec = fst24_decode_data_rsf(raw_record, decoded_data);
     }
     else {
-        local_rec = fst24_decode_data_xdf(raw_record, NULL);
+        local_rec = fst24_decode_data_xdf(raw_record, decoded_data);
     }
-    if (local_rec.data == NULL) {
+    if (local_rec.data == NULL || local_rec.data != decoded_data) {
         App_Log(APP_ERROR, "%s: Could not unpack raw record (%s)\n", __func__, is_rsf ? "RSF" : "XDF");
         return -1;
     }
@@ -146,6 +147,7 @@ int run_test(const int is_rsf) {
     }
 
     fst24_record_free(&local_rec);
+    free(decoded_data);
 
     free(raw_record);
     fst24_query_free(q);
