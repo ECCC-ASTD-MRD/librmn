@@ -2354,34 +2354,67 @@ int c_fstinfx_xdf(
     if ((ip3 == -1) || (ip3s_flag)) search_mask->ip3 = 0;
 
     stdf_entry->nomvar = (ascii6(nomvar[0]) << 18) |
-                        (ascii6(nomvar[1]) << 12) |
-                        (ascii6(nomvar[2]) <<  6) |
-                        (ascii6(nomvar[3]));
-    if (stdf_entry->nomvar == 0) search_mask->nomvar = 0;
+                         (ascii6(nomvar[1]) << 12) |
+                         (ascii6(nomvar[2]) <<  6) |
+                         (ascii6(nomvar[3]));
+    if (stdf_entry->nomvar == 0) {
+        search_mask->nomvar = 0;
+    }
+    else {
+        search_mask->nomvar = 
+            (fst_char_is_wildcard(nomvar[0]) << 18) |
+            (fst_char_is_wildcard(nomvar[1]) << 12) |
+            (fst_char_is_wildcard(nomvar[2]) <<  6) |
+            (fst_char_is_wildcard(nomvar[3]));
+    }
 
     stdf_entry->typvar = (ascii6(typvar[0]) << 6) |
-                        (ascii6(typvar[1]));
-    if (stdf_entry->typvar == 0) search_mask->typvar = 0;
+                         (ascii6(typvar[1]));
+    if (stdf_entry->typvar == 0) {
+        search_mask->typvar = 0;
+    }
+    else {
+        search_mask->typvar =
+            (fst_char_is_wildcard(typvar[0]) << 6) |
+            (fst_char_is_wildcard(typvar[1]));
+    }
 
     stdf_entry->etik15 = (ascii6(etiket[0]) << 24) |
-                        (ascii6(etiket[1]) << 18) |
-                        (ascii6(etiket[2]) << 12) |
-                        (ascii6(etiket[3]) <<  6) |
-                        (ascii6(etiket[4]));
+                         (ascii6(etiket[1]) << 18) |
+                         (ascii6(etiket[2]) << 12) |
+                         (ascii6(etiket[3]) <<  6) |
+                         (ascii6(etiket[4]));
 
     stdf_entry->etik6a = (ascii6(etiket[5]) << 24) |
-                        (ascii6(etiket[6]) << 18) |
-                        (ascii6(etiket[7]) << 12) |
-                        (ascii6(etiket[8]) <<  6) |
-                        (ascii6(etiket[9]));
+                         (ascii6(etiket[6]) << 18) |
+                         (ascii6(etiket[7]) << 12) |
+                         (ascii6(etiket[8]) <<  6) |
+                         (ascii6(etiket[9]));
 
     stdf_entry->etikbc = (ascii6(etiket[10]) <<  6) |
-                        (ascii6(etiket[11]));
+                         (ascii6(etiket[11]));
 
-    if ((stdf_entry->etik15 == 0) && (stdf_entry->etik6a == 0)) {
+    if ((stdf_entry->etik15 == 0) && (stdf_entry->etik6a == 0) && (stdf_entry->etikbc == 0)) {
         search_mask->etik15 = 0;
         search_mask->etik6a = 0;
         search_mask->etikbc = 0;
+    }
+    else {
+        search_mask->etik15 =
+            (fst_char_is_wildcard(etiket[0]) << 24) |
+            (fst_char_is_wildcard(etiket[1]) << 18) |
+            (fst_char_is_wildcard(etiket[2]) << 12) |
+            (fst_char_is_wildcard(etiket[3]) <<  6) |
+            (fst_char_is_wildcard(etiket[4]));
+        search_mask->etik6a =
+            (fst_char_is_wildcard(etiket[5]) << 24) |
+            (fst_char_is_wildcard(etiket[6]) << 18) |
+            (fst_char_is_wildcard(etiket[7]) << 12) |
+            (fst_char_is_wildcard(etiket[8]) <<  6) |
+            (fst_char_is_wildcard(etiket[9]));
+        search_mask->etikbc =
+            (fst_char_is_wildcard(etiket[10]) <<  6) |
+            (fst_char_is_wildcard(etiket[11]));
     }
     pkeys += W64TOWD(1);
     pmask += W64TOWD(1);

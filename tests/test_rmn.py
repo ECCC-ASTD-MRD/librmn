@@ -25,8 +25,11 @@ print(f'Setting APP_VERBOSE to SYSTEM')
 
 class TestRMNPackage(unittest.TestCase):
     def setUp(self):
-        self.input_file = "/home/sici000/ci_data/rpn-tools/stdfile.rpn"
-        self.invalid_file = "/home/sici000/.profile"
+        data_dir = os.environ["HOME"]
+        if "ECCI_DATA_DIR" in os.environ:
+            data_dir = os.environ['ECCI_DATA_DIR']
+        self.input_file = os.path.join(data_dir, "rpn-tools/stdfile.rpn")
+        self.invalid_file = os.path.join(os.environ["HOME"], ".profile")
 
         if keep_tmpdir:
             self.tmpdir = tempfile.mkdtemp()
@@ -138,9 +141,9 @@ class TestRMNPackage(unittest.TestCase):
             q = f.new_query(nomvar='AL')
             rec = next(q)
             data = rec.data
-            self.assertAlmostEqual(data[0,0,0], 0.7999902)
-            self.assertAlmostEqual(data[-1,-1,0], 0.1699853)
-            self.assertAlmostEqual(data[235,109,0], 0.1199822)
+            self.assertAlmostEqual(data[0,0], 0.7999902)
+            self.assertAlmostEqual(data[-1,-1], 0.1699853)
+            self.assertAlmostEqual(data[235,109], 0.1199822)
 
     def test_create_record_with_data(self):
         rec = self.create_record_with_data()
@@ -172,7 +175,7 @@ class TestRMNPackage(unittest.TestCase):
 
         with rmn.fst24_file(filename=filename, options="R/O") as f:
             read_from_file = next(iter(f))
-            self.assertTrue(np.array_equal(to_write.data, read_from_file.data))
+            self.assertTrue(np.array_equal(np.squeeze(to_write.data), read_from_file.data))
 
     def test_write_to_closed_file(self):
         with rmn.fst24_file(filename=f'{self.tmpdir}/write_to_closed.std', options='R/W') as f:

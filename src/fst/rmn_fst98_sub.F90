@@ -677,7 +677,6 @@ contains
 
   module procedure fstecr_d
     implicit none
-    integer :: status
     status = fst_data_length(8)
     status = fstecr(dblewords, work, npak, iun, date, deet, npas, ni, nj, nk, &
                 ip1, ip2, ip3, typvar, nomvar, etiket, grtyp,  &

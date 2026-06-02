@@ -142,4 +142,11 @@ static inline fst_query fst_query_copy(const fst_query* const query) {
 
 int32_t fst24_query_is_valid(const fst_query* const q);
 
+//! Determine whether the given character is a wildcard `~` and return the corresponding mask. Characters are stored
+//! using 6 bits in standard file keys.
+//! \return 0 (masked) if it is a wildcard, 0x3f (not masked) if it isn't.
+static inline uint32_t fst_char_is_wildcard(const char c) {
+    return c == '~' ? 0x0 : 0x3f;
+}
+
 #endif // RMN_FST_INTERNAL_H_

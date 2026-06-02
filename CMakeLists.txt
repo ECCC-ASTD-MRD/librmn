@@ -379,10 +379,12 @@ foreach(MOD_DIR ${MOD_DIRS})
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst24_record.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_fst98.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_gmm.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_interp.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_jar.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_libc.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_meta.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_msg.mod
+        ${MODULE_BASE_DIR}/${MOD_DIR}/rmn_primitives.mod
         ${MODULE_BASE_DIR}/${MOD_DIR}/whiteboard_mod.mod
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${MOD_DIR})
 endforeach()
