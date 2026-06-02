@@ -25,7 +25,9 @@ module rmn_meta
         procedure, pass :: clearqualifiers => tmeta_clearqualifiers
         procedure, pass :: addcellmethod => tmeta_addcellmethod
         procedure, pass :: clearcellmethods => tmeta_clearcellmethods
-        procedure, pass :: stringify => tmeta_stringify
+        procedure, pass :: stringify   => tmeta_stringify_f
+        procedure, pass :: stringify_s => tmeta_stringify_s
+        procedure, pass :: stringify_f => tmeta_stringify_f
         procedure, pass :: deffile => tmeta_deffile
         procedure, pass :: writefile => tmeta_writefile
         procedure, pass :: defvar => tmeta_defvar
@@ -205,12 +207,14 @@ contains
         status = meta_clearqualifiers(this%json_obj)
     end FUNCTION tmeta_clearqualifiers
 
-    FUNCTION tmeta_stringify(this,format) result(fstring)
+    FUNCTION tmeta_stringify_f(this,format) result(fstring)   ! function flavor
         class(meta), intent(in) :: this
         integer(kind=C_INT32_T), intent(in), optional :: format
         type(C_PTR) :: cstring
         character(len=:), pointer :: fstring
         integer(kind=C_INT32_T) :: f
+        integer(C_SIZE_T) :: nc
+        character(len=:), pointer :: fptr
 
         f=JSON_C_TO_STRING_PRETTY
         if (present(format)) then
@@ -218,8 +222,26 @@ contains
         endif
 
         cstring = meta_stringify(this%json_obj,f)
-        call c_f_strpointer(cstring,fstring,META_BUF_MAX)
-    end FUNCTION tmeta_stringify
+        fstring => c2f_str(cstring, META_BUF_MAX)
+    end FUNCTION tmeta_stringify_f
+
+    SUBROUTINE tmeta_stringify_s(this,fstring, format)   ! subroutine flavor
+        class(meta), intent(in) :: this
+        integer(kind=C_INT32_T), intent(in), optional :: format
+        type(C_PTR) :: cstring
+        character(len=:), pointer, intent(OUT) :: fstring
+        integer(kind=C_INT32_T) :: f
+        integer(C_SIZE_T) :: nc
+        character(len=:), pointer :: fptr
+
+        f=JSON_C_TO_STRING_PRETTY
+        if (present(format)) then
+            f=format
+        endif
+
+        cstring = meta_stringify(this%json_obj,f)
+        fstring => c2f_str(cstring, META_BUF_MAX)
+    end SUBROUTINE tmeta_stringify_s
 
     FUNCTION tmeta_deffile(this,institution,discipline,title,source,description,state) result(status)
         class(meta), intent(inout) :: this

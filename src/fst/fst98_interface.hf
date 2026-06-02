@@ -206,15 +206,17 @@ interface
 !  *  OUT extra3  extra parameter                                              * 
 !  *                                                                           * 
 !  *****************************************************************************/
-  subroutine fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
+  function fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
                     typvar, nomvar, etiket, grtyp, &
-                    ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3)
+                    ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3) &
+           result(status)
     implicit none
     integer, intent(IN), value :: handle
     integer, intent(OUT) :: date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3
     integer, intent(OUT) :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
     character(len=*), intent(OUT) :: typvar, nomvar, etiket, grtyp
-  end subroutine fstprm
+    integer :: status
+  end function fstprm
 ! /***************************************************************************** 
 !  *                              F S T L I R X                                *
 !  *                                                                           * 
@@ -429,9 +431,10 @@ interface
 !  *  IN  rewrit  rewrite flag (true=rewrite existing record, false=append)    *
 !  *                                                                           * 
 !  *****************************************************************************/
-  subroutine fstecr(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
+  function fstecr(field, work, npak, iun, date, deet, npas, ni, nj, nk, &
                     ip1, ip2, ip3, typvar, nomvar, etiket, &
-                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
+                    grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)          *
+           result(status)
 
     implicit none
 #define IgnoreTypeKindRank field, work
@@ -441,7 +444,8 @@ interface
     integer, intent(IN) :: npak, date, deet, npas, ni, nj, nk, datyp, rewrite
     integer, intent(IN) :: ip1, ip2, ip3, ig1, ig2, ig3, ig4
     character(len=*), intent(IN) :: typvar, nomvar, etiket, grtyp
-  end subroutine fstecr
+    integer :: status
+  end function fstecr
 
 ! /***************************************************************************** 
 !  *Arguments                                                                  * 

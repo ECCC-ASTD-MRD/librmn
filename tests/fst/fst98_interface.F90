@@ -13,7 +13,7 @@ subroutine test_fst98_interface(is_rsf)
     implicit none
     logical, intent(in) :: is_rsf
 
-    integer :: status, i, j
+    integer :: status, i, j, expected
     character(len=*), parameter :: test_file_name = 'fst_interface.fst'
     character(len=*), parameter :: test_file_name_2 = 'fst_interface_2.fst'
     character(len=2000) :: cmd
@@ -111,11 +111,17 @@ subroutine test_fst98_interface(is_rsf)
 
     ! ----- fstfrm -----
     status = fstfrm(iun)
-    call check_status(status,expected = 0, fail_message = 'frm')
+    call check_status(status, expected = 0, fail_message = 'frm')
 
     ! Copy file to have multiple ones to link together
     write(cmd, '(A, 2(1X,A))') 'cp -v ', test_file_name, test_file_name_2
     call execute_command_line(trim(cmd))
+
+    ! ----- wkoffit -----
+    status = wkoffit(test_file_name)
+    expected = 33
+    if (is_rsf) expected = 39
+    call check_status(status, expected = expected, fail_message = 'wkoffit')
 
     ! ----- fstouv -----
     iun = 0

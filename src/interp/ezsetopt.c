@@ -68,8 +68,8 @@ int32_t c_ezsetopt(
     memset(local_opt, (int) '\0', 32);
     memset(local_val, (int) '\0', 32);
 
-    strcpy(local_opt, option);
-    strcpy(local_val, value);
+    strncpy(local_opt, option, 31);
+    strncpy(local_val, value, 31);
 
     for (int32_t i = 0; i < strlen(local_opt); i++) {
         local_opt[i] = (char) tolower((int)local_opt[i]);

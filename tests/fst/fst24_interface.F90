@@ -48,6 +48,7 @@ end subroutine delete_test_data
 subroutine make_test_record()
     implicit none
     integer(C_INT32_T) :: status
+    character(len=:), pointer :: fstring
 
     call make_test_data()
 
@@ -74,7 +75,10 @@ subroutine make_test_record()
     test_record % data_bits = 32
 
     status = test_record % metadata % init(META_TYPE_RECORD,"")
-    write(6,*) test_record % metadata % stringify()
+!     call test_record % metadata % stringify(fstring)
+    fstring => test_record % metadata % stringify_f()   ! test function version
+    write(6,*) fstring
+!     write(6,*) test_record % metadata % stringify()
 end subroutine make_test_record
 
 function check_content(content, expected) result(success)

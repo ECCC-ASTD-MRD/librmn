@@ -255,6 +255,7 @@ end module mzonxst_mod
 Subroutine mzonopr ( OPR, VAL )
     use mzonxst_mod
     use rmn_fst98
+    use rmn_primitives
     IMPLICIT NONE
 
     Integer :: OPR
@@ -264,8 +265,8 @@ Subroutine mzonopr ( OPR, VAL )
     Integer, dimension(MaxVarP3) :: var
 
     ! Declaration des fonctions fstxxx et de leurs parametres.
-    Integer ifrm, iecr, iprm, inbr, inf,  iluk, ierr, nil, exfin,  wkoffit
-    External exfin, qqexit, wkoffit, r4astrg
+    Integer ifrm, iecr, iprm, inbr, inf,  iluk, ierr, nil
+    External qqexit, r4astrg
 
     Integer :: extra1, extra2, extra3, npak, kount
     Character(len = 4) :: nomvar
