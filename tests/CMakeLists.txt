@@ -16,12 +16,13 @@ if (EC_INIT_DONE LESS 2)
         else()
             execute_process(
                 COMMAND ${RPN_MPIRUN} --version 2>&1
-                COMMAND grep -E -o "Open MPI"
+                COMMAND grep "Open MPI"
+                COMMAND grep -o "[0-9]\\.[0-9]"
                 OUTPUT_VARIABLE MPI_IMPLEMENTATION
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
-            if ("x${MPI_IMPLEMENTATION}" STREQUAL "xOpen MPI")
+            if (MPI_IMPLEMENTATION MATCHES "[0-9]\\.[0-9]")
                 set(OVERSUBSCRIBE_FLAG --oversubscribe)
-                if (${CMAKE_Fortran_COMPILER_ID} STREQUAL LLVMFlang)
+                if (CMAKE_Fortran_COMPILER_ID MATCHES ".*Flang")
                     set(EXTRA_MPI_FLAGS -x LD_LIBRARY_PATH)
                 else()
                     set(EXTRA_MPI_FLAGS --bind-to none)
