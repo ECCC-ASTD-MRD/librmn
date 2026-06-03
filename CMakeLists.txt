@@ -444,6 +444,7 @@ install(
 
 add_subdirectory(utils)
 add_subdirectory(python)
+enable_testing()
 add_subdirectory(tests)
 
 # Packaging
