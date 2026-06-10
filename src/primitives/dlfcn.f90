@@ -10,7 +10,7 @@ FUNCTION C_F_STRING_CONVERT(CPTR) RESULT(FPTR)
         ! int strlen(char *string)
         FUNCTION strlen(string) RESULT(len) BIND(C,NAME="strlen")
             USE ISO_C_BINDING
-            INTEGER(C_INT) :: len
+            INTEGER(C_SIZE_T) :: len
             TYPE(C_PTR), VALUE :: string ! A C pointer
         END FUNCTION
     END INTERFACE

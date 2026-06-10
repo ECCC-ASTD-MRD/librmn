@@ -4,7 +4,7 @@ INTERFACE ! All we need is interfaces for the prototypes in <dlfcn.h>
   FUNCTION strlen(string) RESULT(len) BIND(C,NAME="strlen")
       ! int strlen(char *string)
       USE ISO_C_BINDING
-      INTEGER(C_INT) :: len
+      INTEGER(C_SIZE_T) :: len
       TYPE(C_PTR), VALUE :: string ! A C pointer
   END FUNCTION
   FUNCTION DL_Open(file,mode) RESULT(handle) BIND(C,NAME="DlOpen")

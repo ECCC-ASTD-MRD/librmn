@@ -84,11 +84,11 @@ interface
 
 
     !  json_object *Meta_DefVar(json_object *Obj,char *StandardName,char* RPNName,char *LongName,char *Description,const char* Unit);
-    type(C_PTR) FUNCTION meta_defvar(obj,standardname,rpnname,longname,description,unit) BIND(C, name="Meta_DefVar")
+    type(C_PTR) FUNCTION meta_defvar(obj,standardname,rpnname,longname,description,unit,dummy) BIND(C, name="Meta_DefVar")
         import :: C_PTR, C_CHAR
 
         type(C_PTR), intent(in), value :: obj
-        character(C_CHAR), dimension(*), intent(in) :: standardname,rpnname,longname,description,unit
+        character(C_CHAR), dimension(*), intent(in) :: standardname,rpnname,longname,description,unit,dummy
     end FUNCTION
 
     !  json_object *Meta_DefVarFromDict(json_object *Obj,char* RPNName);

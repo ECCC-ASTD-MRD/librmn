@@ -264,7 +264,7 @@ contains
         type(C_PTR) :: status
         character(len=*) :: standardname, rpnname, longname, description, unit
 
-        status = meta_defvar(this%json_obj,trim(standardname)//C_NULL_CHAR,trim(rpnname)//C_NULL_CHAR,trim(longname)//C_NULL_CHAR,trim(description)//C_NULL_CHAR,trim(unit)//C_NULL_CHAR)
+        status = meta_defvar(this%json_obj,trim(standardname)//C_NULL_CHAR,trim(rpnname)//C_NULL_CHAR,trim(longname)//C_NULL_CHAR,trim(description)//C_NULL_CHAR,trim(unit)//C_NULL_CHAR,'dummy_string'//C_NULL_CHAR)
     end FUNCTION
 
     FUNCTION tmeta_defvarfromdict(this,rpnname) result(status)
