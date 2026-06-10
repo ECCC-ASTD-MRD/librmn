@@ -1,11 +1,11 @@
 if (EC_INIT_DONE LESS 2)
-   include(CTest)
-   add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=true ${CMAKE_CTEST_COMMAND})
+    include(CTest)
+    add_custom_target(check COMMAND CTEST_OUTPUT_ON_FAILURE=true ${CMAKE_CTEST_COMMAND})
 
     add_custom_target(test_execs)
     add_dependencies(check test_execs)
 
-   if(BUILD_TESTING)
+    if(BUILD_TESTING)
 
         message(STATUS "(EC) Generating librmn tests")
 
@@ -21,11 +21,11 @@ if (EC_INIT_DONE LESS 2)
                 OUTPUT_VARIABLE MPI_IMPLEMENTATION
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
             if (MPI_IMPLEMENTATION MATCHES "[0-9]\\.[0-9]")
-                set(OVERSUBSCRIBE_FLAG --oversubscribe)
+                set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} --oversubscribe)
                 if (CMAKE_Fortran_COMPILER_ID MATCHES ".*Flang")
-                    set(EXTRA_MPI_FLAGS -x LD_LIBRARY_PATH)
+                    set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} -x LD_LIBRARY_PATH)
                 else()
-                    set(EXTRA_MPI_FLAGS --bind-to none)
+                    set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} --bind-to none)
                 endif()
             endif()
         endif()
@@ -87,7 +87,7 @@ if (EC_INIT_DONE LESS 2)
 
             set(MPI_PREFIX "")
             if (DEFINED GEN_TEST_MPI_NUM)
-                set(MPI_PREFIX ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${GEN_TEST_MPI_NUM} ${OVERSUBSCRIBE_FLAG} ${EXTRA_MPI_FLAGS})
+                set(MPI_PREFIX ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${GEN_TEST_MPI_NUM} ${EXTRA_MPI_FLAGS})
             endif()
 
             if (NOT ${GEN_TEST_DISABLE})
