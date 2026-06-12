@@ -279,9 +279,15 @@ subroutine test_fst98_interface(is_rsf)
         call check_status(num_record_found, expected = new_num_records * 2, fail_message = 'fstinl count (linked)')
 
         ! fstinf, + fstsui cross-file
+        call App_Log(APP_ALWAYS, 'fstinf')
         status = fstinf(iun, ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ')
         call check_status(status, expected_min=1, fail_message='fstinf, linked')
         num_record_found = 1
+        call App_Log(APP_ALWAYS, 'fstinfx')
+        status = fstinfx(status, iun, ni, nj, nk, -1, ' ', -1, -1, -1, ' ', ' ')
+        call check_status(status, expected_min=1, fail_message='fstinfx, linked')
+        num_record_found = num_record_found + 1
+        call App_Log(APP_ALWAYS, 'fstsui')
         do while (status > 0)
             status = fstsui(iun, ni, nj, nk)
             ! call check_status(status, expected_min=1, fail_message='fstsui, linked')
