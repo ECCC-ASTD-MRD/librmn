@@ -113,7 +113,7 @@ contains
         class(fst_file), intent(in) :: this
         character(len = :), pointer :: name
 
-        integer(C_SIZE_T) :: strlen
+        integer :: strlen
         type(C_PTR) :: c_name
 
         if (this % is_open()) then
