@@ -146,7 +146,7 @@ static int32_t RSF_Purge_file_slot(
 
 //! Extract file slot from a 64-bit record key (it's in the upper 32 bits).
 static inline uint32_t key64_to_file_slot(int64_t key64) {
-    return key64 >> 32;
+    return (key64 >> 32) - 1;
 }
 
 //! Extract record index from a 64-bit record key (it's in the lower 32 bits).
@@ -183,10 +183,10 @@ int32_t RSF_Key32(int64_t key64){
         return (1 << 31);                 // return huge negative value
 
     const uint32_t slot = key64_to_file_slot(key64);
-    if (slot > 0x3FF)                    // ERROR, slot number larger than 10 bits
+    if (slot > 0x3FE)                    // ERROR, slot number larger than 10 bits
         return (1 << 31);                // return huge negative value
 
-    return ((index + 1) << 10) | slot | (1 << 30);  // index, slot, and bit 30 set to 1 to indicate RSF handle
+    return ((index + 1) << 10) | (slot + 1) | (1 << 30);  // index, slot, and bit 30 set to 1 to indicate RSF handle
 }
 
 //! Check whether the given 32-bit key is a valid RSF key and whether it _could_ be a valid XDF key
@@ -220,7 +220,7 @@ RSF_handle RSF_Key32_to_handle(int32_t key32) {
     RSF_handle h;
     const int64_t  key64 = RSF_Key64(key32);
     const uint32_t slot  = key64_to_file_slot(key64);
-    h.p = rsf_files[slot - 1];
+    h.p = rsf_files[slot];
     return h;
 }
 
@@ -228,7 +228,7 @@ RSF_handle RSF_Key32_to_handle(int32_t key32) {
 RSF_handle RSF_Key64_to_handle(int64_t key64) {
     RSF_handle h;
     const uint32_t slot = key64_to_file_slot(key64);
-    h.p = rsf_files[slot - 1];
+    h.p = rsf_files[slot];
     return h;
 }
 
@@ -356,15 +356,14 @@ static int64_t RSF_Add_vdir_entry(
     uint32_t mlr,           //!< record (lower 16 bits) and directory (upper 16) metadata lengths
     uint64_t wa,            //!< byte address of record in file
     uint64_t rl,            //!< record length in bytes (should always be a multiple of 4)
-    uint32_t element_size,  //!<
+    uint32_t element_size,  //!< ?
     uint64_t entry_offset   //!< byte address of directory entry in file
 ) {
-    // fprintf(stderr, "RSF_Add_vdir_entry: meta data length = 0x%x, record length %d, elem size %d\n", mlr, rl, element_size);
+    // Basic checks
+    if (fp == NULL) return -1;
+    const int32_t slot = (int32_t)RSF_Is_file_valid(fp) - 1;
+    if (slot < 0) return -1;
 
-    if (fp == NULL) return -1;           // invalid file struct pointer
-    int64_t slot = RSF_Is_file_valid(fp);
-    if (slot == 0) return -1;             // something not O.K. with fp if RSF_Is_file_valid returned 0
-    slot <<= 32;                          // file slot number (origin 1)
     RSF_Vdir_setup(fp);
     directory_block * dd = fp->dirblocks; // current directory entries block
 
@@ -391,18 +390,23 @@ static int64_t RSF_Add_vdir_entry(
     }
     dd->cur += needed;                  // update insertion point
 
+    // Count deleted records
     uint8_t version;
     rsf_rec_class rec_class;
     rsf_rec_type rec_type;
     rsf_extract_meta0(meta[0], &version, &rec_class, &rec_type);
     if (rec_type == RT_DEL) fp->num_deleted_records++;
 
-    fp->vdir[fp->vdir_used] = entry;     // enter pointer to entry into vdir array
+    const int64_t index = fp->vdir_used;
+
+    // Update VDIR size
+    fp->vdir[index] = entry;     // enter pointer to entry into vdir array
     fp->vdir_used++;                     // update number of directory entries in use
     fp->vdir_size += needed;             // update worst case directory size (used to compute directory record size)
-    int64_t index = fp->vdir_used;               // update number of entries in use
-    index |= slot;                       // record key (file slot , record index) (both ORIGIN 1)
-    return index;
+
+    // Assemble and return record key
+    const int64_t key = make_key(slot, index);
+    return key;
 }
 
 
@@ -424,23 +428,24 @@ static int32_t RSF_Get_vdir_entry(
     *rl = 0;
     *meta = NULL;
 
-    const int32_t slot = RSF_Is_file_valid(fp);
+    const int32_t slot = (int32_t)RSF_Is_file_valid(fp) - 1;
 
-    if ( ! slot ) {
+    if (slot < 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid file struct pointer\n", __func__);
         return -1;
     }
-    if ( slot != (key >> 32) ) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: inconsistent slot in key\n", __func__);
+    if (slot != key64_to_file_slot(key)) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: inconsistent slot in key (%u, expected %d)\n",
+                __func__, key64_to_file_slot(key), slot);
         return -1;
     }
-    int32_t indx = (key & 0x7FFFFFFF) - 1;
-    if ( indx  >= fp->vdir_used ) {
+    const int32_t record_index = key64_to_index(key);
+    if (record_index >= fp->vdir_used) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid record number\n", __func__);
         return -1;
     }
 
-    vdir_entry * const ventry = fp->vdir[indx];
+    vdir_entry * const ventry = fp->vdir[record_index];
     *wa = RSF_32_to_64(ventry->wa);   // file address
     *rl = RSF_32_to_64(ventry->rl);   // record length
     *meta = &(ventry->meta[0]);       // pointer to metadata
@@ -479,21 +484,20 @@ static int64_t RSF_Scan_vdir(
     rsf_rec_class crit_class = RC_NULL;
     rsf_rec_type crit_type = RT_NULL;
 
-    const int64_t slot = RSF_Is_file_valid(fp);
-    if (!slot) {
+    const int32_t slot = (int32_t)RSF_Is_file_valid(fp) - 1;
+    if (slot < 0) {
         // something wrong with fp
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: key = %16.16lx, invalid file reference\n", __func__, key0);
         return ERR_NO_FILE;
     }
 
-    if ( (key0 != 0) && (key64_to_file_slot(key0) != slot) ) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: key = %16.16lx, inconsistent file slot\n", __func__, key0);
+    if ( (key0 != 0) && ((int32_t)key64_to_file_slot(key0) != slot) ) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: key = %16.16lx, inconsistent file slot (%d vs %u)\n",
+                __func__, key0, slot, key64_to_file_slot(key0));
         // slot in key different from file table slot
         return ERR_BAD_UNIT;
     }
 
-    // slot is origin 1 (zero is invalid)
-    int64_t key = (slot << 32);                      // move to upper 32 bits
     if ( key0 < -1 ) key0 = 0;                // first record position for this file
     int index = key0 & 0x7FFFFFFF;               // starting ordinal for search (one more than what key0 points to)
     if (index >= fp->vdir_used) {
@@ -550,7 +554,7 @@ static int64_t RSF_Scan_vdir(
 
     vdir_entry * ventry = NULL;
     for (; index < fp->vdir_used; index++ ) { // loop over records in directory starting from requested position
-        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Looking at record with key 0x%x\n", __func__, key + index + 1);
+        Lib_Log(APP_LIBFST, APP_EXTRA, "%s: Looking at record with key 0x%x\n", __func__, make_key(slot, index));
         ventry = fp->vdir[index];              // get entry
         if (lcrit == 0) goto MATCH;             // no criteria specified, everything matches
         const uint32_t * const meta = ventry->meta;                   // entry metadata from directory
@@ -587,10 +591,9 @@ static int64_t RSF_Scan_vdir(
     return ERR_NOT_FOUND;
 
 MATCH:
-    // upper 32 bits of key contain the file "slot" number (origin 1)
-    key = key + index + 1;               // add record number (origin 1) to key
     *wa = RSF_32_to_64(ventry->wa);      // address of record in file
     *rl = RSF_32_to_64(ventry->rl);      // record length
+    const int64_t key = make_key(slot, index);
     Lib_Log(APP_LIBFST, APP_EXTRA, "%s: SUCCESS, key = %16.16lx\n\n", __func__, key);
     return key;                          // return key value containing file "slot" and record index
 }
@@ -697,12 +700,11 @@ static size_t RSF_Vdir_record_size(const RSF_File * const fp){
 //! Thread safe using the given file's mutex.
 //! \return Directory size
 static int64_t RSF_Write_vdir(RSF_File * const fp){
-    int32_t slot = RSF_Is_file_valid(fp);
-    if ( ! slot ) return 0;             // something wrong with fp
-    if (fp->dir_read >= fp->vdir_used) return 0;               // nothing to write
+    if (!RSF_Is_file_valid(fp)) return 0;             // something wrong with fp
+    if (fp->dir_read >= fp->vdir_used) return 0;      // nothing to write
 
     if (fp->vdir == NULL) return 0;
-    size_t dir_rec_size = RSF_Vdir_record_size(fp);          // size of directory record to be written
+    size_t dir_rec_size = RSF_Vdir_record_size(fp);   // size of directory record to be written
     uint8_t * const p = malloc(dir_rec_size);
     if ( p == NULL ) return 0;      // allocation failed
 
@@ -913,7 +915,7 @@ RSF_record *RSF_New_record(
 ) {
     RSF_File * const fp = (RSF_File *) handle.p;
 
-    if ( ! RSF_Is_file_valid(fp) ) return NULL;
+    if (!RSF_Is_file_valid(fp)) return NULL;
     // calculate space needed for the requested "record"
     if (rec_meta < fp->rec_meta) rec_meta = fp->rec_meta;
     if (dir_meta < fp->dir_meta) dir_meta = fp->dir_meta;
@@ -1334,14 +1336,15 @@ int64_t RSF_Put_chunks(RSF_handle h, RSF_record *record,
     }
 
     // update directory in memory
-    int64_t slot = RSF_Add_vdir_entry(fp, meta, DRML_32(dir_meta, rec_meta), fp->next_write, record_size,element_size, 0);
+    const int64_t key = RSF_Add_vdir_entry(fp, meta, DRML_32(dir_meta, rec_meta), fp->next_write, record_size,element_size, 0);
     meta[0] = meta0;                                                 // restore meta[0] to original value
 
     fp->next_write += record_size;         // update fp->next_write and fp->current_pos
     fp->last_op = OP_WRITE;                // last operation was write
     fp->nwritten += 1;                     // update unmber of writes
-    // return slot/index for record (0 in case of error)
-    return slot;
+
+    // Return record key
+    return key;
 }
 
 int64_t RSF_Put_bytes_new(RSF_handle h, RSF_record *record,
@@ -1471,7 +1474,7 @@ int64_t RSF_Put_bytes(
     }
 
     // update directory in memory
-    const int64_t slot = RSF_Add_vdir_entry(fp, meta, DRML_32(dir_meta, rec_meta), fp->next_write, record_size,element_size, 0);
+    const int64_t key = RSF_Add_vdir_entry(fp, meta, DRML_32(dir_meta, rec_meta), fp->next_write, record_size,element_size, 0);
 
     fp->next_write += record_size;         // update fp->next_write
     fp->last_op = OP_WRITE;                // last operation was write
@@ -1481,7 +1484,7 @@ int64_t RSF_Put_bytes(
     // --- END CRITICAL REGION --- //
 
     // return slot/index for record (0 in case of error)
-    return slot;
+    return key;
 }
 
 // similar to RSF_Put_bytes, write data elements of a specified size into the file
@@ -1698,8 +1701,7 @@ int64_t RSF_Get_file(
     *meta = NULL;
     *meta_size = 0;
 
-    int64_t slot = RSF_Is_file_valid(fp);
-    if ( ! slot ) return -1; // something wrong with fp
+    if (!RSF_Is_file_valid(fp)) return -1; // something wrong with fp
 
     uint64_t wa, rl;
     uint32_t * vmeta;
@@ -1769,8 +1771,6 @@ int64_t RSF_Put_file(RSF_handle h, char *filename, uint32_t *meta, uint32_t meta
   start_of_record sor = SOR;      // start of data record
   end_of_record   eor = EOR;      // end of data record
   int fd;
-  int64_t slot = -1;              // precondition for error
-  int64_t index = -1;             // precondition for error
   uint64_t record_size;           // sor + metadata + file + eor
   int32_t vdir_meta;
   off_t file_size0, file_size2;
@@ -1789,9 +1789,9 @@ int64_t RSF_Put_file(RSF_handle h, char *filename, uint32_t *meta, uint32_t meta
   uint8_t copy_buf[1024*1024];
 
   dir_meta = NULL; file_meta = NULL; fmeta = NULL;
+  int64_t key = 0;
 
-  if( ! (slot = RSF_Is_file_valid(fp)) ) goto ERROR; // something wrong with fp
-  slot <<= 32;
+  if (!RSF_Is_file_valid(fp)) goto ERROR; // something wrong with fp
   if( RSF_Ensure_new_segment(fp, 0) < 0 ) goto ERROR; // Don't have write permission
   if( fp->next_write <= 0) goto ERROR;            // next_write address is not set
 
@@ -1893,7 +1893,7 @@ int64_t RSF_Put_file(RSF_handle h, char *filename, uint32_t *meta, uint32_t meta
 
   dir_meta[0] = meta0;
   // directory and record metadata lengths will be identical
-  index = RSF_Add_vdir_entry(fp, dir_meta, DRML_32(vdir_meta + extra_meta, vdir_meta + extra_meta), fp->next_write, record_size, DT_08, 0); // add to directory
+  key = RSF_Add_vdir_entry(fp, dir_meta, DRML_32(vdir_meta + extra_meta, vdir_meta + extra_meta), fp->next_write, record_size, DT_08, 0); // add to directory
 
   fp->next_write  = lseek(fp->fd, 0l, SEEK_CUR);
   fp->last_op = OP_WRITE;                // last operation was write
@@ -1903,7 +1903,7 @@ ERROR:
   if(fmeta) free(fmeta);
   if(file_meta) free(file_meta);
   if(dir_meta) free(dir_meta);
-  return index;
+  return key;
 }
 
 //! Get key to record from file fp, matching criteria & mask
@@ -1956,8 +1956,7 @@ RSF_record_info RSF_Get_record_info_by_index(
 ) {
     RSF_File *fp = (RSF_File *) h.p;
 
-    const int32_t fslot = RSF_Is_file_valid(fp);
-    if (fslot == 0) {
+    if (!RSF_Is_file_valid(fp)) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid file pointer\n", __func__);
         return info0;
     }
@@ -2024,7 +2023,7 @@ RSF_record_info RSF_Get_record_info_by_index(
 //! Determine whether the given record key is found in the given file
 int32_t RSF_Is_record_in_file(RSF_handle h, const int64_t key) {
   const uint32_t record_slot = key64_to_file_slot(key);
-  const uint32_t file_slot = RSF_Is_file_valid(h.p);
+  const uint32_t file_slot = RSF_Is_file_valid(h.p) - 1;
   return (file_slot == record_slot);
 }
 
@@ -2036,10 +2035,10 @@ RSF_record_info RSF_Get_record_info(
 ) {
     RSF_File *fp = (RSF_File *) h.p;
 
-    const int32_t fslot = RSF_Is_file_valid(fp);
+    const int32_t fslot = (int32_t)RSF_Is_file_valid(fp) - 1;
     const int32_t slot  = key64_to_file_slot(key);
-    if (fslot == 0 || slot != fslot) {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: inconsistent file slot (file says %d, record says %d). Key = 0x%x\n",
+    if (fslot < 0 || slot != fslot) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: inconsistent file slot (file says %u, record key says %u). Key = 0x%x\n",
                 __func__, fslot, slot, key);
         return info0;
     }
@@ -2055,14 +2054,12 @@ RSF_record_info RSF_Get_record_info(
 // this function assumes that the user got address / nelem*itemsize from the proper RSF functions
 ssize_t RSF_Read(RSF_handle h, void *buf, int64_t address, int64_t nelem, int itemsize) {
   RSF_File *fp = (RSF_File *) h.p;
-  ssize_t nbytes;
-  int32_t fslot = RSF_Is_file_valid(fp);
-  size_t count = nelem * itemsize;
+  const size_t count = nelem * itemsize;
 
-  if(fslot == 0) return ERR_NO_FILE;
+  if (!RSF_Is_file_valid(fp)) return ERR_NO_FILE;
 
   lseek(fp->fd, address, SEEK_SET);   // start of data to read in file
-  nbytes = read(fp->fd, buf, count);
+  const ssize_t nbytes = read(fp->fd, buf, count);
   fp->last_op = OP_READ;                                // last operation was a read operation
 
   return nbytes / itemsize;

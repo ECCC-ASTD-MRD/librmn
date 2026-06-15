@@ -303,11 +303,12 @@ int c_fstinfx_rsf(
         const int64_t key64 = RSF_Key64(handle);
         const uint32_t file_slot = RSF_Key64_to_file_slot(key64);
         if ((int32_t)file_slot != RSF_Get_file_slot(file_handle)) {
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid handle=%d, or iun=%d\n", __func__, handle, iun);
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: invalid handle (%d) or iun (%d). File slot: %u != %d\n",
+                    __func__, handle, iun, file_slot, RSF_Get_file_slot(file_handle));
             return(ERR_BAD_HNDL);
         }
 
-        query->search_index = RSF_Key64_to_index(key64);
+        query->search_index = key64;
     }
 
     // Perform the search itself
@@ -333,7 +334,7 @@ int c_fstinfx_rsf(
         if (ip3s_flag && ip3 >= 0 && ip_is_equal(ip3, rec.ip3, 3) == 0) continue;
 
         // We have a match!
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x\n", __func__, iun, lhandle);
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x (%d)\n", __func__, iun, lhandle, lhandle);
         if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) {
             fst24_record_print(&rec);
         }
