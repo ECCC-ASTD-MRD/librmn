@@ -3084,7 +3084,7 @@ int c_fstluk_xdf(
     memset(work_field, 0, work_field_size);
 
     buffer_interface_ptr buf = (buffer_interface_ptr) work_field;
-    const size_t misalignment = (((&(buf->data[0]) - &(buf->nwords)) * sizeof(int)) & 0x7);
+    const size_t misalignment = (((&(buf->data[0]) - &(buf->nwords)) * sizeof(int64_t)) & 0x7);
     if (misalignment > 0) {
         // Realign buf to make sure that buf->data is 64bit align
         buf = (buffer_interface_ptr) ((char*)work_field + misalignment);
