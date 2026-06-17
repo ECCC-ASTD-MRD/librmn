@@ -1944,7 +1944,8 @@ static const RSF_record_info info0 = {
     .dir_meta0 = 0,
     .rec_meta = 0,
     .elem_size = 0,
-    .rec_type = 0,
+    .rec_type = RT_NULL,
+    .rsf_version = 0,
     .data_map_size = 0,
 };
 
@@ -1985,7 +1986,7 @@ RSF_record_info RSF_Get_record_info_by_index(
         return info0;
     }
 
-    RSF_record_info info;
+    RSF_record_info info = info0;
     info.wa = RSF_32_to_64( fp->vdir[index]->wa );     // record address in file
     info.rl = RSF_32_to_64( fp->vdir[index]->rl );     // record size
     info.elem_size = fp->vdir[index]->dul;
