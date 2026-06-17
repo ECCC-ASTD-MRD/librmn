@@ -1994,7 +1994,7 @@ RSF_record_info RSF_Get_record_info_by_index(
     info.dir_meta = DIR_ML(fp->vdir[index]->ml);       // directory metadata length
     info.dir_meta0 = info.dir_meta;
     info.meta = fp->vdir[index]->meta;
-    info.data_map_size = info.meta[1];
+    if (version >= 1) info.data_map_size = info.meta[1];
     info.wa_data = info.wa_meta +                       // data address in file
                     info.rec_meta * sizeof(int32_t);
     info.data_size = info.rl -                          // length of data payload
