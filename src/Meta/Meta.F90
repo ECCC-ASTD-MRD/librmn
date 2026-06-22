@@ -231,8 +231,6 @@ contains
         type(C_PTR) :: cstring
         character(len=:), pointer, intent(OUT) :: fstring
         integer(kind=C_INT32_T) :: f
-        integer(C_SIZE_T) :: nc
-        character(len=:), pointer :: fptr
 
         f=JSON_C_TO_STRING_PRETTY
         if (present(format)) then
