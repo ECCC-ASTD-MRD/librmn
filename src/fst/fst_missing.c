@@ -1541,7 +1541,7 @@ void decode_missing_value(
  * float, int, unsigned int, double, short, unsigned short, char, unsigned char
  * both the C and the FORTRAN interface are used in the test
 */
-int main()
+int main(void)
 {
     float f, fa[ASIZE], fp[ASIZE];
     double d, da[ASIZE], dp[ASIZE];

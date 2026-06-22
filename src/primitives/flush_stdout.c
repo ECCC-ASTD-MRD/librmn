@@ -20,15 +20,15 @@
 
 #include <stdio.h>
 
-void flush_stdout()
+void flush_stdout(void)
 {
   fflush(stdout);
 }
-void flush_stdout_()
+void flush_stdout_(void)
 {
   fflush(stdout);
 }
-void flush_stdout__()
+void flush_stdout__(void)
 {
   fflush(stdout);
 }

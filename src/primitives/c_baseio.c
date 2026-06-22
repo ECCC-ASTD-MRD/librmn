@@ -1625,7 +1625,7 @@ int32_t f77name(getfdsc)(
 //! Seriously, why is this here!?  It does absolutely nothing, but a
 //! symbol will be created which means it will overshadow any other
 //! proper implementation that might exist elsewhere
-void c_socket_open()
+void c_socket_open(void)
 {
 }
 //! Open a stream
