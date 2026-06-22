@@ -732,6 +732,7 @@ int connect_with_timeout_localport(
     //! [in] Timeout for connexion in seconds
     const int timeout
 ) {
+    (void) ipaddress; //unused argument
     int res;
     struct sockaddr_in addr;
     long arg;
@@ -1156,7 +1157,7 @@ static int32_t get_request(
     int ier;
     int len = strlen(request);
 
-    len = len > sizeof(reply) - 1 ? sizeof(reply) - 1 : len ;
+    len = len > (int) sizeof(reply) - 1 ? sizeof(reply) - 1 : len ;
 
     if ( (ier = read_ft_nonblocking_socket(channel, reply, len)) < 0) {
 #ifdef DEBUG
@@ -2019,7 +2020,7 @@ static int swallow_data(int fd, int nbytes)
 
   while (nbytes > 0)
     {
-      bytes_read = read(fd, buffer, sizeof(buffer) < nbytes ? sizeof(buffer) : nbytes);
+      bytes_read = read(fd, buffer, sizeof(buffer) < (size_t) nbytes ? sizeof(buffer) : nbytes);
       if(bytes_read <= 0) return(-nbytes);
       nbytes -= bytes_read;
     }
@@ -2190,17 +2191,20 @@ void *read_record(
 
 //! signal read timeout return special code TIMEOUT = -5
 int signal_timeout(int channel) {
+    (void) channel;
     return TIMEOUT;
 }
 
 //! Set timeout option to true if read timeout expires
 void set_timeout_signal(int channel, int option) {
+    (void) channel;
     timeout = option;
 }
 
 //! Get timeout option (true or false), used in case to indicate the reason of read problem
 int get_timeout_signal(int channel)
 {
+    (void) channel;
     return timeout;
 }
 
