@@ -146,13 +146,13 @@ endif()
 
 # Build static library from source files
 add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES} ${PROJECT_H_FILES})
-target_link_libraries(rmn-static PUBLIC App-static json-c-static libudunits2-static LibXml2::LibXml2)
+target_link_libraries(rmn-static PUBLIC App-static json-c-static libudunits2-static LibXml2::LibXml2 dl)
 add_dependencies(rmn-static rmn_build_info json-c libudunits2-static)
 
 # Build shared library from object of rmn
 if (${RMN_BUILD_SHARED})
         add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
-        target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2-shared LibXml2::LibXml2)
+        target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2-shared LibXml2::LibXml2 dl)
 endif()
 
 foreach(TARGET ${TARGETS})
@@ -192,7 +192,7 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
     # Build static library from source files
     add_library(rmn-ompi-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES})
     target_link_libraries(rmn-ompi-static PUBLIC
-        App-ompi-static json-c-static libudunits2-static LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+        App-ompi-static json-c-static libudunits2-static LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran dl)
     target_compile_definitions(rmn-ompi-static PUBLIC HAVE_MPI HAVE_OPENMP)
     add_dependencies(rmn-ompi-static rmn_build_info json-c libudunits2-static)
 
@@ -200,7 +200,7 @@ if(WITH_OMPI AND OpenMP_FOUND AND MPI_FOUND)
     if(${RMN_BUILD_SHARED})
         add_library(rmn-ompi-shared SHARED $<TARGET_OBJECTS:rmn-ompi-static>)
         target_link_libraries(rmn-ompi-shared PUBLIC
-            App-ompi-shared json-c libudunits2-shared LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran)
+            App-ompi-shared json-c libudunits2-shared LibXml2::LibXml2 OpenMP::OpenMP_C OpenMP::OpenMP_Fortran MPI::MPI_C MPI::MPI_Fortran dl)
         target_compile_definitions(rmn-ompi-shared PUBLIC HAVE_MPI HAVE_OPENMP)
     endif()
 
