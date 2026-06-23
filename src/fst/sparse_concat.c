@@ -3,7 +3,8 @@
 //! \file sparse_concat.c
 //! \brief Append a set of potentially sparse files to another potentially sparse file, or copy a sparse file
 
-#define _LARGEFILE64_SOURCE
+// Define off_t to have 64 bits even on 32 bits architectures
+#define _FILE_OFFSET_BITS 64
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -81,14 +82,14 @@ size_t SparseConcatFile(
 
     if (diag == 0) Lib_Log(APP_LIBFST, APP_INFO, "%s: appending %s to %s\n", __func__, name2, name1);
     fdi = 0 ;
-    if (diag == 0) fdi = open(name2, O_RDONLY | O_LARGEFILE);  // input file
+    if (diag == 0) fdi = open(name2, O_RDONLY);  // input file
     if (fdi < 0) return 0;
 
     if (diag) {
-        fdo = open(name1, O_RDONLY | O_LARGEFILE);  // open as input file
+        fdo = open(name1, O_RDONLY);  // open as input file
         fdi = fdo;
     } else {
-        fdo = open(name1, O_RDWR | O_CREAT | O_LARGEFILE, 0777);
+        fdo = open(name1, O_RDWR | O_CREAT, 0777);
     }
     if (fdo < 0) return 0;
 

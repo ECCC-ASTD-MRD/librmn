@@ -21,7 +21,7 @@
 //! \file
 //! Basic IO functions
 
-#define _LARGEFILE64_SOURCE
+// Define off_t to have 64 bits even on 32 bits architectures
 #define _FILE_OFFSET_BITS 64
 
 #include <ctype.h>
@@ -148,7 +148,7 @@ rlim_t get_max_open_files(void) {
 
 //! Seek in a file at a given word
 static off64_t wseek(int fdesc,off64_t offst, int posi) {
-    return lseek64(fdesc, offst * sizeof(uint32_t), posi);
+    return lseek(fdesc, offst * sizeof(uint32_t), posi);
 }
 
 //! Print the iun availability bitmap. Debug only
@@ -754,12 +754,12 @@ int c_fnom(
             int32_t unfflag77 = FGFDT[entry].attr.unf;
             // lmult is no longer used by qqqf7op, but the argument was kept for backward compatibility
             int32_t lmult = 42;
-            ier = open64(FGFDT[entry].file_name, O_RDONLY);
+            ier = open(FGFDT[entry].file_name, O_RDONLY);
             if (ier <= 0) {
                 FGFDT[entry].file_size = -1;
                 FGFDT[entry].eff_file_size = -1;
             } else {
-                off64_t dimm = lseek64(ier, 0, SEEK_END);
+                off64_t dimm = lseek(ier, 0, SEEK_END);
                 FGFDT[entry].file_size = dimm / sizeof(uint32_t);
                 FGFDT[entry].eff_file_size = dimm / sizeof(uint32_t);
                 close(ier);
@@ -1693,7 +1693,7 @@ void c_sqrew(
 
     int fd = c_getfdsc(iun);
     if (fd <= 0) return;
-    lseek64(fd, 0, SEEK_SET);
+    lseek(fd, 0, SEEK_SET);
 }
 
 
@@ -1717,7 +1717,7 @@ void c_sqeoi(
 
     int fd = c_getfdsc(iun);
     if (fd <= 0) return;
-    lseek64(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_END);
 }
 
 
@@ -2015,7 +2015,7 @@ static long long filepos(
 
     HEADER_CMCARC cmcarc_file;
 
-    lseek64(FGFDT[indf].fd, 0, SEEK_SET);
+    lseek(FGFDT[indf].fd, 0, SEEK_SET);
     int nblu = read(FGFDT[indf].fd, cmcarc_file.sign, 8);
     if (strncmp(cmcarc_file.sign, CMCARC_SIGN, 8) != 0) {
         int version = 0;
@@ -2049,7 +2049,7 @@ static long long filepos(
             }
         }
         int lng = (nt * 8) - 25;
-        if (lseek64(FGFDT[indf].fd, lng, SEEK_CUR) == -1) {
+        if (lseek(FGFDT[indf].fd, lng, SEEK_CUR) == -1) {
             return -1;
         }
     }
@@ -2106,7 +2106,7 @@ static long long filepos(
         } else {
             // sauter les donnees
             lng64 = (nd64 + tail_offset) * 8;
-            if (lseek64(FGFDT[indf].fd, lng64, SEEK_CUR) == -1) {
+            if (lseek(FGFDT[indf].fd, lng64, SEEK_CUR) == -1) {
                 return -1;
             }
         }
@@ -2239,7 +2239,7 @@ static int qqcopen(
         // cmcarc file
         Lib_Log(APP_LIBRMN,APP_DEBUG,"%s:  opening subfile %s from file %s\n",__func__,FGFDT[indf].subname,FGFDT[indf].file_name);
         FGFDT[indf].attr.read_only = 1;
-        fd = open64(FGFDT[indf].file_name, O_RDONLY);
+        fd = open(FGFDT[indf].file_name, O_RDONLY);
         if (fd == -1) {
             Lib_Log(APP_LIBRMN,APP_ERROR,"%s: cannot open file %s\n",__func__,FGFDT[indf].file_name);
             reset_wafile_slot(ind);
@@ -2260,25 +2260,25 @@ static int qqcopen(
         if (access(FGFDT[indf].file_name, F_OK) == -1) {
             if (errno == ENOENT) {
                 // Create new file
-                fd = open64(FGFDT[indf].file_name, O_RDWR | O_CREAT,
+                fd = open(FGFDT[indf].file_name, O_RDWR | O_CREAT,
                             S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
                 FGFDT[indf].attr.read_only = 0;
                 errmsg = "cannot create file";
             }
         } else {
             if (! FGFDT[indf].attr.read_only) {
-                fd = open64(FGFDT[indf].file_name, O_RDWR);
+                fd = open(FGFDT[indf].file_name, O_RDWR);
                 if (fd == -1) {
                     if (!FGFDT[indf].attr.write_mode) {
                         FGFDT[indf].attr.read_only = 1;
-                        fd = open64(FGFDT[indf].file_name, O_RDONLY);
+                        fd = open(FGFDT[indf].file_name, O_RDONLY);
                         errmsg = "cannot open file (read-write)";
                     } else {
                         errmsg = "cannot open in write mode";
                     }
                 }
             } else if (FGFDT[indf].attr.read_only) {
-                fd = open64(FGFDT[indf].file_name, O_RDONLY);
+                fd = open(FGFDT[indf].file_name, O_RDONLY);
                 errmsg = "cannot open file (read-only)";
             }
         }
@@ -2310,11 +2310,11 @@ static int qqcopen(
 
     FGFDT[indf].wa_slot = ind;
 
-    off64_t dim = lseek64(fd, 0, SEEK_END);
+    off64_t dim = lseek(fd, 0, SEEK_END);
     FGFDT[indf].file_size = dim / sizeof(uint32_t);
     FGFDT[indf].eff_file_size = dim / sizeof(uint32_t);
     dim = 0;
-    dim = lseek64(fd, dim, SEEK_SET);
+    dim = lseek(fd, dim, SEEK_SET);
     if (subfile_length > 0) {
         FGFDT[indf].eff_file_size = subfile_length;
     }
