@@ -18,6 +18,11 @@
  * Boston, MA 02111-1307, USA.
  */
 
+//! \file
+
+//! \bug This interface returns pthread_t (the result of pthread_self()) as int32_t
+//! when it's defined as unsigned long int in the system's header files
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <pthread.h>
