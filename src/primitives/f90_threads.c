@@ -44,7 +44,7 @@ int32_t f77name(create_lock)(pthread_mutex_t** lockno)
 }
 
 
-pthread_mutex_t* c_create_lock()
+pthread_mutex_t* c_create_lock(void)
 {
    pthread_mutex_t *lockno;
    if( ( lockno = (pthread_mutex_t *) malloc(sizeof(pthread_mutex_t)) ) == NULL ) return(NULL) ;
@@ -119,7 +119,7 @@ int32_t f77name(create_event)(event** user_event)
    return( pthread_cond_init(&(the_event->condition),NULL) );
 }
 
-event* c_create_event()
+event* c_create_event(void)
 {
    event* user_event;
    if( f77name(create_event)(&user_event) ) return(NULL);
@@ -252,7 +252,7 @@ int32_t f77name(id_thread)()
 }
 
 /*! Get current thread id */
-int c_id_thread()
+int c_id_thread(void)
 {
    return(pthread_self());
 }

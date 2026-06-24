@@ -28,7 +28,7 @@
 // Prototype for Fortran functions declared in ftn_prog_args.f90
 #define GETARG f77_name(f_getarg)
 void GETARG(int * pos, const char * val, F2Cl valLen);
-int iargc();
+int iargc(void);
 
 typedef int (*main_fn)(int argc, char** argv);
 

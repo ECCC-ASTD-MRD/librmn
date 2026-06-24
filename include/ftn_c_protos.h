@@ -3,6 +3,6 @@
 
 #include <rmn/rpnmacros.h>
 
-void f77name(tracebck)();
+void f77name(tracebck)(void);
 
 #endif
