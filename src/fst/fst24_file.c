@@ -1880,6 +1880,7 @@ int32_t fst24_find_next(
 
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: (unit=%d) Found record at key 0x%x in file %s\n",
                 __func__, query->file->iun, key, query->file->path);
+        if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) fst24_record_print(&tmp_record);
 
         if (record != NULL) fst_record_copy_info(record, &tmp_record);
         query->search_index = key;

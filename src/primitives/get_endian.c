@@ -15,7 +15,7 @@ int is_big_endian(void) { return 1 - *endian; }
 
 #if defined(SELF_TEST)
 #include <stdio.h>
-int main()
+int main(void)
 {
   printf("this machine is %s little endian \n",is_little_endian()?"":"not");
   printf("this machine is %s big endian \n",is_big_endian()?"":"not");

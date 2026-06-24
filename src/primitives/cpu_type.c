@@ -557,7 +557,7 @@ void set_fp_status_ctl(int fpstat_in) {
 }
 
 #if defined(TEST_CPUID)
-int get_cpu_core_thread()  /* Intel CPUs only and even in this case not always reliable */
+int get_cpu_core_thread(void)  /* Intel CPUs only and even in this case not always reliable */
 {
   uint32_t regs[4];
   if(ProcessorCapabilities == 0) get_cpu_capabilities();
@@ -590,9 +590,9 @@ int get_cpu_core_thread()  /* Intel CPUs only and even in this case not always r
 */
 #pragma weak get_cpu_hyperthreads__=get_cpu_hyperthreads
 #pragma weak get_cpu_hyperthreads_=get_cpu_hyperthreads
-int get_cpu_hyperthreads__();
-int get_cpu_hyperthreads_();
-int get_cpu_hyperthreads()  /* Intel CPUs only */
+int get_cpu_hyperthreads__(void);
+int get_cpu_hyperthreads_(void);
+int get_cpu_hyperthreads(void)  /* Intel CPUs only */
 {
   if(ProcessorCapabilities == 0) get_cpu_capabilities();
   return( threadpercore );
@@ -622,9 +622,9 @@ int get_cpu_hyperthreads()  /* Intel CPUs only */
 */
 #pragma weak get_cpu_cores__=get_cpu_cores
 #pragma weak get_cpu_cores_=get_cpu_cores
-int get_cpu_cores__();
-int get_cpu_cores_();
-int get_cpu_cores()  /* Intel CPUs only */
+int get_cpu_cores__(void);
+int get_cpu_cores_(void);
+int get_cpu_cores(void)  /* Intel CPUs only */
 {
   if(ProcessorCapabilities == 0) get_cpu_capabilities();
   return( ncores );
@@ -656,9 +656,9 @@ int get_cpu_cores()  /* Intel CPUs only */
 */
 #pragma weak get_cpu_id__=get_cpu_id
 #pragma weak get_cpu_id_=get_cpu_id
-int get_cpu_id__();
-int get_cpu_id_();
-int get_cpu_id()  /* Intel CPUs only */
+int get_cpu_id__(void);
+int get_cpu_id_(void);
+int get_cpu_id(void)  /* Intel CPUs only */
 {
   uint32_t regs[4];
   X86_cpuid( 0x0B, 0, regs );

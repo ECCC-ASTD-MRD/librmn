@@ -1,4 +1,4 @@
-/* RMNLIB - Library of useful routines for C and FORTRAN programming 
+/* RMNLIB - Library of useful routines for C and FORTRAN programming
  * Copyright (C) 1975-2005  Environnement Canada
  *
  * This library is free software; you can redistribute it and/or
@@ -159,7 +159,7 @@ static wb_line *wb_lastputline = NULL;
 //------------------------------------------------------------------------------
 static int new_page(WhiteBoard *WB, int nlines);
 
-int c_wb_reload();
+int c_wb_reload(void);
 
 //! \todo Replace these with iso_c_binding
 void f77_name(f_logical_move)(void *, void *, int32_t *);
@@ -1369,28 +1369,23 @@ int32_t f77_name(f_wb_put)(
 
 
 //! Write checkpoint file of the WhiteBoard referenced by BaseWhiteboardPtr
-int c_wb_checkpoint()
-{
-    wb_page *page;
-    int pageno = 0;
-    int zero = 0;
-    int status;
-    int fd = open(WhiteBoardCheckpointFile, O_WRONLY|O_CREAT, 0777);
-
+int c_wb_checkpoint(void) {
+    int fd = open(WhiteBoardCheckpointFile, O_WRONLY | O_CREAT, 0777);
     if (fd < 0) {
         // Can't open checkpoint file
         return wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
     }
-    page = BaseWhiteboardPtr->firstpage;
+    wb_page * page = BaseWhiteboardPtr->firstpage;
 
     // Write signature
-    status = write(fd, "WBckp100", 8);
+    int status = write(fd, "WBckp100", 8);
     if (status < 0) {
         // Write error!
         close(fd);
         return wb_error(WB_MSG_ERROR, WB_ERR_CKPT);
     }
 
+    int pageno = 0;
     while (page != NULL) {
         // Write number of lines in page
         status = write(fd, &(page->nbLines), 4);
@@ -1416,6 +1411,7 @@ int c_wb_checkpoint()
     }
 
     // 0 length page is the end marker
+    int zero = 0;
     status = write(fd, &zero, 4);
     if (status < 0) {
         close(fd);
@@ -1699,8 +1695,7 @@ int32_t f77_name(f_wb_lock)(WhiteBoard **wb, char *name, F2Cl nameLength){
 
 
 //! Write WhiteBoard checkpoint file
-int c_wb_reload()
-{
+int c_wb_reload(void) {
     int pageno = 0;
     int pagelen;
     int status;
@@ -1711,11 +1706,11 @@ int c_wb_reload()
         // Cannot open checkpoint file
         return wb_error(WB_MSG_ERROR,WB_ERR_CKPT);
     }
-    
+
     if (BaseWhiteboardPtr->firstpage != NULL) {
         return wb_error(WB_MSG_ERROR,WB_ERR_INITRESTART);
     }
-   
+
     status = read(fd, signature, 8);
     signature[8] = 0;
     if (status != 8 || 0 != strncmp(signature, "WBckp100", 8)) {
