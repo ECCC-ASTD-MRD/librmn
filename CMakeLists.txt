@@ -140,9 +140,6 @@ add_custom_command(
 add_custom_target(WhiteBoardFortranHeader DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/rmn/WhiteBoard.hf)
 
 set(TARGETS rmn-static)
-if (${RMN_BUILD_SHARED})
-    list(APPEND TARGETS rmn-shared)
-endif()
 
 # Build static library from source files
 add_library(rmn-static STATIC ${PROJECT_C_FILES} ${PROJECT_F_FILES} ${PROJECT_H_FILES})
@@ -151,8 +148,9 @@ add_dependencies(rmn-static rmn_build_info json-c libudunits2-static)
 
 # Build shared library from object of rmn
 if (${RMN_BUILD_SHARED})
-        add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
-        target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2-shared LibXml2::LibXml2 dl)
+    add_library(rmn-shared SHARED $<TARGET_OBJECTS:rmn-static>)
+    target_link_libraries(rmn-shared PUBLIC App-shared json-c libudunits2-shared LibXml2::LibXml2 dl)
+    list(APPEND TARGETS rmn-shared)
 endif()
 
 foreach(TARGET ${TARGETS})
@@ -442,8 +440,11 @@ install(
     DESTINATION "${CONFIG_INSTALL_DIR}"
 )
 
+if (${RMN_BUILD_SHARED})
+    add_subdirectory(python)
+endif()
+
 add_subdirectory(utils)
-add_subdirectory(python)
 enable_testing()
 add_subdirectory(tests)
 
