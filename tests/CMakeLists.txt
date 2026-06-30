@@ -9,6 +9,26 @@ if (EC_INIT_DONE LESS 2)
 
         message(STATUS "(EC) Generating librmn tests")
 
+        set(TEST_SCRIPTS_SOURCE
+            fst/fst_force_close.sh
+            readlx/get_diff.sh
+            readlx/inp_readlx_02.txt
+            readlx/output_readlx_02.txt
+            spp.dict
+            test_rmn.py
+        )
+        list(TRANSFORM TEST_SCRIPTS_SOURCE REPLACE "^(.+)" "${CMAKE_CURRENT_SOURCE_DIR}/\\1")
+        set(TEST_SCRIPTS_BUILD ${TEST_SCRIPTS_SOURCE})
+        list(TRANSFORM TEST_SCRIPTS_BUILD REPLACE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}")
+
+        add_custom_command(
+            OUTPUT ${TEST_SCRIPTS_BUILD}
+            COMMAND ${CMAKE_COMMAND} -E copy ${TEST_SCRIPTS_SOURCE} ${CMAKE_CURRENT_BINARY_DIR}/
+            DEPENDS ${TEST_SCRIPTS_SOURCE}
+            COMMENT "Copying test script files to test build directory")
+        add_custom_target(test-script-files DEPENDS ${TEST_SCRIPTS_BUILD})
+        add_dependencies(test_execs test-script-files)
+
         # Check MPI implementation to be able to give the proper flags when running tests
         find_program(RPN_MPIRUN mpirun)
         if (${RPN_MPIRUN} STREQUAL "RPN_MPIRUN-NOTFOUND")
@@ -122,8 +142,8 @@ if (EC_INIT_DONE LESS 2)
         gen_test_target(SOURCES fst/fst.c NAME fst_float DEFINES "DATATYPE=float")
         gen_test_target(SOURCES fst/fst.c NAME fst_double DEFINES "DATATYPE=double")
         gen_test_target(SOURCES test_copy_swap.c)
-        gen_test_target(SOURCES clib_isalpha.F90 ARGUMENTS ${CMAKE_CURRENT_SOURCE_DIR}/spp.dict)
-        gen_test_target(SOURCES wb_read.F90 ARGUMENTS ${CMAKE_CURRENT_SOURCE_DIR}/spp.dict)
+        gen_test_target(SOURCES clib_isalpha.F90 ARGUMENTS ${CMAKE_CURRENT_BINARY_DIR}/spp.dict)
+        gen_test_target(SOURCES wb_read.F90 ARGUMENTS ${CMAKE_CURRENT_BINARY_DIR}/spp.dict)
         gen_test_target(SOURCES wb_putget.F90 INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../src/whiteboard)
         gen_test_target(SOURCES wb_test.c INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../src/whiteboard)
         gen_test_target(SOURCES wb_test.F90 NAME wb_test_f90 INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/../src/whiteboard)
@@ -206,11 +226,11 @@ if (EC_INIT_DONE LESS 2)
         add_executable(readlx_base EXCLUDE_FROM_ALL readlx/readlx_base.F90)
         target_link_libraries(readlx_base rmn::rmn)
         # file(READ ${CMAKE_CURRENT_SOURCE_DIR}/readlx/output_readlx_02.txt EXPECTED_OUTPUT_02)
-        add_test(NAME readlx_base COMMAND sh -c "env -u APP_VERBOSE_COLOR $<TARGET_FILE:readlx_base> ${CMAKE_CURRENT_SOURCE_DIR}/readlx/inp_readlx_02.txt > ${CMAKE_CURRENT_BINARY_DIR}/output_readlx_02_current.txt")
+        add_test(NAME readlx_base COMMAND sh -c "env -u APP_VERBOSE_COLOR $<TARGET_FILE:readlx_base> ${CMAKE_CURRENT_BINARY_DIR}/inp_readlx_02.txt > ${CMAKE_CURRENT_BINARY_DIR}/output_readlx_02_current.txt")
         add_test(NAME readlx_compare_02
-                 COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/readlx/get_diff.sh
+                 COMMAND ${CMAKE_CURRENT_BINARY_DIR}/get_diff.sh
                             ${CMAKE_CURRENT_BINARY_DIR}/output_readlx_02_current.txt
-                            ${CMAKE_CURRENT_SOURCE_DIR}/readlx/output_readlx_02.txt
+                            ${CMAKE_CURRENT_BINARY_DIR}/output_readlx_02.txt
                  DEPENDS readlx_base)
         add_dependencies(test_execs readlx_base)
 
@@ -219,7 +239,7 @@ if (EC_INIT_DONE LESS 2)
             add_dependencies(check rmn::rmn-shared)
             set(set_pythonpath "PYTHONPATH=${CMAKE_BINARY_DIR}/python\${PYTHONPATH:+:\${PYTHONPATH}}")
             add_test( NAME python_import_package COMMAND bash -c "${set_pythonpath} python3 -c 'import rmn'")
-            add_test( NAME python_unit_tests COMMAND bash -c "${set_pythonpath} python3 ${CMAKE_CURRENT_SOURCE_DIR}/test_rmn.py")
+            add_test( NAME python_unit_tests COMMAND bash -c "${set_pythonpath} python3 ${CMAKE_CURRENT_BINARY_DIR}/test_rmn.py")
         endif()
 
         add_executable(gen_abort_file EXCLUDE_FROM_ALL fst/gen_abort_file.c)
@@ -228,7 +248,7 @@ if (EC_INIT_DONE LESS 2)
         add_dependencies(gen_abort_file fst_force_close fst_check)
         add_test(
             NAME fst_force_close
-            COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/fst/fst_force_close.sh
+            COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_force_close.sh
                     $<TARGET_FILE:gen_abort_file> $<TARGET_FILE:fst_check> $<TARGET_FILE:fst_force_close>
         )
 
