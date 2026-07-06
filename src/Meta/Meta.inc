@@ -68,7 +68,7 @@ interface
     end FUNCTION
 
     !  json_object *Meta_DefFile(json_object *Obj,char *Institution,char* Discipline,char *Title,char *Source,char *Description,char *State);
-    type(C_PTR) FUNCTION meta_deffile(obj,institution,discipline,title,source,description,state) BIND(C, name="Meta_DefVar")
+    type(C_PTR) FUNCTION meta_deffile(obj,institution,discipline,title,source,description,state) BIND(C, name="Meta_DefFile")
         import :: C_PTR, C_CHAR
 
         type(C_PTR), intent(in), value :: obj
