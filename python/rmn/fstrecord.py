@@ -448,3 +448,43 @@ def is_default_record_valid() -> bool:
 
     default_record = _get_default_fst_record()
     return _fst24_validate_default_record(ctypes.byref(default_record), ctypes.sizeof(default_record)) == 0
+
+# ---------------------------------------------------------------------------
+# Public buffer decode API — used by rmn.virtualizarr.Fst24Codec
+# ---------------------------------------------------------------------------
+
+_record_free = librmn.fst24_record_free
+_record_free.argtypes = (ctypes.POINTER(fst_record),)
+_record_free.restype = ctypes.c_int32
+
+def decode_raw_buffer(buf: bytes, backend: str) -> np.ndarray:
+    """Decode a raw FST record buffer to a NumPy array.
+
+    Args:
+        buf: Raw bytes from the FST file at [offset:offset+length].
+        backend: 'rsf' or 'xdf'.
+
+    Returns:
+        numpy array with shape (ni, nj, nk) in Fortran order.
+    """
+    raw = bytes(memoryview(buf))
+    c_buf = ctypes.create_string_buffer(raw, len(raw))
+    decode = fst24_decode_data_rsf if backend == "rsf" else fst24_decode_data_xdf
+    rec = decode(ctypes.cast(c_buf, ctypes.c_void_p), None)
+    try:
+        if not hasattr(rec, "_data") or rec._data is None or int(rec._data) == 0:
+            raise ValueError(f"librmn failed to decode {backend.upper()} record")
+        object.__setattr__(rec, "_data_array", None)
+        dtype = np.dtype(rec.numpy_type())
+        shape = (int(rec.ni), int(rec.nj), int(rec.nk))
+        size = int(rec.ni) * int(rec.nj) * int(rec.nk)
+        c_type_p = (
+            ctypes.POINTER(ctypes.c_float)
+            if dtype == np.float32
+            else ctypes.POINTER(ctypes.c_double)
+        )
+        data_pointer = ctypes.cast(rec._data, c_type_p)
+        flat_arr = np.ctypeslib.as_array(data_pointer, shape=(size,))
+        return flat_arr.reshape(shape, order="F").copy()
+    finally:
+        _record_free(ctypes.byref(rec))
