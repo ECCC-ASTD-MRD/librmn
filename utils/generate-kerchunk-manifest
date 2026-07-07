@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+"""
+Generate a Kerchunk manifest from an FST file.
+
+
+"""
+
+from pathlib import Path
+import argparse
+
+import rmn
+import rmn.virtualizarr
+
+
+def get_args():
+    parser = argparse.ArgumentParser(description=__doc__)
+
+    parser.add_argument(
+        "-f",
+        "--filename",
+        type=Path,
+        required=True,
+        help="Input FST file (.rsf or XDF).",
+    )
+
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        default=Path("manifest.json"),
+        help="Output Kerchunk manifest.",
+    )
+
+    parser.add_argument(
+        "--max-records",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Only include the first N records.",
+    )
+
+    return parser.parse_args()
+
+
+def main():
+
+    args = get_args()
+
+    print(f"Opening {args.filename}")
+
+    with rmn.fst24_file(str(args.filename)) as f:
+        out = rmn.virtualizarr.generate_manifest(
+            f,
+            args.output,
+            max_records=args.max_records,
+        )
+
+    print(f"Manifest written: {out}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
