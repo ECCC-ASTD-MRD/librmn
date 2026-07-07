@@ -36,6 +36,3 @@ class fst_query:
             raise StopIteration("No more results in query")
 
         return rec
-
-
-
