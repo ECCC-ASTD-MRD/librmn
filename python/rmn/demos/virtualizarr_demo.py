@@ -36,7 +36,7 @@ def main():
     if not variables:
         raise RuntimeError("Dataset contains no variables.")
 
-    var = variables[12]
+    var = variables[9]
     print(f"\n[2] Accessing '{var}'")
 
     zarray = json.loads(refs[f"{var}/.zarray"])

@@ -2,43 +2,19 @@
 
 Provides two things:
 
-- generate_manifest: generates a Kerchunk-style manifest JSON from an
-  open :class:`rmn.fst24_file`. No data is read, only metadata
-  (offset, length, shape, dtype).
+1. generate_manifest — generates a Kerchunk-style manifest JSON from an
+   open :class:`rmn.fst24_file`. No data is read, only metadata
+   (offset, length, shape, dtype).
 
-- Fst24Codec class and register_codec function: a numcodecs codec that decodes
-  raw FST record buffers through librmn.  The register_codec() function
-  makes this codec available for third party tools like xarray.
-
-Usage — generate a manifest::
-
-    import rmn
-    import rmn.virtualizarr
-
-    with rmn.fst24_file("my_file.rsf") as f:
-        rmn.virtualizarr.generate_manifest(f, "manifest.json")
-
-Usage — third-party access to data::
-
-    import rmn.virtualizarr
-    rmn.virtualizarr.register_codec()
-
-    from virtualizarr import open_virtual_dataset
-    ds = open_virtual_dataset("manifest.json", filetype="kerchunk")
-    # ds is lazy — no data read yet
-
-Command-line usage::
-
-    python -m rmn.virtualizarr my_file.rsf manifest.json
+2. Fst24Codec / register_codec — a numcodecs codec that decodes raw
+   FST record buffers through librmn. Third-party tools import this codec
+   and use it to access FST data.
 """
 
 from __future__ import annotations
 
-import argparse
-#import ctypes
 import json
 import re
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -46,8 +22,6 @@ import numpy as np
 
 from .fst24file import fst24_file
 from .fstrecord import decode_raw_buffer, fst_record
-#from .fstrecord import fs#t_record, fst24_decode_data_rsf, fst24_decode_data_xdf
-#from ._sharedlib import librmn
 
 
 def _safe_name(value: str) -> str:
@@ -184,7 +158,7 @@ def _decode_buffer(buf: bytes, backend: str) -> np.ndarray:
 class Fst24Codec:
     """numcodecs codec that decodes raw FST record buffers via librmn.
 
-    Registered under the id ``"fst24"`` in numcodecs. VirtualiZarr/Zarr
+    Registered under the id "fst24" in numcodecs. VirtualiZarr/Zarr
     calls :meth:`decode` automatically when a chunk is accessed.
 
     Third-party tools should never need to call this directly — just call
