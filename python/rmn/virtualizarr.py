@@ -222,3 +222,6 @@ def register_codec() -> None:
 
     if Fst24Codec.codec_id not in codec_registry:
         _register(Fst24Codec)
+
+
+register_codec()

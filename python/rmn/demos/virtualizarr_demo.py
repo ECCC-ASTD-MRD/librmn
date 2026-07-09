@@ -21,7 +21,7 @@ def main():
     )
     args = parser.parse_args()
 
-    rmn.virtualizarr.register_codec()
+    #rmn.virtualizarr.register_codec()
 
     print("[1] Opening VirtualiZarr manifest ...")
     with open(args.manifest, "r", encoding="utf-8") as f:
