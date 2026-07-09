@@ -158,7 +158,7 @@ contains
     function fst24_file_open_and_link(this, filenames) result(success)
         implicit none
         class(fst_file), intent(inout) :: this !< fst_file instance to use. Must not be open already
-        type(character(len=*)), dimension(:), intent(in) :: filenames   !< Name of the files we want to open and link
+        character(len=*), dimension(:), intent(in) :: filenames   !< Name of the files we want to open and link
         logical :: success !< Whether we could open any file
 
         type(c_ptr), dimension(:), allocatable, target :: filenames_c
