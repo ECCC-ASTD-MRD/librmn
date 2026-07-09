@@ -225,7 +225,8 @@ fst_file* fst24_open_link(
     int n = 0;
     int nerr = 0;
     for(n = 0; n < fileNb; n++) {
-        if ((files[n-nerr] = fst24_open(filePaths[n],"RND+R/O")) == NULL) {
+        files[n - nerr] = fst24_open(filePaths[n], "RND+R/O");
+        if (files[n - nerr] == NULL) {
             Lib_Log(APP_LIBFST,APP_ERROR, "%s: Unable to open file (%s)\n", __func__, filePaths[n]);
             nerr++;
         }

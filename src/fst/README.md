@@ -1483,6 +1483,7 @@ contains
     procedure, pass   :: is_open
     procedure, pass   :: is_rsf
     procedure, pass   :: open
+    procedure, pass   :: open_and_link
     procedure, pass   :: close
     procedure, pass   :: get_num_records
     procedure, pass   :: get_unit
@@ -1621,7 +1622,18 @@ function open(this, filename, options) result(could_open)
     logical :: could_open  !< Whether we were able to open the file
 end function open
 
-!> Close the given standard file and free the memory associated with the struct
+
+!> Open a list of files and link them together
+function open_and_link(this, filenames) result(success)
+    implicit none
+    class(fst_file), intent(inout) :: this  !< fst_file instance to use. Must not be open already
+    type(character(len=*)), dimension(:), intent(in) :: filenames   !< Name of the files we want to open and link
+
+    logical :: success !< Whether we could open any file
+end function open_and_link
+
+!> Close the given standard file and free the memory associated with the struct. If the file was open with `open_link`,
+!> all linked files will also be closed.
 !>
 !> Thread safety: Closing several different files concurrently is always safe. Closing the same file
 !> several times is an error. Closing a file while another fst24 API call is running on that same

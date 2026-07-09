@@ -25,9 +25,9 @@ typedef struct fst24_file_ {
     TApp_Timer  read_timer;             //!< Keep track of time spent reading data
     TApp_Timer  write_timer;            //!< Keep track of time spent writing data
     TApp_Timer  find_timer;             //!< Keep track of time spent looking for data
-    int64_t     num_bytes_read;
-    int64_t     num_bytes_written;
-    int32_t     num_records_found;
+    int64_t     num_bytes_read;         //!< Keep track of how many data bytes were read from this file
+    int64_t     num_bytes_written;      //!< Keep track of how many data bytes were written to this file
+    int32_t     num_records_found;      //!< Keep trakc of how many records were found in this file through the various find functions
 } fst_file;
 
 int32_t fst24_write_rsf(RSF_handle rsf_file, fst_record * const record, const int32_t stride);
