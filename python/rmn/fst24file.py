@@ -159,6 +159,7 @@ class fst24_file(ctypes.Structure):
 
         if result != 1:
             raise FstFileError("Error calling C function fst24_write()")
+
     def __del__(self):
         logging.debug(f"__del__: fst24_file {self.filename} (id={id(self)}")
         self.close()
@@ -191,6 +192,10 @@ class fst24_file(ctypes.Structure):
 
     def get_records_by_index_with_data(self, indices: Sequence[int]) -> Iterable[fst_record]:
         yield from map(self.get_record_by_index_with_data, indices)
+
+    def find_one(self, **kwargs) -> Optional[fst_record]:
+        """Return the first record that corresponds to the given criteria (None if not found)."""
+        return next(iter(self.new_query(**kwargs)), None)
 
     @classmethod
     def get_records_with_data(cls, filename: Union[str, os.PathLike], indices: Sequence[int]) -> Iterable[fst_record]:

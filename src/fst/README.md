@@ -1227,6 +1227,18 @@ int32_t fst24_read(
     fst_record* const record            //!< [out] Record content and info, if found
 );
 
+//! Find the first record the corresponds to the given criteria.
+//!
+//! Thread safety: This function may be called by multiple threads on the same file.
+//! 
+//! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
+int32_t fst24_find_one(
+    const fst_file* const file,
+    const fst_record* criteria,
+    const fst_query_options* options,
+    fst_record* record
+);
+
 //! Create a search query that will apply the given criteria during a search in a file.
 //!
 //! This function is thread safe.
@@ -1688,7 +1700,7 @@ end function get_unit
 function new_query(this,                                                                             & 
         dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
-        ip1_all, ip2_all, ip3_all,stamp_norun) result(query)
+        ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors) result(query)
     implicit none
     class(fst_file), intent(in) :: this
     integer(C_INT32_T), intent(in), optional :: dateo, datev
@@ -1700,6 +1712,8 @@ function new_query(this,                                                        
     character(len=*),   intent(in), optional :: etiket
     logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
     logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
+    logical, intent(in), optional :: skip_filter !< Whether to bypass the global file filter (excdes)
+    logical, intent(in), optional :: skip_grid_descriptors !< Whether to ignore grid descriptor records
     type(meta), intent(in), optional :: metadata
     type(fst_query) :: query
 end function new_query
@@ -1714,7 +1728,7 @@ end function new_query
 function read(this, record, data,                                                                               &
         dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
         deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
-        ip1_all, ip2_all, ip3_all,stamp_norun) result(found)
+        ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors) result(found)
     implicit none
     class(fst_file), intent(inout) :: this
     type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
@@ -1732,9 +1746,38 @@ function read(this, record, data,                                               
     character(len=*),   intent(in), optional :: etiket
     logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
     logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
+    logical, intent(in), optional :: skip_filter !< Whether to bypass the global file filter (excdes)
+    logical, intent(in), optional :: skip_grid_descriptors !< Whether to ignore grid descriptor records
     type(meta), intent(in), optional :: metadata
     logical :: found
 end function read
+
+!> Find the first record the corresponds to the given criteria.
+!>
+!> Thread safety: This function may be called by multiple threads on the same file.
+!> 
+function find_one(this, record,                                                                                 &
+        dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
+        deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
+        ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors) result(found)
+    class(fst_file), intent(inout) :: this
+    type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
+
+    integer(C_INT32_T), intent(in), optional :: dateo, datev
+    integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
+    integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
+    character(len=*),   intent(in), optional :: typvar
+    character(len=*),   intent(in), optional :: grtyp
+    character(len=*),   intent(in), optional :: nomvar
+    character(len=*),   intent(in), optional :: etiket
+    logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+    logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
+    logical, intent(in), optional :: skip_filter !< Whether to bypass the global file filter (excdes)
+    logical, intent(in), optional :: skip_grid_descriptors !< Whether to ignore grid descriptor records
+    type(meta), intent(in), optional :: metadata
+
+    logical :: found
+end function find_one
 
 !> Write the given record into this standard file
 !>

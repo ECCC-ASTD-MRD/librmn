@@ -31,6 +31,7 @@ module rmn_fst24
 
         procedure, pass :: new_query => fst24_file_new_query !< \copydoc fst24_file_new_query
         procedure, pass :: read => fst24_file_read !< \copydoc fst24_file_read
+        procedure, pass :: find_one => fst24_file_find_one !< \copydoc fst24_file_find_one
         procedure, pass :: get_record_by_index => fst24_file_get_record_by_index !< \copydoc fst24_file_get_record_by_index
 
         procedure, pass :: write => fst24_file_write    !< \copydoc fst24_file_write
@@ -262,7 +263,7 @@ contains
     function fst24_file_read(this, record, data,                                                                    &
             dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
-            ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter) result(found)
+            ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors) result(found)
         implicit none
         class(fst_file), intent(inout) :: this
         type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
@@ -281,6 +282,7 @@ contains
         logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
         logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
         logical, intent(in), optional :: skip_filter !< Whether to bypass the global file filter (excdes)
+        logical, intent(in), optional :: skip_grid_descriptors !< Whether to ignore grid descriptor records
         type(meta), intent(in), optional :: metadata
         logical :: found
 
@@ -292,12 +294,44 @@ contains
 
         query = this % new_query(dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk, deet, npas,             &
                                  ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket,                  &
-                                 metadata, ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter)
+                                 metadata, ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors)
         if (.not. query % is_valid()) return
         found = query % read_next(record)
         call query % free()
 
     end function fst24_file_read
+
+    function fst24_file_find_one(this, record,                                                                    &
+            dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
+            deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
+            ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors) result(found)
+        class(fst_file), intent(inout) :: this
+        type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
+
+        integer(C_INT32_T), intent(in), optional :: dateo, datev
+        integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
+        integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
+        character(len=*),   intent(in), optional :: typvar
+        character(len=*),   intent(in), optional :: grtyp
+        character(len=*),   intent(in), optional :: nomvar
+        character(len=*),   intent(in), optional :: etiket
+        logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+        logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
+        logical, intent(in), optional :: skip_filter !< Whether to bypass the global file filter (excdes)
+        logical, intent(in), optional :: skip_grid_descriptors !< Whether to ignore grid descriptor records
+        type(meta), intent(in), optional :: metadata
+
+        logical :: found
+
+        type(fst_query) :: query
+
+        query = this % new_query(dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk, deet, npas,             &
+                                 ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket,                  &
+                                 metadata, ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors)
+        if (.not. query % is_valid()) return
+        found = query % find_next(record)
+        call query % free()
+    end function fst24_file_find_one
 
     !> \copybrief fst24_get_record_by_index
     !> \return .true. if we got the record, .false. if error

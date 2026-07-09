@@ -1963,6 +1963,28 @@ int32_t fst24_find_count(
     return count;
 }
 
+//! Find the first record the corresponds to the given criteria.
+//!
+//! Thread safety: This function may be called by multiple threads on the same file.
+//! 
+//! \return TRUE (1) if a record was found, FALSE (0) or a negative number otherwise (not found, file not open, etc.)
+int32_t fst24_find_one(
+    const fst_file* const file,
+    const fst_record* criteria,
+    const fst_query_options* options,
+    fst_record* record
+) {
+    fst_query* q = fst24_new_query(file, criteria, options);
+    if (q == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to create query\n", __func__);
+        return 0;
+    }
+
+    const int32_t status = fst24_find_next(q, record);
+    fst24_query_free(q);
+    return status;
+}
+
 //! Decode the given raw data pointer as if it were the content of an XDF record.
 //! \return A properly initialized fst_record object. If we were successful in decoding the data, the record `data`
 //!         pointer will be valid; if we were not successful, the `data` pointer will be NULL.
