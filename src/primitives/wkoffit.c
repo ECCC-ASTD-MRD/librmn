@@ -20,7 +20,7 @@
 
 //! \file
 
-#define _LARGEFILE64_SOURCE
+// Define off_t to have 64 bits even on 32 bits architectures
 #define _FILE_OFFSET_BITS 64
 
 //! Signature du debut d'un fichier cmcarc
