@@ -201,11 +201,33 @@ int test_fst24_interface(const int is_rsf) {
     fst_record expected = test_record;
     fst_record record_by_index = default_fst_record;
 
+    ////////////////////////////////////////////
+    // Find one
+    {
+        fst_record criteria = default_fst_record;
+        criteria.ip1 = 3;
+        if (fst24_find_one(test_file, &criteria, NULL, &record) != TRUE) {
+            App_Log(APP_ERROR, "Unable to find record with 'fst24_find_one' with the following criteria:\n");
+            fst24_record_print_non_default(&criteria);
+            return -1;
+        }
+
+        expected.ip1 = 3;
+        if (!fst24_record_has_same_info(&record, &expected)) {
+            App_Log(APP_ERROR, "Record found is not as expected!\n");
+            fst24_record_print(&record);
+            fst24_record_diff(&record, &expected);
+            return -1;
+        }
+
+        fst24_record_free(&criteria);
+    }
+
     ///////////////////////////////////////////////
     // Find next + read
     int num_found = 0;
     fst_query* query = fst24_new_query(test_file, NULL, NULL); // Match with everything, with default options
-    while (fst24_find_next(query, &record) > 0) {
+    while (fst24_find_next(query, &record) == TRUE) {
         // fst24_record_print(&record);
 
         if (record.file_index != num_found) {

@@ -122,10 +122,11 @@ interface
         type(C_PTR) :: file_ptr
     end function fst24_open
 
-    function fst24_open_link_c(file_names) result(file_ptr) bind(C, name = 'fst24_open_link')
-        import :: C_PTR, C_CHAR
+    function fst24_open_link_c(file_names, num_names) result(file_ptr) bind(C, name = 'fst24_open_link')
+        import :: C_PTR, C_INT32_T
         implicit none
-        type(C_PTR), intent(in) :: file_names
+        type(C_PTR), dimension(*), intent(in) :: file_names
+        integer(C_INT32_T), intent(in), value :: num_names
         type(C_PTR) :: file_ptr
     end function fst24_open_link_c
 

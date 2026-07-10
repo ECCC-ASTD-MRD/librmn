@@ -1,19 +1,21 @@
-
 module rmn_fst24
     use App
     use f_c_strings_mod
     use rmn_fst_common
-    use rmn_libc,       only: libc_free
+    use rmn_libc,           only: libc_free
     use rmn_meta
     use rmn_fst24_record
-    use rmn_fst98,      only: c_fstrwd, c_fstweo, c_fsteof
+    use rmn_fst98,          only: c_fstrwd, c_fstweo, c_fsteof
     implicit none
 
     include 'fst24_interface.inc'
 
+    integer, parameter, public :: MAX_PATH_LEN = 4096
+
     type :: fst_file
         private
         type(C_PTR) :: file_ptr = c_null_ptr ! Pointer to C file control structure
+        logical :: is_link_only = .false.
     contains
         procedure, nopass :: is_valid => fst24_file_is_valid    !< \copydoc fst24_file_is_valid
         procedure, pass   :: is_open  => fst24_file_is_open     !< \copydoc fst24_file_is_open
@@ -25,9 +27,11 @@ module rmn_fst24
         procedure, pass   :: get_unit => fst24_file_get_unit    !< \copydoc fst24_file_get_unit
         procedure, pass   :: is_rsf   => fst24_file_is_rsf      !< \copydoc fst24_file_is_rsf
         procedure, pass   :: get_c_ptr => fst24_file_get_c_ptr  !< \private \copydoc fst24_file_get_c_ptr
+        procedure, pass   :: open_and_link => fst24_file_open_and_link  !< \copydoc fst24_file_open_and_link
 
         procedure, pass :: new_query => fst24_file_new_query !< \copydoc fst24_file_new_query
         procedure, pass :: read => fst24_file_read !< \copydoc fst24_file_read
+        procedure, pass :: find_one => fst24_file_find_one !< \copydoc fst24_file_find_one
         procedure, pass :: get_record_by_index => fst24_file_get_record_by_index !< \copydoc fst24_file_get_record_by_index
 
         procedure, pass :: write => fst24_file_write    !< \copydoc fst24_file_write
@@ -151,22 +155,43 @@ contains
     end function fst24_file_open
 
     !> \copybrief fst24_open_link_c
-!    function fst24_open_link(filenames) result(file)
-!        implicit none
-!        type(character(len=*)), dimension(*) :: filenames !< Name of the files we want to open and link
-!        class(fst_file), allocatable :: file              !< fst_file instance. Must not be an already-open file
+    function fst24_file_open_and_link(this, filenames) result(success)
+        implicit none
+        class(fst_file), intent(inout) :: this !< fst_file instance to use. Must not be open already
+        character(len=*), dimension(:), intent(in) :: filenames   !< Name of the files we want to open and link
+        logical :: success !< Whether we could open any file
 
-!        type(character(len=:)), allocatable, dimension(:) :: c_filenames
-!        integer(C_INT32_T) :: n
+        type(c_ptr), dimension(:), allocatable, target :: filenames_c
+        character(len=MAX_PATH_LEN), dimension(:), allocatable, target :: local_names
+        integer :: num_names
+        integer :: i
 
-!        allocate(character(len=size(filenames,dim=1)) :: c_filenames(4096))
-!        do while (n<size(filenames,dim=1))
-!            c_filenames(n)=trim(filenames(n))//achar(0)
-!        enddo
+        success = .false.
 
-!       file % file_ptr = fst24_open_link_c(c_loc(c_filenames))
-!        deallocate(c_filenames)
-!    end function fst24_open_link
+        if (this % is_open()) then
+            write(app_msg, '("You need to close file before opening a new one with the same object. Filename ", A)') &
+                this % get_name()
+            call lib_log(APP_LIBFST, APP_ERROR, app_msg)
+            return
+        end if
+
+        num_names = size(filenames)
+        allocate(filenames_c(num_names))
+        allocate(local_names(num_names))
+
+        do i = 1, num_names
+            local_names(i) = trim(filenames(i)) // c_null_char
+            filenames_c(i) = c_loc(local_names(i))
+        end do
+
+        this % file_ptr = fst24_open_link_c(filenames_c, num_names)
+
+        deallocate(filenames_c)
+        deallocate(local_names)
+
+        success = this % is_open()
+        if (success) this % is_link_only = .true.
+    end function fst24_file_open_and_link
 
     !> \copybrief fst24_close
     function fst24_file_close(this) result(could_close)
@@ -176,9 +201,15 @@ contains
 
         integer(C_INT32_T) :: c_could_close
         could_close = .false.
-        c_could_close = fst24_close(this % file_ptr)
+
+        if (this % is_link_only) then
+            c_could_close = fst24_close_unlink_c(this % file_ptr)
+        else
+            c_could_close = fst24_close(this % file_ptr)
+        end if
 
         this % file_ptr = c_null_ptr
+        this % is_link_only = .false.
         if (c_could_close == 1) could_close = .true.
     end function fst24_file_close
 
@@ -232,7 +263,7 @@ contains
     function fst24_file_read(this, record, data,                                                                    &
             dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
             deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
-            ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter) result(found)
+            ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors) result(found)
         implicit none
         class(fst_file), intent(inout) :: this
         type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
@@ -251,6 +282,7 @@ contains
         logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
         logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
         logical, intent(in), optional :: skip_filter !< Whether to bypass the global file filter (excdes)
+        logical, intent(in), optional :: skip_grid_descriptors !< Whether to ignore grid descriptor records
         type(meta), intent(in), optional :: metadata
         logical :: found
 
@@ -262,12 +294,44 @@ contains
 
         query = this % new_query(dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk, deet, npas,             &
                                  ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket,                  &
-                                 metadata, ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter)
+                                 metadata, ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors)
         if (.not. query % is_valid()) return
         found = query % read_next(record)
         call query % free()
 
     end function fst24_file_read
+
+    function fst24_file_find_one(this, record,                                                                    &
+            dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk,                                              &
+            deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket, metadata,                 &
+            ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors) result(found)
+        class(fst_file), intent(inout) :: this
+        type(fst_record), intent(inout) :: record !< Information of the record found. Left unchanged if nothing found
+
+        integer(C_INT32_T), intent(in), optional :: dateo, datev
+        integer(C_INT32_T), intent(in), optional :: data_type, data_bits, pack_bits, ni, nj, nk
+        integer(C_INT32_T), intent(in), optional :: deet, npas, ip1, ip2, ip3, ig1, ig2, ig3, ig4
+        character(len=*),   intent(in), optional :: typvar
+        character(len=*),   intent(in), optional :: grtyp
+        character(len=*),   intent(in), optional :: nomvar
+        character(len=*),   intent(in), optional :: etiket
+        logical, intent(in), optional :: ip1_all, ip2_all, ip3_all !< Whether we want to match any IP encoding
+        logical, intent(in), optional :: stamp_norun !< Whether validitydate contians run number in last 3 bit
+        logical, intent(in), optional :: skip_filter !< Whether to bypass the global file filter (excdes)
+        logical, intent(in), optional :: skip_grid_descriptors !< Whether to ignore grid descriptor records
+        type(meta), intent(in), optional :: metadata
+
+        logical :: found
+
+        type(fst_query) :: query
+
+        query = this % new_query(dateo, datev, data_type, data_bits, pack_bits, ni, nj, nk, deet, npas,             &
+                                 ip1, ip2, ip3, ig1, ig2, ig3, ig4, typvar, grtyp, nomvar, etiket,                  &
+                                 metadata, ip1_all, ip2_all, ip3_all, stamp_norun, skip_filter, skip_grid_descriptors)
+        if (.not. query % is_valid()) return
+        found = query % find_next(record)
+        call query % free()
+    end function fst24_file_find_one
 
     !> \copybrief fst24_get_record_by_index
     !> \return .true. if we got the record, .false. if error

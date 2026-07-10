@@ -38,6 +38,7 @@ function_fnames="
    fst24_print_summary
    fst24_write
    fst24_read
+   fst24_find_one
    fst24_new_query
    fst24_link
    fst24_unlink

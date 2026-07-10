@@ -251,6 +251,24 @@ function test_fst24_interface(is_rsf) result(success)
     expected = test_record
 
     ! ///////////////////////////////////////////////
+    ! // Find one
+    success = test_file % find_one(record, ip1 = 3)
+    if (.not. success) then
+        write(app_msg, '("Unable to retrieve record with ip1 = ", I3)') 3
+        call app_log(APP_ERROR, app_msg)
+        return
+    end if
+
+    expected % ip1 = 3
+    success = record % has_same_info(expected)
+    if (.not. success) then
+        call app_log(APP_ERROR, 'Record from find_one is not the same as expected ')
+        call record % print()
+        call expected % print()
+        return
+    end if
+
+    ! ///////////////////////////////////////////////
     ! // Find next + read
     num_found = 0
     query = test_file % new_query() ! Default search criteria (wildcard everywhere)
