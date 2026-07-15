@@ -250,6 +250,11 @@ foreach(TARGET IN ITEMS ${TARGETS})
         $<$<COMPILE_LANG_AND_ID:Fortran,NVHPC>:-byteswapio>
         $<$<COMPILE_LANGUAGE:C>: -Wall>
     )
+
+    target_compile_options(${TARGET} PRIVATE
+        $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=3180>
+    )
+
     target_link_options(${TARGET} PUBLIC
                $<$<COMPILE_LANG_AND_ID:C,GNU>:-pthread>
                $<$<COMPILE_LANG_AND_ID:Fortran,GNU>:-pthread>
@@ -304,13 +309,6 @@ foreach(TARGET IN ITEMS ${TARGETS})
     target_include_directories(${TARGET} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/dep>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-    )
-
-endforeach()
-
-foreach(RMN_TARGET ${TARGETS})
-    target_compile_options(${RMN_TARGET} PRIVATE
-        $<$<COMPILE_LANG_AND_ID:C,Intel>:-diag-disable=3180>
     )
 endforeach()
 
