@@ -146,9 +146,9 @@ def generate_manifest(
 
         n += 1
 
-    with open(output_filename) as f:
-        json.dump(f, {"version": 1, "refs": refs}, separators=(",", ":"), ensure_ascii=False)
-    return output_path
+    with open(output_filename, 'w') as f:
+        json.dump({"version": 1, "refs": refs}, f, separators=(",", ":"), ensure_ascii=False)
+    return output_filename
 
 
 def _decode_buffer(buf: bytes, backend: str) -> np.ndarray:
