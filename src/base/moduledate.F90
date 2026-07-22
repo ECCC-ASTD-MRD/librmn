@@ -1314,6 +1314,30 @@ subroutine dmagtp2(idate)
 end subroutine dmagtp2
 
 
+subroutine datmgp(idate)
+    use rmn_date
+    implicit none
+
+    integer, intent(inout) :: idate(14)
+
+    call datmgp2(idate)
+    idate(4) = mod(idate(4), 100)
+    idate(6) = mod(idate(6), 10)
+end
+
+
+integer function idatmg(idate)
+    use rmn_date
+    implicit none
+
+    integer, intent(inout) :: idate(14)
+
+    integer :: status
+
+    status = idatmg2(idate)
+    idatmg = idate(14)
+end
+
 subroutine Ignore_LeapYear_int()
     implicit none
 
