@@ -1216,7 +1216,7 @@ int c_fstecr_xdf(
 
     if (is_type_turbopack(datyp) && _nk > 1) {
         Lib_Log(APP_LIBFST, APP_WARNING, "%s: Turbo compression not supported for 3D data. We will disable it.\n", __func__);
-        datyp &= FST_TYPE_TURBOPACK;
+        datyp &= ~FST_TYPE_TURBOPACK;
     }
 
     if ((base_fst_type(in_datyp) == FST_TYPE_REAL_OLD_QUANT) && ((nbits == 31) || (nbits == 32)) && !image_mode_copy) {
