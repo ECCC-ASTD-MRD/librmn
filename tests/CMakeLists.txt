@@ -29,23 +29,25 @@ if (EC_INIT_DONE LESS 2)
         add_custom_target(test-script-files DEPENDS ${TEST_SCRIPTS_BUILD})
         add_dependencies(test_execs test-script-files)
 
-        # Check MPI implementation to be able to give the proper flags when running tests
-        find_program(RPN_MPIRUN mpirun)
-        if (${RPN_MPIRUN} STREQUAL "RPN_MPIRUN-NOTFOUND")
-            message(FATAL_ERROR "mpirun not found. Won't be able to configure the version.")
-        else()
-            execute_process(
-                COMMAND ${RPN_MPIRUN} --version 2>&1
-                COMMAND grep "Open MPI"
-                COMMAND grep -o "[0-9]\\.[0-9]"
-                OUTPUT_VARIABLE MPI_IMPLEMENTATION
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
-            if (MPI_IMPLEMENTATION MATCHES "[0-9]\\.[0-9]")
-                set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} --oversubscribe)
-                if (CMAKE_Fortran_COMPILER_ID MATCHES ".*Flang")
-                    set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} -x LD_LIBRARY_PATH)
-                else()
-                    set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} --bind-to none)
+        if (TARGET rmn::rmn-ompi)
+            # Check MPI implementation to be able to give the proper flags when running tests
+            find_program(RPN_MPIRUN mpirun)
+            if (${RPN_MPIRUN} STREQUAL "RPN_MPIRUN-NOTFOUND")
+                message(FATAL_ERROR "mpirun not found. Won't be able to configure the version.")
+            else()
+                execute_process(
+                    COMMAND ${RPN_MPIRUN} --version 2>&1
+                    COMMAND grep "Open MPI"
+                    COMMAND grep -o "[0-9]\\.[0-9]"
+                    OUTPUT_VARIABLE MPI_IMPLEMENTATION
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+                if (MPI_IMPLEMENTATION MATCHES "[0-9]\\.[0-9]")
+                    set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} --oversubscribe)
+                    if (CMAKE_Fortran_COMPILER_ID MATCHES ".*Flang")
+                        set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} -x LD_LIBRARY_PATH)
+                    else()
+                        set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} --bind-to none)
+                    endif()
                 endif()
             endif()
         endif()
