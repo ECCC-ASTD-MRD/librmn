@@ -915,6 +915,137 @@ integer(kind = c_int) function newdate_c(dat1, dat2, dat3, mode) bind(C, name = 
     newdate_c = newdate(dat1, dat2, dat3, mode)
 end function newdate_c
 
+!> \copydoc tdate_runnb_to_cmcstamp
+integer(kind = c_int) function tdate_runnb_to_cmcstamp_c(tdate, runnb, cmcstamp) bind(C, name = 'tdate_runnb_to_cmcstamp_c')
+    use rmn_date
+    use, intrinsic :: iso_c_binding, only : c_int
+    implicit none
+
+    integer(kind = c_int), value, intent(in) :: tdate, runnb
+    integer(kind = c_int), intent(out) :: cmcstamp
+    tdate_runnb_to_cmcstamp_c = tdate_runnb_to_cmcstamp(tdate, runnb, cmcstamp)
+end function
+
+!> \copydoc cmcstamp_to_tdate_runnb
+integer(kind = c_int) function cmcstamp_to_tdate_runnb_c(cmcstamp, tdate, runnb) bind(C, name = 'cmcstamp_to_tdate_runnb_c')
+    use rmn_date
+    use, intrinsic :: iso_c_binding, only : c_int
+    implicit none
+
+    integer(kind = c_int), value, intent(in) :: cmcstamp
+    integer(kind = c_int), intent(out) :: tdate, runnb
+    cmcstamp_to_tdate_runnb_c = cmcstamp_to_tdate_runnb(cmcstamp, tdate, runnb)
+end function
+
+!> \copydoc tdate_to_printable
+integer(kind = c_int) function tdate_to_printable_c(tdate, pdate, ptime) bind(C, name = 'tdate_to_printable_c')
+    use rmn_date
+    use, intrinsic :: iso_c_binding, only : c_int
+    implicit none
+
+    integer(kind = c_int), value, intent(in) :: tdate
+    integer(kind = c_int), intent(out) :: pdate, ptime
+    tdate_to_printable_c = tdate_to_printable(tdate, pdate, ptime)
+end function
+
+!> \copydoc printable_to_tdate
+integer(kind = c_int) function printable_to_tdate_c(pdate, ptime, tdate) bind(C, name = 'printable_to_tdate_c')
+    use rmn_date
+    use, intrinsic :: iso_c_binding, only : c_int
+    implicit none
+
+    integer(kind = c_int), value, intent(in) :: pdate, ptime
+    integer(kind = c_int), intent(out) :: tdate
+    printable_to_tdate_c = printable_to_tdate(pdate, ptime, tdate)
+end function
+
+!> \copydoc cmcstamp_to_printable
+integer(kind = c_int) function cmcstamp_to_printable_c(cmcstamp, pdate, ptime) bind(C, name = 'cmcstamp_to_printable_c')
+    use rmn_date
+    use, intrinsic :: iso_c_binding, only : c_int
+    implicit none
+
+    integer(kind = c_int), value, intent(in) :: cmcstamp
+    integer(kind = c_int), intent(out) :: pdate, ptime
+    cmcstamp_to_printable_c = cmcstamp_to_printable(cmcstamp, pdate, ptime)
+end function
+
+!> \copydoc printable_to_cmcstamp
+integer(kind = c_int) function printable_to_cmcstamp_c(pdate, ptime, cmcstamp) bind(C, name = 'printable_to_cmcstamp_c')
+    use rmn_date
+    use, intrinsic :: iso_c_binding, only : c_int
+    implicit none
+
+    integer(kind = c_int), value, intent(in) :: pdate, ptime
+    integer(kind = c_int), intent(out) :: cmcstamp
+    printable_to_cmcstamp_c = printable_to_cmcstamp(pdate, ptime, cmcstamp)
+end function
+
+!> \copydoc extstamp_to_printable
+integer(kind = c_int) function extstamp_to_printable_c(extstamp, pdate, ptime) bind(C, name = 'extstamp_to_printable_c')
+    use rmn_date
+    use, intrinsic :: iso_c_binding, only : c_int
+    implicit none
+
+    integer(kind = c_int), value, intent(in) :: extstamp
+    integer(kind = c_int), intent(out) :: pdate, ptime
+    extstamp_to_printable_c = extstamp_to_printable(extstamp, pdate, ptime)
+end function
+
+!> \copydoc printable_to_extstamp
+integer(kind = c_int) function printable_to_extstamp_c(pdate, ptime, extstamp) bind(C, name = 'printable_to_extstamp_c')
+    use rmn_date
+    use, intrinsic :: iso_c_binding, only : c_int
+    implicit none
+
+    integer(kind = c_int), value, intent(in) :: pdate, ptime
+    integer(kind = c_int), intent(out) :: extstamp
+    printable_to_extstamp_c = printable_to_extstamp(pdate, ptime, extstamp)
+end function
+
+!> \copydoc exttdate_to_cmcstamp
+integer(kind = c_int) function exttdate_to_cmcstamp_c(exttdate, cmcstamp) bind(C, name = 'exttdate_to_cmcstamp_c')
+    use rmn_date
+    use, intrinsic :: iso_c_binding, only : c_int
+    implicit none
+
+    integer(kind = c_int), value, intent(in) :: exttdate
+    integer(kind = c_int), intent(out) :: cmcstamp
+    exttdate_to_cmcstamp_c = exttdate_to_cmcstamp(exttdate, cmcstamp)
+end function
+
+!> \copydoc cmcstamp_to_exttdate_runnb
+integer(kind = c_int) function cmcstamp_to_exttdate_runnb_c(cmcstamp, exttdate, runnb) bind(C, name = 'cmcstamp_to_exttdate_runnb_c')
+    use rmn_date
+    use, intrinsic :: iso_c_binding, only : c_int
+    implicit none
+
+    integer(kind = c_int), value, intent(in) :: cmcstamp
+    integer(kind = c_int), intent(out) :: exttdate, runnb
+    cmcstamp_to_exttdate_runnb_c = cmcstamp_to_exttdate_runnb(cmcstamp, exttdate, runnb)
+end function
+
+!> \copydoc exttdate_to_printable
+integer(kind = c_int) function exttdate_to_printable_c(exttdate, pdate, ptime) bind(C, name = 'exttdate_to_printable_c')
+    use rmn_date
+    use, intrinsic :: iso_c_binding, only : c_int
+    implicit none
+
+    integer(kind = c_int), value, intent(in) :: exttdate
+    integer(kind = c_int), intent(out) :: pdate, ptime
+    exttdate_to_printable_c = exttdate_to_printable(exttdate, pdate, ptime)
+end function
+
+!> \copydoc printable_to_exttdate
+integer(kind = c_int) function printable_to_exttdate_c(pdate, ptime, exttdate) bind(C, name = 'printable_to_exttdate_c')
+    use rmn_date
+    use, intrinsic :: iso_c_binding, only : c_int
+    implicit none
+
+    integer(kind = c_int), value, intent(in) :: pdate, ptime
+    integer(kind = c_int), intent(out) :: exttdate
+    printable_to_exttdate_c = printable_to_exttdate(pdate, ptime, exttdate)
+end function
 
 ! The original names of the following routines have been altered because of
 ! the above mentioned thread safe routines. Internal calls use the mangled internal names
