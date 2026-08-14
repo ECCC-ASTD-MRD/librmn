@@ -7,7 +7,6 @@ newdate_c = librmn.newdate_c
 newdate_c.restype = ctypes.c_int
 
 class fst_date:
-    @staticmethod
     def encode_date(init_date):
         init_date = str(init_date)
         date = ctypes.c_int(int(init_date[:10].replace("-", "")))
