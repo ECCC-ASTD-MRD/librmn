@@ -11,6 +11,7 @@ if (EC_INIT_DONE LESS 2)
 
         set(TEST_SCRIPTS_SOURCE
             fst/fst_force_close.sh
+            fst/fst_open_close_link.py
             readlx/get_diff.sh
             readlx/inp_readlx_02.txt
             readlx/output_readlx_02.txt
@@ -27,6 +28,7 @@ if (EC_INIT_DONE LESS 2)
             DEPENDS ${TEST_SCRIPTS_SOURCE}
             COMMENT "Copying test script files to test build directory")
         add_custom_target(test-script-files DEPENDS ${TEST_SCRIPTS_BUILD})
+        add_dependencies(test-script-files python-files)
         add_dependencies(test_execs test-script-files)
 
         if (TARGET rmn::rmn-ompi)
@@ -239,10 +241,15 @@ if (EC_INIT_DONE LESS 2)
 
         # Python tests
         if (TARGET rmn::rmn-shared)
-            add_dependencies(check rmn::rmn-shared)
+            find_package(Python3 REQUIRED COMPONENTS Interpreter)
+            add_dependencies(test_execs rmn::rmn-shared)
             set(set_pythonpath "PYTHONPATH=${CMAKE_BINARY_DIR}/python\${PYTHONPATH:+:\${PYTHONPATH}}")
             add_test( NAME python_import_package COMMAND bash -c "${set_pythonpath} python3 -c 'import rmn'")
             add_test( NAME python_unit_tests COMMAND bash -c "${set_pythonpath} python3 ${CMAKE_CURRENT_BINARY_DIR}/test_rmn.py")
+            add_test( NAME python_fst_open_close_link COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/fst_open_close_link.py )
+            set_property(
+                TEST python_fst_open_close_link PROPERTY
+                ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python")
         endif()
 
         add_executable(gen_abort_file EXCLUDE_FROM_ALL fst/gen_abort_file.c)

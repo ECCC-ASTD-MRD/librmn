@@ -1,10 +1,12 @@
 import ctypes
-import numpy as np
 import enum
-from typing import Union, Optional, Tuple
+from typing import Optional, Tuple, Union
+
+import numpy as np
 
 from ._sharedlib import librmn
 from .errors import FstFileError
+
 
 class FstDataType(enum.IntEnum):
     # Paste the whole thing once, put the #define line before it's documentation
@@ -344,7 +346,27 @@ class fst_record(ctypes.Structure):
         }
 
     def _str_base(self):
-        return f"nomvar='{self.nomvar}', typvar='{self.typvar}', ni={self.ni}, nj={self.nj}, nk={self.nk}, dateo={self.dateo}, ip1={self.ip1}, ip2={self.ip2}, ip3={self.ip3}, deet={self.deet}, npas={self.npas}, data_type={self.data_type}, data_bits={self.data_bits}, grtyp='{self.grtyp}', ig1={self.ig1}, ig2={self.ig2}, ig3={self.ig3}, ig4={self.ig4}"
+        return (
+            f"nomvar='{self.nomvar}', "
+            f"typvar='{self.typvar}', "
+            f"etiket='{self.etiket}', "
+            f"ni={self.ni}, "
+            f"nj={self.nj}, "
+            f"nk={self.nk}, "
+            f"dateo={self.dateo}, "
+            f"ip1={self.ip1}, "
+            f"ip2={self.ip2}, "
+            f"ip3={self.ip3}, "
+            f"deet={self.deet}, "
+            f"npas={self.npas}, "
+            f"data_type={self.data_type}, "
+            f"data_bits={self.data_bits}, "
+            f"grtyp='{self.grtyp}', "
+            f"ig1={self.ig1}, "
+            f"ig2={self.ig2}, "
+            f"ig3={self.ig3}, "
+            f"ig4={self.ig4}"
+        )
 
     def __str__(self):
         data_str = 'None'
@@ -394,7 +416,7 @@ def numpy_type_to_fst_type(array_or_dtype: Union[np.dtype, np.ndarray]) -> Tuple
         "float64": (real_types, 64),
         "uint32":  (uint_types, 32),
         "uint64":  (uint_types, 64),
-    }[numpy_type]
+    }[str(numpy_type)]
 
 def fst_type_to_numpy_type(rmn_type, nbits) -> np.dtype:
     """ Return the numpy data type for a given pair of (FstDataType, nbits)
