@@ -2,95 +2,96 @@
 !> Public interface to functions provided by moduledate.F90
 
 interface
-    subroutine INCDATi(idate1, idate2, nhours)
-        use rmn_common
-        IMPLICIT NONE
-        integer :: idate1, idate2
-        real(kind = real64) :: nhours
-    end subroutine INCDATi
+    subroutine incdati(idate1, idate2, nhours)
+        use, intrinsic :: iso_fortran_env, only: real64
+        implicit none
+        integer, intent(out) :: idate1
+        integer, intent(in) :: idate2
+        real(kind = real64), intent(in) :: nhours
+    end subroutine incdati
 
-    subroutine INCDATr(idate1, idate2, nhours)
-        use rmn_common
-        IMPLICIT NONE
-        integer :: idate1, idate2
-        real(kind = real64) :: nhours
-    end subroutine INCDATr
+    subroutine incdatr(idate1, idate2, nhours)
+        use, intrinsic :: iso_fortran_env, only: real64
+        implicit none
+        integer, intent(out) :: idate1
+        integer, intent(in) :: idate2
+        real(kind = real64), intent(in) :: nhours
+    end subroutine incdatr
 
-    subroutine DIFDATi(idate1, idate2, nhours)
-        use rmn_common
-        IMPLICIT NONE
-        integer :: idate1, idate2
-        real(kind = real64) :: nhours
-    end subroutine DIFDATi
+    subroutine difdati(idate1, idate2, nhours)
+        use, intrinsic :: iso_fortran_env, only: real64
+        implicit none
+        integer, intent(in) :: idate1
+        integer, intent(in) :: idate2
+        real(kind = real64), intent(out) :: nhours
+    end subroutine difdati
 
-    subroutine DIFDATr(idate1, idate2, nhours)
-        use rmn_common
-        IMPLICIT NONE
-        integer :: idate1, idate2
-        real(kind = real64) :: nhours
-    end subroutine DIFDATr
+    subroutine difdatr(idate1, idate2, nhours)
+        use, intrinsic :: iso_fortran_env, only: real64
+        implicit none
+        integer, intent(in) :: idate1
+        integer, intent(in) :: idate2
+        real(kind = real64), intent(out) :: nhours
+    end subroutine difdatr
 
-    INTEGER FUNCTION newdate(DAT1, DAT2, DAT3, MODE)
-        IMPLICIT NONE
-        integer :: DAT1, DAT2(*), DAT3, MODE
-        integer, external :: naetwed
+    integer function newdate(dat1, dat2, dat3, mode)
+        implicit none
+        integer, intent(inout) :: dat1, dat2(*), dat3
+        integer, intent(in) :: mode
     end function newdate
 
-    INTEGER FUNCTION IDATMG2(IDATE)
-        IMPLICIT NONE
-        integer idate(14)
-        integer, external :: itdmag2
-    end function IDATMG2
+    integer function idatmg2(idate)
+        implicit none
+        integer, intent(inout) :: idate(14)
+    end function idatmg2
 
-    subroutine DATMGP2(IDATE)
-        IMPLICIT NONE
-        integer idate(14)
-    end subroutine DATMGP2
+    subroutine datmgp2(idate)
+        implicit none
+        integer, intent(inout) :: idate(14)
+    end subroutine datmgp2
 
-    subroutine NewDate_Options( value, command )
-        IMPLICIT NONE
-        character(len = *) :: value, command
-    end subroutine NewDate_Options
+    subroutine newdate_options(value, command)
+        implicit none
+        character(len = *), intent(inout) :: value
+        character(len = *), intent(in) :: command
+    end subroutine newdate_options
 
-    subroutine Get_Calendar_Status( NoLeapYears, CcclxDays )
-        IMPLICIT NONE
-        logical :: NoLeapYears, CcclxDays
-    end subroutine Get_Calendar_Status
+    subroutine get_calendar_status(noleapyears, ccclxdays)
+        implicit none
+        logical, intent(out) :: noleapyears, ccclxdays
+    end subroutine get_calendar_status
 
-    integer function Calendar_Adjust(tdate1, tdate2, true_date_mode, adding)
-        IMPLICIT NONE
-        integer, external :: Calendar_Adjust_int
-        integer :: tdate1, tdate2
-        character(len=1) :: true_date_mode
-        logical :: adding
-    end function Calendar_Adjust
+    integer function calendar_adjust(tdate1, tdate2, true_date_mode, adding)
+        implicit none
+        integer, intent(inout) :: tdate1, tdate2
+        character(len = 1), intent(in) :: true_date_mode
+        logical, intent(in) :: adding
+    end function calendar_adjust
 
-    integer function CcclxDays_Adjust(tdate1, tdate2, true_date_mode, adding)
-        IMPLICIT NONE
-        integer, external :: CcclxDays_Adjust_int
-        integer :: tdate1, tdate2 ! input TrueDates
-        character(len=1) :: true_date_mode ! (B)asic or (E)xtended TrueDates
-        logical :: adding ! operating mode (T=incadtr, F=difdatr)
-    end function CcclxDays_Adjust
+    integer function ccclxdays_adjust(tdate1, tdate2, true_date_mode, adding)
+        implicit none
+        integer, intent(inout) :: tdate1, tdate2 ! input truedates
+        character(len = 1), intent(in) :: true_date_mode ! (b)asic or (e)xtended truedates
+        logical, intent(in) :: adding
+    end function ccclxdays_adjust
 
-    integer function LeapYear_Adjust(tdate1, tdate2, true_date_mode, adding)
-        IMPLICIT NONE
-        integer, external :: LeapYear_Adjust_int
-        logical :: adding
-        character(len=1) :: true_date_mode ! (B)asic or (E)xtended true dates
-        integer :: tdate1, tdate2
-    end function LeapYear_Adjust
+    integer function leapyear_adjust(tdate1, tdate2, true_date_mode, adding)
+        implicit none
+        integer, intent(inout) :: tdate1, tdate2
+        character(len = 1), intent(in) :: true_date_mode ! (b)asic or (e)xtended true dates
+        logical, intent(in) :: adding
+    end function leapyear_adjust
 
-    subroutine Ignore_LeapYear()
-        IMPLICIT NONE
-    end subroutine Ignore_LeapYear
+    subroutine ignore_leapyear()
+        implicit none
+    end subroutine ignore_leapyear
 
-    subroutine Accept_LeapYear()
-        IMPLICIT NONE
-    end subroutine Accept_LeapYear
+    subroutine accept_leapyear()
+        implicit none
+    end subroutine accept_leapyear
 
-    subroutine Get_LeapYear_Status(no_leap_year_status)
-        IMPLICIT NONE
-        logical :: no_leap_year_status
-    end subroutine Get_LeapYear_Status
+    subroutine get_leapyear_status(no_leap_year_status)
+        implicit none
+        logical, intent(out) :: no_leap_year_status
+    end subroutine get_leapyear_status
 end interface
