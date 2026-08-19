@@ -25,6 +25,24 @@ void difdatr_c(int32_t *fdat1,int32_t *fdat2,double *fnhours);
 void incdatr_c(int32_t *fdat1,int32_t *fdat2,double *fnhours);
 int newdate_c(int32_t * const fdat1, int32_t * const fdat2, int32_t * const fdat3, const int32_t * const fmode);
 
+int32_t tdate_runnb_to_cmcstamp_c(const int32_t tdate, const int32_t runnb, int32_t * const cmcstamp);
+int32_t cmcstamp_to_tdate_runnb_c(const int32_t cmcstamp, int32_t * const tdate, int32_t * const runnb);
+
+int32_t tdate_to_printable_c(const int32_t tdate, int32_t * const pdate, int32_t * const ptime);
+int32_t printable_to_tdate_c(const int32_t pdate, const int32_t ptime, int32_t * const tdate);
+
+int32_t cmcstamp_to_printable_c(const int32_t cmcstamp, int32_t * const pdate, int32_t * const ptime);
+int32_t printable_to_cmcstamp_c(const int32_t pdate, const int32_t ptime, int32_t * const cmcstamp);
+
+int32_t extstamp_to_printable_c(const int32_t extstamp, int32_t * const pdate, int32_t * const ptime);
+int32_t printable_to_extstamp_c(const int32_t pdate, const int32_t ptime, int32_t * const extstamp);
+
+int32_t exttdate_to_cmcstamp_c(const int32_t exttdate, int32_t * const cmcstamp);
+int32_t cmcstamp_to_exttdate_runnb_c(const int32_t cmcstamp, int32_t * const exttdate, int32_t * const runnb);
+
+int32_t exttdate_to_printable_c(const int32_t exttdate, int32_t * const pdate, int32_t * const ptime);
+int32_t printable_to_exttdate_c(const int32_t pdate, const int32_t ptime, int32_t * const exttdate);
+
 void f77name(rmnlib_version)(char *rmn,int *print,int len);
 void f77name(ipsort8)       (int32_t  *ip,double *a,int32_t *n);
 void f77name(convip)        (int32_t *ip,float *p,int32_t *kind,int32_t *mode,char *string,int32_t *flag);
