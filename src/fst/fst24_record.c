@@ -821,7 +821,10 @@ void fill_with_search_meta(
         record->pack_bits = fst98_meta->nbits;
 
         if (record->data_bits == 0) {
-            if (record->pack_bits > 32) {
+            if (base_fst_type(record->data_type) == FST_TYPE_BINARY) {
+                record->data_bits = record->pack_bits;
+            }
+            else if (record->pack_bits > 32) {
                 record->data_bits = 64;
             } else {
                 record->data_bits = 32;

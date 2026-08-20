@@ -74,7 +74,6 @@ class FstDataType(enum.IntEnum):
     FST_TYPE_TURBOPACK = 128
     # Copy the thing above, select and
     # :s/    \(.*\) =.*/    \1_TURBOPACK = \1 + FST_TYPE_TURBOPACK
-    FST_TYPE_BINARY_TURBOPACK = FST_TYPE_BINARY + FST_TYPE_TURBOPACK
     FST_TYPE_REAL_OLD_QUANT_TURBOPACK = FST_TYPE_REAL_OLD_QUANT + FST_TYPE_TURBOPACK
     FST_TYPE_UNSIGNED_TURBOPACK = FST_TYPE_UNSIGNED + FST_TYPE_TURBOPACK
     FST_TYPE_CHAR_TURBOPACK = FST_TYPE_CHAR + FST_TYPE_TURBOPACK
@@ -260,12 +259,15 @@ class fst_record(ctypes.Structure):
     def data(self, value: np.ndarray):
         if not isinstance(value, np.ndarray):
             raise TypeError(f"Expecting {np.ndarray.__name__}, got {type(value).__name__}")
-        dtype = fst_type_to_numpy_type(self.data_type, self.data_bits)
-        if value.dtype != dtype:
-            # The argument value, is of the right type as in type(value) is
-            # indeed np.ndarray but the value of value.dtype is not right
-            # so I think a ValueError is more appropriate but this is debatable
-            raise ValueError(f"Numpy data type for the data of this record should be '{dtype}', not '{value.dtype}'")
+        if self.data_type != FstDataType.FST_TYPE_BINARY:
+            dtype = fst_type_to_numpy_type(self.data_type, self.data_bits)
+            if value.dtype != dtype:
+                # The argument value, is of the right type as in type(value) is
+                # indeed np.ndarray but the value of value.dtype is not right
+                # so I think a ValueError is more appropriate but this is debatable
+                raise ValueError(
+                    f"Numpy data type for the data of this record should be '{dtype}', not '{value.dtype}'"
+                )
         self._data_array = value
         self._data = self._data_array.ctypes.data
 
@@ -436,8 +438,14 @@ def fst_type_to_numpy_type(rmn_type, nbits) -> np.dtype:
         if nbits not in (32,64):
             raise ValueError(f"nbits={nbits} is not an allowed value for type {rmn_type._name_}: Should be one of 32,64")
         return np.dtype(f"float{nbits}")
-    else:
-        raise NotImplementedError(f"The proper numpy data type is not known for {rmn_type._name_}")
+    elif base_rmn_type == FstDataType.FST_TYPE_BINARY:
+        if (nbits % 8) == 0:
+            return np.dtype(f"V{nbits // 8}")
+        raise NotImplementedError(
+            f"The proper numpy data type is not known for {rmn_type._name_} with nbits ({nbits}) not a multiple of 8"
+        )
+
+    raise NotImplementedError(f"The proper numpy data type is not known for {rmn_type._name_}")
 
 _fst24_read_record = librmn.fst24_read_record
 _fst24_read_record.argtypes = (ctypes.POINTER(fst_record),)

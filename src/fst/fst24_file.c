@@ -762,6 +762,18 @@ int32_t fst24_write_rsf(
         record->pack_bits = 32;
     }
 
+    if ((data_type == (FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK)) && !image_mode_copy) {
+        static int warn_old_quant_turbo = 1;
+        if (warn_old_quant_turbo == 1) {
+            Lib_Log(APP_LIBFST, APP_WARNING,
+                "%s: Extra compression not available for type %d (FST_TYPE_REAL_OLD_QUANT). "
+                "Switching to type %d (FST_TYPE_REAL)\n",
+                __func__, FST_TYPE_REAL_OLD_QUANT, FST_TYPE_REAL);
+            warn_old_quant_turbo = 0;
+        }
+        data_type = FST_TYPE_REAL | FST_TYPE_TURBOPACK;
+    }
+
     // validate range of arguments
     if (fst24_record_validate_params(record) != 0) {
         Lib_Log(APP_LIBFST, APP_ERROR, "%s: Invalid value for certain parameters\n", __func__);

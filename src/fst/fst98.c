@@ -1294,6 +1294,18 @@ int c_fstecr_xdf(
     // no extra compression if nbits > 16 (except for IEEE reals)
     if ((nbits > 16) && (datyp != (FST_TYPE_REAL_IEEE | FST_TYPE_TURBOPACK))) datyp = base_fst_type(datyp);
 
+    if ((datyp == (FST_TYPE_REAL_OLD_QUANT | FST_TYPE_TURBOPACK)) && !image_mode_copy) {
+        static int warn_old_quant_turbo = 1;
+        if (warn_old_quant_turbo == 1) {
+            Lib_Log(APP_LIBFST, APP_WARNING,
+                "%s: Extra compression not available for type %d (FST_TYPE_REAL_OLD_QUANT). "
+                "Switching to type %d (FST_TYPE_REAL)\n",
+                __func__, FST_TYPE_REAL_OLD_QUANT, FST_TYPE_REAL);
+            warn_old_quant_turbo = 0;
+        }
+        datyp = FST_TYPE_REAL | FST_TYPE_TURBOPACK;
+    }
+
     // Determine data_nbits (uncompressed datatype size)
     int8_t data_nbits = 0;
     if (is_type_real(datyp) || is_type_complex(datyp)) {
