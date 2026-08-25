@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import ctypes
-import numpy as np
 import enum
-from typing import Union, Optional, Tuple
+
+import numpy as np
 
 from ._sharedlib import librmn
 from .errors import FstFileError
+
 
 class FstDataType(enum.IntEnum):
     # Paste the whole thing once, put the #define line before it's documentation
@@ -53,7 +56,7 @@ class FstDataType(enum.IntEnum):
     Characters (compressed)
 
     FST_TYPE_COMPLEX (8)
-    Complex number (32 or 64 bits) """
+    Complex number (32 or 64 bits)"""
 
     # Paste the whole thing again,
     # Delete all the documentation so we are left with only the defines
@@ -72,7 +75,6 @@ class FstDataType(enum.IntEnum):
     FST_TYPE_TURBOPACK = 128
     # Copy the thing above, select and
     # :s/    \(.*\) =.*/    \1_TURBOPACK = \1 + FST_TYPE_TURBOPACK
-    FST_TYPE_BINARY_TURBOPACK = FST_TYPE_BINARY + FST_TYPE_TURBOPACK
     FST_TYPE_REAL_OLD_QUANT_TURBOPACK = FST_TYPE_REAL_OLD_QUANT + FST_TYPE_TURBOPACK
     FST_TYPE_UNSIGNED_TURBOPACK = FST_TYPE_UNSIGNED + FST_TYPE_TURBOPACK
     FST_TYPE_CHAR_TURBOPACK = FST_TYPE_CHAR + FST_TYPE_TURBOPACK
@@ -82,11 +84,13 @@ class FstDataType(enum.IntEnum):
     FST_TYPE_STRING_TURBOPACK = FST_TYPE_STRING + FST_TYPE_TURBOPACK
     FST_TYPE_COMPLEX_TURBOPACK = FST_TYPE_COMPLEX + FST_TYPE_TURBOPACK
 
+
 def align_to_4(val):
-    return (val+3) & 0xfffffffc
+    return (val + 3) & 0xFFFFFFFC
+
 
 class fst_record(ctypes.Structure):
-    """ fst_record object
+    """fst_record object
     Fields:
     - dateo: int           Origin Date timestamp
     - datev: int           Valid Date timestamp
@@ -132,71 +136,74 @@ class fst_record(ctypes.Structure):
     >>> rec.etiket = "demo"
     >>> rec.data = np.random.random(rec.ni * rec.nj * rec.nk).reshape((rec.ni, rec.nj, rec.nk), order='F').astype('f')
     """
+
     # The presence of __slots__ prevents the creation of other attributes.
     # Now the only possible attributes are the ones declared in the _fields_
     # alist and in __slots__.
-    __slots__ = ['_data_array']
+    __slots__ = ["_data_array"]
+    # fmt: off
     _fields_ = (
         # The do-not-touch struct
-        ('_version', ctypes.c_int32),
-        ('_deleted', ctypes.c_int32),
-        ('_handle', ctypes.c_int64),
-        ('_alloc', ctypes.c_int64),
-        ('_flags', ctypes.c_int32),
-        ('_fst_version', ctypes.c_uint8),
-        ('_num_search_keys', ctypes.c_uint8),
-        ('_extended_meta_size', ctypes.c_uint16),
-        ('_sorted_data_size', ctypes.c_size_t),
-        ('_unpacked_data_size', ctypes.c_size_t),
-        ('_stringified_meta', ctypes.c_void_p),
+        ("_version", ctypes.c_int32),
+        ("_deleted", ctypes.c_int32),
+        ("_handle", ctypes.c_int64),
+        ("_alloc", ctypes.c_int64),
+        ("_flags", ctypes.c_int32),
+        ("_fst_version", ctypes.c_uint8),
+        ("_num_search_keys", ctypes.c_uint8),
+        ("_extended_meta_size", ctypes.c_uint16),
+        ("_sorted_data_size", ctypes.c_size_t),
+        ("_unpacked_data_size", ctypes.c_size_t),
+        ("_stringified_meta", ctypes.c_void_p),
         # End do-not-touch
 
         # The data-blocks struct
-        ('block_size_x', ctypes.c_uint16),
-        ('block_size_y', ctypes.c_uint16),
-        ('data_map_size', ctypes.c_uint32),
-        ('_data_map', ctypes.c_void_p),
+        ("block_size_x", ctypes.c_uint16),
+        ("block_size_y", ctypes.c_uint16),
+        ("data_map_size", ctypes.c_uint32),
+        ("_data_map", ctypes.c_void_p),
         # End of data-blocks
 
-        ('_file', ctypes.c_void_p),
-        ('_data', ctypes.c_void_p),
-        ('metadata', ctypes.c_void_p),
+        ("_file", ctypes.c_void_p),
+        ("_data", ctypes.c_void_p),
+        ("metadata", ctypes.c_void_p),
 
-        ('file_offset', ctypes.c_size_t),
-        ('total_stored_bytes', ctypes.c_size_t),
+        ("file_offset", ctypes.c_size_t),
+        ("total_stored_bytes", ctypes.c_size_t),
 
-        ('file_index', ctypes.c_int32),
+        ("file_index", ctypes.c_int32),
 
-        ('dateo', ctypes.c_int32),
-        ('datev', ctypes.c_int32),
+        ("dateo", ctypes.c_int32),
+        ("datev", ctypes.c_int32),
 
-        ('_data_type', ctypes.c_int32),
-        ('data_bits', ctypes.c_int32),
-        ('pack_bits', ctypes.c_int32),
-        ('ni', ctypes.c_int32),
-        ('nj', ctypes.c_int32),
-        ('nk', ctypes.c_int32),
-        ('num_meta_bytes', ctypes.c_int32),
+        ("_data_type", ctypes.c_int32),
+        ("data_bits", ctypes.c_int32),
+        ("pack_bits", ctypes.c_int32),
+        ("ni", ctypes.c_int32),
+        ("nj", ctypes.c_int32),
+        ("nk", ctypes.c_int32),
+        ("num_meta_bytes", ctypes.c_int32),
 
-        ('deet', ctypes.c_int32),
-        ('npas', ctypes.c_int32),
+        ("deet", ctypes.c_int32),
+        ("npas", ctypes.c_int32),
 
-        ('ip1', ctypes.c_int32),
-        ('ip2', ctypes.c_int32),
-        ('ip3', ctypes.c_int32),
+        ("ip1", ctypes.c_int32),
+        ("ip2", ctypes.c_int32),
+        ("ip3", ctypes.c_int32),
 
-        ('ig1', ctypes.c_int32),
-        ('ig2', ctypes.c_int32),
-        ('ig3', ctypes.c_int32),
-        ('ig4', ctypes.c_int32),
+        ("ig1", ctypes.c_int32),
+        ("ig2", ctypes.c_int32),
+        ("ig3", ctypes.c_int32),
+        ("ig4", ctypes.c_int32),
 
-        ('_dummy', ctypes.c_int32),
+        ("_dummy", ctypes.c_int32),
 
-        ('_typvar', ctypes.c_char * align_to_4(3)),
-        ('_grtyp', ctypes.c_char * align_to_4(2)),
-        ('_nomvar', ctypes.c_char * align_to_4(5)),
-        ('_etiket', ctypes.c_char * align_to_4(13))
+        ("_typvar", ctypes.c_char * align_to_4(3)),
+        ("_grtyp", ctypes.c_char * align_to_4(2)),
+        ("_nomvar", ctypes.c_char * align_to_4(5)),
+        ("_etiket", ctypes.c_char * align_to_4(13)),
     )
+    # fmt: on
 
     def __init__(self, **kwargs):
         # Set values according to C macro `default_fst_record`.
@@ -207,12 +214,12 @@ class fst_record(ctypes.Structure):
         # set after all the other attributes have been set.  If the user
         # provided an invalid value for data_bits, data_type,
         data_to_set_after = None
-        if 'data' in kwargs:
-            data_to_set_after = kwargs.get('data')
-            del kwargs['data']
+        if "data" in kwargs:
+            data_to_set_after = kwargs.get("data")
+            del kwargs["data"]
 
-        for k,v in kwargs.items():
-            if k.startswith('_'):
+        for k, v in kwargs.items():
+            if k.startswith("_"):
                 raise ValueError(f"Attributes beginning with '_' should not be touched: '{k}'")
             setattr(self, k, v)
 
@@ -231,10 +238,10 @@ class fst_record(ctypes.Structure):
         self._data_type = value
 
     @property
-    def data(self) -> Optional[np.ndarray]:
-        """ Property encapsulating the data of an fst record.  On access, the
-        data is read from the file and stored in a numpy array. """
-        self._data: Optional[int]
+    def data(self) -> np.ndarray | None:
+        """Property encapsulating the data of an fst record.  On access, the
+        data is read from the file and stored in a numpy array."""
+        self._data: int | None
         if self._data is None:
             # If no data has been set on the record and there is no file to
             # read the data from, return None.  This access is not an error.
@@ -242,10 +249,8 @@ class fst_record(ctypes.Structure):
                 return None
 
             dtype = fst_type_to_numpy_type(self.data_type, self.data_bits)
-            shape = (self.ni, self.nj, self.nk) if self.nk > 1 \
-               else (self.ni, self.nj)          if self.nj > 1 \
-               else (self.ni)
-            data_array = np.empty(shape, dtype=dtype, order='F')
+            shape = (self.ni, self.nj, self.nk) if self.nk > 1 else (self.ni, self.nj) if self.nj > 1 else (self.ni)
+            data_array = np.empty(shape, dtype=dtype, order="F")
             self._data = data_array.ctypes.data
             res = _fst24_read_record(ctypes.byref(self))
             if res != 1:
@@ -258,12 +263,15 @@ class fst_record(ctypes.Structure):
     def data(self, value: np.ndarray):
         if not isinstance(value, np.ndarray):
             raise TypeError(f"Expecting {np.ndarray.__name__}, got {type(value).__name__}")
-        dtype = fst_type_to_numpy_type(self.data_type, self.data_bits)
-        if value.dtype != dtype:
-            # The argument value, is of the right type as in type(value) is
-            # indeed np.ndarray but the value of value.dtype is not right
-            # so I think a ValueError is more appropriate but this is debatable
-            raise ValueError(f"Numpy data type for the data of this record should be '{dtype}', not '{value.dtype}'")
+        if self.data_type != FstDataType.FST_TYPE_BINARY:
+            dtype = fst_type_to_numpy_type(self.data_type, self.data_bits)
+            if value.dtype != dtype:
+                # The argument value, is of the right type as in type(value) is
+                # indeed np.ndarray but the value of value.dtype is not right
+                # so I think a ValueError is more appropriate but this is debatable
+                raise ValueError(
+                    f"Numpy data type for the data of this record should be '{dtype}', not '{value.dtype}'"
+                )
         self._data_array = value
         self._data = self._data_array.ctypes.data
 
@@ -272,9 +280,9 @@ class fst_record(ctypes.Structure):
         return self._etiket.decode().rstrip()
 
     @etiket.setter
-    def etiket(self, value: Union[str,bytes]):
+    def etiket(self, value: str | bytes):
         if isinstance(value, str):
-            self._etiket = value.encode('utf-8')
+            self._etiket = value.encode("utf-8")
         elif isinstance(value, bytes):
             self._etiket = value
         else:
@@ -283,10 +291,11 @@ class fst_record(ctypes.Structure):
     @property
     def typvar(self) -> str:
         return self._typvar.decode().rstrip()
+
     @typvar.setter
-    def typvar(self, value: Union[str,bytes]):
+    def typvar(self, value: str | bytes):
         if isinstance(value, str):
-            self._typvar = value.encode('utf-8')
+            self._typvar = value.encode("utf-8")
         elif isinstance(value, bytes):
             self._typvar = value
         else:
@@ -295,10 +304,11 @@ class fst_record(ctypes.Structure):
     @property
     def nomvar(self) -> str:
         return self._nomvar.decode().rstrip()
+
     @nomvar.setter
-    def nomvar(self, value: Union[str,bytes]):
+    def nomvar(self, value: str | bytes):
         if isinstance(value, str):
-            self._nomvar = value.encode('utf-8')
+            self._nomvar = value.encode("utf-8")
         elif isinstance(value, bytes):
             self._nomvar = value
         else:
@@ -307,47 +317,68 @@ class fst_record(ctypes.Structure):
     @property
     def grtyp(self) -> str:
         return self._grtyp.decode().rstrip()
+
     @grtyp.setter
-    def grtyp(self, value: Union[str,bytes]):
+    def grtyp(self, value: str | bytes):
         if isinstance(value, str):
-            self._grtyp = value.encode('utf-8')
+            self._grtyp = value.encode("utf-8")
         elif isinstance(value, bytes):
             self._grtyp = value
         else:
             raise TypeError(f"Expected str or bytes, not {type(value).__name__}")
 
     def to_dict(self) -> dict:
-        """ Convert a record to dictionnary potentially for use as a row of
-        a Pandas DataFrame. """
+        """Convert a record to dictionnary potentially for use as a row of
+        a Pandas DataFrame."""
         return {
-            'nomvar': self.nomvar,
-            'typvar': self.typvar,
-            'grtyp': self.grtyp,
-            'etiket': self.etiket,
-            'ni': self.ni,
-            'nj': self.nj,
-            'nk': self.nk,
-            'dateo': self.dateo,
-            'datev': self.datev,
-            'npas': self.npas,
-            'deet': self.deet,
-            'ip1': self.ip1,
-            'ip2': self.ip2,
-            'ip3': self.ip3,
-            'ig1': self.ig1,
-            'ig2': self.ig2,
-            'ig3': self.ig3,
-            'ig4': self.ig4,
-            'data_type': self.data_type,
-            'data_bits': self.data_bits,
-            'file_index': self.file_index,
+            "nomvar": self.nomvar,
+            "typvar": self.typvar,
+            "grtyp": self.grtyp,
+            "etiket": self.etiket,
+            "ni": self.ni,
+            "nj": self.nj,
+            "nk": self.nk,
+            "dateo": self.dateo,
+            "datev": self.datev,
+            "npas": self.npas,
+            "deet": self.deet,
+            "ip1": self.ip1,
+            "ip2": self.ip2,
+            "ip3": self.ip3,
+            "ig1": self.ig1,
+            "ig2": self.ig2,
+            "ig3": self.ig3,
+            "ig4": self.ig4,
+            "data_type": self.data_type,
+            "data_bits": self.data_bits,
+            "file_index": self.file_index,
         }
 
     def _str_base(self):
-        return f"nomvar='{self.nomvar}', typvar='{self.typvar}', ni={self.ni}, nj={self.nj}, nk={self.nk}, dateo={self.dateo}, ip1={self.ip1}, ip2={self.ip2}, ip3={self.ip3}, deet={self.deet}, npas={self.npas}, data_type={self.data_type}, data_bits={self.data_bits}, grtyp='{self.grtyp}', ig1={self.ig1}, ig2={self.ig2}, ig3={self.ig3}, ig4={self.ig4}"
+        return (
+            f"nomvar='{self.nomvar}', "
+            f"typvar='{self.typvar}', "
+            f"etiket='{self.etiket}', "
+            f"ni={self.ni}, "
+            f"nj={self.nj}, "
+            f"nk={self.nk}, "
+            f"dateo={self.dateo}, "
+            f"ip1={self.ip1}, "
+            f"ip2={self.ip2}, "
+            f"ip3={self.ip3}, "
+            f"deet={self.deet}, "
+            f"npas={self.npas}, "
+            f"data_type={self.data_type}, "
+            f"data_bits={self.data_bits}, "
+            f"grtyp='{self.grtyp}', "
+            f"ig1={self.ig1}, "
+            f"ig2={self.ig2}, "
+            f"ig3={self.ig3}, "
+            f"ig4={self.ig4}"
+        )
 
     def __str__(self):
-        data_str = 'None'
+        data_str = "None"
         if hasattr(self, "_data_array") and self._data_array is not None:
             t = type(self._data_array)
             data_str = f"<{t.__module__}.{t.__name__} object at 0x{id(self._data_array):x}>"
@@ -360,7 +391,7 @@ class fst_record(ctypes.Structure):
         return f"rmn.fst_record({self._str_base()})"
 
     def numpy_type(self):
-        """ Return the appropriate numpy type for this record based on its
+        """Return the appropriate numpy type for this record based on its
         data_type and data_bits attributes.
         >>> rec = rmn.fst_record(data_type=..., data_bits=...)
         >>> data_for_record = np.array((rec.ni, rec.nj, rec.nk), data_from_somewhere, dtype=rec.numpy_type)
@@ -368,11 +399,11 @@ class fst_record(ctypes.Structure):
         return fst_type_to_numpy_type(self.data_type, self.data_bits)
 
 
-def numpy_type_to_fst_type(array_or_dtype: Union[np.dtype, np.ndarray]) -> Tuple[Tuple[FstDataType, ...], int]:
-    """ Return possible data Fst data types for a given numpy array or type.
+def numpy_type_to_fst_type(array_or_dtype: np.dtype | np.ndarray) -> tuple[tuple[FstDataType, ...], int]:
+    """Return possible data Fst data types for a given numpy array or type.
     The result is returned as tuple with the first element being the list of
     possible values for a record's data_type attribute and the second element
-    is the value for a record's data_bits attribute """
+    is the value for a record's data_bits attribute"""
     if isinstance(array_or_dtype, np.ndarray):
         numpy_type = array_or_dtype.dtype
     else:
@@ -392,37 +423,53 @@ def numpy_type_to_fst_type(array_or_dtype: Union[np.dtype, np.ndarray]) -> Tuple
     return {
         "float32": (real_types, 32),
         "float64": (real_types, 64),
-        "uint32":  (uint_types, 32),
-        "uint64":  (uint_types, 64),
-    }[numpy_type]
+        "uint32": (uint_types, 32),
+        "uint64": (uint_types, 64),
+    }[str(numpy_type)]
+
 
 def fst_type_to_numpy_type(rmn_type, nbits) -> np.dtype:
-    """ Return the numpy data type for a given pair of (FstDataType, nbits)
-    Use the `numpy_type` method of fst_record if you have an instance. """
-    base_rmn_type = FstDataType(rmn_type &~ FstDataType.FST_TYPE_TURBOPACK)
+    """Return the numpy data type for a given pair of (FstDataType, nbits)
+    Use the `numpy_type` method of fst_record if you have an instance."""
+    base_rmn_type = FstDataType(rmn_type & ~FstDataType.FST_TYPE_TURBOPACK)
     if base_rmn_type == FstDataType.FST_TYPE_UNSIGNED:
-        if nbits not in (8,16,32,64):
-            raise ValueError(f"nbits={nbits} is not an allowed value for type {rmn_type._name_}: Should be one of 8,16,32,64")
+        if nbits not in (8, 16, 32, 64):
+            raise ValueError(
+                f"nbits={nbits} is not an allowed value for type {rmn_type._name_}: Should be one of 8,16,32,64"
+            )
         return np.dtype(f"uint{nbits}")
     elif base_rmn_type == FstDataType.FST_TYPE_SIGNED:
-        if nbits not in (8,16,32,64):
-            raise ValueError(f"nbits={nbits} is not an allowed value for type {rmn_type._name_}: Should be one of 8,16,32,64")
+        if nbits not in (8, 16, 32, 64):
+            raise ValueError(
+                f"nbits={nbits} is not an allowed value for type {rmn_type._name_}: Should be one of 8,16,32,64"
+            )
         return np.dtype(f"int{nbits}")
-    elif base_rmn_type in [FstDataType.FST_TYPE_REAL_OLD_QUANT,
-                      FstDataType.FST_TYPE_REAL_IEEE,
-                      FstDataType.FST_TYPE_REAL]:
-        if nbits not in (32,64):
-            raise ValueError(f"nbits={nbits} is not an allowed value for type {rmn_type._name_}: Should be one of 32,64")
+    elif base_rmn_type in [
+        FstDataType.FST_TYPE_REAL_OLD_QUANT,
+        FstDataType.FST_TYPE_REAL_IEEE,
+        FstDataType.FST_TYPE_REAL,
+    ]:
+        if nbits not in (32, 64):
+            raise ValueError(
+                f"nbits={nbits} is not an allowed value for type {rmn_type._name_}: Should be one of 32,64"
+            )
         return np.dtype(f"float{nbits}")
-    else:
-        raise NotImplementedError(f"The proper numpy data type is not known for {rmn_type._name_}")
+    elif base_rmn_type == FstDataType.FST_TYPE_BINARY:
+        if (nbits % 8) == 0:
+            return np.dtype(f"V{nbits // 8}")
+        raise NotImplementedError(
+            f"The proper numpy data type is not known for {rmn_type._name_} with nbits ({nbits}) not a multiple of 8"
+        )
+
+    raise NotImplementedError(f"The proper numpy data type is not known for {rmn_type._name_}")
+
 
 _fst24_read_record = librmn.fst24_read_record
 _fst24_read_record.argtypes = (ctypes.POINTER(fst_record),)
 _fst24_read_record.restype = ctypes.c_int
 
 _get_default_fst_record = librmn.get_default_fst_record
-_get_default_fst_record.argtypes = tuple()
+_get_default_fst_record.argtypes = ()
 _get_default_fst_record.restype = fst_record
 
 fst24_decode_data_rsf = librmn.fst24_decode_data_rsf
@@ -437,14 +484,15 @@ _fst24_validate_default_record = librmn.fst24_validate_default_record
 _fst24_validate_default_record.argtypes = (ctypes.POINTER(fst_record), ctypes.c_size_t)
 _fst24_validate_default_record.restype = ctypes.c_int
 
+
 def is_default_record_valid() -> bool:
-    """ Check whether the default record struct in Python matches the one in C.
+    """Check whether the default record struct in Python matches the one in C.
     This is a safety check to make sure that the default record struct in Python
     is correctly initialized with the correct fields and with the right values for these fields.
     If this check fails, it means that the default record struct in Python does not
     match the one in C, which can lead to incorrect behavior and hard-to-debug
     errors.  This function should be called at import time to ensure that the
-    default record struct is valid before any other code tries to use it. """
+    default record struct is valid before any other code tries to use it."""
 
     default_record = _get_default_fst_record()
     return _fst24_validate_default_record(ctypes.byref(default_record), ctypes.sizeof(default_record)) == 0

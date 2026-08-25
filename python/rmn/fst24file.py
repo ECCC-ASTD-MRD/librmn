@@ -1,23 +1,34 @@
+from __future__ import annotations
+
 import ctypes
+import enum
 import logging
 import os
-import sys
+from collections.abc import Iterable, Sequence
+from typing import Optional, Union
+
 import numpy
-import enum
-from typing import Union, Generator, Optional, Iterable, Sequence
 
 from ._sharedlib import librmn
-from .fstrecord import fst_record, _get_default_fst_record
-from .fstquery import fst_query
 from .errors import FstFileError
+from .fstquery import fst_query
+from .fstrecord import _get_default_fst_record, fst_record
 
 _fst24_open = librmn.fst24_open
 _fst24_open.argtypes = (ctypes.c_char_p, ctypes.c_char_p)
 _fst24_open.restype = ctypes.c_void_p
 
 _fst24_close = librmn.fst24_close
-_fst24_close.argtypes = (ctypes.c_void_p,) # comma to make it a tuple
+_fst24_close.argtypes = (ctypes.c_void_p,)  # comma to make it a tuple
 _fst24_close.restype = ctypes.c_int
+
+_fst24_open_link = librmn.fst24_open_link
+_fst24_open_link.argtypes = (ctypes.POINTER(ctypes.c_char_p), ctypes.c_int)
+_fst24_open_link.restype = ctypes.c_void_p
+
+_fst24_close_unlink = librmn.fst24_close_unlink
+_fst24_close_unlink.argtypes = (ctypes.c_void_p,)
+_fst24_close_unlink.restype = ctypes.c_int
 
 _fst24_new_query = librmn.fst24_new_query
 _fst24_new_query.argtypes = (ctypes.c_void_p, ctypes.POINTER(fst_record), ctypes.c_void_p)
@@ -34,13 +45,18 @@ _fst24_get_record_by_index.restype = ctypes.c_int32
 # 3.9+: Generator[fst_record, None, None]
 # 3.8-: Iterable[fst_record]
 
+
 class FstRewriteOpt(enum.IntEnum):
     NO = 0
     YES = 1
     SKIP = 2
 
+
+FilenameType = Union[bytes, str, os.PathLike]
+
+
 class fst24_file(ctypes.Structure):
-    """ Object encapsulating an RPN fst24 file
+    """Object encapsulating an RPN fst24 file
     >>> # Print all records of a file that have nomvar == "AL"
     >>> import rmn
     >>> with rmn.fst24_file(<filename>) as f:
@@ -48,29 +64,52 @@ class fst24_file(ctypes.Structure):
     >>>     for rec in q:
     >>>         print(rec)
     """
-    def __init__(self, filename: Union[bytes,str,os.PathLike] , options: str = ""):
-        """ Opens an fst24 file `filename` with options """
+
+    def __init__(self, filename: FilenameType | Sequence[FilenameType], options: str = ""):
+        """Open an fst24 file or a linked collection of fst24 files.
+
+        Args:
+            filename: A file path, or a sequence of file paths to open as a
+                linked collection. Paths may be strings, bytes, or path-like
+                objects.
+            options: Options passed to the fst24 open function when `filename`
+                is a single file. Ignored when `filename` is a sequence, since
+                they must exist and will be read-only.
+        """
         # Use '*' to enforce that next arguments must be passed as
         # keyword args.
         self._c_ref = None
         self.closed = False
+        self.is_list = False
         self.filename = filename
         self.options = options
-        if isinstance(filename, str):
-            _filename = filename.encode('utf-8')
-        elif isinstance(filename, os.PathLike):
-            _filename = filename.__fspath__()
-        elif isinstance(filename, bytes):
-            _filename = filename
-        else:
-            raise TypeError("Argument 'filename' should be of type 'str', 'bytes', or 'os.PathLike', not '{type(filename).__name__}'")
 
-        self._c_ref = _fst24_open(_filename, options.encode('utf-8'))
+        def validate_filename(name: FilenameType):
+            if isinstance(name, str):
+                return name.encode("utf-8")
+            elif isinstance(name, os.PathLike):
+                return name.__fspath__()
+            elif isinstance(name, bytes):
+                return name
+            else:
+                raise TypeError(
+                    f"Argument 'filename' should be of type 'str', 'bytes', or 'os.PathLike',"
+                    f" not '{type(filename).__name__}'"
+                )
+
+        if isinstance(filename, (str, os.PathLike, bytes)):
+            _filename = validate_filename(filename)
+            self._c_ref = _fst24_open(_filename, options.encode("utf-8"))
+        else:
+            _filenames = (ctypes.c_char_p * len(filename))(*[validate_filename(n) for n in filename])
+            self.is_list = True
+            self._c_ref = _fst24_open_link(_filenames, len(filename))
+
         if self._c_ref is None:
             raise FstFileError(f"Could not open file '{filename}'")
 
     def close(self):
-        """ Closes an fst24 file.
+        """Close an fst24 file.
 
         Users should prefer to use context managers over calling this method
         directly.
@@ -82,9 +121,16 @@ class fst24_file(ctypes.Structure):
         # another object.
         logging.debug(f"Closing fst24_file {self.filename}(_c_ref={self._c_ref}, id={id(self)})")
         if not self.closed:
-            res = _fst24_close(self._c_ref)
-            if res == 0:
-                raise FstFileError(f"Error closing file '{self.filename}': Error calling C function fst24_close(0x{self._c_ref:x})")
+            if self.is_list:
+                res = _fst24_close_unlink(self._c_ref)
+            else:
+                res = _fst24_close(self._c_ref)
+
+            if res != 1:
+                raise FstFileError(
+                    f"Error closing file{'s' if self.is_list else ''} '{self.filename}': "
+                    f"Error calling C function fst24_close{'_unlink' if self.is_list else ''}(0x{self._c_ref:x})"
+                )
 
             self.closed = True
             self._c_ref = None
@@ -93,20 +139,21 @@ class fst24_file(ctypes.Structure):
         return f"rmn.fst24_file(filename='{self.filename}', options='{self.options}')"
 
     def __enter__(self):
-        """ Context manager enter method on fst24_file """
+        """Context manager enter method on fst24_file"""
         logging.debug(f"Context Manager __enter__: fst24_file {self.filename}")
         return self
+
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        """ Context manager exit method of fst24_file"""
+        """Context manager exit method of fst24_file"""
         logging.debug(f"Context Manager __exit__: fst24_file {self.filename}")
         self.close()
 
     def new_query(self, **kwargs):
-        """ Returns a new query to find records matching the criteria received
-        as arguments """
+        """Returns a new query to find records matching the criteria received
+        as arguments"""
         criteria = _get_default_fst_record()
-        for k,v in kwargs.items():
-            if k.startswith('_'):
+        for k, v in kwargs.items():
+            if k.startswith("_"):
                 raise ValueError("{k} cannot be used as an argument")
             setattr(criteria, k, v)
         c_query = _fst24_new_query(self._c_ref, ctypes.byref(criteria), 0)
@@ -115,19 +162,19 @@ class fst24_file(ctypes.Structure):
         return fst_query(c_query, self)
 
     def __iter__(self):
-        """ Returns an iterator that will iterate on all records of the file """
+        """Returns an iterator that will iterate on all records of the file"""
         criteria = _get_default_fst_record()
         c_query = _fst24_new_query(self._c_ref, ctypes.byref(criteria), 0)
         return fst_query(c_query, self)
 
-    def write(self, record: fst_record, rewrite: Union[bool,FstRewriteOpt]):
-        """ Write a record to the file.
-            Arguments:
-                - record: An rmn.fst_record object.  The record must have data
-                          or come from a file in which case the data will be read.
-                - rewrite: An rmn.FstRewriteOpt instance: rmn.FstRewriteOpt.(YES|NO|SKIP)
-                           or True (equivalent to rmn.FstRewriteOpt.YES)
-                           or False (equivalent to rmn.FstRewriteOpt.NO).
+    def write(self, record: fst_record, rewrite: Union[bool, FstRewriteOpt]):
+        """Write a record to the file.
+        Arguments:
+            - record: An rmn.fst_record object.  The record must have data
+                      or come from a file in which case the data will be read.
+            - rewrite: An rmn.FstRewriteOpt instance: rmn.FstRewriteOpt.(YES|NO|SKIP)
+                       or True (equivalent to rmn.FstRewriteOpt.YES)
+                       or False (equivalent to rmn.FstRewriteOpt.NO).
         """
         if self.closed:
             raise ValueError("I/O operation on closed file")
@@ -146,16 +193,18 @@ class fst24_file(ctypes.Structure):
         # some data so this check is more important than just verifying.
         if record.data is None:
             raise ValueError("The record has no data")
-        record_original_data = record.data
+        # record_original_data = record.data
         data_to_write = record.data
-        if not data_to_write.flags['F_CONTIGUOUS']:
+        if not data_to_write.flags["F_CONTIGUOUS"]:
             # Maybe this long warning could be reduced but at least it's clear.
-            logging.warn(f"The data of the record is not Fortran contiguous.  It will need to be converted to write in the file.  Because this conversion may entail significant memory manipulation, consider using working arrays that are already in fortran order (ex: wk = np.empty((ni,nj,nk), order='F'), np.zeros((ni,nj,nk), order='F'))")
+            logging.warn(
+                f"The data of the record is not Fortran contiguous.  It will need to be converted to write in the file.  Because this conversion may entail significant memory manipulation, consider using working arrays that are already in fortran order (ex: wk = np.empty((ni,nj,nk), order='F'), np.zeros((ni,nj,nk), order='F'))"
+            )
             data_to_write = numpy.asfortranarray(data_to_write)
 
         record.data = data_to_write
         result = _fst24_write(self._c_ref, ctypes.byref(record), c_rewrite)
-        record.data = record_original_data
+        # record.data = record_original_data
 
         if result != 1:
             raise FstFileError("Error calling C function fst24_write()")
@@ -165,7 +214,7 @@ class fst24_file(ctypes.Structure):
         self.close()
 
     def get_record_by_index(self, index: int) -> fst_record:
-        """ Get a record by its file index """
+        """Get a record by its file index"""
         if self.closed:
             raise ValueError("I/O operation on closed file")
 
@@ -179,11 +228,11 @@ class fst24_file(ctypes.Structure):
         yield from map(self.get_record_by_index, indices)
 
     def get_record_by_index_with_data(self, index: int) -> fst_record:
-        """ This is a convenience function that gets a record using its index in
+        """This is a convenience function that gets a record using its index in
         the file.  Because the record is being accessed using said index, we
         assume that this function is called to get the data of the record.
 
-        Only call this function if you want the data. """
+        Only call this function if you want the data."""
         rec = self.get_record_by_index(index)
 
         rec.data
@@ -199,14 +248,12 @@ class fst24_file(ctypes.Structure):
 
     @classmethod
     def get_records_with_data(cls, filename: Union[str, os.PathLike], indices: Sequence[int]) -> Iterable[fst_record]:
-        """ This function will read all the records at the given indices in the
+        """This function will read all the records at the given indices in the
         given file *and their data*.  Only use this function if you really want
         all that data!
 
         This function is implemented as a generator so it will stop reading
-        records as soon as they stop being consumed by the caller. """
+        records as soon as they stop being consumed by the caller."""
 
         with cls(filename) as f:
             yield from f.get_records_by_index_with_data(indices)
-
-
