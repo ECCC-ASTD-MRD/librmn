@@ -38,7 +38,11 @@
       call ez_gfxyfll(xlon,xlat,xlongf,xlatgf,npts,      xlat1,xlon1,xlat2,xlon2)
 
       if (grtyp.eq.'E') then
-         dellon = 360.0 / real(ni-1)
+         if (ni <= 1) then
+            dellon = 360.0
+         else
+            dellon = 360.0 / real(ni-1)
+         endif
          xlon0 = 0.0
 
          dellat = 180.0 / real(nj)
