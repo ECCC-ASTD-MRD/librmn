@@ -32,6 +32,8 @@ if (EC_INIT_DONE LESS 2)
         add_dependencies(test-script-files python-files)
         add_dependencies(test_execs test-script-files)
 
+        set(USING_OPENMPI OFF)
+
         if (TARGET rmn::rmn-ompi)
             # Check MPI implementation to be able to give the proper flags when running tests
             find_program(RPN_MPIRUN mpirun)
@@ -45,6 +47,7 @@ if (EC_INIT_DONE LESS 2)
                     OUTPUT_VARIABLE MPI_IMPLEMENTATION
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
                 if (MPI_IMPLEMENTATION MATCHES "[0-9]\\.[0-9]")
+                    set(USING_OPENMPI ON)
                     set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} --oversubscribe)
                     if (CMAKE_Fortran_COMPILER_ID MATCHES ".*Flang")
                         set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} -x LD_LIBRARY_PATH)
@@ -113,6 +116,12 @@ if (EC_INIT_DONE LESS 2)
             set(MPI_PREFIX "")
             if (DEFINED GEN_TEST_MPI_NUM)
                 set(MPI_PREFIX ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${GEN_TEST_MPI_NUM} ${EXTRA_MPI_FLAGS})
+
+                if (USING_OPENMPI AND DEFINED GEN_TEST_ENVIRONMENT)
+                    foreach(VAR ${GEN_TEST_ENVIRONMENT})
+                        set(MPI_PREFIX ${MPI_PREFIX} -x ${VAR})
+                    endforeach()
+                endif()
             endif()
 
             if (NOT ${GEN_TEST_DISABLE})
