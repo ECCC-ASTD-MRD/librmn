@@ -29,7 +29,7 @@ int main(int argc, char * argv[]) {
         RSF_Dump(argv[1], verbose);
     } else {
         const int32_t meta_dim = 0;
-        RSF_handle h1 = RSF_Open_file(argv[1], RSF_RO, meta_dim, "demo", NULL);
+        RSF_handle h1 = RSF_Open_file(argv[1], RSF_RO, meta_dim, "demo", 0, NULL);
         App_Log(APP_INFO, "file '%s', meta_dim = %d\n", argv[1], meta_dim) ;
         for (int i = 0; i < 5; i++) {
             uint64_t key = i + 1;

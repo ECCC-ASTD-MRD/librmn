@@ -2,6 +2,7 @@
 //! RSF file format main implementation
 
 #include "rsf_internal.h"
+#include "App_Timer.h"
 
 #include <pthread.h>
 
@@ -672,7 +673,8 @@ static int32_t RSF_Read_directory(
         }
         if (vdir) free(vdir);                                 // free memory used to read segment directory from file
             vdir = NULL;                                         // to avoid a potential double free
-            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: found %d entries in segment %d\n", __func__, l_entries, num_segments-1);
+            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: found %d entr%s in segment %d\n",
+                __func__, l_entries, l_entries == 1 ? "y" : "ies", num_segments-1);
         }
         segment_offset += segment_size;                        // offset of the start of the next segment
     }  // while(1) loop over segments
@@ -2295,7 +2297,6 @@ int32_t RSF_Is_handle_valid(
 }
 
 //! lock/unlock file associated with file descriptor fp->fd
-//! lock == 1 : lock, lock == 0 : unlock
 static int32_t RSF_File_lock(
     const int32_t fd,   //!< OS file descriptor of the file to (un)lock
     const int do_lock      //!< Whether to lock (1) or unlock (0) the file
@@ -2311,13 +2312,13 @@ static int32_t RSF_File_lock(
         // LOCK file
         file_lock.l_type = F_WRLCK; // exclusive write lock
         int status = fcntl(fd, F_OFD_SETLKW, &file_lock); // do not wait
-        if (status == 0) Lib_Log(APP_LIBFST, APP_DEBUG, "%s: locked by pid %d\n", __func__, getpid());
+        if (status == 0) Lib_Log(APP_LIBFST, APP_EXTRA, "%s: locked by pid %d\n", __func__, getpid());
     }
     else {
         // UNLOCK file
         file_lock.l_type = F_UNLCK; // release lock
         const int status = fcntl(fd, F_OFD_SETLK, &file_lock);
-        if (status == 0) Lib_Log(APP_LIBFST, APP_DEBUG, "%s: released by pid %d\n", __func__, getpid());
+        if (status == 0) Lib_Log(APP_LIBFST, APP_EXTRA, "%s: released by pid %d\n", __func__, getpid());
     }
 
     return status;
@@ -2329,70 +2330,97 @@ static int32_t RSF_File_lock(
 //! before marking the first segment as being written.
 //! \return 0 if the file could be successfully locked, -1 if it was already locked by someone else.
 static int RSF_Lock_for_write(
-    RSF_File *fp  //!< [in,out] File we want to lock
+    RSF_File *fp,               //!< [in,out] File we want to lock
+    const uint32_t timeout_s    //!< [in] How long to wait if it's already being used
 ) {
+    int warned = 0;
     int return_value = -1;
 
-    // ---------- Lock file ---------- //
-    RSF_File_lock(fp->fd, 1);
+    TApp_Timer timer = NULL_TIMER;
+    App_TimerStart(&timer);
 
-    // Go to beginning of file and try reading the first start_of_segment
-    start_of_segment first_sos = SOS;
-    lseek(fp->fd, 0, SEEK_SET);
-    const ssize_t num_bytes_read = read(fp->fd, &first_sos, sizeof(start_of_segment));
+    do {
+        /////////////////////////////////////////////
+        // -------------- Lock file -------------- //
+        RSF_File_lock(fp->fd, 1);
 
-    if (num_bytes_read == 0) { // File does not exist yet
-        fp->is_new = 1;
-        // Create an empty first segment
-        Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: Creating a new, empty segment\n", __func__);
-
-        for (int i = 0; i < 4; i++) { // Set application code
-            first_sos.sig1[4+i] = fp->appl_code[i];
-        }
-        first_sos.head.rlm  = fp->seg_max_hint > 0 ? 1 : RSF_EXCLUSIVE_WRITE;
-        first_sos.head.rlmd = DIR_ML(fp->dir_meta);
-        first_sos.tail.rlm  = 0;
-        RSF_64_to_32(first_sos.seg,  sizeof(start_of_segment));
-        RSF_64_to_32(first_sos.sseg, sizeof(start_of_segment) + sizeof(end_of_segment));
-
-        end_of_segment first_eos = EOS;
-        RSF_64_to_32(first_eos.h.seg,  sizeof(start_of_segment));
-        RSF_64_to_32(first_eos.h.sseg, sizeof(start_of_segment) + sizeof(end_of_segment));
-
-        // Commit segment header/footer
-        write(fp->fd, &first_sos, sizeof(start_of_segment));
-        write(fp->fd, &first_eos, sizeof(end_of_segment));
-    } else {
-        // Check if anyone else is writing in this file
-        if (first_sos.head.rlm == RSF_EXCLUSIVE_WRITE) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: file %s is already open for exclusive write.\n", __func__, fp->name);
-            goto RETURN;
-        }
-        else if (first_sos.head.rlm > 0 && fp->seg_max_hint <= 0) {
-            Lib_Log(APP_LIBFST, APP_WARNING, "%s: file %s is already open for shared write. "
-                    "Cannot lock it for exclusive write\n", __func__, fp->name);
-            goto RETURN;
-        }
-
-        // Mark first segment as being open for write
-        if (fp->seg_max_hint > 0) {
-            first_sos.head.rlm += 1;
-        } else {
-            first_sos.head.rlm = RSF_EXCLUSIVE_WRITE;
-        }
-
-        // Commit changes
+        // Go to beginning of file and try reading the first start_of_segment
+        start_of_segment first_sos = SOS;
         lseek(fp->fd, 0, SEEK_SET);
-        write(fp->fd, &first_sos, sizeof(start_of_segment));
+        const ssize_t num_bytes_read = read(fp->fd, &first_sos, sizeof(start_of_segment));
+
+        if (num_bytes_read == 0) { // File does not exist yet
+            fp->is_new = 1;
+            // Create an empty first segment
+            Lib_Log(APP_LIBFST, APP_TRIVIAL, "%s: Creating a new, empty segment\n", __func__);
+
+            for (int i = 0; i < 4; i++) { // Set application code
+                first_sos.sig1[4+i] = fp->appl_code[i];
+            }
+            first_sos.head.rlm  = fp->seg_max_hint > 0 ? 1 : RSF_EXCLUSIVE_WRITE;
+            first_sos.head.rlmd = DIR_ML(fp->dir_meta);
+            first_sos.tail.rlm  = 0;
+            RSF_64_to_32(first_sos.seg,  sizeof(start_of_segment));
+            RSF_64_to_32(first_sos.sseg, sizeof(start_of_segment) + sizeof(end_of_segment));
+
+            end_of_segment first_eos = EOS;
+            RSF_64_to_32(first_eos.h.seg,  sizeof(start_of_segment));
+            RSF_64_to_32(first_eos.h.sseg, sizeof(start_of_segment) + sizeof(end_of_segment));
+
+            // Commit segment header/footer
+            write(fp->fd, &first_sos, sizeof(start_of_segment));
+            write(fp->fd, &first_eos, sizeof(end_of_segment));
+
+            lseek(fp->fd, 0, SEEK_SET); // Go back to start of file
+            return_value = 0; // Success
+        }
+        else {
+            const int can_write_exclusive = 
+                first_sos.head.rlm == 0 &&  // Available for exclusive write
+                fp->seg_max_hint == 0;      // Requesting exclusive write
+            const int can_write_concurrent =
+                first_sos.head.rlm != RSF_EXCLUSIVE_WRITE &&    // Available for concurrent write
+                fp->seg_max_hint > 0;                           // Requesting concurrent write
+
+            if (can_write_exclusive || can_write_concurrent) {
+                if (can_write_concurrent) {
+                    first_sos.head.rlm += 1;
+                }
+                else {
+                    first_sos.head.rlm = RSF_EXCLUSIVE_WRITE;
+                }
+
+                // Commit changes
+                lseek(fp->fd, 0, SEEK_SET);
+                write(fp->fd, &first_sos, sizeof(start_of_segment));
+                lseek(fp->fd, 0, SEEK_SET);
+                return_value = 0; // Success
+            }
+            else if (!warned) {
+                if (first_sos.head.rlm == RSF_EXCLUSIVE_WRITE) {
+                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: file %s is already open for exclusive write.\n",
+                        __func__, fp->name);
+                }
+                else {
+                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: file %s is already open for shared write. "
+                            "Cannot lock it for exclusive write\n", __func__, fp->name);
+                }
+            }
+        }
+
+        RSF_File_lock(fp->fd, 0);
+        // ------------- Unlock file ------------- //
+        /////////////////////////////////////////////
+
+        if (return_value != 0 && timeout_s > 0) {
+            sleep_us(2000);
+            warned = 1;
+        }
     }
+    while (return_value != 0 && (App_TimerTimeSinceStart_ms(&timer) < timeout_s * 1000.0));
 
-    lseek(fp->fd, 0, SEEK_SET);
-    return_value = 0;
-    Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Successfully locked file %s for writing\n", __func__, fp->name);
-
-RETURN:
-    RSF_File_lock(fp->fd, 0);
-    // --------- Unlock file ---------- //
+    if (return_value == 0)
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Successfully locked file %s for writing\n", __func__, fp->name);
 
     return return_value;
 }
@@ -2601,6 +2629,9 @@ RSF_handle RSF_Open_file(
     const int32_t dir_meta_length,
     //!> [in] 4-character application identifier. Chosen by the calling application.
     const char    *appl,
+    //!> [in] How long to wait when someone else already has the same file open in write mode (only used when trying to
+    //!> open in write/fuse mode)
+    const uint32_t timeout_s,
     //!> [in,out] [Optional]
     //!> As output: Segment size from file
     //!> If NULL or *segsizep == 0: ignored
@@ -2653,7 +2684,7 @@ RSF_handle RSF_Open_file(
       }
       // Try to lock the file for writing. If that doesn't work, cancel opening
       // This creates the first segment if it didn't already exist
-      if (RSF_Lock_for_write(fp) < 0) {
+      if (RSF_Lock_for_write(fp, timeout_s) < 0) {
         close(fp->fd);
         goto ERROR;
       }
@@ -2673,7 +2704,7 @@ RSF_handle RSF_Open_file(
       if (fp->fd == -1) goto ERROR;
 
       errmsg = "unable to lock for writing ";
-      if (RSF_Lock_for_write(fp) < 0) {
+      if (RSF_Lock_for_write(fp, timeout_s) < 0) {
         close(fp->fd);
         goto ERROR;
       }
