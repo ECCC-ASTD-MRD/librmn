@@ -2398,12 +2398,14 @@ static int RSF_Lock_for_write(
             }
             else if (!warned) {
                 if (first_sos.head.rlm == RSF_EXCLUSIVE_WRITE) {
-                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: file %s is already open for exclusive write.\n",
-                        __func__, fp->name);
+                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: file %s is already open for exclusive write. "
+                        "Will wait for up to %d seconds for it to become available.\n",
+                        __func__, fp->name, timeout_s);
                 }
                 else {
-                    Lib_Log(APP_LIBFST, APP_WARNING, "%s: file %s is already open for shared write. "
-                            "Cannot lock it for exclusive write\n", __func__, fp->name);
+                    Lib_Log(APP_LIBFST, APP_WARNING,
+                        "%s: file %s is already open for shared write. Cannot lock it for exclusive write. "
+                        "Will wait for up to %d seconds for it to become available.\n", __func__, fp->name, timeout_s);
                 }
             }
         }

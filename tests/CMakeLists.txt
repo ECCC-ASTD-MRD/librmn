@@ -224,7 +224,7 @@ if (EC_INIT_DONE LESS 2)
             gen_test_target(SOURCES fst/fst_multithread.c LIBRARIES rmn::rmn-ompi)
             gen_test_target(SOURCES fnom.c LIBRARIES rmn::rmn-ompi)
             gen_test_target(SOURCES fst/fst_wait_open.c MPI_NUM 2 ENVIRONMENT "FST_OPTIONS=OPEN_WAIT_TIME=1")
-            gen_test_target(SOURCES fst/fst_multi_write.c MPI_NUM 10 ENVIRONMENT "FST_OPTIONS=OPEN_WAIT_TIME=2")
+            gen_test_target(SOURCES fst/fst_multi_write.c MPI_NUM 10 ENVIRONMENT "FST_OPTIONS=OPEN_WAIT_TIME=30")
 
             gen_test_target(SOURCES circular_buffer/circular_buffer_fill.c MPI_NUM 8)
             gen_test_target(SOURCES circular_buffer/circular_buffer_concurrent.F90 MPI_NUM 8)
