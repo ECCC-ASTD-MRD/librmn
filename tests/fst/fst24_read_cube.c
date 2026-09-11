@@ -6,7 +6,7 @@
 #define NUM_Y 8
 #define NUM_Z 5
 
-static const char* test_filename = "cube.fst";
+static const char* test_filename = "cube_c.fst";
 static int32_t initial_data[NUM_Z][NUM_X][NUM_Y];
 
 int create_file() {
