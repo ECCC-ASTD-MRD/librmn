@@ -818,6 +818,8 @@ int32_t fst24_write_rsf(
     int header_size;
     int stream_size;
     size_t num_word32;
+    // Size if the data were packed as plain (non-turbopack)
+    const size_t plain_num_word32 = W64TOWD((num_elements * record->pack_bits + 120 + 63) / 64);
     if (image_mode_copy) {
         if (is_type_turbopack(data_type)) {
             // first element is length
@@ -877,7 +879,7 @@ int32_t fst24_write_rsf(
             }
 
             default:
-                num_word32 = W64TOWD((num_elements * record->pack_bits + 120 + 63) / 64);
+                num_word32 = plain_num_word32;
                 break;
         }
     }
@@ -914,7 +916,7 @@ int32_t fst24_write_rsf(
 
     record->num_meta_bytes = rec_metadata_size * sizeof(uint32_t);
 
-    const size_t total_payload_bytes = num_data_bytes + record->data_blocks.map_size * sizeof(uint32_t);;
+    size_t total_payload_bytes = num_data_bytes + record->data_blocks.map_size * sizeof(uint32_t);
     RSF_record* new_record = RSF_New_record(
         rsf_file, rec_metadata_size, rec_metadata_size, RT_DATA, total_payload_bytes, NULL, 0);
     if (new_record == NULL) {
@@ -1044,8 +1046,22 @@ int32_t fst24_write_rsf(
                                                                  record->ni, record->nj, record->nk, record->pack_bits, 1, 0);
                         if (compressed_lng < 0) {
                             stdf_entry->datyp = FST_TYPE_UNSIGNED;
-                            compact_p_integer((void *)field_u32, (void *) NULL, &((uint32_t *)new_record->data)[offset],
-                                num_elements, record->pack_bits, 0, stride, 0);
+                            if (record->data_bits == 16) {
+                                compact_p_short((void *)field_u32, (void *) NULL, new_record->data,
+                                    num_elements, record->pack_bits, 0, stride);
+                            } else if (record->data_bits == 8) {
+                                compact_p_char((void *)field_u32, (void *) NULL, new_record->data,
+                                    num_elements, Min(8, record->pack_bits), 0, stride);
+                            } else {
+                                compact_p_integer((void *)field_u32, (void *) NULL, new_record->data,
+                                    num_elements, record->pack_bits, 0, stride, 0);
+                            }
+                            // The buffer was allocated for the (larger) turbopack size, but the
+                            // plain packing is smaller. Use the precomputed plain size so that
+                            // RSF_Put_record writes only the bytes the read path expects.
+                            total_payload_bytes = plain_num_word32 * sizeof(uint32_t) + record->data_blocks.map_size * sizeof(uint32_t);
+                            record->do_not_touch.stored_data_size = plain_num_word32;
+                            RSF_Record_set_num_elements(new_record, plain_num_word32, sizeof(uint32_t));
                         } else {
                             const int nbytes = 4 + compressed_lng;
                             const uint32_t num_word64 = (nbytes * 8 + 63) / 64;
@@ -1420,7 +1436,7 @@ int32_t fst24_write(
         fst_record to_delete = default_fst_record;
         const int32_t found = fst24_find_next(q,&to_delete);
         fst24_query_free(q);
-        if (found) {
+        if (found == TRUE) {
             if (rewrite == FST_SKIP) {
                 Lib_Log(APP_LIBFST, APP_INFO, "%s: Skipping (record already exists)\n", __func__);
                 App_TimerStop(&file->write_timer);
@@ -1943,9 +1959,9 @@ int32_t fst24_find_all(
     for (int i = 0; i < max; i++) {
         if (results != NULL) {
             results[i] = default_fst_record;
-            if (!fst24_find_next(query, &(results[i]))) return i;
+            if (fst24_find_next(query, &(results[i])) != TRUE) return i;
         } else {
-            if (!fst24_find_next(query, NULL)) return i;
+            if (fst24_find_next(query, NULL) != TRUE) return i;
         }
     }
     return max_num_results;
@@ -1967,7 +1983,7 @@ int32_t fst24_find_count(
     fst24_rewind_search(query);
 
     int32_t count = 0;
-    while (fst24_find_next(query, NULL)) {
+    while (fst24_find_next(query, NULL) == TRUE) {
         count++;
     }
 
@@ -2406,7 +2422,12 @@ int32_t fst24_read_record_rsf(
     }
 
     const int requested_num_bits = record_fst->data_bits;
-    update_attributes_from_rsf_info(record_fst, record_fst->do_not_touch.handle, &record_info);
+    if (update_attributes_from_rsf_info(record_fst, record_fst->do_not_touch.handle, &record_info) != TRUE) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Failed to update attributes from RSF info\n", __func__);
+        free(work_space);
+        return ERR_BAD_HNDL;
+    }
+
     if (record_fst->data_blocks.map_size > 0) {
         // data_map pointer should have been freed by the update attributes function
         record_fst->data_blocks.map = (uint32_t*)malloc(record_fst->data_blocks.map_size * sizeof(uint32_t));
@@ -2688,7 +2709,7 @@ int32_t fst24_read_next(
     fst_query* const query,   //!< Query used for the search
     fst_record* const record  //!< [out] Record content and info, if found
 ) {
-    if (!fst24_find_next(query, record)) {
+    if (fst24_find_next(query, record) != TRUE) {
         return FALSE;
     }
 

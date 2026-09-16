@@ -1346,6 +1346,8 @@ int c_fstecr_xdf(
     int header_size;
     int stream_size;
     int nw;
+    // Size if the data were packed as plain (non-turbopack)
+    const int plain_nw = (ni * nj * _nk * nbits + 120 + 63) / 64;
     switch (datyp) {
         case FST_TYPE_REAL: {
             int p1out;
@@ -1382,7 +1384,7 @@ int c_fstecr_xdf(
         }
 
         default:
-            nw = (ni * nj * _nk * nbits + 120 + 63) / 64;
+            nw = plain_nw;
             break;
     }
 
@@ -1615,9 +1617,21 @@ int c_fstecr_xdf(
                     }
                     int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+offset]), ni, nj, _nk, nbits, 1, 0);
                     if (compressed_lng < 0) {
+                        // Compression failed: fall back to plain (non-turbopack) packing.
                         stdf_entry->datyp = FST_TYPE_UNSIGNED;
-                        compact_p_integer(field_u32, (void *) NULL, &(buffer->data[keys_len + offset]),
-                            ni * nj * _nk, nbits, 0, xdf_stride, 0);
+                        if (xdf_short) {
+                            compact_p_short(field_u32, (void *) NULL, &(buffer->data[keys_len]),
+                                ni * nj * _nk, nbits, 0, xdf_stride);
+                        } else if (xdf_byte) {
+                            compact_p_char(field_u32, (void *) NULL, &(buffer->data[keys_len]),
+                                ni * nj * _nk, nbits, 0, xdf_stride);
+                        } else {
+                            compact_p_integer(field_u32, (void *) NULL, &(buffer->data[keys_len]),
+                                ni * nj * _nk, nbits, 0, xdf_stride, 0);
+                        }
+                        // Adjust the buffer size to the plain (non-turbopack) size
+                        nw = W64TOWD(plain_nw);
+                        buffer->nbits = (keys_len + nw) * bitmot;
                     } else {
                         int nbytes = 4 + compressed_lng;
                         // fprintf(stderr, "Debug+ fstecr armn_compress compressed_lng=%d\n", compressed_lng);

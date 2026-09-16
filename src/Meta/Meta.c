@@ -2447,7 +2447,7 @@ int Meta_ReadFile(fst_file *file,json_object **Obj) {
    strcpy(rec.etiket, "FILE_JSON   ");
 
    fst_query* query = fst24_new_query(file, &rec, NULL);
-   if (fst24_find_next(query,&rec)) {
+   if (fst24_find_next(query,&rec) == TRUE) {
       fst24_read_metadata(&rec);
       *Obj=json_object_get(rec.metadata);
    } else {

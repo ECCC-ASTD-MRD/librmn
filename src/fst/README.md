@@ -527,7 +527,7 @@ fst_file * my_file = fst24_open("my_file.fst", NULL);
 // Looking for a single record and reading its data
 fst_query * my_query = fst24_new_query(
         my_file, NULL, NULL); // Match everything
-if (fst24_find_next(my_query, &result)) {
+if (fst24_find_next(my_query, &result) == TRUE) {
     fst24_read(&result); // Read data from disk
 
     // Do something with the data
@@ -546,7 +546,7 @@ criteria = default_fst_record; // Wildcard everywhere
 strcpy(criteria.nomvar, "ABC");
 criteria.ip3 = 25;
 my_query = fst24_new_query(my_file, &criteria, NULL);
-while (fst24_find_next(my_file, &result)) {
+while (fst24_find_next(my_file, &result) == TRUE) {
     // Do stuff with the record
 }
 fst24_query_free(my_query);
@@ -557,7 +557,7 @@ criteria = default_fst_record; // Wildcard everywhere
 criteria.ip1 = 200;
 criteria.ig2 = 2;
 my_query = fst24_new_query(my_file, &criteria, NULL);
-while (fst24_read_next(my_file, &result)) {
+while (fst24_read_next(my_file, &result) == TRUE) {
     // Do stuff with the data
 }
 fst24_query_free(my_query);
@@ -653,9 +653,9 @@ fst_query* q_b = fst24_new_query(my_file, &crit_b, NULL);
 
 // For each record found with query A, process 
 // 3 records from query B
-while (fst24_find_next(q_a, &rec_a)) {
+while (fst24_find_next(q_a, &rec_a) == TRUE) {
     for (int i = 0; i < 3; i++) {
-        if (fst24_read_next(q_b, &rec_b)) {
+        if (fst24_read_next(q_b, &rec_b) == TRUE) {
             // Process record
         }
     }
@@ -663,7 +663,7 @@ while (fst24_find_next(q_a, &rec_a)) {
 
 // Want to do stuff with records with label A again?
 fst24_rewind(q_a);
-while (fst24_read_next(q_a, &rec_a)) {
+while (fst24_read_next(q_a, &rec_a) == TRUE) {
     // Do stuff
 }
 
@@ -719,7 +719,7 @@ strcpy(crit_a.grtyp, "X");
 strcpy(crit_b.nomvar, "VARB");
 
 q_a = fst24_new_query(my_file, &crit_a, NULL);
-while (fst24_find_next(q_a, &rec_a)) {
+while (fst24_find_next(q_a, &rec_a) == TRUE) {
     // Look for every record with nomvar "VARB" tha
     // has the same ip1 as record A
     crit_b.ip1 = rec_a.ip1;
