@@ -6,10 +6,12 @@ module test_fst24_interface_module
     use rmn_meta
     implicit none
 
+    ! Distinct filenames from the C test (fst24_interface.c) so the two can
+    ! run in parallel without clobbering each other's files.
     character(len=*), dimension(3), parameter :: test_file_names = [    &
-                'fst24_interface1.fst',                                 &
-                'fst24_interface2.fst',                                 &
-                'fst24_interface3.fst'                                  &
+                'fst24_interface_f1.fst',                               &
+                'fst24_interface_f2.fst',                               &
+                'fst24_interface_f3.fst'                                &
     ]
     character(len=2000) :: cmd
     integer, parameter :: DATA_SIZE = 1024

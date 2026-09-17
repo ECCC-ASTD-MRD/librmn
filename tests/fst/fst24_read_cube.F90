@@ -9,7 +9,7 @@ module read_cube_module
     integer, parameter :: NUM_Z = 5
 
     integer, dimension(NUM_X, NUM_Y, NUM_Z), target :: initial_data
-    character(len=*), parameter :: test_filename = 'cube.fst'
+    character(len=*), parameter :: test_filename = 'cube_f.fst'
 
 contains
 

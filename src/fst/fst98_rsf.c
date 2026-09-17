@@ -188,6 +188,9 @@ int c_fstouv_rsf(
     const int index_fnom,
     //!> [in] Opening mode (read/write/append)
     const rsf_open_mode_type mode,
+    //!> [in] How long to wait when someone else already has the same file open in write mode (only used when trying to
+    //!> open in write/fuse mode)
+    const uint32_t timeout_s,
     //!> [in] Size in MB of segments, if open for parallel write (not parallel if <= 0)
     const int32_t parallel_segment_size_mb
 ) {
@@ -204,7 +207,8 @@ int c_fstouv_rsf(
     const char appl[4] = {'S', 'T', 'D', 'F'};
 
     // Lib_Log(APP_LIBFST, APP_WARNING, "%s: segment size = %ld\n", __func__, segment_size);
-    FGFDT[index_fnom].rsf_fh = RSF_Open_file(FGFDT[index_fnom].file_name, mode, meta_dim, appl, &segment_size);
+    FGFDT[index_fnom].rsf_fh = RSF_Open_file(
+        FGFDT[index_fnom].file_name, mode, meta_dim, appl, timeout_s, &segment_size);
 
     // VOLATILE mode, unlink the file so it gets erased at end of process
     if (FGFDT[index_fnom].attr.volatil) {

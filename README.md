@@ -29,6 +29,11 @@ cloned.
 
 ## Installation instructions
 
+### Dependencies
+
+- [Expat](https://libexpat.github.io/) is a dependency of udunits2 and must be
+available with its include files.
+
 ### Create a directory for compilation
 ```
 mkdir $build_dir_path

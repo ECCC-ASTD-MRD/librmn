@@ -181,7 +181,7 @@ int32_t RSF_Base_match(uint32_t *criteria, uint32_t *meta, uint32_t *mask, int n
 
 
 RSF_handle RSF_Open_file(const char *fname, const rsf_open_mode_type mode, const int32_t dir_meta_length,
-                         const char *appl, int64_t *segsize);
+                         const char *appl, const uint32_t timeout_s, int64_t *segsize);
 
 int64_t RSF_Lookup(RSF_handle h, int64_t key0, uint32_t *criteria, uint32_t *mask, uint32_t lcrit) ;
 
