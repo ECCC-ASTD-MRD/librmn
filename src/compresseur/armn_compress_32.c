@@ -67,13 +67,13 @@ int c_armn_compress32(
     float *p_fld;
     int meme_signe, remaining_space;
     int nbits;
-    unsigned char *exposant, *exposant2;
+    unsigned char *exposant = NULL, *exposant2 = NULL;
     unsigned char *le_pointeur, *pos_lng_signe, *pos_lng_exposant, *pos_lng_mantisse;
-    unsigned char *signe, *zsigne, code_signe, code_exposant, code_mantisse;
+    unsigned char *signe = NULL, *zsigne = NULL, code_signe, code_exposant, code_mantisse;
     unsigned char codes;
-    unsigned int *mantisse, *mantisse_stream, *la_mantisse,*zmantisse, exp_base;
+    unsigned int *mantisse = NULL, *mantisse_stream, *la_mantisse,*zmantisse = NULL, exp_base;
     unsigned int *temp;
-    unsigned int exp_min, exp_max, *zexposant;
+    unsigned int exp_min, exp_max, *zexposant = NULL;
     unsigned int le_signe_or, le_signe_and;
     unsigned int npts, zlng, lng_signe, lng_exposant,lng_mantisse,nbits_needed;
     unsigned int zieee_info;
@@ -83,9 +83,8 @@ int c_armn_compress32(
     _floatint r_exp_max;
 
     if (ni < 16 || nj < 16) {
-        zlng = -1;
         Lib_Log(APP_LIBFST,APP_WARNING,"%s: The dimensions of NI and NJ have to be > 16\n",__func__);
-        return zlng;
+        return -1;
     }
 
     if (znbits < 9) {
@@ -209,7 +208,8 @@ int c_armn_compress32(
         if (lng_exposant > (unsigned int) ni * nj) {
             zlng = -1;
             Lib_Log(APP_LIBFST,APP_WARNING,"%s: Exponent range too large, original field left uncompressed",__func__);
-            return zlng;
+            goto end ;
+//             return zlng;
         }
 
         if (0 != (lng_exposant % 4)) {
@@ -229,17 +229,19 @@ int c_armn_compress32(
     la_mantisse = zmantisse;
 
     if (lng_mantisse == 0) {
-        free(signe);
-        free(zsigne);
-        free(exposant);
-        free(exposant2);
-        free(zexposant);
-        if (la_mantisse != mantisse) {
-            free(mantisse_stream);
-        }
-        free(mantisse);
-        free(zmantisse);
-        return -1;
+      zlng = -1 ;
+      goto end ;
+//         free(signe);
+//         free(zsigne);
+//         free(exposant);
+//         free(exposant2);
+//         free(zexposant);
+//         if (la_mantisse != mantisse) {
+//             free(mantisse_stream);
+//         }
+//         free(mantisse);
+//         free(zmantisse);
+//         return -1;
     }
 
     if (0 != (lng_mantisse % 4)) {
@@ -265,17 +267,18 @@ int c_armn_compress32(
     le_pointeur += lng_mantisse;
     zlng = le_pointeur - zstream;
 
+end :
     // Menage avant de s'en aller
-    free(signe);
-    free(zsigne);
-    free(exposant);
-    free(exposant2);
-    free(zexposant);
+    if(signe)free(signe);
+    if(zsigne)free(zsigne);
+    if(exposant)free(exposant);
+    if(exposant2)free(exposant2);
+    if(zexposant)free(zexposant);
     if (la_mantisse != mantisse) {
-        free(mantisse_stream);
+        if(mantisse_stream)free(mantisse_stream);
     }
-    free(mantisse);
-    free(zmantisse);
+    if(mantisse)free(mantisse);
+    if(zmantisse)free(zmantisse);
     return zlng;
 }
 
