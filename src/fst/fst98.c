@@ -897,6 +897,48 @@ void print_std_parms(
 }
 
 
+//! Print the directory entry (standard parameters) of the record corresponding
+//! to the provided handle.  This is a debugging aid that works for both XDF and
+//! RSF files.  It retrieves the record's stdf_dir_keys using the existing
+//! c_xdfprm (XDF) or RSF_Get_record_info (RSF) functions and prints it with
+//! print_std_parms, much like c_fstluk_xdf does after reading a record.
+static void print_record_from_handle(
+    //! [in] Handle of the record to print
+    const int handle
+) {
+    char pre[32];
+    snprintf(pre, sizeof(pre), "Handle(0x%08x)", (unsigned)handle);
+
+    const int32_t key_type = RSF_Key32_type(handle);
+
+    if (key_type == 1) {
+        // RSF file
+        const RSF_handle file_handle = RSF_Key32_to_handle(handle);
+        const int64_t rsf_key = RSF_Key64(handle);
+        const RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
+        if (record_info.rl <= 0) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not retrieve record with key %ld\n", __func__, rsf_key);
+            return;
+        }
+        const stdf_dir_keys *stdf_entry = &((search_metadata *)record_info.meta)->fst98_meta;
+        print_std_parms(stdf_entry, pre, prnt_options, -1);
+    } else if (key_type == 0) {
+        // XDF file
+        stdf_dir_keys stdf_entry = {0};
+        uint32_t *pkeys = stdf_entry.words;
+        pkeys += W64TOWD(1);
+        int addr, lng, idtyp;
+        if (c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16) < 0) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not retrieve record with handle %d\n", __func__, handle);
+            return;
+        }
+        print_std_parms(&stdf_entry, pre, prnt_options, -1);
+    } else {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Key 0x%x does not seem to be valid (for either XDF or RSF)\n", __func__, handle);
+    }
+}
+
+
 //! \copydoc c_fstapp
 //! XDF version
 int c_fstapp_xdf(
@@ -2714,10 +2756,40 @@ int c_fstinl(
     int status = -1;
     int total_found = 0;
     int num_files = 0;
+
+    // When searching with ip1_all/ip2_all/ip3_all, the "match any encoding" state is held in the
+    // global ip flags and the ips_tab/ip_nb tables.  c_fstinfx (called once per file) resets that
+    // state via init_ip_vals() after finding the first match in a file, so without intervention the
+    // second and subsequent linked files would be searched in exact-encoding mode and miss records
+    // encoded differently.  Snapshot the state here and restore it before each file's search so that
+    // every file in the linked list is searched in match-any-encoding mode.
+    const int saved_ip1s_flag = ip1s_flag;
+    const int saved_ip2s_flag = ip2s_flag;
+    const int saved_ip3s_flag = ip3s_flag;
+    const int saved_ip_nb[3] = {ip_nb[0], ip_nb[1], ip_nb[2]};
+    int saved_ips_tab[3][Max_Ipvals];
+    for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < Max_Ipvals; i++) {
+            saved_ips_tab[j][i] = ips_tab[j][i];
+        }
+    }
+
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
                 __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
         num_files++;
+
+        // Restore the ip state that c_fstinfx of the previous file may have reset, so that this file
+        // is searched with the same ip1_all/ip2_all/ip3_all mode as the first file.
+        ip1s_flag = saved_ip1s_flag;
+        ip2s_flag = saved_ip2s_flag;
+        ip3s_flag = saved_ip3s_flag;
+        for (int j = 0; j < 3; j++) {
+            ip_nb[j] = saved_ip_nb[j];
+            for (int i = 0; i < Max_Ipvals; i++) {
+                ips_tab[j][i] = saved_ips_tab[j][i];
+            }
+        }
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstinl_rsf(FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3,
@@ -2737,6 +2809,12 @@ int c_fstinl(
     if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Found %d records in %d files\n", __func__, total_found, num_files);
+
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) {
+        for (int i = 0; i < total_found; i++) {
+            print_record_from_handle(liste[i]);
+        }
+    }
 
     *infon = total_found;
     return status;

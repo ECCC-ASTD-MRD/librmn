@@ -12,6 +12,36 @@ module fst98_ipall_module
 
 contains
 
+subroutine dump_ips(handle, label)
+    implicit none
+    integer, intent(in) :: handle
+    character(len=*), intent(in) :: label
+    integer :: date, deet, npas, ni, nj, nk, nbits, datyp
+    integer :: ip1, ip2, ip3
+    integer :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
+    character(len=2) :: typvar
+    character(len=8) :: nomvar
+    character(len=12) :: etiket
+    character(len=1) :: grtyp
+    integer :: status
+    status = fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
+                    typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, &
+                    extra1, extra2, extra3)
+    write(app_msg, '(A, A, A, 3I12)') '  [', label, etiket(1:5), ip1, ip2, ip3
+    call App_Log(APP_INFO, app_msg)
+end subroutine dump_ips
+
+!> Assign the next unique label (etiket) to a record. nrec is a running counter
+!> that is incremented on each call; the label is "R" followed by the 4-digit
+!> sequence number (e.g. R0001, R0002, ...).
+subroutine set_label(record, nrec)
+    implicit none
+    type(fst_record), intent(inout) :: record
+    integer, intent(inout) :: nrec
+    nrec = nrec + 1
+    write(record % etiket, '(A, I4.4)') 'R', nrec
+end subroutine set_label
+
 subroutine create_files(is_rsf)
     implicit none
 
@@ -22,10 +52,13 @@ subroutine create_files(is_rsf)
     type(fst_file), dimension(2) :: files
     character(len=2000) :: cmd
     integer :: i
+    integer :: nrec
     real, dimension(1), target :: work
     logical :: success
 
     type(fst_record) :: record
+
+    nrec = 0
 
     write(app_msg, '(A, 2L2)') 'Creating test files ', is_rsf
     call App_Log(APP_INFO, app_msg)
@@ -74,19 +107,26 @@ subroutine create_files(is_rsf)
 
     record % ip2 = 1
     record % ip3 = 1
+    call set_label(record, nrec)
+    success = files(1) % write(record) .and. success
     do i = 1, 3
         call CONVIP_plus(record % ip1, p(i), ip_kind, 3, dummy, .false.)
+        call set_label(record, nrec)
         success = files(2) % write(record) .and. success
         record % ip2 = record % ip2 + 1
         record % nomvar(1:1) = 'B'
+        call set_label(record, nrec)
         success = files(2) % write(record) .and. success
         call CONVIP_plus(record % ip1, p(i), ip_kind, 2, dummy, .false.)
         record % ip2 = record % ip2 + 1
         record % nomvar(1:1) = 'C'
+        call set_label(record, nrec)
         success = files(2) % write(record)
         record % ip2 = record % ip2 + 1
         record % nomvar(1:1) = 'D'
+        call set_label(record, nrec)
         success = files(2) % write(record)
+        call set_label(record, nrec)
         success = files(2) % write(record)
 
         if (.not. success) then
@@ -99,9 +139,12 @@ subroutine create_files(is_rsf)
     record % ip3 = 10
     do i = 1, 3
         call CONVIP_plus(record % ip2, p(i), ip_kind, 3, dummy, .false.)
+        call set_label(record, nrec)
         success = files(2) % write(record)
+        call set_label(record, nrec)
         success = files(2) % write(record)
         call CONVIP_plus(record % ip2, p(i), ip_kind, 2, dummy, .false.)
+        call set_label(record, nrec)
         success = files(2) % write(record) .and. success
 
         if (.not. success) then
@@ -115,10 +158,13 @@ subroutine create_files(is_rsf)
     do i = 1, 3
         call CONVIP_plus(record % ip3, p(i), ip_kind, 3, dummy, .false.)
         call CONVIP_plus(record % ip2, p(4-i), ip_kind, 3, dummy, .false.)
+        call set_label(record, nrec)
         success = files(2) % write(record)
+        call set_label(record, nrec)
         success = files(2) % write(record)
         call CONVIP_plus(record % ip3, p(i), ip_kind, 2, dummy, .false.)
         call CONVIP_plus(record % ip2, p(4-i), ip_kind, 2, dummy, .false.)
+        call set_label(record, nrec)
         success = files(2) % write(record) .and. success
 
         if (.not. success) then
@@ -160,15 +206,24 @@ subroutine look_fst98()
 
     units(:) = 0
     status = fstouv(filenames(1), units(1), 'RND+R/O')
-    if (status /= 0) then
-        call App_Log(APP_ERROR, 'Could not open 1st file')
+    if (status /= 1) then
+        if (status > 0) then
+            write(app_msg, '(A, I12, A, I3)') 'Wrong number of records in file (', status, ') expected ', 1
+            call App_Log(APP_ERROR, app_msg)
+        else
+            call App_Log(APP_ERROR, 'Could not open 1st file')
+        end if
         error stop 1
     end if
 
     status = fstouv(filenames(2), units(2), 'RND+R/O')
     if (status /= 33) then
-        write(app_msg, '(A, I12, A, I3)') 'Wrong number of records in file (', status, ') expected ', 33
-        call App_Log(APP_ERROR, app_msg)
+        if (status > 0) then
+            write(app_msg, '(A, I12, A, I3)') 'Wrong number of records in file (', status, ') expected ', 33
+            call App_Log(APP_ERROR, app_msg)
+        else
+            call App_Log(APP_ERROR, 'Could not open 2nd file')
+        end if
         error stop 1
     end if
 
@@ -191,6 +246,7 @@ subroutine look_fst98()
 
     do i = 1, num_record_found
         status = fstluk(work, records(i), ni, nj, nk)
+        call dump_ips(records(i), 'IP1 not all')
     end do
 
     ! IP1 all
@@ -206,6 +262,7 @@ subroutine look_fst98()
 
     do i = 1, num_record_found
         status = fstluk(work, records(i), ni, nj, nk)
+        call dump_ips(records(i), 'IP1 all')
     end do
 
     call App_Log(APP_INFO, 'IP2')
@@ -216,6 +273,7 @@ subroutine look_fst98()
         call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP2 not all)')
         error stop 1
     end if
+    call dump_ips(status, 'IP2 not all')
 
     status = fstlis(work, units(1), ni, nj, nk)
     if (status > 0) then
@@ -230,12 +288,14 @@ subroutine look_fst98()
         call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP2 all)')
         error stop 1
     end if
+    call dump_ips(status, 'IP2 all #1')
 
     status = fstlis(work, units(1), ni, nj, nk)
     if (status <= 0) then
         call App_Log(APP_ERROR, 'There are 2 records that match, should have been able to find the second one (IP2 all)')
         error stop 1
     end if
+    call dump_ips(status, 'IP2 all #2')
 
     status = fstlis(work, units(1), ni, nj, nk)
     if (status > 0) then
@@ -251,6 +311,7 @@ subroutine look_fst98()
         call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP3 not all)')
         error stop 1
     end if
+    call dump_ips(status, 'IP3 not all')
 
     status = fstlis(work, units(1), ni, nj, nk)
     if (status > 0) then
@@ -265,12 +326,14 @@ subroutine look_fst98()
         call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP3 all)')
         error stop 1
     end if
+    call dump_ips(status, 'IP3 all #1')
 
     status = fstlis(work, units(1), ni, nj, nk)
     if (status <= 0) then
         call App_Log(APP_ERROR, 'There are 2 records that match, should have been able to find the second one (IP3 all)')
         error stop 1
     end if
+    call dump_ips(status, 'IP3 all #2')
 
     status = fstlis(work, units(1), ni, nj, nk)
     if (status > 0) then
