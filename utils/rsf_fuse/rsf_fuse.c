@@ -7,15 +7,22 @@
 int main(int argc, char** argv) {
 
     if (argc < 2) {
-        App_Log(APP_WARNING, "Need to give a filename\n");
+        App_Log(APP_VERBATIM,
+            "Usage:\n"
+            "    %s filename [timeout (s)]\n", argv[0]);
         return 1;
+    }
+
+    uint32_t timeout = 0;
+    if (argc > 2) {
+        timeout = atoi(argv[2]);
     }
 
     char command[2048];
     snprintf(command, sizeof(command), "ls -l %s", argv[1]);
     system(command);
 
-    RSF_handle h = RSF_Open_file(argv[1], RSF_FUSE, 0, "STDF", NULL);  // open file
+    RSF_handle h = RSF_Open_file(argv[1], RSF_FUSE, 0, "STDF", timeout, NULL);  // open file
 
     if (h.p == NULL) {
         App_Log(APP_ERROR, "Unable to open file %s for fusing\n", argv[1]);

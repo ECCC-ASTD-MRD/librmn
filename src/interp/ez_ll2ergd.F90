@@ -43,7 +43,11 @@ subroutine ez_ll2ergd(px, py, xlat, xlon, npts, ni, nj, grtyp, ig1, ig2, ig3, ig
     call ez_gfxyfll(xlon, xlat, xlongf, xlatgf, npts, xlat1, xlon1, xlat2, xlon2)
 
     if (grtyp == 'E') then
-        dellon = 360.0 / real(ni - 1)
+        if (ni <= 1) then
+            dellon = 360.0
+        else
+            dellon = 360.0 / real(ni - 1)
+        endif
         xlon0 = 0.0
 
         dellat = 180.0 / real(nj)
@@ -51,4 +55,4 @@ subroutine ez_ll2ergd(px, py, xlat, xlon, npts, ni, nj, grtyp, ig1, ig2, ig3, ig
 
         call ez_llll2gd(px, py, xlatgf, xlongf, npts, xlat0, xlon0, dellat, dellon, 0.0)
     endif
-end
+end subroutine

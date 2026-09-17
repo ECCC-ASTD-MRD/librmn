@@ -66,12 +66,21 @@ static char *requetes_filename = NULL;
 int remap_table[2][10];
 //! Number of datatype remapping,  0 = no remapping
 int nb_remap = 0;
-//! backend type (XDF or RSF)
+
+//! @name FST_OPTIONS
+//! @{
+
+//! Backend type (XDF or RSF) -- Controlled by the `BACKEND` option
 static char *fst_backend = NULL;
-//! Segment size for RSF, when writing in parallel (in MB)
+//! Segment size for RSF, when writing in parallel (in MB) -- Controlled by the `SEGMENT_SIZE_MB` option
 static int32_t segment_size_mb = 1000;
-//! Whether to ignore the MSGLVL option in fstopc and fstopi
+//! Whether to ignore the MSGLVL option in fstopc and fstopi -- Controlled by the `IGNORE_MSGLVL` option
 static int32_t ignore_msg_level = 0;
+//! When opening a file in write mode, how long to wait if it is already open in write mode by another process
+//! -- Controlled by the OPEN_WAIT_TIME option
+static uint32_t open_wait_time_s = 0;
+
+//! @}
 
 #define PRNT_OPTIONS_LEN 128
 
@@ -3953,7 +3962,7 @@ int c_fstouv(
                 ier = ERR_NO_FILE;
             }
             else if (is_rsf) {
-                ier = c_fstouv_rsf(i, RSF_RW, seg_size);
+                ier = c_fstouv_rsf(i, RSF_RW, open_wait_time_s, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
@@ -3975,14 +3984,14 @@ int c_fstouv(
                 ier = ERR_NO_FILE;
             }
             else if (is_rsf) {
-                ier = c_fstouv_rsf(i, RSF_RW, seg_size);
+                ier = c_fstouv_rsf(i, RSF_RW, open_wait_time_s, seg_size);
             }
             else {
                 ier = c_xdfopn(iun, "CREATE", (word_2 *) &stdfkeys, 16, (word_2 *) &stdf_info_keys, 2, appl);
             }
         } else {
             if (iwko == WKF_STDRSF) {
-                ier = c_fstouv_rsf(i, open_mode, seg_size);
+                ier = c_fstouv_rsf(i, open_mode, open_wait_time_s, seg_size);
             }
             else if (iwko == WKF_SEQUENTIEL98 || iwko == WKF_RANDOM98 || iwko == WKF_SEQUENTIEL89 || iwko == WKF_RANDOM89) {
                 const char* mode = read_only ? "READ":"R-W";
@@ -4875,6 +4884,10 @@ void c_fst_env_var(
             Lib_Log(APP_LIBFST, APP_WARNING, "%s: Invalid value for key %s (%s). Must be a positive integer."
                     " Keeping default value %d\n", __func__, cle, content, segment_size_mb);
         }
+    } else if (strcasecmp(cle, "OPEN_WAIT_TIME") == 0) {
+        const int32_t timeout_tmp = atoi(content);
+        if (timeout_tmp > 0) open_wait_time_s = timeout_tmp;
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: OPEN_WAIT_TIME set to %d seconds\n", __func__, open_wait_time_s);
     } else if (strcasecmp(cle, "IGNORE_MSGLVL") == 0) {
         ignore_msg_level = 1;
     } else {

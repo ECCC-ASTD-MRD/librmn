@@ -5,12 +5,13 @@
     1. [RSF Features](#new-features-of-rsf)
     2. [New Interface: `fst24`](#new-interface-fst24)
     3. [Parallel Write](#parallel-write)
-    4. [Thread Safety](#thread-safety)
-    5. [Memory Management](#memory-management)
-    6. [Data Types](#data-types)
-    7. [Data Size](#data-size)
-    8. [String Attributes](#string-attributes)
-    9. [Old Interface: `fst98`](#old-interface-fst98)
+    4. [FST_OPTIONS](#fst_options-environment-variable)
+    5. [Thread Safety](#thread-safety)
+    6. [Memory Management](#memory-management)
+    7. [Data Types](#data-types)
+    8. [Data Size](#data-size)
+    9. [String Attributes](#string-attributes)
+   10. [Old Interface: `fst98`](#old-interface-fst98)
 2. [Examples](#examples)
     1. [Opening and Closing](#opening-and-closing-a-file)
     2. [Searching and Reading](#finding-and-reading-a-record)
@@ -38,6 +39,7 @@
 * RSF files can be concatenated and still be a valid RSF file (ie: `cat file1.rsf >> file2.rsf`)
 * [Parallel write](#parallel-write) by multiple processes into the same file
 * RSF files may be used as containers for other files
+* Automatic synchronization across multiple processes: when opening, can optionally wait for a file to be available for writing
 * (With the `fst24` interface) Reentrant API: the same file object may be read and written by several threads of a process
 
 ### Upcoming features of RSF
@@ -129,6 +131,22 @@ Several processes can open the same RSF file and write to it simultaneously. Thi
     * If a segment is full or too small to hold a record, the segment is closed and committed to disk, and a new one is opened
     * When a new segment is created by writing a record, its size is the largest of either `SEGMENT_SIZE_MB` or the size of the record being written
     * When a segment is committed to the file, any unfilled space in it will also be written to disk. This means the file will take more space on disk than just its data content.
+
+## FST_OPTIONS environment variable
+
+The behavior of the FST API can be modulated by the `FST_OPTIONS` environment variable. It can take several parameters
+of the form `PARAM=value`, separated by a semicolon. Available options are
+- `BACKEND`: Underlying format to use when none is specified in the options when opening (either with `fst24_open`,
+  `fnom` or `fstouv`).
+  Accepted values are `RSF` and `XDF`.
+- `OPEN_WAIT_TIME`: [RSF only] When trying to open a file for writing, while another process also has the same file open
+  in write mode, we wait up to this amount of time (in seconds). If the file is released by the other process
+  during that time, the opening is successful. If the file is not released after `OPEN_WAIT_TIME` seconds, opening
+  fails. Default to 0.
+
+  Opening files in read mode is not affected by this option.
+- `SEGMENT_SIZE_MB`: Size in megabytes of individual file segments. Described in more details in
+  [Parallel write](#parallel-write)
 
 ## Thread Safety
 

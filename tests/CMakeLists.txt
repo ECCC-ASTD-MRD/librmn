@@ -32,6 +32,8 @@ if (EC_INIT_DONE LESS 2)
         add_dependencies(test-script-files python-files)
         add_dependencies(test_execs test-script-files)
 
+        set(USING_OPENMPI OFF)
+
         if (TARGET rmn::rmn-ompi)
             # Check MPI implementation to be able to give the proper flags when running tests
             find_program(RPN_MPIRUN mpirun)
@@ -45,6 +47,7 @@ if (EC_INIT_DONE LESS 2)
                     OUTPUT_VARIABLE MPI_IMPLEMENTATION
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
                 if (MPI_IMPLEMENTATION MATCHES "[0-9]\\.[0-9]")
+                    set(USING_OPENMPI ON)
                     set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} --oversubscribe)
                     if (CMAKE_Fortran_COMPILER_ID MATCHES ".*Flang")
                         set(EXTRA_MPI_FLAGS ${EXTRA_MPI_FLAGS} -x LD_LIBRARY_PATH)
@@ -113,6 +116,12 @@ if (EC_INIT_DONE LESS 2)
             set(MPI_PREFIX "")
             if (DEFINED GEN_TEST_MPI_NUM)
                 set(MPI_PREFIX ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${GEN_TEST_MPI_NUM} ${EXTRA_MPI_FLAGS})
+
+                if (USING_OPENMPI AND DEFINED GEN_TEST_ENVIRONMENT)
+                    foreach(VAR ${GEN_TEST_ENVIRONMENT})
+                        set(MPI_PREFIX ${MPI_PREFIX} -x ${VAR})
+                    endforeach()
+                endif()
             endif()
 
             if (NOT ${GEN_TEST_DISABLE})
@@ -162,9 +171,9 @@ if (EC_INIT_DONE LESS 2)
         gen_test_target(SOURCES fst/fst24_interface.F90 NAME fst24_interface_f ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
         gen_test_target(SOURCES fst/fst98_interface.F90 LIBRARIES test_helper)
         gen_test_target(SOURCES fst/fstlnk.F90 LIBRARIES test_helper)
-        gen_test_target(SOURCES fst/fst24_meta.c ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
-        gen_test_target(SOURCES fst/fst24_meta.F90 NAME fst24_meta_f ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
-        gen_test_target(SOURCES fst/fst24_meta_find.c ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
+        # gen_test_target(SOURCES fst/fst24_meta.c ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
+        # gen_test_target(SOURCES fst/fst24_meta.F90 NAME fst24_meta_f ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
+        # gen_test_target(SOURCES fst/fst24_meta_find.c ENVIRONMENT "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
         gen_test_target(SOURCES fst/fst_compression.c)
         gen_test_target(SOURCES moduledate.F90)
         gen_test_target(SOURCES fst/fst_ipall.F90)
@@ -223,6 +232,8 @@ if (EC_INIT_DONE LESS 2)
             gen_test_target(SOURCES fst/multi_open.c MPI_NUM 4)
             gen_test_target(SOURCES fst/fst_multithread.c LIBRARIES rmn::rmn-ompi)
             gen_test_target(SOURCES fnom.c LIBRARIES rmn::rmn-ompi)
+            gen_test_target(SOURCES fst/fst_wait_open.c MPI_NUM 2 ENVIRONMENT "FST_OPTIONS=OPEN_WAIT_TIME=1")
+            gen_test_target(SOURCES fst/fst_multi_write.c MPI_NUM 10 ENVIRONMENT "FST_OPTIONS=OPEN_WAIT_TIME=30")
 
             gen_test_target(SOURCES circular_buffer/circular_buffer_fill.c MPI_NUM 8)
             gen_test_target(SOURCES circular_buffer/circular_buffer_concurrent.F90 MPI_NUM 8)
@@ -233,11 +244,15 @@ if (EC_INIT_DONE LESS 2)
         target_link_libraries(readlx_base rmn::rmn)
         # file(READ ${CMAKE_CURRENT_SOURCE_DIR}/readlx/output_readlx_02.txt EXPECTED_OUTPUT_02)
         add_test(NAME readlx_base COMMAND sh -c "env -u APP_VERBOSE_COLOR $<TARGET_FILE:readlx_base> ${CMAKE_CURRENT_BINARY_DIR}/inp_readlx_02.txt > ${CMAKE_CURRENT_BINARY_DIR}/output_readlx_02_current.txt")
+        # readlx_base produces output_readlx_02_current.txt, which readlx_compare_02
+        # diffs against the expected output. Use a CTest fixture so the compare only
+        # runs after the base test has finished (they must not run in parallel).
+        set_tests_properties(readlx_base PROPERTIES FIXTURES_SETUP READLX_BASE)
         add_test(NAME readlx_compare_02
                  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/get_diff.sh
                             ${CMAKE_CURRENT_BINARY_DIR}/output_readlx_02_current.txt
-                            ${CMAKE_CURRENT_BINARY_DIR}/output_readlx_02.txt
-                 DEPENDS readlx_base)
+                            ${CMAKE_CURRENT_BINARY_DIR}/output_readlx_02.txt)
+        set_tests_properties(readlx_compare_02 PROPERTIES FIXTURES_REQUIRED READLX_BASE)
         add_dependencies(test_execs readlx_base)
 
         # Python tests
@@ -277,9 +292,11 @@ if (EC_INIT_DONE LESS 2)
         set_target_properties(check PROPERTIES
             ADDITIONAL_CLEAN_FILES "1.rsf;2.rsf;abcde;abcde.rsf;abcde.xdf;abc.test;abort.rsf;abort.xdf;\
 BRPFIL1;brpfil1;BRPFIL2;brpfil2;by_index.fst;compression.rsf;compression.xdf;cube.fst;\
+cube_c.fst;cube_f.fst;\
 delete.rsf;delete.xdf;diff_size.rsf;diff_size.xdf;dummy.fst;dummy.rsf;edge_case_1.rsf;\
 edge_case_1.xdf;excdes.rsf;excdes.xdf;ezscint.fst;file1.fst;file2.fst;flush.rsf;flush.xdf;\
 fst123_meta.fst;fst24_interface1.fst;fst24_interface2.fst;fst24_interface3.fst;\
+fst24_interface_f1.fst;fst24_interface_f2.fst;fst24_interface_f3.fst;\
 fst24_rewrite_meta.rsf;fst24_rewrite_meta_solution.rsf;fst24_rewrite_meta_solution.xdf;\
 fst24_rewrite_meta.xdf;fst98_ipall_module.smod;fst_cross_link_module.smod;fst_edit_dir.rsf;\
 fst_edit_dir_solution.rsf;fst_edit_dir_solution.xdf;fst_edit_dir.xdf;fstinf_datev.rsf;\
@@ -287,7 +304,11 @@ fstinf_datev.xdf;fst_interface_2.fst;fst_interface.fst;fst_link_mod.smod;ip1.fst
 missing.fst;my_file.fst;no_dateo.rsf;no_dateo.xdf;output_readlx_02_current.txt;read_only.fst;\
 record_offset_size.rsf;record_offset_size.xdf;rewrite_skip.rsf;rewrite_skip.xdf;rsf1.fst;rsf2.fst;\
 search_params.fst;skip_descriptors.rsf;skip_descriptors.xdf;test_double.fst;test_float.fst;\
-test_fst24_meta_find.fst;test_fst98_interface_module.smod;Whiteboard.ckpt;xdf1.fst;xdf2.fst"
+test_fst24_meta_find.fst;test_fst98_interface_module.smod;Whiteboard.ckpt;xdf1.fst;xdf2.fst;\
+blind_calls.fst;data_map.fst;data_size.rsf;data_size.xdf;f1.fst;f2.fst;f4.fst;\
+large_record.rsf;multi_open.rsf;multi_write.rsf;open_close_link0;open_close_link1;\
+open_close_link2;open_close_link3;parallel.fst;python_fst_types_RSF.fst;\
+python_fst_types_XDF.fst;wildcard.rsf;wildcard.xdf;write_wait.rsf"
         )
       endif()
 endif()

@@ -415,11 +415,6 @@ install(EXPORT rmn-static-targets
     NAMESPACE rmn::
     DESTINATION ${CONFIG_INSTALL_DIR})
 
-# udunits2 does not saves it's targets configuration correctly
-install(EXPORT udunits2-targets
-        NAMESPACE udunits2::
-        DESTINATION ${CONFIG_INSTALL_DIR})
-
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
     "Config.cmake.in"
