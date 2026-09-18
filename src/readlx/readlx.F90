@@ -27,13 +27,13 @@ module readlx_qlxbuff
     implicit none
     save
 
-    integer :: NC = 1
-    integer :: LAST = 0
-    integer :: INPFILE = 5
-    integer :: NERR, SKIPFLG, CURREC, READREC, TMPFILE
-    logical :: EOFL = .false.
+    integer :: nc = 1
+    integer :: last = 0
+    integer :: inpfile = 5
+    integer :: nerr, skipflg, currec, readrec, tmpfile
+    logical :: eofl = .false.
 
-    character(len = 101) :: INLINE = ' '
+    character(len = 101) :: inline = ' '
 end module readlx_qlxbuff
 
 
@@ -41,8 +41,8 @@ module readlx_qlxfmt
     implicit none
     save
 
-    character(len = 20) :: LINEFMT
-    integer :: KARMOT = 04
+    character(len = 20) :: linefmt
+    integer :: karmot = 04
 end module readlx_qlxfmt
 
 
@@ -635,7 +635,8 @@ end
 !> Terminates execution if error is fatal
 subroutine qlx_err(code, module)
     use app
-    use readlx_qlxbuff
+    ! use readlx_qlxbuff
+    use readlx_qlxbuff, only: inline, last, nc, nerr
     implicit none
 
     !> Code d'erreur
@@ -688,7 +689,7 @@ subroutine qlx_err(code, module)
     call lib_log(APP_LIBRMN, msg_lvl(msg_lvl_idx), app_msg)
     write(app_msg, '(1x,a)') inline(21:last)
     call lib_log(APP_LIBRMN, APP_VERBATIM, app_msg)
-    write(app_msg, '(1X,101A1)') (' ', I = 1, NC-22), '^'
+    write(app_msg, '(1X,101A1)') (' ', I = 1, NC - 22), '^'
     call lib_log(APP_LIBRMN, APP_VERBATIM, app_msg)
 end
 
@@ -1976,11 +1977,11 @@ end
 
 !> Interprete de directives
 SUBROUTINE readlx(UNIT, KEND, KERR)
-    use app
-    use rmn_common
-    use rmn_fnom
-    use readlx_qlxbuff
-    use readlx_qlxfmt
+    use, intrinsic :: iso_fortran_env, only: int64
+    use app, only : APP_LIBRMN, APP_ERROR, lib_log
+    use rmn_fnom, only: fnom, fclos
+    use readlx_qlxbuff, only: currec, eofl, last, inpfile, nc, nerr, readrec, skipflg, tmpfile
+    use readlx_qlxfmt, only: karmot, linefmt
     use qlx_token, only: typ, token, inexpr, zval
     implicit none
 
@@ -1988,7 +1989,7 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
     INTEGER, INTENT(in) :: UNIT
     !> 0 : Pas de problème
     INTEGER, INTENT(out) :: KEND
-
+    !> Number of errors
     INTEGER, INTENT(inout) :: KERR
 
     EXTERNAL :: qlx_nvar, qlx_prnt, qlx_undf
@@ -2018,7 +2019,7 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
     WRITE(LINEFMT, '(A,I2,A)') '(25 A', KARMOT, ')'
 
     KERRMAX = 999999
-    IF (KERR < 0 ) THEN
+    IF (KERR < 0) THEN
         KERRMAX = MIN(ABS(KERR), KERRMAX)
     ENDIF
     ! print *,"==========================readlx NEW=========================="
