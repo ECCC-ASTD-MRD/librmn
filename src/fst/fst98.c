@@ -902,7 +902,7 @@ void print_std_parms(
 //! RSF files.  It retrieves the record's stdf_dir_keys using the existing
 //! c_xdfprm (XDF) or RSF_Get_record_info (RSF) functions and prints it with
 //! print_std_parms, much like c_fstluk_xdf does after reading a record.
-static void print_record_from_handle(
+void fst_print_record(
     //! [in] Handle of the record to print
     const int handle
 ) {
@@ -2812,7 +2812,7 @@ int c_fstinl(
 
     if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) {
         for (int i = 0; i < total_found; i++) {
-            print_record_from_handle(liste[i]);
+            fst_print_record(liste[i]);
         }
     }
 

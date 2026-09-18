@@ -9,6 +9,13 @@
       integer(C_INT32_T) :: is_rsf
     end function c_fst_is_rsf
 
+    ! void fst_print_record(const int handle);
+    subroutine fst_print_record(handle) bind(C, name = 'fst_print_record')
+      import :: C_INT
+      implicit none
+      integer(C_INT), intent(in), value :: handle
+    end subroutine fst_print_record
+
     ! int c_fst_data_length(int length_type);
     function c_fst_data_length(length_type) result(status) bind(C, name='c_fst_data_length')
       import :: C_INT
