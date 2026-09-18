@@ -1231,12 +1231,31 @@ function fstecr_b(bytes, work, npak, iun, date, deet, npas, ni, nj, nk, &
                     grtyp, ig1, ig2, ig3, ig4, datyp, rewrite)
 end function fstecr_b
 
+
+!> Convert nomvar, typvar, etiket, grtyp to or from Hollerith
 integer function fstcvt(nom, typ, etik, grtp, cnom, ctyp, cetik, cgrtp, holacar)
     use rmn_fst98, only: fstcvt2
     implicit none
-    integer, intent(inout) :: nom, typ, etik(3), grtp
-    character(len=*), intent(inout) :: cnom, ctyp, cetik, cgrtp
+
+    !> Hollerith nomvar
+    integer, intent(inout) :: nom
+    !> Hollerith typvar
+    integer, intent(inout) :: typ
+    !> Hollerith etiket
+    integer, intent(inout) :: etik(3)
+    !> Hollerith grtyp
+    integer, intent(inout) :: grtp
+    !> Character nomvar
+    character(len = *), intent(inout) :: cnom
+    !> Character typevar
+    character(len = *), intent(inout) :: ctyp
+    !> Character etiket
+    character(len = *), intent(inout) :: cetik
+    !> Character grtyp
+    character(len = *), intent(inout) :: cgrtp
+    !> Convert from Hollerith to character if true, convert from character to Hollerith otherwise
     logical, intent(in) :: holacar
+
     fstcvt = fstcvt2(nom, typ, etik, grtp, cnom, ctyp, cetik, cgrtp, holacar)
 end function fstcvt
 
