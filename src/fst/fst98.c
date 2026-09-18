@@ -2530,18 +2530,14 @@ int c_fstinfx_xdf(
         int nomatch = 1;
         while ((lhandle >=  0) && (nomatch)) {
             nomatch = 0;
-            if ((ip1s_flag) && (ip1 >= 0)) {
-                if (ip_is_equal(ip1, stdf_entry->ip1, 1) == 0) {
-                    nomatch = 1;
-                } else if ((ip2s_flag) && (ip2 >= 0)) {
-                    if (ip_is_equal(ip2, stdf_entry->ip2, 2) == 0) {
-                        nomatch = 1;
-                    } else if ((ip3s_flag) && (ip3 >= 0)) {
-                        if (ip_is_equal(ip3, stdf_entry->ip3, 3) == 0) {
-                            nomatch = 1;
-                        }
-                    }
-                }
+            if ((ip1s_flag) && (ip1 >= 0) && (ip_is_equal(ip1, stdf_entry->ip1, 1) == 0)) {
+                nomatch = 1;
+            }
+            if ((ip2s_flag) && (ip2 >= 0) && (ip_is_equal(ip2, stdf_entry->ip2, 2) == 0)) {
+                nomatch = 1;
+            }
+            if ((ip3s_flag) && (ip3 >= 0) && (ip_is_equal(ip3, stdf_entry->ip3, 3) == 0)) {
+                nomatch = 1;
             }
             if (nomatch) {
                 lhandle = c_xdfloc2(iun, -1, pkeys, 16, pmask);

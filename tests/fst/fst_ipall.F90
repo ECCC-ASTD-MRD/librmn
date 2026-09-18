@@ -12,25 +12,6 @@ module fst98_ipall_module
 
 contains
 
-subroutine dump_ips(handle, label)
-    implicit none
-    integer, intent(in) :: handle
-    character(len=*), intent(in) :: label
-    integer :: date, deet, npas, ni, nj, nk, nbits, datyp
-    integer :: ip1, ip2, ip3
-    integer :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
-    character(len=2) :: typvar
-    character(len=8) :: nomvar
-    character(len=12) :: etiket
-    character(len=1) :: grtyp
-    integer :: status
-    status = fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
-                    typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, &
-                    extra1, extra2, extra3)
-    write(app_msg, '(A, A, A, 3I12)') '  [', label, etiket(1:5), ip1, ip2, ip3
-    call App_Log(APP_INFO, app_msg)
-end subroutine dump_ips
-
 !> Assign the next unique label (etiket) to a record. nrec is a running counter
 !> that is incremented on each call; the label is "R" followed by the 4-digit
 !> sequence number (e.g. R0001, R0002, ...).
@@ -41,6 +22,53 @@ subroutine set_label(record, nrec)
     nrec = nrec + 1
     write(record % etiket, '(A, I4.4)') 'R', nrec
 end subroutine set_label
+
+!> Read the ip1, ip2, ip3 of the record corresponding to the given handle.
+subroutine get_ips(handle, ip1, ip2, ip3)
+    implicit none
+    integer, intent(in) :: handle
+    integer, intent(out) :: ip1, ip2, ip3
+    integer :: date, deet, npas, ni, nj, nk, nbits, datyp
+    character(len=2) :: typvar
+    character(len=8) :: nomvar
+    character(len=12) :: etiket
+    character(len=1) :: grtyp
+    integer :: ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, extra1, extra2, extra3
+    integer :: status
+    status = fstprm(handle, date, deet, npas, ni, nj, nk, nbits, datyp, ip1, ip2, ip3, &
+                    typvar, nomvar, etiket, grtyp, ig1, ig2, ig3, ig4, swa, lng, dlft, ubc, &
+                    extra1, extra2, extra3)
+    if (status /= 0) then
+        call App_Log(APP_ERROR, 'Could not read record parameters in get_ips')
+        error stop 1
+    end if
+end subroutine get_ips
+
+!> Check that the given ip value matches either the old-style or the new-style
+!> encoding of the given level.  When searching with ip*_all through the fst98
+!> interface, all the records returned carry the same encoding (old or new,
+!> whichever the search encounters first), so either one is acceptable here.
+subroutine check_ip_all(ip, level, name)
+    implicit none
+
+    include 'rmn/convert_ip123.inc'
+
+    integer, intent(in) :: ip
+    real, intent(in) :: level
+    character(len=*), intent(in) :: name
+    integer :: ip_new, ip_old
+    real :: llevel
+    integer :: lkind
+    llevel = level
+    lkind = ip_kind
+    call CONVIP_plus(ip_new, llevel, lkind, 2, dummy, .false.)
+    call CONVIP_plus(ip_old, llevel, lkind, 3, dummy, .false.)
+    if ((ip /= ip_new) .and. (ip /= ip_old)) then
+        write(app_msg, '(A, A, I12, A, I12, A, I12)') trim(name), ': found ip ', ip, ', expected ', ip_new, ' or ', ip_old
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
+end subroutine check_ip_all
 
 subroutine create_files(is_rsf)
     implicit none
@@ -201,8 +229,9 @@ subroutine look_fst98()
     integer :: ni, nj, nk
     integer :: ip
     integer :: num_record_found
+    integer :: rip1, rip2, rip3
 
-    call App_Log(APP_INFO, 'Testing fst98 interface')
+    call App_Log(APP_ALWAYS, '=== fst98 interface ===')
 
     units(:) = 0
     status = fstouv(filenames(1), units(1), 'RND+R/O')
@@ -233,7 +262,7 @@ subroutine look_fst98()
         error stop 1
     end if
 
-    call App_Log(APP_INFO, 'IP1')
+    call App_Log(APP_ALWAYS, '--- IP1 ---')
     ! IP1 not all
     call CONVIP_plus(ip, p(1), ip_kind, 2, dummy, .false.)
     status = fstinl(units(1), ni, nj, nk, -1, ' ', ip, -1, 1, ' ', ' ',          &
@@ -246,7 +275,18 @@ subroutine look_fst98()
 
     do i = 1, num_record_found
         status = fstluk(work, records(i), ni, nj, nk)
-        call dump_ips(records(i), 'IP1 not all')
+        call fst_print_record(records(i))
+        call get_ips(records(i), rip1, rip2, rip3)
+        if (rip1 /= ip) then
+            write(app_msg, '(A, I12, A, I12)') 'IP1 exact: record ip1 = ', rip1, ', expected ', ip
+            call App_Log(APP_ERROR, app_msg)
+            error stop 1
+        end if
+        if (rip3 /= 1) then
+            write(app_msg, '(A, I12)') 'IP1 exact: record ip3 = ', rip3, ', expected 1'
+            call App_Log(APP_ERROR, app_msg)
+            error stop 1
+        end if
     end do
 
     ! IP1 all
@@ -262,10 +302,17 @@ subroutine look_fst98()
 
     do i = 1, num_record_found
         status = fstluk(work, records(i), ni, nj, nk)
-        call dump_ips(records(i), 'IP1 all')
+        call fst_print_record(records(i))
+        call get_ips(records(i), rip1, rip2, rip3)
+        call check_ip_all(rip1, p(1), 'IP1 all')
+        if (rip3 /= 1) then
+            write(app_msg, '(A, I12)') 'IP1 all: record ip3 = ', rip3, ', expected 1'
+            call App_Log(APP_ERROR, app_msg)
+            error stop 1
+        end if
     end do
 
-    call App_Log(APP_INFO, 'IP2')
+    call App_Log(APP_ALWAYS, '--- IP2 ---')
     ! IP2 not all
     call CONVIP_plus(ip, p(2), ip_kind, 2, dummy, .false.)
     status = fstlir(work, units(1), ni, nj, nk, -1, ' ', 10, ip, -1, ' ', ' ')
@@ -273,7 +320,18 @@ subroutine look_fst98()
         call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP2 not all)')
         error stop 1
     end if
-    call dump_ips(status, 'IP2 not all')
+    call fst_print_record(status)
+    call get_ips(status, rip1, rip2, rip3)
+    if (rip1 /= 10) then
+        write(app_msg, '(A, I12)') 'IP2 exact: record ip1 = ', rip1, ', expected 10'
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
+    if (rip2 /= ip) then
+        write(app_msg, '(A, I12, A, I12)') 'IP2 exact: record ip2 = ', rip2, ', expected ', ip
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
 
     status = fstlis(work, units(1), ni, nj, nk)
     if (status > 0) then
@@ -288,14 +346,28 @@ subroutine look_fst98()
         call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP2 all)')
         error stop 1
     end if
-    call dump_ips(status, 'IP2 all #1')
+    call fst_print_record(status)
+    call get_ips(status, rip1, rip2, rip3)
+    if (rip1 /= 10) then
+        write(app_msg, '(A, I12)') 'IP2 all: record ip1 = ', rip1, ', expected 10'
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
+    call check_ip_all(rip2, p(2), 'IP2 all')
 
     status = fstlis(work, units(1), ni, nj, nk)
     if (status <= 0) then
         call App_Log(APP_ERROR, 'There are 2 records that match, should have been able to find the second one (IP2 all)')
         error stop 1
     end if
-    call dump_ips(status, 'IP2 all #2')
+    call fst_print_record(status)
+    call get_ips(status, rip1, rip2, rip3)
+    if (rip1 /= 10) then
+        write(app_msg, '(A, I12)') 'IP2 all: record ip1 = ', rip1, ', expected 10'
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
+    call check_ip_all(rip2, p(2), 'IP2 all')
 
     status = fstlis(work, units(1), ni, nj, nk)
     if (status > 0) then
@@ -303,7 +375,7 @@ subroutine look_fst98()
         error stop 1
     end if
 
-    call App_Log(APP_INFO, 'IP3')
+    call App_Log(APP_ALWAYS, '--- IP3 ---')
     ! IP3 not all
     call CONVIP_plus(ip, p(3), ip_kind, 2, dummy, .false.)
     status = fstlir(work, units(1), ni, nj, nk, -1, ' ', 100, -1, ip, ' ', ' ')
@@ -311,7 +383,18 @@ subroutine look_fst98()
         call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP3 not all)')
         error stop 1
     end if
-    call dump_ips(status, 'IP3 not all')
+    call fst_print_record(status)
+    call get_ips(status, rip1, rip2, rip3)
+    if (rip1 /= 100) then
+        write(app_msg, '(A, I12)') 'IP3 exact: record ip1 = ', rip1, ', expected 100'
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
+    if (rip3 /= ip) then
+        write(app_msg, '(A, I12, A, I12)') 'IP3 exact: record ip3 = ', rip3, ', expected ', ip
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
 
     status = fstlis(work, units(1), ni, nj, nk)
     if (status > 0) then
@@ -326,14 +409,28 @@ subroutine look_fst98()
         call App_Log(APP_ERROR, 'Should have been able to find record with fstlir (IP3 all)')
         error stop 1
     end if
-    call dump_ips(status, 'IP3 all #1')
+    call fst_print_record(status)
+    call get_ips(status, rip1, rip2, rip3)
+    if (rip1 /= 100) then
+        write(app_msg, '(A, I12)') 'IP3 all: record ip1 = ', rip1, ', expected 100'
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
+    call check_ip_all(rip3, p(3), 'IP3 all')
 
     status = fstlis(work, units(1), ni, nj, nk)
     if (status <= 0) then
         call App_Log(APP_ERROR, 'There are 2 records that match, should have been able to find the second one (IP3 all)')
         error stop 1
     end if
-    call dump_ips(status, 'IP3 all #2')
+    call fst_print_record(status)
+    call get_ips(status, rip1, rip2, rip3)
+    if (rip1 /= 100) then
+        write(app_msg, '(A, I12)') 'IP3 all: record ip1 = ', rip1, ', expected 100'
+        call App_Log(APP_ERROR, app_msg)
+        error stop 1
+    end if
+    call check_ip_all(rip3, p(3), 'IP3 all')
 
     status = fstlis(work, units(1), ni, nj, nk)
     if (status > 0) then
@@ -363,7 +460,7 @@ subroutine look_fst24()
     type(fst_record), dimension(100) :: records
     type(fst_record) :: record
 
-    call App_Log(APP_INFO, 'Testing fst24 interface')
+    call App_Log(APP_ALWAYS, '=== fst24 interface ===')
 
     success = file1 % open(filenames(1))
     if (.not. success) then
@@ -382,7 +479,7 @@ subroutine look_fst24()
         error stop 1
     end if
 
-    call App_Log(APP_INFO, 'IP1')
+    call App_Log(APP_ALWAYS, '--- IP1 ---')
     ! IP1 not all
     call CONVIP_plus(ip, p(1), ip_kind, 2, dummy, .false.)
 
@@ -409,7 +506,7 @@ subroutine look_fst24()
 
     call query % free()
 
-    call App_Log(APP_INFO, 'IP2')
+    call App_Log(APP_ALWAYS, '--- IP2 ---')
     ! IP2 not all
     call CONVIP_plus(ip, p(2), ip_kind, 2, dummy, .false.)
     query = file1 % new_query(ip2 = ip, ip1 = 10)
@@ -450,7 +547,7 @@ subroutine look_fst24()
 
     call query % free()
 
-    call App_Log(APP_INFO, 'IP3')
+    call App_Log(APP_ALWAYS, '--- IP3 ---')
     ! IP3 not all
     call CONVIP_plus(ip, p(3), ip_kind, 2, dummy, .false.)
     query = file1 % new_query(ip3 = ip, ip1 = 100)
@@ -504,6 +601,9 @@ end subroutine look_fst24
 subroutine test_ip_all(is_rsf)
     implicit none
     logical, dimension(2), intent(in) :: is_rsf
+
+    write(app_msg, '(A, 2L2)') 'Testing IP_ALL with is_rsf = ', is_rsf
+    call App_Log(APP_ALWAYS, app_msg)
 
     call create_files(is_rsf)
     call look_fst98()
