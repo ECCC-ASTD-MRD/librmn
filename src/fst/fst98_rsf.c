@@ -5,6 +5,7 @@
 #include "fst98_internal.h"
 #include "fst24_file_internal.h"
 #include "fst24_record_internal.h"
+#include "fst24_backend_rsf.h"
 #include "rsf_internal.h"
 #include "primitives/fnom_internal.h"
 
