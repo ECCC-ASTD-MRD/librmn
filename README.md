@@ -138,7 +138,7 @@ Librmn provides multiple targets:
 - `rmn-static`
 - `rmn-shared`
 
-Additionally, if MPI and OpenMP were found and enabled, the following targets,
+Additionally, if MPI and OpenMP were found and enabled, the following targets
 will also be available:
 - `rmn-ompi-static`
 - `rmn-ompi-shared`
