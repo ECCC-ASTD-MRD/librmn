@@ -5,10 +5,6 @@
 
 #include "fst24_file_internal.h"
 
-//! Mutex protecting the (not thread-safe) XDF primitives that are shared across
-//! all open XDF files. Defined in fst24_backend_xdf.c.
-extern pthread_mutex_t fst24_xdf_mutex;
-
 //! Convert an XDF record handle to an fst24 record index
 int32_t fst24_make_index_from_xdf_handle(const int handle);
 

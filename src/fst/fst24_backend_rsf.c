@@ -7,6 +7,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include <App.h>
 
@@ -15,6 +17,7 @@
 #include "fst24_record_internal.h"
 #include "fst98_internal.h"
 #include "rsf_internal.h"
+#include "fst24_backend.h"
 #include "fst24_backend_rsf.h"
 #include "rmn/Meta.h"
 
@@ -920,3 +923,96 @@ end_read:
     free(work_space);
     return status;
 }
+
+// ---------------------------------------------------------------------------
+// Backend operations table (vtable)
+// ---------------------------------------------------------------------------
+
+static int32_t rsf_flush(const fst_file* file) {
+    return RSF_Checkpoint(file->rsf_handle);
+}
+
+static int64_t rsf_get_num_records(const fst_file* file) {
+    return (int64_t)RSF_Get_num_records(file->rsf_handle);
+}
+
+static int32_t rsf_write(fst_file* file, fst_record* record) {
+    return fst24_write_rsf(file->rsf_handle, record, 1);
+}
+
+static int32_t rsf_rewrite_meta(fst_file* file, fst_record* record) {
+    return fst24_rewrite_meta_rsf(file->rsf_handle, record->do_not_touch.handle, record);
+}
+
+static int32_t rsf_get_record_from_key(const fst_file* file, const int64_t key, fst_record* record) {
+    return get_record_from_key_rsf(file->rsf_handle, key, record);
+}
+
+static int32_t rsf_get_record_by_index(const fst_file* file, const int32_t index, fst_record* record) {
+    const RSF_record_info record_info = RSF_Get_record_info_by_index(file->rsf_handle, index);
+    if (record_info.rec_type == RT_NULL) return FALSE; // Error retrieving the record
+    return update_attributes_from_rsf_info(record, RSF_Make_key(file->file_index_backend, index), &record_info);
+}
+
+static int64_t rsf_find_next(const fst_file* file, fst_query* query) {
+    return find_next_rsf(file->rsf_handle, query);
+}
+
+static int32_t rsf_read_record(fst_record* record) {
+    return fst24_read_record_rsf(record, image_mode_copy, 0);
+}
+
+static void* rsf_read_data_map(fst_record* record) {
+    if (record->do_not_touch.fst_version < 2 || record->data_blocks.map_size <= 0) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: No data map for record with key 0x%x in RSF file %s\n",
+                __func__, record->do_not_touch.handle, record->file->path);
+        return NULL;
+    }
+    if (fst24_read_record_rsf(record, 1, 1) != 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read data map from RSF file %s\n", __func__, record->file->path);
+        return NULL;
+    }
+    return record->data_blocks.map;
+}
+
+static void* rsf_read_metadata(fst_record* record) {
+    if (record->do_not_touch.fst_version > 0) {
+        record->metadata = Meta_Parse((const char*)(record->do_not_touch.stringified_meta));
+        return record->metadata; // If version > 0, we already have it.
+    }
+    if (fst24_read_record_rsf(record, 0, 1) != 0) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read meta from RSF file %s\n", __func__, record->file->path);
+        return NULL;
+    }
+    return record->metadata;
+}
+
+static int32_t rsf_delete_record(fst_record* record) {
+    return RSF_Delete_record(record->file->rsf_handle, record->do_not_touch.handle) == 1;
+}
+
+static int32_t rsf_force_close(const char* filename) {
+    const int32_t file_descriptor = open(filename, O_RDWR, 0777);
+    if (file_descriptor > 0) {
+        const int32_t status = RSF_Reset_write_flag(file_descriptor, 1);
+        close(file_descriptor);
+        return status;
+    }
+    return -1;
+}
+
+const fst_backend_ops fst24_rsf_ops = {
+    .name                 = "RSF",
+    .flush                = rsf_flush,
+    .get_num_records      = rsf_get_num_records,
+    .write                = rsf_write,
+    .rewrite_meta         = rsf_rewrite_meta,
+    .get_record_from_key  = rsf_get_record_from_key,
+    .get_record_by_index  = rsf_get_record_by_index,
+    .find_next            = rsf_find_next,
+    .read_record          = rsf_read_record,
+    .read_data_map        = rsf_read_data_map,
+    .read_metadata        = rsf_read_metadata,
+    .delete_record        = rsf_delete_record,
+    .force_close          = rsf_force_close,
+};

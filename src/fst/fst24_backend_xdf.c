@@ -16,13 +16,12 @@
 #include "fst24_record_internal.h"
 #include "fst98_internal.h"
 #include "xdf98.h"
+#include "fst24_backend.h"
 #include "fst24_backend_xdf.h"
 #include "rmn/swap_buffer.h"
 
-//! Mutex protecting the (not thread-safe) XDF primitives that are shared across
-//! all open XDF files. Exposed (non-static) so that the common fst24 API in
-//! fst24_file.c can also take it (e.g. when rewriting an XDF record's metadata).
-pthread_mutex_t fst24_xdf_mutex = PTHREAD_MUTEX_INITIALIZER;
+//! Mutex protecting the (not thread-safe) XDF primitives that are shared across all open XDF files.
+static pthread_mutex_t fst24_xdf_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int32_t fst24_make_index_from_xdf_handle(const int handle) {
     return RECORD_FROM_HANDLE((handle & 0xffffffff)) + (PAGENO_FROM_HANDLE((handle & 0xffffffff)) * ENTRIES_PER_PAGE);
@@ -283,3 +282,98 @@ int32_t fst24_read_record_xdf(
 
     return handle;
 }
+
+// ---------------------------------------------------------------------------
+// Backend operations table (vtable)
+// ---------------------------------------------------------------------------
+
+static int32_t xdf_flush(const fst_file* file) {
+    return c_fstckp_xdf(file->iun);
+}
+
+static int64_t xdf_get_num_records(const fst_file* file) {
+    const int status = c_fstnbrv_xdf(file->iun);
+    return status < 0 ? -1 : status;
+}
+
+static int32_t xdf_write(fst_file* file, fst_record* record) {
+    return fst24_write_xdf(record, FST_NO);
+}
+
+static int32_t xdf_rewrite_meta(fst_file* file, fst_record* record) {
+    if (record->metadata != NULL) {
+        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot add extended metadata to an XDF record (will be ignored)\n",
+                __func__);
+    }
+
+    pthread_mutex_lock(&fst24_xdf_mutex);
+    const int dateo = get_origin_date32(record->datev, record->deet, record->npas);
+    if (dateo != record->dateo) {
+        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Inconsistent origin and validity dates "
+            "(with respect to timestep size and number). Origin date will be updated\n", __func__);
+        record->dateo = dateo;
+    }
+    const int ier = c_fst_edit_dir_plus_xdf(record->do_not_touch.handle & 0xffffffff, record->datev, record->deet,
+        record->npas, -1, -1, -1, record->ip1, record->ip2, record->ip3, record->typvar, record->nomvar,
+        record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4, -1);
+    pthread_mutex_unlock(&fst24_xdf_mutex);
+
+    return ier == 0 ? TRUE : FALSE;
+}
+
+static int32_t xdf_get_record_from_key(const fst_file* file, const int64_t key, fst_record* record) {
+    return update_attributes_from_xdf_handle(record, key & 0xffffffff);
+}
+
+static int32_t xdf_get_record_by_index(const fst_file* file, const int32_t index, fst_record* record) {
+    const int32_t key = fst24_make_xdf_handle_from_index(index, file->file_index_backend);
+    return update_attributes_from_xdf_handle(record, key);
+}
+
+static int64_t xdf_find_next(const fst_file* file, fst_query* query) {
+    return find_next_xdf(file->iun, query);
+}
+
+static int32_t xdf_read_record(fst_record* record) {
+    return fst24_read_record_xdf(record);
+}
+
+static void* xdf_read_data_map(fst_record* record) {
+    Lib_Log(APP_LIBFST, APP_WARNING, "%s: No data map for file type %d (%s)\n", __func__, record->file->type, record->file->path);
+    return NULL;
+}
+
+static void* xdf_read_metadata(fst_record* record) {
+    Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot read metatada for XDF files (%s)\n", __func__, record->file->path);
+    return NULL;
+}
+
+static int32_t xdf_delete_record(fst_record* record) {
+    return c_fsteff_xdf(record->do_not_touch.handle) == 0;
+}
+
+static int32_t xdf_force_close(const char* filename) {
+    fst_file* xdf_force = fst24_open(filename, "FORCE-WRITE+R/W");
+    if (xdf_force == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not force open file in write mode (%d)\n", __func__, filename);
+        return -1;
+    }
+    if (fst24_close(xdf_force) == TRUE) return TRUE;
+    return -1;
+}
+
+const fst_backend_ops fst24_xdf_ops = {
+    .name                 = "XDF",
+    .flush                = xdf_flush,
+    .get_num_records      = xdf_get_num_records,
+    .write                = xdf_write,
+    .rewrite_meta         = xdf_rewrite_meta,
+    .get_record_from_key  = xdf_get_record_from_key,
+    .get_record_by_index  = xdf_get_record_by_index,
+    .find_next            = xdf_find_next,
+    .read_record          = xdf_read_record,
+    .read_data_map        = xdf_read_data_map,
+    .read_metadata        = xdf_read_metadata,
+    .delete_record        = xdf_delete_record,
+    .force_close          = xdf_force_close,
+};

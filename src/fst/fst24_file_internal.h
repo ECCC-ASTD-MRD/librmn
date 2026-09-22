@@ -12,12 +12,15 @@ typedef enum {
     FST_RSF  = 2
 } fst_file_type;
 
+typedef struct fst_backend_ops_ fst_backend_ops; //!< Backend operations (defined in fst24_backend.h)
+
 //! Base type to reference a FST file
 typedef struct fst24_file_ {
     int32_t       iun;                  //!< File unit, used by fnom
     int32_t       file_index;           //!< File index in list of open FST files (the list is different for RSF and XDF)
     int32_t       file_index_backend;   //!< File index in one of the lists of either RSF or XDF open files
     fst_file_type type;                 //!< Type of file (RSF, XDF, etc.)
+    const fst_backend_ops* ops;         //!< Backend operations (set in fst24_open)
     RSF_handle    rsf_handle;           //!< If type is RSF, handle to the file
     struct fst24_file_ *next;           //!< Next file in linked list of files (if any)
     const char* path;                   //!< Given when opening this file

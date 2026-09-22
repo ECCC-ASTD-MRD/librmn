@@ -12,8 +12,7 @@
 #include "fst24_file_internal.h"
 #include "fst24_record_internal.h"
 #include "fst98_internal.h"
-#include "fst24_backend_rsf.h"
-#include "fst24_backend_xdf.h"
+#include "fst24_backend.h"
 #include "rmn/fnom.h"
 #include "rmn/Meta.h"
 #include "xdf98.h"
@@ -42,6 +41,7 @@ static const char * fst_file_type_name[] = {
     .file_index_backend = -1,               \
     .rsf_handle.p       = NULL,             \
     .type               = FST_NONE,         \
+    .ops                = NULL,             \
     .next               = NULL,             \
     .path               = NULL,             \
     .tag                = NULL,             \
@@ -59,7 +59,7 @@ static const char * fst_file_type_name[] = {
 //! \return 1 if the pointer is valid and the file is open, 0 otherwise
 int32_t fst24_is_open(const fst_file* const file) {
     return file != NULL &&
-           (file->type == FST_RSF || file->type == FST_XDF) &&
+           file->ops != NULL &&
            file->file_index >= 0 &&
            file->file_index_backend >= 0 &&
            file->iun != 0 &&
@@ -159,11 +159,13 @@ fst_file* fst24_open(
     the_file->path = FGFDT[index_fnom].file_name;
     if (rsf_status == 1) {
         the_file->type = FST_RSF;
+        the_file->ops = &fst24_rsf_ops;
         the_file->rsf_handle = FGFDT[the_file->file_index].rsf_fh;
         the_file->file_index_backend = RSF_Get_file_slot(the_file->rsf_handle);
     }
     else {
         the_file->type = FST_XDF;
+        the_file->ops = &fst24_xdf_ops;
         the_file->file_index_backend = file_index_xdf(the_file->iun);
     }
 
@@ -275,16 +277,12 @@ int32_t fst24_flush(
 ) {
     if (!fst24_is_open(file)) return ERR_NO_FILE;
 
-    if (file->type == FST_RSF) {
-        RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
-        return RSF_Checkpoint(file_handle);
+    if (file->ops == NULL || file->ops->flush == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: flush not available for file type %s (%s)\n",
+            __func__, fst_file_type_name[file->type], file->path);
+        return -1;
     }
-    else if (file->type == FST_XDF) {
-        return c_fstckp_xdf(file->iun);
-    }
-
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d (%s)\n", __func__, file->type, file->path);
-    return -1;
+    return file->ops->flush(file);
 }
 
 
@@ -303,19 +301,13 @@ int64_t fst24_get_num_records(
 
     int64_t total_num_records = 0;
 
-    if (file->type == FST_RSF) {
-        RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
-        total_num_records = (int64_t)RSF_Get_num_records(file_handle);
-    }
-    else if (file->type == FST_XDF) {
-        const int status = c_fstnbrv_xdf(file->iun);
-        if (status < 0) return 0; // Stop recursion here if error
-        total_num_records = status;
-    }
-    else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type (%s)\n", __func__, file->path);
+    if (file->ops == NULL || file->ops->get_num_records == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: get_num_records not available for file type %s (%s)\n",
+             __func__, fst_file_type_name[file->type], file->path);
         return 0;
     }
+    total_num_records = file->ops->get_num_records(file);
+    if (total_num_records < 0) return 0; // Stop recursion here if error
 
     if (file->next != NULL) total_num_records += fst24_get_num_records(file->next);
 
@@ -600,31 +592,12 @@ int32_t fst24_write(
 
         int return_value = -1;
         App_TimerStart(&file->write_timer);
-        if (file->type == FST_XDF) {
-            if (record->metadata != NULL) {
-                Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot add extended metadata to an XDF record (will be ignored)\n",
-                        __func__);
-            }
-
-            pthread_mutex_lock(&fst24_xdf_mutex);
-            const int dateo = get_origin_date32(record->datev, record->deet, record->npas);
-            if (dateo != record->dateo) {
-                Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Inconsistent origin and validity dates "
-                    "(with respect to timestep size and number). Origin date will be updated\n", __func__);
-                record->dateo = dateo;
-            }
-            const int ier = c_fst_edit_dir_plus_xdf(record->do_not_touch.handle & 0xffffffff, record->datev, record->deet,
-                record->npas, -1, -1, -1, record->ip1, record->ip2, record->ip3, record->typvar, record->nomvar,
-                record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4, -1);
-            pthread_mutex_unlock(&fst24_xdf_mutex);
-
-            if (ier == 0) return_value = TRUE;
-        }
-        else if (file->type == FST_RSF) {
-            return_value = fst24_rewrite_meta_rsf(file->rsf_handle, record->do_not_touch.handle, record);
+        if (file->ops == NULL || file->ops->rewrite_meta == NULL) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: rewrite_meta not available for file type %s (%s)\n",
+                __func__, fst_file_type_name[file->type], file->path);
         }
         else {
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
+            return_value = file->ops->rewrite_meta(file, record);
         }
         App_TimerStop(&file->write_timer);
         return return_value;
@@ -697,52 +670,16 @@ int32_t fst24_write(
 
     // No skip, so we write
     int32_t return_value = -1;
-    if (file->type == FST_RSF) {
-        return_value = fst24_write_rsf(file->rsf_handle, record, 1);
-    }
-    else if (file->type == FST_XDF) {
-        return_value = fst24_write_xdf(record, FST_NO);
+    if (file->ops == NULL || file->ops->write == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: write not available for file type %s (%s)\n",
+            __func__, fst_file_type_name[file->type], file->path);
     }
     else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
+        return_value = file->ops->write(file, record);
     }
 
     App_TimerStop(&file->write_timer);
     if (return_value == TRUE) file->num_bytes_written += fst24_record_data_size(record);
-    return return_value;
-}
-
-
-//! Not finished yet
-int32_t fst24_rewrite_meta(fst_record* const record) {
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: This function is not tested\n", __func__);
-    return -1;
-    if (!fst24_record_is_valid(record)) return ERR_BAD_INIT;
-    const fst_file* file = record->file;
-    if (!fst24_is_open(file)) return ERR_NO_FILE;
-
-    const int dateo = get_origin_date32(record->datev, record->deet, record->npas);
-    if (dateo != record->dateo) {
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Inconsistent origin and validity dates "
-            "(with respect to timestep size and number). Origin date will be updated\n", __func__);
-        record->dateo = dateo;
-    }
-
-    int32_t return_value = FALSE;
-    if (file->type == FST_RSF) {
-        return_value = fst24_rewrite_meta_rsf(record->file->rsf_handle, record->do_not_touch.handle, record);
-    }
-    else if (file->type == FST_XDF) {
-        const int ier = c_fst_edit_dir_plus_xdf(
-            (int32_t)record->do_not_touch.handle, record->datev, record->deet, record->npas,
-            -1, -1, -1, record->ip1, record->ip2, record->ip3, record->typvar, record->nomvar,
-            record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4, -1);
-        if (ier == 0) return_value = TRUE;
-    }
-    else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
-    }
-
     return return_value;
 }
 
@@ -771,20 +708,13 @@ int32_t fst24_get_record_from_key(
     fst_record_set_to_default(record);
     record->do_not_touch.handle = key;
 
-    if (file->type == FST_RSF) {
-        RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
-        if (get_record_from_key_rsf(file_handle, key, record) != TRUE) {
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to get record with key %lx\n", __func__, key);
-            return FALSE;
-        }
+    if (file->ops == NULL || file->ops->get_record_from_key == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: get_record_from_key not available for file type %s (%s)\n",
+            __func__, fst_file_type_name[file->type], file->path);
+        return FALSE;
     }
-    else if (file->type == FST_XDF) {
-        if (update_attributes_from_xdf_handle(record, key & 0xffffffff) != TRUE) {
-            return FALSE;
-        }
-    }
-    else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unknown/invalid file type %d (%s)\n", __func__, file->type, file->path);
+    if (file->ops->get_record_from_key(file, key, record) != TRUE) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unable to get record with key %lx\n", __func__, key);
         return FALSE;
     }
 
@@ -809,20 +739,12 @@ int32_t fst24_get_record_by_index(
 
     record->file = file;
 
-    if (file->type == FST_RSF) {
-        RSF_handle file_handle = FGFDT[file->file_index].rsf_fh;
-        const RSF_record_info record_info = RSF_Get_record_info_by_index(file_handle, index);
-
-        if (record_info.rec_type == RT_NULL) return FALSE; // Error retrieving the record
-
-        return update_attributes_from_rsf_info(record, RSF_Make_key(file->file_index_backend, index), &record_info);
+    if (file->ops == NULL || file->ops->get_record_by_index == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: get_record_by_index not available for file type %s (%s)\n",
+            __func__, fst_file_type_name[file->type], file->path);
+        return FALSE;
     }
-    else if (file->type == FST_XDF) {
-        const int32_t key = fst24_make_xdf_handle_from_index(index, file->file_index_backend);
-        return update_attributes_from_xdf_handle(record, key);
-    }
-
-    return FALSE;
+    return file->ops->get_record_by_index(file, index, record);
 }
 
 //! Create a search query that will apply the given criteria during a search in a file.
@@ -929,8 +851,8 @@ static void ensure_next_query(fst_query* query) {
 //! check those manually, outside the backend search functions
 int32_t is_actual_match(fst_record* const record, const fst_query* const query) {
 
-    // Check on excdes desire/exclure clauses
-    if (query->file->type == FST_RSF &&
+    // Check on excdes desire/exclure clauses (applies to all non-XDF backends)
+    if (query->file->type != FST_XDF &&
         !query->options.skip_filter &&
         !C_fst_rsf_match_req(record->datev, record->ni, record->nj, record->nk, record->ip1, record->ip2, record->ip3,
         record->typvar, record->nomvar, record->etiket, record->grtyp, record->ig1, record->ig2, record->ig3, record->ig4)) {
@@ -1008,10 +930,12 @@ int32_t fst24_find_next(
     fst_record tmp_record = default_fst_record;
     int found = FALSE;
     while (!found) {
-        const int64_t key = 
-            query->file->type == FST_RSF ? find_next_rsf(query->file->rsf_handle, query) :
-            query->file->type == FST_XDF ? find_next_xdf(query->file->iun, query) :
-                                           -1;
+        if (query->file->ops == NULL || query->file->ops->find_next == NULL) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: find_next not available for file type %s (%s)\n", __func__,
+                    fst_file_type_name[query->file->type], query->file->path);
+            return -1;
+        }
+        const int64_t key = query->file->ops->find_next(query->file, query);
 
         if (key < 0) break; // Not in this file
 
@@ -1407,23 +1331,12 @@ void* fst24_read_data_map(
        return NULL;
     }
 
-    if (record->file->type == FST_RSF) {
-        if (record->do_not_touch.fst_version < 2 || record->data_blocks.map_size <= 0) {
-            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: No data map for record with key 0x%x in RSF file %s\n",
-                    __func__, record->do_not_touch.handle, record->file->path);
-            return NULL;
-        }
-
-        if (fst24_read_record_rsf(record, 1, 1) != 0) {
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read data map from RSF file %s\n", __func__, record->file->path);
-            return NULL;
-        }
-
-        return record->data_blocks.map;
+    if (record->file->ops == NULL || record->file->ops->read_data_map == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: read_data_map not available for file type %s (%s)\n",
+            __func__, fst_file_type_name[record->file->type], record->file->path);
+        return NULL;
     }
-
-    Lib_Log(APP_LIBFST, APP_WARNING, "%s: No data map for file type %d (%s)\n", __func__, record->file->type, record->file->path);
-    return NULL;
+    return record->file->ops->read_data_map(record);
 }
 
 
@@ -1448,25 +1361,12 @@ void* fst24_read_metadata(
        return NULL;
     }
 
-    if (record->file->type == FST_RSF) {
-        if (record->do_not_touch.fst_version > 0) {
-            record->metadata = Meta_Parse((const char*)(record->do_not_touch.stringified_meta));
-            return record->metadata; // If version > 0, we already have it.
-        }
-
-        if (fst24_read_record_rsf(record, 0, 1) != 0) {
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Error trying to read meta from RSF file %s\n", __func__, record->file->path);
-            return NULL;
-        }
-        return record->metadata;
-    }
-    else if (record->file->type == FST_XDF) {
-        Lib_Log(APP_LIBFST, APP_WARNING, "%s: Cannot read metatada for XDF files (%s)\n", __func__, record->file->path);
+    if (record->file->ops == NULL || record->file->ops->read_metadata == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: read_metadata not available for file type %s (%s)\n",
+            __func__, fst_file_type_name[record->file->type], record->file->path);
         return NULL;
     }
-
-    Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d (%s)\n", __func__, record->file->type, record->file->path);
-    return NULL;
+    return record->file->ops->read_metadata(record);
 }
 
 //! Read the data and metadata of a given record from its corresponding file.
@@ -1521,15 +1421,12 @@ int32_t fst24_read_record(
     App_TimerStart((TApp_Timer*)&record->file->read_timer); // Cast because it's a pointer to a const fst_file object
 
     int32_t ret = -1;
-    if (record->file->type == FST_RSF) {
-        ret = fst24_read_record_rsf(record, image_mode_copy, 0);
-    }
-    else if (record->file->type == FST_XDF) {
-        ret = fst24_read_record_xdf(record);
+    if (record->file->ops == NULL || record->file->ops->read_record == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: read_record not available for file type %s (%s)\n",
+            __func__, fst_file_type_name[record->file->type], record->file->path);
     }
     else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type (%s)\n", __func__, record->file->path);
-        ret = -1;
+        ret = record->file->ops->read_record(record);
     }
 
     App_TimerStop((TApp_Timer*)&record->file->read_timer); // Cast because it's a pointer to a const fst_file object
@@ -1763,16 +1660,12 @@ int32_t fst24_delete(
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Deleting record %d from file %s, type %s\n",
             __func__, record->do_not_touch.handle, record->file->path, fst_file_type_name[record->file->type]);
 
-    if (record->file->type == FST_RSF) {
-        if (RSF_Delete_record(record->file->rsf_handle, record->do_not_touch.handle) != 1) return FALSE;
-    }
-    else if (record->file->type == FST_XDF) {
-        if (c_fsteff_xdf(record->do_not_touch.handle) != 0) return FALSE;
-    }
-    else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type (%s)\n", __func__, record->file->path);
+    if (record->file->ops == NULL || record->file->ops->delete_record == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: delete_record not available for file type %s (%s)\n",
+            __func__, fst_file_type_name[record->file->type], record->file->path);
         return FALSE;
     }
+    if (record->file->ops->delete_record(record) != TRUE) return FALSE;
 
     record->do_not_touch.deleted = 1;
 
@@ -1818,24 +1711,12 @@ int32_t fst24_force_close(
     }
 
     int32_t status = -1;
-    if (file->type == FST_RSF) {
-        const int32_t file_descriptor = open(filename, O_RDWR, 0777);
-        if (file_descriptor > 0) {
-            status = RSF_Reset_write_flag(file_descriptor, 1);
-            close(file_descriptor);
-        }
-    }
-    else if (file->type == FST_XDF) {
-        fst_file* xdf_force = fst24_open(filename, "FORCE-WRITE+R/W");
-        if (xdf_force == NULL) {
-            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not force open file in write mode (%d)\n", __func__, filename);
-        }
-        else {
-            if (fst24_close(xdf_force) == TRUE) status = TRUE;
-        }
+    if (file->ops == NULL || file->ops->force_close == NULL) {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: force_close not available for file type %s (%s)\n",
+            __func__, fst_file_type_name[file->type], file->path);
     }
     else {
-        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Unrecognized file type %d\n", __func__, file->type);
+        status = file->ops->force_close(filename);
     }
 
     if (status == TRUE) {
