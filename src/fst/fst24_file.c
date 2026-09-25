@@ -154,7 +154,7 @@ fst_file* fst24_open(
         free(the_file);
         return NULL;
     }
-    if (c_fstouv(the_file->iun, local_options) < 0) {
+    if (c_fstouv_fst24(the_file->iun, local_options) < 0) {
         c_fclos(the_file->iun);
         free(the_file);
         return NULL;

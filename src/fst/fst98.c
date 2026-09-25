@@ -70,8 +70,9 @@ int nb_remap = 0;
 //! @name FST_OPTIONS
 //! @{
 
-//! Backend type (XDF or RSF) -- Controlled by the `BACKEND` option
-static char *fst_backend = NULL;
+//! Backend type to use when none is specified in the open options (XDF or RSF) -- Controlled by the
+//! `BACKEND` option in the `FST_OPTIONS` environment variable.
+static char *fst_backend = "XDF";
 //! Segment size for RSF, when writing in parallel (in MB) -- Controlled by the `SEGMENT_SIZE_MB` option
 static int32_t segment_size_mb = 1000;
 //! Whether to ignore the MSGLVL option in fstopc and fstopi -- Controlled by the `IGNORE_MSGLVL` option
@@ -3966,14 +3967,21 @@ unlock:
 }
 
 //! Open a RPN standard file
-int c_fstouv(
+static int c_fstouv_impl(
     //! [in] Unit number associated to the file
     const int iun,
     //! [in] Random or sequential access
-    const char * const options
+    const char * const options,
+    //! [in] Whether the open was requested through the fst24 interface (as opposed to the fst98 one).
+    //!       The two interfaces share this implementation; the flag lets them diverge where needed
+    //!       (e.g. the fst24 interface will support the CDF backend while fst98 will reject it).
+    const int32_t is_fst24
 ) {
     //! \return Number of records in file
     //! \see c_fstfrm
+
+    // The fst24/fst98 distinction is not used yet; it will gate CDF handling (see above).
+    (void)is_fst24;
 
     // Check fnom index first, because we can't initialize the fst98 library if fnom is not itself initialized
     int i = get_fnom_index(iun);
@@ -4098,6 +4106,30 @@ int c_fstouv(
 
     int nrec = c_fstnbr(iun);
     return nrec;
+}
+
+//! Open a RPN standard file, as requested through the old fst98 interface.
+//! \see c_fstouv_impl
+int c_fstouv(
+    //! [in] Unit number associated to the file
+    const int iun,
+    //! [in] Random or sequential access
+    const char * const options
+) {
+    return c_fstouv_impl(iun, options, FALSE);
+}
+
+//! Open a RPN standard file, as requested through the new fst24 interface.
+//! This is the entry point used by fst24_open; it shares its implementation with c_fstouv but is
+//! flagged so that the two interfaces can diverge where needed (e.g. CDF support).
+//! \see c_fstouv_impl
+int c_fstouv_fst24(
+    //! [in] Unit number associated to the file
+    const int iun,
+    //! [in] Random or sequential access
+    const char * const options
+) {
+    return c_fstouv_impl(iun, options, TRUE);
 }
 
 
