@@ -26,6 +26,7 @@ module rmn_fst24
         procedure, pass   :: get_num_records => fst24_file_get_num_records !< fst24_file_get_num_records
         procedure, pass   :: get_unit => fst24_file_get_unit    !< \copydoc fst24_file_get_unit
         procedure, pass   :: is_rsf   => fst24_file_is_rsf      !< \copydoc fst24_file_is_rsf
+        procedure, pass   :: backend_name => fst24_file_backend_name !< \copydoc fst24_file_backend_name
         procedure, pass   :: get_c_ptr => fst24_file_get_c_ptr  !< \private \copydoc fst24_file_get_c_ptr
         procedure, pass   :: open_and_link => fst24_file_open_and_link  !< \copydoc fst24_file_open_and_link
 
@@ -125,7 +126,7 @@ contains
             strlen = c_strlen(c_name)
             call c_f_strpointer(c_name, name, strlen)
         else
-            name = ''
+            allocate(character(len=0) :: name)
         end if
     end function fst24_file_get_name
 
@@ -257,6 +258,26 @@ contains
         is_rsf = .false.
         if (status > 0) is_rsf = .true.
     end function fst24_file_is_rsf
+
+    !> \return The name of the backend used by this file (e.g. "RSF", "XDF"), an empty string if not open
+    function fst24_file_backend_name(this) result(name)
+        use rmn_libc, only: c_strlen
+        implicit none
+
+        class(fst_file), intent(in) :: this
+        character(len = :), pointer :: name
+
+        integer :: strlen
+        type(C_PTR) :: c_name
+
+        c_name = fst24_backend_name(this % file_ptr)
+        if (c_associated(c_name)) then
+            strlen = c_strlen(c_name)
+            call c_f_strpointer(c_name, name, strlen)
+        else
+            allocate(character(len=0) :: name)
+        end if
+    end function fst24_file_backend_name
 
     !> \copybrief fst24_read
     !> \return .true. if we found a record, .false. if not or if error

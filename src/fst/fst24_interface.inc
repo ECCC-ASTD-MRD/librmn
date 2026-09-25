@@ -261,6 +261,13 @@ interface
         integer(C_INT32_T) :: is_rsf
     end function fst24_is_rsf
 
+    function fst24_backend_name(file) result(name) bind(C, name = 'fst24_backend_name')
+        import :: C_PTR
+        implicit none
+        type(C_PTR), intent(in), value :: file
+        type(C_PTR) :: name
+    end function fst24_backend_name
+
     subroutine fst24_query_free(query) bind(C, name = 'fst24_query_free')
         import :: C_PTR
         implicit none

@@ -1133,6 +1133,10 @@ int32_t fst24_is_open(const fst_file* const file);
 //! \return Whether the given file is of type RSF, or 0 if the input does not point to an open file
 int32_t fst24_is_rsf(const fst_file* const file);
 
+//! \return The name of the backend used by the given file (e.g. "RSF", "XDF"), or NULL if the input
+//! does not point to an open file. Ignores any potential linked files.
+const char* fst24_backend_name(const fst_file* const file);
+
 //! \return The name of the file, if open. NULL otherwise
 const char* fst24_file_name(const fst_file* const file);
 
@@ -1512,6 +1516,7 @@ contains
     procedure, nopass :: is_valid
     procedure, pass   :: is_open
     procedure, pass   :: is_rsf
+    procedure, pass   :: backend_name
     procedure, pass   :: open
     procedure, pass   :: open_and_link
     procedure, pass   :: close
@@ -1623,6 +1628,13 @@ function is_rsf(this) result(is_rsf)
     class(fst_file), intent(in) :: this
     logical :: is_rsf
 end function is_rsf
+
+!> Return the name of the backend used by this file (e.g. "RSF", "XDF"), an empty string if not open
+function backend_name(this) result(name)
+    implicit none
+    class(fst_file), intent(in) :: this
+    character(len=:), pointer :: name
+end function backend_name
 
 !> Return Name of the file if open, an empty string otherwise
 function fst24_file_get_name(this) result(name)

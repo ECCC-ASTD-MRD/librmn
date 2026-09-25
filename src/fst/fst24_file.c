@@ -29,10 +29,11 @@ const fst_query_options default_query_options = {
 
 extern const char * const FST_TYPE_NAMES[];
 
+//! Names of the file types, matching the backend names (ops->name)
 static const char * fst_file_type_name[] = {
-    [FST_NONE] = "FST_NONE",
-    [FST_XDF]  = "FST_XDF",
-    [FST_RSF]  = "FST_RSF"
+    [FST_NONE] = "NONE",
+    [FST_XDF]  = "XDF",
+    [FST_RSF]  = "RSF"
 };
 
 #define default_fst_file ((fst_file) {      \
@@ -76,6 +77,13 @@ const char* fst24_file_name(const fst_file* const file) {
 int32_t fst24_is_rsf(const fst_file* const file) {
     if (fst24_is_open(file)) return file->type == FST_RSF;
     return 0;
+}
+
+//! \return The name of the backend used by the given file (e.g. "RSF", "XDF"), or NULL if the input
+//! does not point to an open file. Ignores any potential linked files.
+const char* fst24_backend_name(const fst_file* const file) {
+    if (fst24_is_open(file) && file->ops != NULL) return file->ops->name;
+    return NULL;
 }
 
 //! Get unit number for API calls that require it. This exists mostly for compatibility with

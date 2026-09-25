@@ -11,6 +11,7 @@ if (EC_INIT_DONE LESS 2)
 
         set(TEST_SCRIPTS_SOURCE
             fst/fst_force_close.sh
+            fst/fst_backend_name.py
             fst/fst_open_close_link.py
             fst/fst_types.py
             readlx/get_diff.sh
@@ -190,6 +191,7 @@ if (EC_INIT_DONE LESS 2)
         gen_test_target(SOURCES fst/excdes.c)
         gen_test_target(SOURCES fst/fst_cross_link.F90)
         gen_test_target(SOURCES fst/fst24_by_index.c)
+        gen_test_target(SOURCES fst/fst24_backend_name.c)
         gen_test_target(SOURCES fst/fst_rewrite_with_filter.c)
         gen_test_target(SOURCES fst/fstouv.c)
         gen_test_target(SOURCES fst/fst24_skip_descriptors.c)
@@ -266,8 +268,9 @@ if (EC_INIT_DONE LESS 2)
             add_test( NAME python_unit_tests COMMAND bash -c "${set_pythonpath} python3 ${CMAKE_CURRENT_BINARY_DIR}/test_rmn.py")
             add_test( NAME python_fst_open_close_link COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/fst_open_close_link.py )
             add_test( NAME python_fst_types COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/fst_types.py )
+            add_test( NAME python_fst_backend_name COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/fst_backend_name.py )
             set_property(
-                TEST python_fst_open_close_link python_fst_types PROPERTY
+                TEST python_fst_open_close_link python_fst_types python_fst_backend_name PROPERTY
                 ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python")
         endif()
 
@@ -310,7 +313,8 @@ test_fst24_meta_find.fst;test_fst98_interface_module.smod;Whiteboard.ckpt;xdf1.f
 blind_calls.fst;data_map.fst;data_size.rsf;data_size.xdf;f1.fst;f2.fst;f4.fst;\
 large_record.rsf;multi_open.rsf;multi_write.rsf;open_close_link0;open_close_link1;\
 open_close_link2;open_close_link3;parallel.fst;python_fst_types_RSF.fst;\
-python_fst_types_XDF.fst;wildcard.rsf;wildcard.xdf;write_wait.rsf"
+python_fst_types_XDF.fst;wildcard.rsf;wildcard.xdf;write_wait.rsf;\
+backend_name.fst;backend_name_RSF.fst;backend_name_XDF.fst"
         )
       endif()
 endif()
