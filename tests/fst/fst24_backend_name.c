@@ -3,11 +3,13 @@
 #include <App.h>
 #include <rmn.h>
 
-const char* test_filename = "backend_name.fst";
-
 //! Check that fst24_backend_name returns the expected name for a file opened with the given backend,
 //! and NULL when the input does not point to an open file (here, a NULL pointer).
 int do_test(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
+
+    char test_filename[64];
+    snprintf(test_filename, sizeof(test_filename), "backend_name.%s", backend);
     remove(test_filename);
 
     char options[64];
@@ -41,12 +43,10 @@ int do_test(const char* backend) {
 }
 
 int main(void) {
-    App_Log(APP_INFO, "Testing fst24_backend_name (RSF)\n");
     if (do_test("RSF") != 0) return -1;
 
-    App_Log(APP_INFO, "Testing fst24_backend_name (XDF)\n");
     if (do_test("XDF") != 0) return -1;
 
-    App_Log(APP_INFO, "Tests successful\n");
+    App_Log(APP_ALWAYS, "Test successful\n");
     return 0;
 }

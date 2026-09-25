@@ -6,13 +6,6 @@ module test_fst24_interface_module
     use rmn_meta
     implicit none
 
-    ! Distinct filenames from the C test (fst24_interface.c) so the two can
-    ! run in parallel without clobbering each other's files.
-    character(len=*), dimension(3), parameter :: test_file_names = [    &
-                'fst24_interface_f1.fst',                               &
-                'fst24_interface_f2.fst',                               &
-                'fst24_interface_f3.fst'                                &
-    ]
     character(len=2000) :: cmd
     integer, parameter :: DATA_SIZE = 1024
 
@@ -111,10 +104,10 @@ function check_content(content, expected) result(success)
     success = .true.
 end function check_content
 
-function create_file(name, is_rsf, ip2, ip3) result(success)
+function create_file(name, backend, ip2, ip3) result(success)
     implicit none
     character(len=*), intent(in) :: name
-    logical, intent(in) :: is_rsf
+    character(len=*), intent(in) :: backend
     integer, intent(in) :: ip2, ip3
     logical :: success
 
@@ -128,12 +121,7 @@ function create_file(name, is_rsf, ip2, ip3) result(success)
     write(cmd, '(A, (1X, A))') 'rm -fv ', name
     call execute_command_line(trim(cmd))
 
-    options = 'RND+R/W'
-    if (is_rsf) then
-        options = options // '+RSF'
-    else
-        options = options // '+XDF'
-    endif
+    options = 'RND+R/W+' // backend
 
     success = new_file % open(trim(name), options)
     if (.not. success) then
@@ -202,10 +190,14 @@ function create_file(name, is_rsf, ip2, ip3) result(success)
     success = .true.
 end function
 
-function test_fst24_interface(is_rsf) result(success)
+function test_fst24_interface(backend1, backend2, backend3) result(success)
     implicit none
-    logical, intent(in) :: is_rsf
+    character(len=*), intent(in) :: backend1, backend2, backend3
     logical :: success
+
+    ! Distinct filenames from the C test (fst24_interface.c) so the two can
+    ! run in parallel without clobbering each other's files.
+    character(len=64), dimension(3) :: test_file_names
 
     type(fst_file) :: test_file
     type(fst_record) :: expected, record, record_by_index
@@ -218,8 +210,23 @@ function test_fst24_interface(is_rsf) result(success)
     real(kind = real32), dimension(:, :, :), pointer :: ok_dim
 
     success = .false.
+    test_file_names(1) = 'fst24_interface_f1.' // backend1
+    test_file_names(2) = 'fst24_interface_f2.' // backend2
+    test_file_names(3) = 'fst24_interface_f3.' // backend3
 
-    success = create_file(test_file_names(1), is_rsf, test_record % ip2, test_record % ip3)
+    write(app_msg, '(A, 3(1X, A))') 'Testing ', backend1, backend2, backend3
+    call App_Log(APP_ALWAYS, app_msg)
+
+    ! backend_name() on a file that is not open should return an empty string
+    block
+        type(fst_file) :: closed_file
+        if (closed_file % backend_name() /= '') then
+            call App_Log(APP_ERROR, 'backend_name() should be empty for a file that is not open')
+            return
+        end if
+    end block
+
+    success = create_file(test_file_names(1), backend1, test_record % ip2, test_record % ip3)
     if (.not. success) then
         call App_Log(APP_ERROR, 'file is not created')
         return
@@ -233,8 +240,8 @@ function test_fst24_interface(is_rsf) result(success)
 
     call App_Log(APP_INFO, 'Opened file ' // test_file % get_name())
 
-    if (test_file % is_rsf() .neqv. is_rsf) then
-        call App_Log(APP_ERROR, 'Test file has wrong RSF/XDF type')
+    if (test_file % backend_name() /= backend1) then
+        call App_Log(APP_ERROR, 'Test file has wrong backend type')
         return
     end if
 
@@ -312,7 +319,7 @@ function test_fst24_interface(is_rsf) result(success)
         end if
 
         success = record % read_metadata()
-        if ((.not. success) .and. is_rsf) then
+        if ((.not. success) .and. backend1 == 'RSF') then
             call app_log(APP_ERROR, 'Shoud have been able to read metadata')
             return
         end if
@@ -509,8 +516,8 @@ function test_fst24_interface(is_rsf) result(success)
 
         file_list(1) = test_file
 
-        success = create_file(test_file_names(2), .not. is_rsf, test_record % ip2 + 1, test_record % ip3 + 1)   &
-            .and. create_file(test_file_names(3),       is_rsf, test_record % ip2 + 2, test_record % ip3 + 1)
+        success = create_file(test_file_names(2), backend2, test_record % ip2 + 1, test_record % ip3 + 1)   &
+            .and. create_file(test_file_names(3), backend3, test_record % ip2 + 2, test_record % ip3 + 1)
 
         if (.not. success) then
             call app_log(APP_ERROR, 'Unable to create other files for link tests')
@@ -772,11 +779,9 @@ program fst24_interface
     if (.not. fst24_is_default_query_options_valid()) error stop 1
     call make_test_record()
 
-    call App_Log(APP_INFO, 'Doing RSF tests')
-    if (.not. test_fst24_interface(.true.)) error stop 1
-    call App_Log(APP_INFO, 'Doing XDF tests')
-    if (.not. test_fst24_interface(.false.)) error stop 1
+    if (.not. test_fst24_interface('RSF', 'XDF', 'RSF')) error stop 1
+    if (.not. test_fst24_interface('XDF', 'RSF', 'XDF')) error stop 1
 
     call delete_test_data()
-    call App_Log(APP_INFO, 'Tests successful')
+    call App_Log(APP_ALWAYS, 'Test successful')
 end program fst24_interface

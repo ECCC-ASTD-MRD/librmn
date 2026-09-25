@@ -8,8 +8,8 @@ FILE_RSF="abort.rsf"
 FILE_XDF="abort.xdf"
 
 set -x
-${GEN_ABORT_FILE} 1
-${GEN_ABORT_FILE} 0
+${GEN_ABORT_FILE} RSF
+${GEN_ABORT_FILE} XDF
 set +x
 
 for f in ${FILE_RSF} ${FILE_XDF}; do

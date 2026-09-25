@@ -8,9 +8,10 @@ const int32_t BIG_NI = 1 << 30;
 const int32_t BIG_NJ = BIG_NI;
 const int32_t MEDIUM_NJ = 1 << 26;
 
-int create_file(const int is_rsf) {
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+int create_file(const char* backend) {
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
     remove(filename);
 
     fst_file* test_file = fst24_open(filename, options);
@@ -79,11 +80,11 @@ int create_file(const int is_rsf) {
     return 0;
 }
 
-int run_test(const int is_rsf) {
-    App_Log(APP_ALWAYS, "%s: Testing %s\n", __func__, is_rsf ? "RSF" : "XDF");
-    if (create_file(is_rsf) != 0) return -1;
+int run_test(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
+    if (create_file(backend) != 0) return -1;
 
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
 
     fst_file* test_file = fst24_open(filename, NULL);
 
@@ -142,6 +143,8 @@ int run_test(const int is_rsf) {
 }
 
 int main(void) {
-    if (run_test(1) != 0) return -1;
+    // RSF only: the XDF backend does not support records this large
+    if (run_test("RSF") != 0) return -1;
+    App_Log(APP_ALWAYS, "Test successful\n");
     return 0;
 }

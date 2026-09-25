@@ -5,9 +5,10 @@
 const char* filename_rsf = "skip_descriptors.rsf";
 const char* filename_xdf = "skip_descriptors.xdf";
 
-int create_file(const int is_rsf) {
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* options = is_rsf ? "R/W+RSF" : "R/W+XDF";
+int create_file(const char* backend) {
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    char options[64];
+    snprintf(options, sizeof(options), "R/W+%s", backend);
 
     remove(filename);
 
@@ -62,11 +63,12 @@ int create_file(const int is_rsf) {
     return 0;
 }
 
-int test_skip_descriptors(const int is_rsf) {
+int test_skip_descriptors(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
 
-    if (create_file(is_rsf) != 0) return -1;
+    if (create_file(backend) != 0) return -1;
 
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
 
     fst_file* f = fst24_open(filename, NULL);
 
@@ -101,11 +103,9 @@ int test_skip_descriptors(const int is_rsf) {
 }
 
 int main(void) {
-    App_Log(APP_INFO, "Testing RSF\n");
-    if (test_skip_descriptors(1) != 0) return -1;
-    App_Log(APP_INFO, "Testing XDF\n");
-    if (test_skip_descriptors(0) != 0) return -1;
-    App_Log(APP_INFO, "Test successful\n");
+    if (test_skip_descriptors("RSF") != 0) return -1;
+    if (test_skip_descriptors("XDF") != 0) return -1;
+    App_Log(APP_ALWAYS, "Test successful\n");
 
     return 0;
 }

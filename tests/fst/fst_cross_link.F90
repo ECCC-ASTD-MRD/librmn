@@ -5,20 +5,23 @@ module fst_cross_link_module
     use rmn_fst98
     implicit none
 
-    character(len=*), parameter :: filename1 = 'file1.fst'
-    character(len=*), parameter :: filename2 = 'file2.fst'
+    character(len=64) :: filename1
+    character(len=64) :: filename2
     character(len=2048) :: cmd
 
     real, dimension(1), target :: dummy_data
 
 contains
-    subroutine create_files(is_rsf1, is_rsf2)
+    subroutine create_files(backend1, backend2)
         implicit none
-        logical, intent(in) :: is_rsf1, is_rsf2
+        character(len=*), intent(in) :: backend1, backend2
 
         type(fst_file) :: f
         type(fst_record) :: r
         logical :: success
+
+        filename1 = 'file1.' // backend1
+        filename2 = 'file2.' // backend2
 
         ! Remove file(s) so that we have a fresh start
         write(cmd, '(A, (1X, A))') 'rm -fv ', filename1
@@ -27,21 +30,13 @@ contains
         call execute_command_line(trim(cmd))
 
         ! Create empty first file
-        if (is_rsf1) then
-            success = f % open(filename1, options = 'RSF+R/W')
-        else
-            success = f % open(filename1, options = 'XDF+R/W')
-        end if
+        success = f % open(filename1, options = backend1 // '+R/W')
         if (.not. success) error stop 1
         success = f % close()
         if (.not. success) error stop 1
 
         ! Create second file with 1 record
-        if (is_rsf2) then
-            success = f % open(filename2, options = 'RSF+R/W')
-        else
-            success = f % open(filename2, options = 'XDF+R/W')
-        end if
+        success = f % open(filename2, options = backend2 // '+R/W')
         if (.not. success) error stop 1
 
         r % data = c_loc(dummy_data)
@@ -73,9 +68,9 @@ contains
 
     end subroutine create_files
 
-    subroutine test_cross_link(is_rsf1, is_rsf2)
+    subroutine test_cross_link(backend1, backend2)
         implicit none
-        logical, intent(in) :: is_rsf1, is_rsf2
+        character(len=*), intent(in) :: backend1, backend2
 
         type(fst_file)   :: f1, f2
         type(fst_query)  :: q
@@ -84,7 +79,10 @@ contains
         integer :: handle
         integer :: ni, nj, nk
 
-        call create_files(is_rsf1, is_rsf2)
+        write(app_msg, '(A, 2(1X, A))') 'Testing ', backend1, backend2
+        call App_Log(APP_ALWAYS, app_msg)
+
+        call create_files(backend1, backend2)
 
         success = f1 % open(filename1) .and. f2 % open(filename2)
         if (.not. success) error stop 1
@@ -142,10 +140,10 @@ program fst_cross_link
     use fst_cross_link_module
     implicit none
 
-    call test_cross_link(.true., .true.)
-    call test_cross_link(.true., .false.)
-    call test_cross_link(.false., .true.)
-    call test_cross_link(.false., .false.)
+    call test_cross_link('RSF', 'RSF')
+    call test_cross_link('RSF', 'XDF')
+    call test_cross_link('XDF', 'RSF')
+    call test_cross_link('XDF', 'XDF')
 
-    call App_Log(APP_INFO, 'Test successful')
+    call App_Log(APP_ALWAYS, 'Test successful')
 end program fst_cross_link

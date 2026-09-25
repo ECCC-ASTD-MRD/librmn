@@ -13,14 +13,15 @@ static inline float float_diff(const uint32_t a, const uint32_t b) {
     return fabsf(as_float(&a) - as_float(&b));
 }
 
-int run_test(const int is_rsf) {
+int run_test(const char* backend) {
 
-    App_Log(APP_INFO, "Run test for %s\n", is_rsf ? "RSF" : "XDF");
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
 
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
     remove(filename);
 
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
     fst_file* test_file = fst24_open(filename, options);
     
     if (test_file == NULL) {
@@ -103,7 +104,8 @@ int run_test(const int is_rsf) {
 }
 
 int main(void) {
-    if (run_test(1) != 0) return -1;
-    if (run_test(0) != 0) return -1;
+    if (run_test("RSF") != 0) return -1;
+    if (run_test("XDF") != 0) return -1;
+    App_Log(APP_ALWAYS, "Test successful\n");
     return 0;
 }

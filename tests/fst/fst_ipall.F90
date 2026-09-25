@@ -4,7 +4,7 @@ module fst98_ipall_module
     use rmn_fst24
     implicit none
 
-    character(len=*), dimension(2), parameter :: filenames = ['ip1.fst', 'ip2.fst']
+    character(len=64), dimension(2) :: filenames
 
     real, dimension(3) :: p = [ 0.1, 0.2, 0.3 ]
     integer :: ip_kind = 2
@@ -70,12 +70,12 @@ subroutine check_ip_all(ip, level, name)
     end if
 end subroutine check_ip_all
 
-subroutine create_files(is_rsf)
+subroutine create_files(backend)
     implicit none
 
     include 'rmn/convert_ip123.inc'
 
-    logical, dimension(2), intent(in) :: is_rsf
+    character(len=*), dimension(2), intent(in) :: backend
 
     type(fst_file), dimension(2) :: files
     character(len=2000) :: cmd
@@ -88,7 +88,10 @@ subroutine create_files(is_rsf)
 
     nrec = 0
 
-    write(app_msg, '(A, 2L2)') 'Creating test files ', is_rsf
+    filenames(1) = 'ip1.' // backend(1)
+    filenames(2) = 'ip2.' // backend(2)
+
+    write(app_msg, '(A, 2(1X, A))') 'Creating test files ', backend
     call App_Log(APP_INFO, app_msg)
 
     ! Remove file so that we have a fresh start
@@ -96,11 +99,7 @@ subroutine create_files(is_rsf)
         write(cmd, '(A, 2(1X, A))') 'rm -fv ', filenames(i)
         call execute_command_line(trim(cmd))
 
-        if (is_rsf(i)) then
-            success = files(i) % open(filenames(i), 'RSF+R/W')
-        else
-            success = files(i) % open(filenames(i), 'XDF+R/W')
-        end if
+        success = files(i) % open(filenames(i), backend(i) // '+R/W')
 
         if (.not. success) then
             call App_Log(APP_ERROR, 'Could not open (create) file')
@@ -598,14 +597,14 @@ subroutine look_fst24()
     end if
 end subroutine look_fst24
 
-subroutine test_ip_all(is_rsf)
+subroutine test_ip_all(backend)
     implicit none
-    logical, dimension(2), intent(in) :: is_rsf
+    character(len=*), dimension(2), intent(in) :: backend
 
-    write(app_msg, '(A, 2L2)') 'Testing IP_ALL with is_rsf = ', is_rsf
+    write(app_msg, '(A, 2(1X, A))') 'Testing IP_ALL with backend = ', backend
     call App_Log(APP_ALWAYS, app_msg)
 
-    call create_files(is_rsf)
+    call create_files(backend)
     call look_fst98()
     call look_fst24()
 
@@ -617,9 +616,10 @@ program fst98_ipall
     use fst98_ipall_module
     implicit none
 
-    call test_ip_all([ .false., .false. ])
-    call test_ip_all([ .false., .true.  ])
-    call test_ip_all([ .true.,  .false. ])
-    call test_ip_all([ .true.,  .true.  ])
+    call test_ip_all([ 'RSF', 'RSF' ])
+    call test_ip_all([ 'RSF', 'XDF' ])
+    call test_ip_all([ 'XDF', 'RSF' ])
+    call test_ip_all([ 'XDF', 'XDF' ])
 
+    call App_Log(APP_ALWAYS, 'Test successful')
 end program fst98_ipall

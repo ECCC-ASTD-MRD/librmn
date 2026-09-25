@@ -6,9 +6,10 @@ const char* filename_xdf = "wildcard.xdf";
 
 const char* base_etiket = "ABCDEFGHIJKL";
 
-static int create_file(const int is_rsf) {
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* options = is_rsf ? "R/W+RSF" : "R/W+XDF";
+static int create_file(const char* backend) {
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    char options[64];
+    snprintf(options, sizeof(options), "R/W+%s", backend);
 
     remove(filename);
     fst_file* test_file = fst24_open(filename, options);
@@ -112,23 +113,23 @@ static int create_file(const int is_rsf) {
     return 0;
 }
 
-static int test_fst24(const int is_rsf);
-static int test_fst98(const int is_rsf);
+static int test_fst24(const char* backend);
+static int test_fst98(const char* backend);
 
-static int run_wildcard_test(const int is_rsf) {
+static int run_wildcard_test(const char* backend) {
 
-    App_Log(APP_ALWAYS, "Testing %s\n", is_rsf ? "RSF" : "XDF");
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
 
-    if (create_file(is_rsf) != 0) return -1;
-    if (test_fst24(is_rsf) != 0) return -1;
-    if (test_fst98(is_rsf) != 0) return -1;
+    if (create_file(backend) != 0) return -1;
+    if (test_fst24(backend) != 0) return -1;
+    if (test_fst98(backend) != 0) return -1;
 
     return 0;
 }
 
-static int test_fst24(const int is_rsf) {
+static int test_fst24(const char* backend) {
 
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
     fst_file* test_file = fst24_open(filename, NULL);
     if (test_file == NULL) {
         App_Log(APP_ERROR, "%s: Unable to open (read) file %s\n", __func__, filename);
@@ -279,9 +280,9 @@ static int test_fst24(const int is_rsf) {
     return 0;
 }
 
-static int test_fst98(const int is_rsf) {
+static int test_fst98(const char* backend) {
 
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
 
     int status = 0;
     int iun = 0;
@@ -475,7 +476,8 @@ static int test_fst98(const int is_rsf) {
 }
 
 int main(void) {
-    if (run_wildcard_test(1) != 0) return -1;
-    if (run_wildcard_test(0) != 0) return -1;
+    if (run_wildcard_test("RSF") != 0) return -1;
+    if (run_wildcard_test("XDF") != 0) return -1;
+    App_Log(APP_ALWAYS, "Test successful\n");
     return 0;
 }

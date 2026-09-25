@@ -4,7 +4,6 @@ module fst24_search_params_module
     use rmn_fst24
     implicit none
 
-    character(len=*), parameter :: test_filename = 'search_params.fst'
     integer, dimension(3*3*3), target :: test_data
     type(fst_record) :: record1
     type(fst_record) :: record2
@@ -13,19 +12,20 @@ module fst24_search_params_module
     character(len=2048) :: cmd
 contains
 
-subroutine create_file(is_rsf)
+subroutine create_file(backend)
     implicit none
-    logical, intent(in) :: is_rsf
+    character(len=*), intent(in) :: backend
 
     type(fst_file) :: test_file
     logical :: success
     character(len=:), allocatable :: options
+    character(len=64) :: test_filename
 
+    test_filename = 'search_params.' // backend
     write(cmd, '(A, (1X, A))') 'rm -fv ', test_filename
     call execute_command_line(trim(cmd))
 
-    options = 'RSF+R/W'
-    if (.not. is_rsf) options = 'XDF+R/W'
+    options = backend // '+R/W'
 
     success = test_file % open(test_filename, options = options)
     if (.not. success) then
@@ -134,15 +134,21 @@ subroutine create_file(is_rsf)
     success = test_file % close()
 end subroutine create_file
 
-subroutine run_test(is_rsf)
+subroutine run_test(backend)
     implicit none
-    logical, intent(in) :: is_rsf
+    character(len=*), intent(in) :: backend
 
     type(fst_file)   :: test_file
     type(fst_record) :: rec
     logical :: success
+    character(len=64) :: test_filename
 
-    call create_file(is_rsf)
+    test_filename = 'search_params.' // backend
+
+    write(app_msg, '(A, A)') 'Testing ', backend
+    call App_Log(APP_ALWAYS, app_msg)
+
+    call create_file(backend)
 
     success = test_file % open(test_filename)
     if (.not. success) then
@@ -348,6 +354,7 @@ program fst24_search_params
     use fst24_search_params_module
     implicit none
 
-    call run_test(.true.)
-    ! call run_test(.false.)
+    call run_test('RSF')
+    ! call run_test('XDF')
+    call App_Log(APP_ALWAYS, 'Test successful')
 end program fst24_search_params

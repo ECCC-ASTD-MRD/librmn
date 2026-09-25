@@ -5,9 +5,10 @@
 const char* test_filename_rsf = "excdes.rsf";
 const char* test_filename_xdf = "excdes.xdf";
 
-int create_file(const int is_rsf) {
-    const char* test_filename = is_rsf ? test_filename_rsf : test_filename_xdf;
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+int create_file(const char* backend) {
+    const char* test_filename = strcmp(backend, "RSF") == 0 ? test_filename_rsf : test_filename_xdf;
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
 
     remove(test_filename);
     fst_file* test_file = fst24_open(test_filename, options);
@@ -74,10 +75,11 @@ int validate_num_found(const int32_t num_found, const int32_t num_expected) {
     return -1;
 }
 
-int test_excdes(const int is_rsf) {
-    if (create_file(is_rsf) < 0) return -1;
+int test_excdes(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
+    if (create_file(backend) < 0) return -1;
 
-    const char* test_filename = is_rsf ? test_filename_rsf : test_filename_xdf;
+    const char* test_filename = strcmp(backend, "RSF") == 0 ? test_filename_rsf : test_filename_xdf;
 
     fst_file* test_file = fst24_open(test_filename, NULL);
     fst_query* q = fst24_new_query(test_file, NULL, NULL);
@@ -156,10 +158,10 @@ int test_excdes(const int is_rsf) {
     return 0;
 }
 
-int test_excdes_98(const int is_rsf) {
-    if (create_file(is_rsf) < 0) return -1;
+int test_excdes_98(const char* backend) {
+    if (create_file(backend) < 0) return -1;
 
-    const char* test_filename = is_rsf ? test_filename_rsf : test_filename_xdf;
+    const char* test_filename = strcmp(backend, "RSF") == 0 ? test_filename_rsf : test_filename_xdf;
 
     int iun = 0;
     if (c_fnom(&iun, test_filename, "STD+RND+R/O", 0) != 0) {
@@ -275,15 +277,13 @@ int test_excdes_98(const int is_rsf) {
 
 int main(void) {
 
-    App_Log(APP_INFO, "Testing RSF\n");
-    if (test_excdes(1) < 0) return -1;
-    if (test_excdes_98(1) < 0) return -1;
+    if (test_excdes("RSF") < 0) return -1;
+    if (test_excdes_98("RSF") < 0) return -1;
 
-    App_Log(APP_INFO, "Testing XDF\n");
-    if (test_excdes(0) < 0) return -1;
-    if (test_excdes_98(0) < 0) return -1;
+    if (test_excdes("XDF") < 0) return -1;
+    if (test_excdes_98("XDF") < 0) return -1;
 
-    App_Log(APP_INFO, "Test successful\n");
+    App_Log(APP_ALWAYS, "Test successful\n");
 
     return 0;
 }

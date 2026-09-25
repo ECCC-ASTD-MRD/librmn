@@ -34,11 +34,12 @@ static fst_record make_record() {
     return rec;
 }
 
-int create_file(const int is_rsf) {
-    App_Log(APP_ALWAYS, "%s: Testing %s\n", __func__, is_rsf ? "RSF" : "XDF");
+int create_file(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
 
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
 
     remove(filename);
 
@@ -63,13 +64,13 @@ int create_file(const int is_rsf) {
 
 int main(int argc, char** argv) {
     if (argc > 1) {
-        const int arg = atoi(argv[1]);
-        if (create_file(arg) != 0) return -1;
+        if (create_file(argv[1]) != 0) return -1;
     }
     else {
-        if (create_file(1) != 0) return -1;
-        if (create_file(0) != 0) return -1;
+        if (create_file("RSF") != 0) return -1;
+        if (create_file("XDF") != 0) return -1;
     }
+    App_Log(APP_ALWAYS, "Test successful\n");
     return 0;
 }
 

@@ -10,10 +10,12 @@ static const char* test_filename_rsf = "write_wait.rsf";
 static int rank = -1;
 
 
-static int run_test(const int is_rsf) {
-    
-    const char* filename = is_rsf ? test_filename_rsf : test_filename_xdf;
-    const char* options0 = is_rsf ? "RSF+R/W" : "XDF+R/W";
+static int run_test(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
+
+    const char* filename = strcmp(backend, "RSF") == 0 ? test_filename_rsf : test_filename_xdf;
+    char options0[64];
+    snprintf(options0, sizeof(options0), "%s+R/W", backend);
 
     fst_file* test_file = NULL;
 
@@ -132,10 +134,10 @@ int main(int argc, char** argv) {
         return MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    if (run_test(1) != 0) return MPI_Abort(MPI_COMM_WORLD, 1);
+    if (run_test("RSF") != 0) return MPI_Abort(MPI_COMM_WORLD, 1);
 
     // Feature unavailable for XDF files
-    // if (run_test(0) != 0) return MPI_Abort(MPI_COMM_WORLD, 1);
+    // if (run_test("XDF") != 0) return MPI_Abort(MPI_COMM_WORLD, 1);
 
     MPI_Finalize();
 

@@ -5,7 +5,7 @@
 #include <App.h>
 #include <rmn.h>
 
-const char* test_filename = "parallel.fst";
+const char* test_filename = "parallel_threads.fst";
 
 const size_t NUM_ELEM = 1000;
 

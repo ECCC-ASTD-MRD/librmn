@@ -31,10 +31,11 @@ static fst_record new_record = default_fst_record;
     }
 
 //! Create input test file and initialize base record.
-static int create_file(const int is_rsf) {
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* solution_filename = is_rsf ? solution_filename_rsf : solution_filename_xdf;
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+static int create_file(const char* backend) {
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    const char* solution_filename = strcmp(backend, "RSF") == 0 ? solution_filename_rsf : solution_filename_xdf;
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
 
     remove(filename);
     remove(solution_filename);
@@ -261,12 +262,12 @@ static int compare_records(const int handle_a, const int handle_b) {
     return 0;
 }
 
-static int run_test(const int is_rsf) {
-    App_Log(APP_INFO, "%s: Running %s test\n", __func__, is_rsf ? "RSF" : "XDF");
-    if (create_file(is_rsf) != 0) return -1;
+static int run_test(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
+    if (create_file(backend) != 0) return -1;
 
-    const char* test_filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* solution_filename = is_rsf ? solution_filename_rsf : solution_filename_xdf;
+    const char* test_filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    const char* solution_filename = strcmp(backend, "RSF") == 0 ? solution_filename_rsf : solution_filename_xdf;
 
     int iun = 0;
     
@@ -527,8 +528,8 @@ static int run_test(const int is_rsf) {
 }
 
 int main(void) {
-    if (run_test(0) != 0) return -1;
-    if (run_test(1) != 0) return -1;
+    if (run_test("RSF") != 0) return -1;
+    if (run_test("XDF") != 0) return -1;
     App_Log(APP_ALWAYS, "%s: Test successful\n", __func__);
     
     fst24_record_free(&base_record);

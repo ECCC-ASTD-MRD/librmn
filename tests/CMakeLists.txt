@@ -142,10 +142,8 @@ if (EC_INIT_DONE LESS 2)
 
 
         # Helper module
-        add_library(test_helper STATIC EXCLUDE_FROM_ALL rmn_test_helper.F90 fst/generate_fstd_module.F90)
+        add_library(test_helper STATIC EXCLUDE_FROM_ALL rmn_test_helper.F90)
         target_link_libraries(test_helper rmn::rmn)
-        add_executable(generate_fstd EXCLUDE_FROM_ALL fst/generate_fstd.F90)
-        target_link_libraries(generate_fstd test_helper)
 
         # This test is weird and I need more time to understand it
         #    add_executable(wb_get EXCLUDE_FROM_ALL wb_get.c)
@@ -296,25 +294,26 @@ if (EC_INIT_DONE LESS 2)
         # despite what I've seen online, adding a dependency to the "clean" target doesn't work
         set_target_properties(check PROPERTIES
             ADDITIONAL_CLEAN_FILES "1.rsf;2.rsf;abcde;abcde.rsf;abcde.xdf;abc.test;abort.rsf;abort.xdf;\
-BRPFIL1;brpfil1;BRPFIL2;brpfil2;by_index.fst;compression.rsf;compression.xdf;cube.fst;\
+BRPFIL1;brpfil1;BRPFIL2;brpfil2;by_index.RSF;by_index.XDF;compression.rsf;compression.xdf;cube.fst;\
 cube_c.fst;cube_f.fst;\
-delete.rsf;delete.xdf;diff_size.rsf;diff_size.xdf;dummy.fst;dummy.rsf;edge_case_1.rsf;\
-edge_case_1.xdf;excdes.rsf;excdes.xdf;ezscint.fst;file1.fst;file2.fst;flush.rsf;flush.xdf;\
-fst123_meta.fst;fst24_interface1.fst;fst24_interface2.fst;fst24_interface3.fst;\
-fst24_interface_f1.fst;fst24_interface_f2.fst;fst24_interface_f3.fst;\
+delete.rsf;delete.xdf;delete_f.rsf;delete_f.xdf;diff_size.rsf;diff_size.xdf;dummy.RSF;dummy.XDF;dummy.rsf;edge_case_1.rsf;\
+edge_case_1.xdf;excdes.rsf;excdes.xdf;ezscint.fst;file1.RSF;file1.XDF;file2.RSF;file2.XDF;flush.rsf;flush.xdf;\
+fst123_meta.fst;fst24_interface1.RSF;fst24_interface1.XDF;fst24_interface2.RSF;fst24_interface2.XDF;\
+fst24_interface3.RSF;fst24_interface3.XDF;fst24_interface_f1.RSF;fst24_interface_f1.XDF;\
+fst24_interface_f2.RSF;fst24_interface_f2.XDF;fst24_interface_f3.RSF;fst24_interface_f3.XDF;\
 fst24_rewrite_meta.rsf;fst24_rewrite_meta_solution.rsf;fst24_rewrite_meta_solution.xdf;\
 fst24_rewrite_meta.xdf;fst98_ipall_module.smod;fst_cross_link_module.smod;fst_edit_dir.rsf;\
 fst_edit_dir_solution.rsf;fst_edit_dir_solution.xdf;fst_edit_dir.xdf;fstinf_datev.rsf;\
-fstinf_datev.xdf;fst_interface_2.fst;fst_interface.fst;fst_link_mod.smod;ip1.fst;ip2.fst;\
-missing.fst;my_file.fst;no_dateo.rsf;no_dateo.xdf;output_readlx_02_current.txt;read_only.fst;\
+fstinf_datev.xdf;fst_interface_2.RSF;fst_interface_2.XDF;fst_interface.RSF;fst_interface.XDF;fst_link_mod.smod;ip1.RSF;ip1.XDF;ip2.RSF;ip2.XDF;\
+missing.RSF;missing.XDF;my_file.fst;no_dateo.rsf;no_dateo.xdf;output_readlx_02_current.txt;read_only.RSF;read_only.XDF;\
 record_offset_size.rsf;record_offset_size.xdf;rewrite_skip.rsf;rewrite_skip.xdf;rsf1.fst;rsf2.fst;\
-search_params.fst;skip_descriptors.rsf;skip_descriptors.xdf;test_double.fst;test_float.fst;\
+search_params.RSF;search_params.XDF;skip_descriptors.rsf;skip_descriptors.xdf;test_double.fst;test_float.fst;\
 test_fst24_meta_find.fst;test_fst98_interface_module.smod;Whiteboard.ckpt;xdf1.fst;xdf2.fst;\
 blind_calls.fst;data_map.fst;data_size.rsf;data_size.xdf;f1.fst;f2.fst;f4.fst;\
 large_record.rsf;multi_open.rsf;multi_write.rsf;open_close_link0;open_close_link1;\
-open_close_link2;open_close_link3;parallel.fst;python_fst_types_RSF.fst;\
+open_close_link2;open_close_link3;parallel.fst;parallel_threads.fst;python_fst_types_RSF.fst;\
 python_fst_types_XDF.fst;wildcard.rsf;wildcard.xdf;write_wait.rsf;\
-backend_name.fst;backend_name_RSF.fst;backend_name_XDF.fst"
+backend_name.RSF;backend_name.XDF;backend_name_RSF.fst;backend_name_XDF.fst"
         )
       endif()
 endif()

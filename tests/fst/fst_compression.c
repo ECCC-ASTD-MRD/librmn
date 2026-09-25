@@ -519,11 +519,12 @@ int compare_data_bytes(const uint8_t* a, const uint8_t* b, const int num_x, cons
 //! params_integer records (ip1 continues incrementing), and finally the
 //! params_fail records are attempted; each must fail.
 //! \return 0 on success, -1 if any write (or expected-fail) misbehaves
-int create_file(const int is_rsf) {
-    const char* test_filename = is_rsf ? test_filename_rsf : test_filename_xdf;
+int create_file(const char* backend) {
+    const char* test_filename = strcmp(backend, "RSF") == 0 ? test_filename_rsf : test_filename_xdf;
     remove(test_filename);
 
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
     fst_file* test_file = fst24_open(test_filename, options);
     if (test_file == NULL) {
         App_Log(APP_ERROR, "Unable to open new test file with name %s and options %s\n", test_filename, options);
@@ -632,11 +633,12 @@ int create_file(const int is_rsf) {
 //! 5. Compares each misc record (binary/char/string/complex) byte-for-byte,
 //!    using compare_nk for the number of vertical levels (complex has 2x).
 //! \return 0 on success, -1 on any failure
-int test_compression(const int is_rsf) {
+int test_compression(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
 
-    const char* test_filename = is_rsf ? test_filename_rsf : test_filename_xdf;
+    const char* test_filename = strcmp(backend, "RSF") == 0 ? test_filename_rsf : test_filename_xdf;
 
-    if (create_file(is_rsf) < 0) {
+    if (create_file(backend) < 0) {
         App_Log(APP_ERROR, "Problem when creating file for test\n");
         return -1;
     }
@@ -683,7 +685,7 @@ int test_compression(const int is_rsf) {
         }
 
         // App_Log(APP_INFO, "data_bits = %d, pack_bits = %d\n", rec_read.data_bits, rec_read.pack_bits);
-        if (!is_rsf && rec_read.pack_bits == 64) {
+        if (strcmp(backend, "RSF") != 0 && rec_read.pack_bits == 64) {
             App_Log(APP_INFO, "%s: Skipping data check for 64-bit integer in XDF files\n", __func__);
             continue;
         }
@@ -733,11 +735,9 @@ int main(void) {
 
     make_data();
 
-    App_Log(APP_ALWAYS, "Testing RSF\n");
-    if (test_compression(1) != 0) return -1;
+    if (test_compression("RSF") != 0) return -1;
 
-    App_Log(APP_ALWAYS, "Testing XDF\n");
-    if (test_compression(0) != 0) return -1;
+    if (test_compression("XDF") != 0) return -1;
 
     free(data_f);
     free(data_d);
