@@ -261,14 +261,18 @@ if (EC_INIT_DONE LESS 2)
         if (TARGET rmn::rmn-shared)
             find_package(Python3 REQUIRED COMPONENTS Interpreter)
             add_dependencies(test_execs rmn::rmn-shared)
-            set(set_pythonpath "PYTHONPATH=${CMAKE_BINARY_DIR}/python\${PYTHONPATH:+:\${PYTHONPATH}}")
-            add_test( NAME python_import_package COMMAND bash -c "${set_pythonpath} python3 -c 'import rmn'")
-            add_test( NAME python_unit_tests COMMAND bash -c "${set_pythonpath} python3 ${CMAKE_CURRENT_BINARY_DIR}/test_rmn.py")
+            add_test( NAME python_import_package COMMAND ${Python3_EXECUTABLE} -c "import rmn")
+            add_test( NAME python_unit_tests COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/test_rmn.py)
             add_test( NAME python_fst_open_close_link COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/fst_open_close_link.py )
             add_test( NAME python_fst_types COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/fst_types.py )
             add_test( NAME python_fst_backend_name COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/fst_backend_name.py )
             set_property(
-                TEST python_fst_open_close_link python_fst_types python_fst_backend_name PROPERTY
+                TEST python_import_package
+                     python_unit_tests
+                     python_fst_open_close_link
+                     python_fst_types
+                     python_fst_backend_name
+                PROPERTY
                 ENVIRONMENT "PYTHONPATH=${CMAKE_BINARY_DIR}/python")
         endif()
 
