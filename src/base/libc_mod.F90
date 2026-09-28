@@ -70,7 +70,6 @@ module rmn_libc
 
     contains
         function c_strlen(str) result(strlen)
-            import :: C_PTR, C_SIZE_T
             implicit none
 
             type(C_PTR), intent(IN), value :: str
@@ -84,7 +83,6 @@ module rmn_libc
         end function
 
         function c_strnlen(str, maxlen) result(strlen)
-            import :: C_PTR, C_CHAR, C_SIZE_T
             implicit none
 
             type(C_PTR), intent(IN), value :: str
