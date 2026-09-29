@@ -2,14 +2,18 @@
 #include <App.h>
 #include <rmn.h>
 
-const char* test_filename = "by_index.fst";
+
 const int NUM_RECORDS = 10000;
 
-int do_test(const int is_rsf) {
+int do_test(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
+
+    char test_filename[64];
+    snprintf(test_filename, sizeof(test_filename), "by_index.%s", backend);
     remove(test_filename);
 
     char options[256];
-    sprintf(options, "%s+R/W", is_rsf ? "RSF" : "XDF");
+    sprintf(options, "%s+R/W", backend);
 
     fst_file* test_file = fst24_open(test_filename, options);
 
@@ -75,12 +79,10 @@ int do_test(const int is_rsf) {
 
 int main(void) {
 
-    App_Log(APP_INFO, "XDF test\n");
-    if (do_test(0) < 0) return -1;
-    App_Log(APP_INFO, "RSF test\n");
-    if (do_test(1) < 0) return -1;
+    if (do_test("RSF") < 0) return -1;
+    if (do_test("XDF") < 0) return -1;
 
-    App_Log(APP_INFO, "Test successful\n");
+    App_Log(APP_ALWAYS, "Test successful\n");
 
     return 0;
 }

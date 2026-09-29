@@ -6,11 +6,6 @@
 #include <rmn.h>
 #include <App.h>
 
-const char* test_file_names[3] = {
-    "fst24_interface1.fst",
-    "fst24_interface2.fst",
-    "fst24_interface3.fst"
-};
 
 const int DATA_SIZE = 1024;
 float* test_data = NULL;
@@ -81,17 +76,18 @@ int check_content(const float* content, const float* expected, const int num_ele
     return 0;
 }
 
-int32_t create_file(const char* name, const int is_rsf, const int ip2, const int ip3) {
+int32_t create_file(const char* name, const char* backend, const int ip2, const int ip3) {
     remove(name);
-    const char* options = is_rsf ? "RND+R/W+RSF" : "RND+R/W+XDF";
+    char options[64];
+    snprintf(options, sizeof(options), "RND+R/W+%s", backend);
     fst_file* new_file = fst24_open(name, options);
     if (new_file == NULL) {
         App_Log(APP_ERROR, "Unable to open new test file with name %s and options %s\n", name, options);
         return -1;
     }
 
-    if (fst24_is_rsf(new_file) != is_rsf) {
-        App_Log(APP_ERROR, "New file has the wrong type (XDF/RSF)\n");
+    if (strcmp(fst24_backend_name(new_file), backend) != 0) {
+        App_Log(APP_ERROR, "New file has the wrong backend (expected %s, got %s)\n", backend, fst24_backend_name(new_file));
         return -1;
     }
 
@@ -138,12 +134,12 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
     }
 
     const int32_t type = c_wkoffit(name, strlen(name));
-    if ((type == WKF_STDRSF && is_rsf) || (type == WKF_RANDOM98 && !is_rsf)) {
-        // we're good
-    }
-    else {
+    const int32_t expected_type = strcmp(backend, "RSF") == 0 ? WKF_STDRSF : 
+                                  strcmp(backend, "XDF") == 0 ? WKF_RANDOM98 :
+                                  WKF_INCONNU;
+    if (type != expected_type) {
         App_Log(APP_ERROR, "wkoffit gives wrong file type (%d, expected %d - %s)\n",
-            type, is_rsf ? WKF_STDRSF : WKF_RANDOM98, is_rsf ? "rsf" : "xdf");
+            type, expected_type, backend);
         return -1;
     }
 
@@ -155,10 +151,17 @@ int32_t create_file(const char* name, const int is_rsf, const int ip2, const int
     return 0;
 }
 
-int test_fst24_interface(const int is_rsf) {
-    ///////////////////////////////////
+int test_fst24_interface(const char* backend1, const char* backend2, const char* backend3) {
+    char test_file_names[3][64];
+    snprintf(test_file_names[0], sizeof(test_file_names[0]), "fst24_interface1.%s", backend1);
+    snprintf(test_file_names[1], sizeof(test_file_names[1]), "fst24_interface2.%s", backend2);
+    snprintf(test_file_names[2], sizeof(test_file_names[2]), "fst24_interface3.%s", backend3);
+
+    App_Log(APP_ALWAYS, "Testing %s, %s, %s\n", backend1, backend2, backend3);
+
+    /////////////////////////////////////
     // File creation
-    if (create_file(test_file_names[0], is_rsf, test_record.ip2, test_record.ip3) < 0) return -1;
+    if (create_file(test_file_names[0], backend1, test_record.ip2, test_record.ip3) < 0) return -1;
 
     /////////////////////////////
     // Open existing file
@@ -169,8 +172,8 @@ int test_fst24_interface(const int is_rsf) {
         return -1;
     }
 
-    if (fst24_is_rsf(test_file) != is_rsf) {
-        App_Log(APP_ERROR, "Test file has wrong RSF/XDF type\n");
+    if (strcmp(fst24_backend_name(test_file), backend1) != 0) {
+        App_Log(APP_ERROR, "Test file has wrong backend (expected %s, got %s)\n", backend1, fst24_backend_name(test_file));
         return -1;
     }
 
@@ -267,7 +270,7 @@ int test_fst24_interface(const int is_rsf) {
                 App_Log(APP_INFO, "Metadata: %s\n", record.metadata);
         }
         else {
-            if (is_rsf == 1) {
+            if (strcmp(backend1, "RSF") == 0) {
                 App_Log(APP_ERROR, "Should have been able to read metadata!\n");
                 return -1;
             }
@@ -406,12 +409,13 @@ int test_fst24_interface(const int is_rsf) {
     fst_file* file_list[3];
     file_list[0] = test_file;
 
-    if (create_file(test_file_names[1], !is_rsf, test_record.ip2 + 1, test_record.ip3 + 1) < 0) return -1;
-    if (create_file(test_file_names[2], is_rsf, test_record.ip2 + 2, test_record.ip3 + 1) < 0) return -1;
+    if (create_file(test_file_names[1], backend2, test_record.ip2 + 1, test_record.ip3 + 1) < 0) return -1;
+    if (create_file(test_file_names[2], backend3, test_record.ip2 + 2, test_record.ip3 + 1) < 0) return -1;
 
     App_Log(APP_INFO,"Testing open and link\n");
     fst_file* test_link=NULL; 
-    if (!(test_link=fst24_open_link(test_file_names, 3))) {
+    const char* link_names[3] = {test_file_names[0], test_file_names[1], test_file_names[2]};
+    if (!(test_link=fst24_open_link(link_names, 3))) {
         App_Log(APP_ERROR, "Unable to open and link files\n");
         return -1;
     }
@@ -620,14 +624,12 @@ int main(void) {
 
     make_test_record();
 
-    App_Log(APP_INFO, "Testing RSF\n");
-    if (test_fst24_interface(1) != 0) return -1; // RSF files
+    if (test_fst24_interface("RSF", "XDF", "RSF") != 0) return -1;
 
-    App_Log(APP_INFO, "Testing XDF\n");
-    if (test_fst24_interface(0) != 0) return -1; // XDF files
+    if (test_fst24_interface("XDF", "RSF", "XDF") != 0) return -1;
 
     delete_test_data();
 
-    App_Log(APP_INFO, "Tests successful\n");
+    App_Log(APP_ALWAYS, "Test successful\n");
     return 0;
 }

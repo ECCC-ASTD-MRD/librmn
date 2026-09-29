@@ -143,6 +143,8 @@ int c_fstlirx_rsf(void *field, int handle, int iun, const int index_fnom, int *n
 int c_fstnbr_rsf(const int index_fnom);
 int c_fstouv_rsf(const int index_fnom, const rsf_open_mode_type mode, const uint32_t timeout_s,
                  const int32_t parallel_segment_size_mb);
+//! Open a RPN standard file through the fst24 interface (c_fstouv is the fst98 version)
+int c_fstouv_fst24(const int iun, const char * const options);
 int c_fstluk_rsf(void * const vfield, const RSF_handle file_handle,
                  const int key, int * const ni, int * const nj, int * const nk);
 int c_fsteff_rsf(RSF_handle file_handle, int handle);

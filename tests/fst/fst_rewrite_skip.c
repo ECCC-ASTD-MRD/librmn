@@ -65,9 +65,10 @@ static inline fst_record make_basic_record() {
     return rec;
 }
 
-static int create_files(const int is_rsf) {
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* options = is_rsf ? "R/W+RSF" : "R/W+XDF";
+static int create_files(const char* backend) {
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    char options[64];
+    snprintf(options, sizeof(options), "R/W+%s", backend);
     
     remove(filename);
     fst_file* test_file = fst24_open(filename, options);
@@ -125,8 +126,8 @@ static int create_files(const int is_rsf) {
     return 0;
 }
 
-static int test98(const int is_rsf) {
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
+static int test98(const char* backend) {
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
 
     int iun = 0;
     if (c_fnom(&iun, filename, "RND+R/W", 0) != 0) {
@@ -288,8 +289,8 @@ static int test98(const int is_rsf) {
     return 0;
 }
 
-static int test24(const int is_rsf) {
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
+static int test24(const char* backend) {
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
     fst_file* test_file = fst24_open(filename, "R/W");
     if (test_file == NULL) {
         App_Log(APP_ERROR, "%s: Unable to open test file %s\n", __func__, filename);
@@ -477,18 +478,20 @@ static int test24(const int is_rsf) {
     return 0;
 }
 
-static int run_test(const int is_rsf) {
-    if (create_files(is_rsf) != 0) return -1;
-    if (test98(is_rsf) != 0) return -1;
+static int run_test(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
 
-    if (create_files(is_rsf) != 0) return -1;
-    if (test24(is_rsf) != 0) return -1;
+    if (create_files(backend) != 0) return -1;
+    if (test98(backend) != 0) return -1;
+
+    if (create_files(backend) != 0) return -1;
+    if (test24(backend) != 0) return -1;
     return 0;
 }
 
 int main(void) {
-    if (run_test(0) != 0) return -1;
-    if (run_test(1) != 0) return -1;
+    if (run_test("RSF") != 0) return -1;
+    if (run_test("XDF") != 0) return -1;
     App_Log(APP_ALWAYS, "%s: Test successful\n", __func__);
 
     return 0;

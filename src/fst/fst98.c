@@ -70,8 +70,9 @@ int nb_remap = 0;
 //! @name FST_OPTIONS
 //! @{
 
-//! Backend type (XDF or RSF) -- Controlled by the `BACKEND` option
-static char *fst_backend = NULL;
+//! Backend type to use when none is specified in the open options (XDF or RSF) -- Controlled by the
+//! `BACKEND` option in the `FST_OPTIONS` environment variable.
+static char *fst_backend = "XDF";
 //! Segment size for RSF, when writing in parallel (in MB) -- Controlled by the `SEGMENT_SIZE_MB` option
 static int32_t segment_size_mb = 1000;
 //! Whether to ignore the MSGLVL option in fstopc and fstopi -- Controlled by the `IGNORE_MSGLVL` option
@@ -897,6 +898,48 @@ void print_std_parms(
 }
 
 
+//! Print the directory entry (standard parameters) of the record corresponding
+//! to the provided handle.  This is a debugging aid that works for both XDF and
+//! RSF files.  It retrieves the record's stdf_dir_keys using the existing
+//! c_xdfprm (XDF) or RSF_Get_record_info (RSF) functions and prints it with
+//! print_std_parms, much like c_fstluk_xdf does after reading a record.
+void fst_print_record(
+    //! [in] Handle of the record to print
+    const int handle
+) {
+    char pre[32];
+    snprintf(pre, sizeof(pre), "Handle(0x%08x)", (unsigned)handle);
+
+    const int32_t key_type = RSF_Key32_type(handle);
+
+    if (key_type == 1) {
+        // RSF file
+        const RSF_handle file_handle = RSF_Key32_to_handle(handle);
+        const int64_t rsf_key = RSF_Key64(handle);
+        const RSF_record_info record_info = RSF_Get_record_info(file_handle, rsf_key);
+        if (record_info.rl <= 0) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not retrieve record with key %ld\n", __func__, rsf_key);
+            return;
+        }
+        const stdf_dir_keys *stdf_entry = &((search_metadata *)record_info.meta)->fst98_meta;
+        print_std_parms(stdf_entry, pre, prnt_options, -1);
+    } else if (key_type == 0) {
+        // XDF file
+        stdf_dir_keys stdf_entry = {0};
+        uint32_t *pkeys = stdf_entry.words;
+        pkeys += W64TOWD(1);
+        int addr, lng, idtyp;
+        if (c_xdfprm(handle, &addr, &lng, &idtyp, pkeys, 16) < 0) {
+            Lib_Log(APP_LIBFST, APP_ERROR, "%s: Could not retrieve record with handle %d\n", __func__, handle);
+            return;
+        }
+        print_std_parms(&stdf_entry, pre, prnt_options, -1);
+    } else {
+        Lib_Log(APP_LIBFST, APP_ERROR, "%s: Key 0x%x does not seem to be valid (for either XDF or RSF)\n", __func__, handle);
+    }
+}
+
+
 //! \copydoc c_fstapp
 //! XDF version
 int c_fstapp_xdf(
@@ -1346,6 +1389,8 @@ int c_fstecr_xdf(
     int header_size;
     int stream_size;
     int nw;
+    // Size if the data were packed as plain (non-turbopack)
+    const int plain_nw = (ni * nj * _nk * nbits + 120 + 63) / 64;
     switch (datyp) {
         case FST_TYPE_REAL: {
             int p1out;
@@ -1382,7 +1427,7 @@ int c_fstecr_xdf(
         }
 
         default:
-            nw = (ni * nj * _nk * nbits + 120 + 63) / 64;
+            nw = plain_nw;
             break;
     }
 
@@ -1615,9 +1660,21 @@ int c_fstecr_xdf(
                     }
                     int compressed_lng = armn_compress((unsigned char *)&(buffer->data[keys_len+offset]), ni, nj, _nk, nbits, 1, 0);
                     if (compressed_lng < 0) {
+                        // Compression failed: fall back to plain (non-turbopack) packing.
                         stdf_entry->datyp = FST_TYPE_UNSIGNED;
-                        compact_p_integer(field_u32, (void *) NULL, &(buffer->data[keys_len + offset]),
-                            ni * nj * _nk, nbits, 0, xdf_stride, 0);
+                        if (xdf_short) {
+                            compact_p_short(field_u32, (void *) NULL, &(buffer->data[keys_len]),
+                                ni * nj * _nk, nbits, 0, xdf_stride);
+                        } else if (xdf_byte) {
+                            compact_p_char(field_u32, (void *) NULL, &(buffer->data[keys_len]),
+                                ni * nj * _nk, nbits, 0, xdf_stride);
+                        } else {
+                            compact_p_integer(field_u32, (void *) NULL, &(buffer->data[keys_len]),
+                                ni * nj * _nk, nbits, 0, xdf_stride, 0);
+                        }
+                        // Adjust the buffer size to the plain (non-turbopack) size
+                        nw = W64TOWD(plain_nw);
+                        buffer->nbits = (keys_len + nw) * bitmot;
                     } else {
                         int nbytes = 4 + compressed_lng;
                         // fprintf(stderr, "Debug+ fstecr armn_compress compressed_lng=%d\n", compressed_lng);
@@ -2474,18 +2531,14 @@ int c_fstinfx_xdf(
         int nomatch = 1;
         while ((lhandle >=  0) && (nomatch)) {
             nomatch = 0;
-            if ((ip1s_flag) && (ip1 >= 0)) {
-                if (ip_is_equal(ip1, stdf_entry->ip1, 1) == 0) {
-                    nomatch = 1;
-                } else if ((ip2s_flag) && (ip2 >= 0)) {
-                    if (ip_is_equal(ip2, stdf_entry->ip2, 2) == 0) {
-                        nomatch = 1;
-                    } else if ((ip3s_flag) && (ip3 >= 0)) {
-                        if (ip_is_equal(ip3, stdf_entry->ip3, 3) == 0) {
-                            nomatch = 1;
-                        }
-                    }
-                }
+            if ((ip1s_flag) && (ip1 >= 0) && (ip_is_equal(ip1, stdf_entry->ip1, 1) == 0)) {
+                nomatch = 1;
+            }
+            if ((ip2s_flag) && (ip2 >= 0) && (ip_is_equal(ip2, stdf_entry->ip2, 2) == 0)) {
+                nomatch = 1;
+            }
+            if ((ip3s_flag) && (ip3 >= 0) && (ip_is_equal(ip3, stdf_entry->ip3, 3) == 0)) {
+                nomatch = 1;
             }
             if (nomatch) {
                 lhandle = c_xdfloc2(iun, -1, pkeys, 16, pmask);
@@ -2700,10 +2753,40 @@ int c_fstinl(
     int status = -1;
     int total_found = 0;
     int num_files = 0;
+
+    // When searching with ip1_all/ip2_all/ip3_all, the "match any encoding" state is held in the
+    // global ip flags and the ips_tab/ip_nb tables.  c_fstinfx (called once per file) resets that
+    // state via init_ip_vals() after finding the first match in a file, so without intervention the
+    // second and subsequent linked files would be searched in exact-encoding mode and miss records
+    // encoded differently.  Snapshot the state here and restore it before each file's search so that
+    // every file in the linked list is searched in match-any-encoding mode.
+    const int saved_ip1s_flag = ip1s_flag;
+    const int saved_ip2s_flag = ip2s_flag;
+    const int saved_ip3s_flag = ip3s_flag;
+    const int saved_ip_nb[3] = {ip_nb[0], ip_nb[1], ip_nb[2]};
+    int saved_ips_tab[3][Max_Ipvals];
+    for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < Max_Ipvals; i++) {
+            saved_ips_tab[j][i] = ips_tab[j][i];
+        }
+    }
+
     while (index_fnom >= 0) {
         Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Looking at file %d (iun %d), type %s, next %d\n",
                 __func__, index_fnom, FGFDT[index_fnom].iun, FGFDT[index_fnom].attr.rsf ? "RSF" : "XDF", fst98_open_files[index_fnom].next_file);
         num_files++;
+
+        // Restore the ip state that c_fstinfx of the previous file may have reset, so that this file
+        // is searched with the same ip1_all/ip2_all/ip3_all mode as the first file.
+        ip1s_flag = saved_ip1s_flag;
+        ip2s_flag = saved_ip2s_flag;
+        ip3s_flag = saved_ip3s_flag;
+        for (int j = 0; j < 3; j++) {
+            ip_nb[j] = saved_ip_nb[j];
+            for (int i = 0; i < Max_Ipvals; i++) {
+                ips_tab[j][i] = saved_ips_tab[j][i];
+            }
+        }
 
         if (FGFDT[index_fnom].attr.rsf == 1) {
             status = c_fstinl_rsf(FGFDT[index_fnom].iun, index_fnom, ni, nj, nk, datev, etiket, ip1, ip2, ip3,
@@ -2723,6 +2806,12 @@ int c_fstinl(
     if (ip1s_flag || ip2s_flag || ip3s_flag) init_ip_vals();
 
     Lib_Log(APP_LIBFST, APP_DEBUG, "%s: Found %d records in %d files\n", __func__, total_found, num_files);
+
+    if (Lib_LogLevel(APP_LIBFST, NULL) >= APP_EXTRA) {
+        for (int i = 0; i < total_found; i++) {
+            fst_print_record(liste[i]);
+        }
+    }
 
     *infon = total_found;
     return status;
@@ -3878,14 +3967,21 @@ unlock:
 }
 
 //! Open a RPN standard file
-int c_fstouv(
+static int c_fstouv_impl(
     //! [in] Unit number associated to the file
     const int iun,
     //! [in] Random or sequential access
-    const char * const options
+    const char * const options,
+    //! [in] Whether the open was requested through the fst24 interface (as opposed to the fst98 one).
+    //!       The two interfaces share this implementation; the flag lets them diverge where needed
+    //!       (e.g. the fst24 interface will support the CDF backend while fst98 will reject it).
+    const int32_t is_fst24
 ) {
     //! \return Number of records in file
     //! \see c_fstfrm
+
+    // The fst24/fst98 distinction is not used yet; it will gate CDF handling (see above).
+    (void)is_fst24;
 
     // Check fnom index first, because we can't initialize the fst98 library if fnom is not itself initialized
     int i = get_fnom_index(iun);
@@ -4010,6 +4106,30 @@ int c_fstouv(
 
     int nrec = c_fstnbr(iun);
     return nrec;
+}
+
+//! Open a RPN standard file, as requested through the old fst98 interface.
+//! \see c_fstouv_impl
+int c_fstouv(
+    //! [in] Unit number associated to the file
+    const int iun,
+    //! [in] Random or sequential access
+    const char * const options
+) {
+    return c_fstouv_impl(iun, options, FALSE);
+}
+
+//! Open a RPN standard file, as requested through the new fst24 interface.
+//! This is the entry point used by fst24_open; it shares its implementation with c_fstouv but is
+//! flagged so that the two interfaces can diverge where needed (e.g. CDF support).
+//! \see c_fstouv_impl
+int c_fstouv_fst24(
+    //! [in] Unit number associated to the file
+    const int iun,
+    //! [in] Random or sequential access
+    const char * const options
+) {
+    return c_fstouv_impl(iun, options, TRUE);
 }
 
 

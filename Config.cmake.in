@@ -25,6 +25,7 @@ if(NOT ${CMAKE_FIND_PACKAGE_NAME}_FOUND)
    find_dependency(App REQUIRED PATHS $ENV{${CMAKE_FIND_PACKAGE_NAME}_DIR} ${CMAKE_CURRENT_LIST_DIR}/.. ${${CMAKE_FIND_PACKAGE_NAME}_ROOT})
 
    maybe_message(STATUS "Finding dependency json-c for ${CMAKE_FIND_PACKAGE_NAME}")
+   set(json-c_DIR ${CMAKE_CURRENT_LIST_DIR}/../json-c) # The one that comes with this package takes precedence over any other
    find_dependency(json-c REQUIRED PATHS $ENV{${CMAKE_FIND_PACKAGE_NAME}_DIR} ${CMAKE_CURRENT_LIST_DIR}/.. ${${CMAKE_FIND_PACKAGE_NAME}_ROOT})
 
    maybe_message(STATUS "Finding dependency LibXml2 for ${CMAKE_FIND_PACKAGE_NAME}")

@@ -9,9 +9,10 @@ const char * const filename_xdf = "record_offset_size.xdf";
 const int data3[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 99};
 // const int   data4[NUM_DATA] = {-1, -2, -3, -4, -5, -6, -7, -8, -9, -99};
 
-int create_file(const int is_rsf) {
-    const char * const filename = is_rsf ? filename_rsf : filename_xdf;
-    const char * const options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+int create_file(const char* backend) {
+    const char * const filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
 
     remove(filename);
     fst_file* test_file = fst24_open(filename, options);
@@ -69,10 +70,12 @@ int create_file(const int is_rsf) {
     return 0;
 }
 
-int run_test(const int is_rsf) {
-    if (create_file(is_rsf) != 0) return -1;
+int run_test(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
 
-    const char* const filename = is_rsf ? filename_rsf : filename_xdf;
+    if (create_file(backend) != 0) return -1;
+
+    const char* const filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
 
     fst_file* test_file = fst24_open(filename, NULL);
     if (test_file == NULL) {
@@ -116,14 +119,14 @@ int run_test(const int is_rsf) {
     // Try to decode the bytes
     fst_record local_rec = default_fst_record;
     void* decoded_data = malloc(fst24_record_data_size(&rec));
-    if (is_rsf) {
+    if (strcmp(backend, "RSF") == 0) {
         local_rec = fst24_decode_data_rsf(raw_record, decoded_data);
     }
     else {
         local_rec = fst24_decode_data_xdf(raw_record, decoded_data);
     }
     if (local_rec.data == NULL || local_rec.data != decoded_data) {
-        App_Log(APP_ERROR, "%s: Could not unpack raw record (%s)\n", __func__, is_rsf ? "RSF" : "XDF");
+        App_Log(APP_ERROR, "%s: Could not unpack raw record (%s)\n", __func__, backend);
         return -1;
     }
 
@@ -162,10 +165,8 @@ int run_test(const int is_rsf) {
 
 int main(void) {
 
-    App_Log(APP_ALWAYS, "Running RSF test\n");
-    if (run_test(1) != 0) return -1;
-    App_Log(APP_ALWAYS, "Running XDF test\n");
-    if (run_test(0) != 0) return -1;
+    if (run_test("RSF") != 0) return -1;
+    if (run_test("XDF") != 0) return -1;
 
 
     App_Log(APP_ALWAYS, "Test successful\n");
