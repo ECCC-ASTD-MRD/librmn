@@ -5,11 +5,13 @@
 const char* filename_rsf = "delete.rsf";
 const char* filename_xdf = "delete.xdf";
 
-int create_file(const int is_rsf) {
-    const char* test_filename = is_rsf ? filename_rsf : filename_xdf;
+int create_file(const char* backend) {
+    const char* test_filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
     remove(test_filename);
 
-    fst_file* test_file = fst24_open(test_filename, is_rsf ? "RSF+R/W" : "XDF+R/W");
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
+    fst_file* test_file = fst24_open(test_filename, options);
 
     const int NUM_DATA = 150;
     float dummy_data[NUM_DATA];
@@ -54,12 +56,12 @@ int create_file(const int is_rsf) {
     return 0;
 }
 
-int test_fst24_delete(const int is_rsf) {
+int test_fst24_delete(const char* backend) {
 
-    App_Log(APP_INFO, "Doing %s test\n", is_rsf ? "RSF" : "XDF");
-    create_file(is_rsf);
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
+    create_file(backend);
 
-    const char* test_filename = is_rsf ? filename_rsf : filename_xdf;
+    const char* test_filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
     fst_file* test_file = fst24_open(test_filename, "R/W");
 
     fst24_print_summary(test_file, NULL);
@@ -97,17 +99,17 @@ int test_fst24_delete(const int is_rsf) {
 
 int main(void) {
 
-    if (test_fst24_delete(1) < 0) {
+    if (test_fst24_delete("RSF") < 0) {
         App_Log(APP_ERROR, "RSF test failed\n");
         return -1;
     }
     
-    if (test_fst24_delete(0) < 0) {
+    if (test_fst24_delete("XDF") < 0) {
         App_Log(APP_ERROR, "XDF test failed\n");
         return -1;
     }
     
-    App_Log(APP_INFO, "Test successful\n");
+    App_Log(APP_ALWAYS, "Test successful\n");
     
     return 0;
 }

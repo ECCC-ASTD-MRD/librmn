@@ -170,10 +170,10 @@ contains
     end block
   end subroutine
 
-  subroutine test_missing_values(is_rsf)
+  subroutine test_missing_values(backend)
     use rmn_fst98
     implicit none
-    logical, intent(in) :: is_rsf
+    character(len=*), intent(in) :: backend
 
 #define CHECK_STATUS(cmd) s=cmd;s=vs(s,__LINE__)
 #define CHK(cmd) st=cmd;s=vs(st,__LINE__)
@@ -205,15 +205,16 @@ contains
     integer :: iun
 
     character(len=4) :: nomvar
-    character(len=*), parameter :: test_file_name = 'missing.fst'
+    character(len=64) :: test_file_name
     character(len=2000) :: cmd
 
-    nomvar = 'XDF '
-    if (is_rsf) nomvar = 'RSF '
+    test_file_name = 'missing.' // backend
+    nomvar = '    '
+    nomvar(1:len(backend)) = backend ! What if backend is longer than 4 characters?
 
 
-    if (is_rsf) call App_Log(APP_INFO, 'Testing RSF')
-    if (.not. is_rsf) call App_Log(APP_INFO, 'Testing XDF')
+    write(app_msg, '(A, A)') 'Testing ', backend
+    call App_Log(APP_ALWAYS, app_msg)
 
     status = -1
     st = -1
@@ -335,7 +336,7 @@ contains
     iun = 0
     status = (fnom(iun, test_file_name, 'STD+RND', 0))
     call check_status(status, expected = 0, fail_message = 'fnom')
-    if (is_rsf) then
+    if (backend == 'RSF') then
       status = (fstouv(iun, 'RND+RSF'))
       call check_status(status, expected_min = 0, fail_message = 'fstouv (RSF)')
     else
@@ -540,10 +541,10 @@ program fst_missing
 
   implicit none
 
-  call test_missing_values(.false.)
-  call test_missing_values(.true.)
+  call test_missing_values('RSF')
+  call test_missing_values('XDF')
 
-  call App_Log(APP_INFO, 'Test is a success')
+  call App_Log(APP_ALWAYS, 'Test is a success')
   stop
 
 end program fst_missing

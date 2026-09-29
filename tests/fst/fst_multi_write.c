@@ -10,11 +10,13 @@ const char* filename_xdf = "multi_write.xdf";
 static int rank = -1;
 static int size = -1;
 
-static int run_test(const int is_rsf) {
-    
+static int run_test(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
+
     // Determine the filename and options based on the file type
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
 
     if (rank == 0) remove(filename);
 
@@ -95,10 +97,12 @@ int main(int argc, char** argv) {
         }
     }
 
-    if (run_test(1) != 0) MPI_Abort(MPI_COMM_WORLD, -1);
+    if (run_test("RSF") != 0) MPI_Abort(MPI_COMM_WORLD, -1);
 
     // Feature unavailable for XDF files
-    // if (run_test(0) != 0) MPI_Abort(MPI_COMM_WORLD, -1);
+    // if (run_test("XDF") != 0) MPI_Abort(MPI_COMM_WORLD, -1);
+
+    if (rank == 0) App_Log(APP_ALWAYS, "Test successful\n");
 
     MPI_Finalize();
 

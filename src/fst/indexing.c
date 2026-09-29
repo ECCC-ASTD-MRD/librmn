@@ -156,7 +156,7 @@ RecordData *rmn_get_index_columns_raw(const char **filenames, int nb_files)
             nb[i] = 0;
             continue;
         }
-        while (fst24_find_next(q, &result))
+        while (fst24_find_next(q, &result) == TRUE)
         {
             strncpy(lraw[i]->nomvar + n * FST_NOMVAR_LEN, result.nomvar, FST_NOMVAR_LEN);
             strncpy(lraw[i]->typvar + n * FST_TYPVAR_LEN, result.typvar, FST_TYPVAR_LEN);

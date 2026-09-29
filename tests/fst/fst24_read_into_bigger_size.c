@@ -121,11 +121,12 @@ static void compare_int_arrays(const void* a, const int size_a, const void* b, c
     }
 }
 
-static int create_file(const int is_rsf) {
-    const char* filename = is_rsf ? rsf_filename : xdf_filename;
+static int create_file(const char* backend) {
+    const char* filename = strcmp(backend, "RSF") == 0 ? rsf_filename : xdf_filename;
     remove(filename);
 
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
 
     fst_file* f = fst24_open(filename, options);
     if (f == NULL) {
@@ -242,11 +243,11 @@ static int create_file(const int is_rsf) {
     return 0;
 }
 
-static int test_read_into_bigger_size(const int is_rsf) {
-    App_Log(APP_INFO, "Testing %s\n", is_rsf ? "RSF" : "XDF");
-    if (create_file(is_rsf) != 0) return -1;
+static int test_read_into_bigger_size(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
+    if (create_file(backend) != 0) return -1;
 
-    const char* filename = is_rsf ? rsf_filename : xdf_filename;
+    const char* filename = strcmp(backend, "RSF") == 0 ? rsf_filename : xdf_filename;
     fst_file* f = fst24_open(filename, "R/O");
     if (f == NULL) {
         App_Log(APP_ERROR, "Unable to open file %s for reading \n", filename);
@@ -687,9 +688,10 @@ int main(void) {
     // }
 
     init_data(DATA_SIZE);
-    if (test_read_into_bigger_size(1) != 0) return -1;
-    if (test_read_into_bigger_size(0) != 0) return -1;
+    if (test_read_into_bigger_size("RSF") != 0) return -1;
+    if (test_read_into_bigger_size("XDF") != 0) return -1;
     clear_data();
 
+    App_Log(APP_ALWAYS, "Test successful\n");
     return 0;
 }

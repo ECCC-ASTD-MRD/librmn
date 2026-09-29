@@ -132,7 +132,34 @@ compilation instructions specifying a different installation directory
 (`-DCMAKE_INSTALL_PREFIX=$install_dir_path`).
 
 
-## Example of use in a client application
+## Usage in a client application with CMake
+
+Librmn provides multiple targets:
+- `rmn-static`
+- `rmn-shared`
+
+Additionally, if MPI and OpenMP were found and enabled, the following targets
+will also be available:
+- `rmn-ompi-static`
+- `rmn-ompi-shared`
+
+When loading the librmn package in your client application,
+one of the following components may be specified:
+`find_package(rmn REQUIRED COMPONENT <static|shared>)`
+
+These components are mutually exclusive.
+
+Based on the requested component, aliases will be created to the static or
+shared targets:
+- `rmn::rmn`
+- `rmn::rmn-ompi` (if available)
+
+Regardless of the requested component, targets both for static and shared will
+be available. If no component was specified (`find_package(rmn REQUIRED)`),
+the aliases will point to the static targets.
+
+
+### Example of use in a client application
 
 We have developed a very simple example of an application using librmn.  It
 can be used as a reference to build a CMake project that uses librmn.

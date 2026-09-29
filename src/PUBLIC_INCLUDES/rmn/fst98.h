@@ -110,6 +110,7 @@ static inline int32_t is_type_integer(const int32_t type_flag) {
 void upgrade_size(void* dest, const int dest_size, void* src, const int src_size, const int64_t num_elem,
                   const int is_integer);
 int32_t c_fst_is_rsf(const int iun);
+void fst_print_record(const int handle);
 int c_fst_data_length(const int length_type);
 int c_ip1_all(const float level, const int kind);
 int c_ip1_val(const float level, const int kind);

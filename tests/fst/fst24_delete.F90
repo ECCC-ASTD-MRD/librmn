@@ -4,15 +4,15 @@ module fst24_delete_module
     use rmn_fst24
     implicit none
 
-    character(len=*), parameter :: filename_rsf = 'delete.rsf'
-    character(len=*), parameter :: filename_xdf = 'delete.xdf'
+    character(len=*), parameter :: filename_rsf = 'delete_f.rsf'
+    character(len=*), parameter :: filename_xdf = 'delete_f.xdf'
 
     character(len=2048) :: cmd
 
 contains
-    subroutine create_file(is_rsf)
+    subroutine create_file(backend)
         implicit none
-        logical, intent(in) :: is_rsf
+        character(len=*), intent(in) :: backend
 
         integer, parameter :: NUM_DATA = 150
         real, dimension(NUM_DATA), target :: dummy_data
@@ -23,13 +23,12 @@ contains
         type(fst_file) :: file
         type(fst_record) :: record
 
-        if (is_rsf) then
+        if (backend == 'RSF') then
             name = filename_rsf
-            options = 'RSF+R/W'
         else
             name = filename_xdf
-            options = 'XDF+R/W'
         end if
+        options = backend // '+R/W'
 
         write(cmd, '(A, (1X, A))') 'rm -fv ', name
         call execute_command_line(trim(cmd))
@@ -85,9 +84,9 @@ contains
 
     end subroutine create_file
 
-    subroutine test_delete(is_rsf)
+    subroutine test_delete(backend)
         implicit none
-        logical, intent(in) :: is_rsf
+        character(len=*), intent(in) :: backend
 
         character(len=:), allocatable :: name
         logical :: success
@@ -96,13 +95,16 @@ contains
         type(fst_record) :: record
         type(fst_query) :: query
 
-        if (is_rsf) then
+        write(app_msg, '(A, A)') 'Testing ', backend
+        call App_Log(APP_ALWAYS, app_msg)
+
+        if (backend == 'RSF') then
             name = filename_rsf
         else
             name = filename_xdf
         end if
         
-        call create_file(is_rsf)
+        call create_file(backend)
 
         success = file % open(name, options = 'R/W')
         if (.not. success) error stop 1
@@ -132,11 +134,9 @@ program test_fst24_delete
     use fst24_delete_module
     implicit none
 
-    call App_Log(APP_INFO, 'Testing RSF')
-    call test_delete(.true.)
-    call App_Log(APP_INFO, 'Testing XDF')
-    call test_delete(.false.)
-    
-    call App_Log(APP_INFO, 'Test successful');
-    
+    call test_delete('RSF')
+    call test_delete('XDF')
+
+    call App_Log(APP_ALWAYS, 'Test successful')
+
 end program test_fst24_delete

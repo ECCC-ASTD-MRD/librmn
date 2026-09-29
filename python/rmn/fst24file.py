@@ -41,6 +41,10 @@ _fst24_get_record_by_index = librmn.fst24_get_record_by_index
 _fst24_get_record_by_index.argtypes = (ctypes.c_void_p, ctypes.c_int32, ctypes.POINTER(fst_record))
 _fst24_get_record_by_index.restype = ctypes.c_int32
 
+_fst24_backend_name = librmn.fst24_backend_name
+_fst24_backend_name.argtypes = (ctypes.c_void_p,)
+_fst24_backend_name.restype = ctypes.c_char_p
+
 # PYTHON VERSION:
 # 3.9+: Generator[fst_record, None, None]
 # 3.8-: Iterable[fst_record]
@@ -134,6 +138,17 @@ class fst24_file(ctypes.Structure):
 
             self.closed = True
             self._c_ref = None
+
+    @property
+    def backend_name(self) -> Optional[str]:
+        """The name of the backend used by this file (e.g. "RSF", "XDF").
+
+        For a linked collection of files, only the first file is considered.
+        Returns None if the file is closed."""
+        if self.closed:
+            return None
+        name = _fst24_backend_name(self._c_ref)
+        return name.decode("utf-8") if name is not None else None
 
     def __repr__(self):
         return f"rmn.fst24_file(filename='{self.filename}', options='{self.options}')"

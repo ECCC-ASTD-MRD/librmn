@@ -9,9 +9,10 @@ int ORIGIN_TIME = 0;
 const int DEET = 24;
 const int INITIAL_NPAS = 10;
 
-int create_file(const int is_rsf) {
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+int create_file(const char* backend) {
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
 
     remove(filename);
 
@@ -55,11 +56,12 @@ int create_file(const int is_rsf) {
     return 0;
 }
 
-int test_datev(const int is_rsf) {
+int test_datev(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
 
-    if (create_file(is_rsf) != 0) return -1;
+    if (create_file(backend) != 0) return -1;
 
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
 
     int iun = 0;
     c_fnom(&iun, filename, "RND+R/O", 0);
@@ -106,10 +108,8 @@ int test_datev(const int is_rsf) {
 }
 
 int main(void) {
-    App_Log(APP_INFO, "Testing RSF\n");
-    if (test_datev(1) != 0) return -1;
-    App_Log(APP_INFO, "Testing XDF\n");
-    if (test_datev(0) != 0) return -1;
-    App_Log(APP_INFO, "Test successful\n");
+    if (test_datev("RSF") != 0) return -1;
+    if (test_datev("XDF") != 0) return -1;
+    App_Log(APP_ALWAYS, "Test successful\n");
     return 0;
 }

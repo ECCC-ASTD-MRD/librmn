@@ -2,14 +2,16 @@
 #include <App.h>
 #include <rmn/excdes_new.h>
 
-const char* test_filename = "dummy.fst";
 const int TEST_IP = 1000;
 
-int test98(const int is_rsf) {
+int test98(const char* backend) {
+    char test_filename[64];
+    snprintf(test_filename, sizeof(test_filename), "dummy.%s", backend);
     remove(test_filename);
 
     int iun = 0;
-    char* options = is_rsf ? "STD+RND+RSF+R/W" : "STD+RND+XDF+R/W";
+    char options[64];
+    snprintf(options, sizeof(options), "STD+RND+%s+R/W", backend);
     if (c_fnom(&iun, test_filename, options, 0) != 0) {
         App_Log(APP_ERROR, "%s: Unable to fnom\n", __func__);
         return -1;
@@ -58,10 +60,15 @@ int test98(const int is_rsf) {
 
 
 
-int test24(const int is_rsf) {
+int test24(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
+
+    char test_filename[64];
+    snprintf(test_filename, sizeof(test_filename), "dummy.%s", backend);
     remove(test_filename);
 
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
     fst_file* f = fst24_open(test_filename, options);
     if (f == NULL) {
         App_Log(APP_ERROR, "%s: Unable to open %s for writing\n", __func__, test_filename);
@@ -109,16 +116,16 @@ int test24(const int is_rsf) {
 
     fst24_flush(f); // This does NOT seem to do what I think it does...
 
-    if (is_rsf && fst24_get_num_records(f) != 1) {
+    if (strcmp(backend, "RSF") == 0 && fst24_get_num_records(f) != 1) {
         App_Log(APP_ERROR, "%s: Not the correct number of records! %d, but should be 1\n", __func__, fst24_get_num_records(f));
         return -1;
     }
 
     fst24_close(f);
 
-    if (!is_rsf) {
+    if (strcmp(backend, "RSF") != 0) {
         f = fst24_open(test_filename, "R/O");
-        if (is_rsf && fst24_get_num_records(f) != 1) {
+        if (strcmp(backend, "RSF") == 0 && fst24_get_num_records(f) != 1) {
             App_Log(APP_ERROR, "%s: Not the correct number of records! %d, but should be 1\n", __func__, fst24_get_num_records(f));
             return -1;
         }
@@ -129,15 +136,13 @@ int test24(const int is_rsf) {
 }
 
 int main(void) {
-    App_Log(APP_INFO, "Testing RSF\n");
-    if (test24(1) < 0) return -1;
-    if (test98(1) < 0) return -1;
+    if (test24("RSF") < 0) return -1;
+    if (test98("RSF") < 0) return -1;
 
-    App_Log(APP_INFO, "Testing XDF\n");
-    if (test24(0) < 0) return -1;
-    if (test98(0) < 0) return -1;
+    if (test24("XDF") < 0) return -1;
+    if (test98("XDF") < 0) return -1;
 
 
-    App_Log(APP_INFO, "Tests successful\n");
+    App_Log(APP_ALWAYS, "Test successful\n");
     return 0;
 }

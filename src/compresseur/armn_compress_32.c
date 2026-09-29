@@ -71,7 +71,7 @@ int c_armn_compress32(
     unsigned char *le_pointeur, *pos_lng_signe, *pos_lng_exposant, *pos_lng_mantisse;
     unsigned char *signe = NULL, *zsigne = NULL, code_signe, code_exposant, code_mantisse;
     unsigned char codes;
-    unsigned int *mantisse = NULL, *mantisse_stream, *la_mantisse,*zmantisse = NULL, exp_base;
+    unsigned int *mantisse = NULL, *mantisse_stream = NULL, *la_mantisse = NULL, *zmantisse = NULL, exp_base;
     unsigned int *temp;
     unsigned int exp_min, exp_max, *zexposant = NULL;
     unsigned int le_signe_or, le_signe_and;
@@ -208,8 +208,7 @@ int c_armn_compress32(
         if (lng_exposant > (unsigned int) ni * nj) {
             zlng = -1;
             Lib_Log(APP_LIBFST,APP_WARNING,"%s: Exponent range too large, original field left uncompressed",__func__);
-            goto end ;
-//             return zlng;
+            goto end;
         }
 
         if (0 != (lng_exposant % 4)) {
@@ -229,19 +228,8 @@ int c_armn_compress32(
     la_mantisse = zmantisse;
 
     if (lng_mantisse == 0) {
-      zlng = -1 ;
-      goto end ;
-//         free(signe);
-//         free(zsigne);
-//         free(exposant);
-//         free(exposant2);
-//         free(zexposant);
-//         if (la_mantisse != mantisse) {
-//             free(mantisse_stream);
-//         }
-//         free(mantisse);
-//         free(zmantisse);
-//         return -1;
+        zlng = -1;
+        goto end;
     }
 
     if (0 != (lng_mantisse % 4)) {
@@ -267,18 +255,18 @@ int c_armn_compress32(
     le_pointeur += lng_mantisse;
     zlng = le_pointeur - zstream;
 
-end :
+end:
     // Menage avant de s'en aller
-    if(signe)free(signe);
-    if(zsigne)free(zsigne);
-    if(exposant)free(exposant);
-    if(exposant2)free(exposant2);
-    if(zexposant)free(zexposant);
+    if (signe) free(signe);
+    if (zsigne) free(zsigne);
+    if (exposant) free(exposant);
+    if (exposant2) free(exposant2);
+    if (zexposant) free(zexposant);
     if (la_mantisse != mantisse) {
-        if(mantisse_stream)free(mantisse_stream);
+        if (mantisse_stream) free(mantisse_stream);
     }
-    if(mantisse)free(mantisse);
-    if(zmantisse)free(zmantisse);
+    if (mantisse) free(mantisse);
+    if (zmantisse) free(zmantisse);
     return zlng;
 }
 

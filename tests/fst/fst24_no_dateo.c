@@ -41,15 +41,16 @@ static fst_record make_record() {
     return rec;
 }
 
-static int create_file(const int is_rsf) {
+static int create_file(const char* backend) {
 
     const int mode = 3;
     newdate_c(&TEST_STAMP, &TEST_DATE, &TEST_TIME, &mode);
 
     App_Log(APP_ALWAYS, "%s: TEST_STAMP = %d\n", __func__, TEST_STAMP);
 
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
 
     remove(filename);
 
@@ -83,13 +84,13 @@ static int create_file(const int is_rsf) {
     return 0;
 }
 
-static int run_test(const int is_rsf) {
-    App_Log(APP_ALWAYS, "Testing %s\n", is_rsf ? "RSF" : "XDF");
-    if (create_file(is_rsf) != 0) return -1;
+static int run_test(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
+    if (create_file(backend) != 0) return -1;
 
 
     // Verify content of file
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
     fst_file* test_file = fst24_open(filename, NULL);
     if (test_file == NULL) {
         App_Log(APP_ERROR, "%s: Unable to open test file %s\n", __func__, filename);
@@ -154,8 +155,9 @@ static int run_test(const int is_rsf) {
 }
 
 int main(void) {
-    if (run_test(0) != 0) return -1;
-    if (run_test(1) != 0) return -1;
+    if (run_test("RSF") != 0) return -1;
+    if (run_test("XDF") != 0) return -1;
 
+    App_Log(APP_ALWAYS, "Test successful\n");
     return 0;
 }

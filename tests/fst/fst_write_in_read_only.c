@@ -2,17 +2,20 @@
 #include <App.h>
 #include <rmn.h>
 
-const char* test_filename = "read_only.fst";
+int test_write_in_ro(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
 
-int test_write_in_ro(const int is_rsf) {
-
+    char test_filename[64];
+    snprintf(test_filename, sizeof(test_filename), "read_only.%s", backend);
     // Create file
     remove(test_filename);
-    fst_file* f = fst24_open(test_filename, is_rsf ? "RSF+R/W" : "XDF+R/W");
-    if (!f || fst24_close(f) <= 0) return -1;
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
+    fst_file* f = fst24_open(test_filename, options);
+    if (f == NULL || fst24_close(f) <= 0) return -1;
 
     f = fst24_open(test_filename, "R/O");
-    if (!f) return -1;
+    if (f == NULL) return -1;
 
     fst_record rec = default_fst_record;
     if (fst24_write(f, &rec, 0) == TRUE) {
@@ -43,8 +46,8 @@ int test_write_in_ro(const int is_rsf) {
 
 int main(void) {
 
-    if (test_write_in_ro(1) < 0) return -1;
-    if (test_write_in_ro(0) < 0) return -1;
+    if (test_write_in_ro("RSF") < 0) return -1;
+    if (test_write_in_ro("XDF") < 0) return -1;
 
     App_Log(APP_INFO, "Test successful\n");
 

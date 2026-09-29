@@ -9,13 +9,13 @@ module test_fst98_interface_module
 
 contains
 
-subroutine test_fst98_interface(is_rsf)
+subroutine test_fst98_interface(backend)
     implicit none
-    logical, intent(in) :: is_rsf
+    character(len=*), intent(in) :: backend
 
     integer :: status, i, j, expected
-    character(len=*), parameter :: test_file_name = 'fst_interface.fst'
-    character(len=*), parameter :: test_file_name_2 = 'fst_interface_2.fst'
+    character(len=64) :: test_file_name
+    character(len=64) :: test_file_name_2
     character(len=2000) :: cmd
 
     integer, parameter :: NUM_DATA = 8
@@ -31,11 +31,11 @@ subroutine test_fst98_interface(is_rsf)
     integer :: record_key
     integer :: iun
 
-    if (is_rsf) then
-        call App_Log(APP_ALWAYS, 'Testing RSF')
-    else
-        call App_Log(APP_ALWAYS, 'Testing XDF')
-    end if
+    write(app_msg, '(A, A)') 'Testing ', backend
+    call App_Log(APP_ALWAYS, app_msg)
+
+    test_file_name = 'fst_interface.' // backend
+    test_file_name_2 = 'fst_interface_2.' // backend
 
     ! Remove file(s) so that we have a fresh start
     write(cmd, '(A, 2(1X, A))') 'rm -fv ', test_file_name, test_file_name_2
@@ -50,7 +50,7 @@ subroutine test_fst98_interface(is_rsf)
 
     ! --- fstouv ---
     iun = 0
-    if (is_rsf) then
+    if (backend == 'RSF') then
         status = fstouv(test_file_name, iun, 'STD+RND+RSF')
         if (.not. fst_is_rsf(iun)) then
             call App_Log(APP_ERROR, 'File should be RSF!')
@@ -120,7 +120,7 @@ subroutine test_fst98_interface(is_rsf)
     ! ----- wkoffit -----
     status = wkoffit(test_file_name)
     expected = 33
-    if (is_rsf) expected = 39
+    if (backend == 'RSF') expected = 39
     call check_status(status, expected = expected, fail_message = 'wkoffit')
 
     ! ----- fstouv -----
@@ -378,10 +378,10 @@ program fst_interface
     use blind_calls_mod
     implicit none
 
-    call test_fst98_interface(.false.)
-    call test_fst98_interface(.true.)
+    call test_fst98_interface('RSF')
+    call test_fst98_interface('XDF')
     call test_blind_calls()
 
-    call App_Log(APP_INFO, 'Test successful')
+    call App_Log(APP_ALWAYS, 'Test successful')
 
 end program fst_interface

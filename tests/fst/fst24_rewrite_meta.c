@@ -31,10 +31,11 @@ static fst_record new_record = default_fst_record;
     }
 
 //! Create input test file and initialize base record.
-static int create_file(const int is_rsf) {
-    const char* filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* solution_filename = is_rsf ? solution_filename_rsf : solution_filename_xdf;
-    const char* options = is_rsf ? "RSF+R/W" : "XDF+R/W";
+static int create_file(const char* backend) {
+    const char* filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    const char* solution_filename = strcmp(backend, "RSF") == 0 ? solution_filename_rsf : solution_filename_xdf;
+    char options[64];
+    snprintf(options, sizeof(options), "%s+R/W", backend);
 
     remove(filename);
     remove(solution_filename);
@@ -185,7 +186,7 @@ static int create_file(const int is_rsf) {
     solution_record.ig4 = new_record.ig4;
     WRITE_CHECK(solution_file, &solution_record);
 
-    if (is_rsf) {
+    if (strcmp(backend, "RSF") == 0) {
         json_object* ext_meta = Meta_New(META_TYPE_RECORD,NULL);
         if (ext_meta == NULL) {
             App_Log(APP_ERROR, "%s: Unable to create JSON meta object\n", __func__);
@@ -246,12 +247,12 @@ static int get_record(fst_file* f, const int ip1, fst_record* rec) {
     return 0;
 }
 
-static int run_test(const int is_rsf) {
-    App_Log(APP_INFO, "%s: Running %s test\n", __func__, is_rsf ? "RSF" : "XDF");
-    if (create_file(is_rsf) != 0) return -1;
+static int run_test(const char* backend) {
+    App_Log(APP_ALWAYS, "Testing %s\n", backend);
+    if (create_file(backend) != 0) return -1;
 
-    const char* test_filename = is_rsf ? filename_rsf : filename_xdf;
-    const char* solution_filename = is_rsf ? solution_filename_rsf : solution_filename_xdf;
+    const char* test_filename = strcmp(backend, "RSF") == 0 ? filename_rsf : filename_xdf;
+    const char* solution_filename = strcmp(backend, "RSF") == 0 ? solution_filename_rsf : solution_filename_xdf;
 
     fst_record rec = default_fst_record;
     fst_record solution_rec = default_fst_record;
@@ -425,7 +426,7 @@ static int run_test(const int is_rsf) {
     }
 
     // extended metadata
-    if (is_rsf) {
+    if (strcmp(backend, "RSF") == 0) {
         if (get_record(test_file, 13, &rec) != 0) return -1;
         rec.metadata = new_record.metadata;
         if (fst24_write(test_file, &rec, FST_META) != TRUE) {
@@ -448,7 +449,7 @@ static int run_test(const int is_rsf) {
         if (get_record(test_file, i, &rec) != 0) return -1;
         if (get_record(solution_file, i, &solution_rec) != 0) return -1;
 
-        if (is_rsf) {
+        if (strcmp(backend, "RSF") == 0) {
             fst24_read_metadata(&rec);
             fst24_read_metadata(&solution_rec);
         }
@@ -476,7 +477,7 @@ static int run_test(const int is_rsf) {
         get_record(test_file, i, &rec);
         get_record(solution_file, i, &solution_rec);
 
-        if (is_rsf) {
+        if (strcmp(backend, "RSF") == 0) {
             fst24_read_metadata(&rec);
             fst24_read_metadata(&solution_rec);
         }
@@ -510,8 +511,8 @@ static int run_test(const int is_rsf) {
 }
 
 int main(void) {
-    if (run_test(0) != 0) return -1;
-    if (run_test(1) != 0) return -1;
+    if (run_test("RSF") != 0) return -1;
+    if (run_test("XDF") != 0) return -1;
     App_Log(APP_ALWAYS, "%s: Test successful\n", __func__);
     
     fst24_record_free(&base_record);
