@@ -271,7 +271,7 @@ if (EC_INIT_DONE LESS 2)
         add_dependencies(test_execs readlx_base)
 
         # Python tests
-        if (TARGET rmn::rmn-shared)
+        if (TARGET rmn::rmn-shared AND BUILD_PYTHON)
             find_package(Python3 REQUIRED COMPONENTS Interpreter)
             add_dependencies(test_execs rmn::rmn-shared)
             set(set_pythonpath "PYTHONPATH=${CMAKE_BINARY_DIR}/python\${PYTHONPATH:+:\${PYTHONPATH}}")
