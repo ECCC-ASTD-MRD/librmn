@@ -2415,7 +2415,13 @@ static int RSF_Lock_for_write(
         /////////////////////////////////////////////
 
         if (return_value != 0 && timeout_s > 0) {
-            sleep_us(2000);
+            const double elapsed_ms = App_TimerTimeSinceStart_ms(&timer);
+            // 2% of elapsed time, clamped to [1, 100] ms
+            const int delay_us_tmp = elapsed_ms / 50.0 * 1000.0;
+            const int delay_us = (delay_us_tmp < 1000)   ? 1000   :
+                                 (delay_us_tmp > 100000) ? 100000 : 
+                                                           delay_us_tmp;
+            sleep_us(delay_us);
             warned = 1;
         }
     }
