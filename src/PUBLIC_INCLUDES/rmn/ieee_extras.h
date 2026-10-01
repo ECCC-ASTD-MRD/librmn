@@ -286,4 +286,15 @@ static inline float fp32_from_sem(fp32_sem sem){
   return fp32_from_i3(sem.s, sem.e, sem.m) ;
 }
 
+// re-create 32 bit positive float from biased exponent
+static inline float fp32_from_exp(int32_t p){
+  union{ int32_t i ; uint32_t u ; float f ; } r ;
+  if(p < 0 || p > 255){
+    r.u = 0X7F800001u ;
+  }else{
+    r.i = (p << 23) ;
+  }
+  return r.f ;
+}
+
 #endif
