@@ -38,7 +38,7 @@ Create a file with a single record with random data:
 
 from .fst24file import fst24_file, FstFileError, FstRewriteOpt
 from .fstrecord import fst_record, FstDataType, is_default_record_valid
-from .fstdate import fst_date
+from .fstdate import encode_date, decode_date
 
 if not is_default_record_valid():
     raise ImportError(
