@@ -116,7 +116,7 @@ contains
         implicit none
 
         class(fst_file), intent(in) :: this
-        character(len = :), pointer :: name
+        character(len = :), allocatable :: name
 
         integer :: strlen
         type(C_PTR) :: c_name
@@ -124,9 +124,13 @@ contains
         if (this % is_open()) then
             c_name = fst24_file_name(this % file_ptr)
             strlen = c_strlen(c_name)
-            call c_f_strpointer(c_name, name, strlen)
+            block
+                character(kind=C_CHAR, len=strlen), pointer :: fptr
+                call c_f_pointer(c_name, fptr)
+                name = fptr(1:strlen)
+            end block
         else
-            allocate(character(len=0) :: name)
+            name = ''
         end if
     end function fst24_file_get_name
 
@@ -265,7 +269,7 @@ contains
         implicit none
 
         class(fst_file), intent(in) :: this
-        character(len = :), pointer :: name
+        character(len = :), allocatable :: name
 
         integer :: strlen
         type(C_PTR) :: c_name
@@ -273,9 +277,13 @@ contains
         c_name = fst24_backend_name(this % file_ptr)
         if (c_associated(c_name)) then
             strlen = c_strlen(c_name)
-            call c_f_strpointer(c_name, name, strlen)
+            block
+                character(kind=C_CHAR, len=strlen), pointer :: fptr
+                call c_f_pointer(c_name, fptr)
+                name = fptr(1:strlen)
+            end block
         else
-            allocate(character(len=0) :: name)
+            name = ''
         end if
     end function fst24_file_backend_name
 

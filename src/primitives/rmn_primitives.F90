@@ -6,8 +6,15 @@ module rmn_primitives
 
     public :: fnom, fclos
     public :: wkoffit, exfin, exdb
+    public :: get_max_rss
 
     interface
+        function get_max_rss() result(max_rss) bind(C, name = 'get_max_rss')
+            import :: C_INT32_T
+            implicit none
+            integer(C_INT32_T) :: max_rss
+        end function get_max_rss
+
         function c_wkoffit(filepath, path_length) result(status) bind(C, name = 'c_wkoffit')
             import :: C_CHAR, C_INT, C_INT32_T
             implicit none

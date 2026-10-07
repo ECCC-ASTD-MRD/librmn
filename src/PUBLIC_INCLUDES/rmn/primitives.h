@@ -8,6 +8,7 @@
 
 size_t fread32( void *ptr, size_t size, size_t nitems, FILE *stream);
 void f77name(micro_sleep) (double *secs);
+int32_t get_max_rss(void);
 int32_t c_exdb(const char* titre, const char* revis, const char* flag);
 int32_t f77name(exdb)(const char* titre, const char* revis, const char* flag, F2Cl len_1, F2Cl len_2, F2Cl len_3);
 
