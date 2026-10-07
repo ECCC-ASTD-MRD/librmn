@@ -231,6 +231,7 @@ if (EC_INIT_DONE LESS 2)
         if (TARGET rmn::rmn-ompi)
             gen_test_target(SOURCES fst/fst_parallel_write.c MPI_NUM 4 ENVIRONMENT "FST_OPTIONS=SEGMENT_SIZE_MB=10" "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
             gen_test_target(SOURCES fst/fst_parallel_write_threads.c LIBRARIES rmn::rmn-ompi ENVIRONMENT "FST_OPTIONS=SEGMENT_SIZE_MB=10" "META_PROFPATH=${CMAKE_CURRENT_SOURCE_DIR}/../src/Meta" "META_VALIDATE=TRUE")
+            gen_test_target(SOURCES fst/fst24_open_write_threads.c LIBRARIES rmn::rmn-ompi ENVIRONMENT "FST_OPTIONS=OPEN_WAIT_TIME=30" "OMP_NUM_THREADS=8")
             gen_test_target(SOURCES fst/multi_open.c MPI_NUM 4)
             gen_test_target(SOURCES fst/fst_multithread.c LIBRARIES rmn::rmn-ompi)
             gen_test_target(SOURCES fnom.c LIBRARIES rmn::rmn-ompi)
@@ -315,7 +316,7 @@ search_params.RSF;search_params.XDF;skip_descriptors.rsf;skip_descriptors.xdf;te
 test_fst24_meta_find.fst;test_fst98_interface_module.smod;Whiteboard.ckpt;xdf1.fst;xdf2.fst;\
 blind_calls.fst;data_map.fst;data_size.rsf;data_size.xdf;f1.fst;f2.fst;f4.fst;\
 large_record.rsf;multi_open.rsf;multi_write.rsf;open_close_link0;open_close_link1;\
-open_close_link2;open_close_link3;parallel.fst;parallel_threads.fst;python_fst_types_RSF.fst;\
+open_close_link2;open_close_link3;open_write_threads.rsf;parallel.fst;parallel_threads.fst;python_fst_types_RSF.fst;\
 python_fst_types_XDF.fst;wildcard.rsf;wildcard.xdf;write_wait.rsf;\
 backend_name.RSF;backend_name.XDF;backend_name_RSF.fst;backend_name_XDF.fst"
         )

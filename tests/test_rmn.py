@@ -358,5 +358,23 @@ class TestRMNPackage(unittest.TestCase):
     def test_validate_default_record(self):
         self.assertTrue(rmn.is_default_record_valid())
 
+    def test_encode_decode_date(self):
+        from datetime import datetime
+
+        # encode_date returns an int
+        enc = rmn.encode_date("2024-01-15 12:30:45")
+        self.assertIsInstance(enc, int)
+
+        # Round-trip: encode then decode recovers the original timestamp
+        dec = rmn.decode_date(enc)
+        self.assertEqual(dec, np.datetime64("2024-01-15T12:30:45"))
+
+        # encode_date accepts datetime and numpy.datetime64 inputs, and they
+        # all encode to the same value as the equivalent string
+        enc_dt = rmn.encode_date(datetime(2024, 1, 15, 12, 30, 45))
+        self.assertEqual(enc_dt, enc)
+        enc_np = rmn.encode_date(np.datetime64("2024-01-15T12:30:45"))
+        self.assertEqual(enc_np, enc)
+
 if __name__ == "__main__":
     unittest.main()
