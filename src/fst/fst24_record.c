@@ -204,7 +204,9 @@ char* add_date(
     const int64_t datestamp //!< Timestamp to be translated and added to the line
 ) {
     char* result = buffer;
-    int32_t dat2, dat3;
+    // Initialize to 0: newdate_c (mode -3) does not write dat2/dat3 when the date conversion fails
+    int32_t dat2 = 0;
+    int32_t dat3 = 0;
     int32_t minus3 = -3;
     int32_t small_date = datestamp;
     newdate_c(&small_date, &dat2, &dat3, &minus3);

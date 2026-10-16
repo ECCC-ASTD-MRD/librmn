@@ -601,7 +601,8 @@ void print_std_parms(
     const int header
 ) {
     char cmsgp = ' '; // initialize for case where there are no missing value(s) in record
-    int dat2, dat3;
+    // Initialize to 0: newdate_c (mode -3) does not write dat2/dat3 when the date conversion fails
+    int dat2 = 0, dat3 = 0;
     int minus3 = -3;
     int iip1, kind;
     int ig1, ig2, ig3, ig4;
