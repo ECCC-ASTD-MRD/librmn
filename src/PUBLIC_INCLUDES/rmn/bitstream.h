@@ -80,7 +80,10 @@
 // bits left to fill in stream (usable if insertion mode is active)
 #define STREAM_BITS_EMPTY(s) ( ((s).insert >= 0) ? ( ((s).limit - (s).in) * 32l - (s).insert ) : 0 )
 
-// bits available in stream (usable if extraction mode is active)
+// stream is full (or more than full)
+#define STREAM_IS_FULL(s) ( (s).in >= (s).limit )
+// stream is dry
+#define STREAM_IS_EMPTY(s) ( STREAM_BITS_AVAIL(s) <= 0 )
 
 #include <stdint.h>
 #include <stdlib.h>
