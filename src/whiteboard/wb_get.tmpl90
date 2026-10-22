@@ -3,6 +3,7 @@
 
 !> \brief Retrieve a copy of the value associated with key stored in the whiteboard saclar form
 function FNCNAME(wb_get_)(key, val, wb) result(status)
+    use ISO_C_BINDING
     use, intrinsic :: iso_fortran_env
 #ifdef INTERFACEONLY
     import :: whiteboard
@@ -15,7 +16,7 @@ function FNCNAME(wb_get_)(key, val, wb) result(status)
     !> Key identifying the whiteboard entry to get
     character (len = *), intent(in) :: key
     !> Returned value associated with key
-    TYPEFORTRAN, intent(out) :: val
+    TYPEFORTRAN, intent(out), target :: val
     !> WhiteBoard instance.  The global instance is used if one ins't provided
     type(whiteboard), intent(in), optional :: wb
     !> WB_OK on success or error code on failure.  Use WB_IS_OK() to check
@@ -36,7 +37,11 @@ function FNCNAME(wb_get_)(key, val, wb) result(status)
     else
         my_wb = 0
     endif
-    status = f_wb_get(my_wb, key, TYPEWBFORT, TYPELEN, val, 0)
+    BLOCK
+      integer, pointer :: iptr
+      call C_F_POINTER(C_LOC(val), iptr)
+      status = f_wb_get(my_wb, key, TYPEWBFORT, TYPELEN, iptr, 0)
+    END BLOCK
 !$omp end critical
 #endif
 end function
@@ -44,6 +49,7 @@ end function
 
 !> \brief Retrieve a copy of the value associated with key stored in the whiteboard array form
 function NAMEA(FNCNAME(wb_get_))(key, val, nbval, wb) result(status)
+    use ISO_C_BINDING
     use, intrinsic :: iso_fortran_env
 #ifdef INTERFACEONLY
     import :: whiteboard
@@ -56,7 +62,7 @@ function NAMEA(FNCNAME(wb_get_))(key, val, nbval, wb) result(status)
     !> Key identifying the whiteboard entry to get
     character (len = *), intent(in) :: key
     !> Returned value associated with key
-    TYPEFORTRAN, dimension(:), intent(out) :: val
+    TYPEFORTRAN, dimension(:), intent(out), target :: val
     !> Number of returned values in the array
     integer, intent(out) :: nbval
     !> WhiteBoard instance.  The global instance is used if one ins't provided
@@ -81,7 +87,11 @@ function NAMEA(FNCNAME(wb_get_))(key, val, nbval, wb) result(status)
         my_wb = 0
     endif
     nbval  = 0
-    status = f_wb_get(my_wb, key, TYPEWBFORT, TYPELEN, val, size(val))
+    BLOCK
+      integer, pointer :: iptr
+      call C_F_POINTER(C_LOC(val), iptr)
+      status = f_wb_get(my_wb, key, TYPEWBFORT, TYPELEN, iptr, size(val))
+    END BLOCK
     if (WB_IS_OK(status)) nbval = status
 !$omp end critical
 !TODO: error when not enough room to get all WB values [not the default]

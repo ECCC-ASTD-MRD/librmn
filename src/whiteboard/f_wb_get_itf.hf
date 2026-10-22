@@ -6,11 +6,12 @@
             character (len = *), intent(in) :: key
             integer, intent(in) :: type_name
             integer, intent(in) :: type_size
-#ifdef ARRAY
-            TYPEFORTRAN, dimension(*), intent(out) :: val
-#else
-            TYPEFORTRAN, intent(out) :: val
-#endif
+            integer, intent(out) :: val
+!#ifdef ARRAY
+!            TYPEFORTRAN, dimension(*), intent(out) :: val
+!#else
+!            TYPEFORTRAN, intent(out) :: val
+!#endif
             integer, intent(in) :: nbelem
         end function
     end interface
