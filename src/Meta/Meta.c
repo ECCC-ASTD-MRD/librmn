@@ -2045,7 +2045,7 @@ int32_t Meta_Match(json_object *Obj1,json_object *Obj2,int RegExp) {
 */
 void Meta_StampDecode(int32_t Stamp,int32_t *YYYY,int32_t *MM,int32_t *DD,int32_t *H,int32_t *M,int32_t *S) {
 
-   int32_t op=-3,date,time;
+   int32_t op=-3,date=0,time=0;
 
    newdate_c(&Stamp,&date,&time,&op);
 

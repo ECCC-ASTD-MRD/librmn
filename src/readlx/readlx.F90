@@ -62,7 +62,7 @@ module readlx_remote
     use iso_c_binding, only: c_int32_t, c_int64_t, c_ptr, c_funptr, c_f_procpointer
     implicit none
 contains
-    integer(C_INT32_t) function remote_call(fn, args) BIND(C,name='RemoteCall')
+    integer(C_INT32_t) function remote_call(fn, args) BIND(C, name='RemoteCall')
         abstract interface
             integer(C_INT32_t) function machin( &
                                     a00,a01,a02,a03,a04,a05,a06,a07,a08,a09, &
@@ -70,8 +70,8 @@ contains
                                     a20,a21,a22,a23,a24,a25,a26,a27,a28,a29, &
                                     a30,a31,a32,a33,a34,a35,a36,a37,a38,a39, &
                                     a40) BIND(C)
-            use iso_c_binding, only: c_int32_t, c_ptr
-            type(C_PTR), intent(IN), value :: &
+                use iso_c_binding, only: c_int32_t, c_ptr
+                type(C_PTR), intent(IN), value :: &
                                         a00,a01,a02,a03,a04,a05,a06,a07,a08,a09, &
                                         a10,a11,a12,a13,a14,a15,a16,a17,a18,a19, &
                                         a20,a21,a22,a23,a24,a25,a26,a27,a28,a29, &
@@ -972,29 +972,20 @@ END
 
 
 !> Reconstituer un nombre entier, reel ou octal
+!> \return 1 if integer, 2 if real, 6 if octal integer, 5 on error
 INTEGER FUNCTION qlx_num(IB, LENG)
     implicit none
 
+    !> Number
     character(len = *), intent(INOUT) :: IB
+    !> Number of characters in the number
     INTEGER, intent(INOUT) :: LENG
-
-    !ARGUMENT
-    !        qlx_num    RETOURNE   2   reel
-    !        (S)                   1   entier
-    !                              6   entier octal
-    !                              5   ERREUR
-    !
-    !        IB(*)     IB(1) EST LE PREMIER CHIFFRE DU NOMBRE.
-    !        (E)       LA TABLE IB CONTIENT LE NOMBRE.
-    !
-    !        LENG      NOMBRE DE CARACTERES DANS LE NOMBRE(ENTIER OU REEL)
-    !        (S)
 
     INTEGER :: J, ILX
 
     EXTERNAL ::  qlx_chr, qlx_bak
 
-    character(len=1) I, CTMP, qlx_chr
+    character(len = 1) :: I, CTMP, qlx_chr
 
     IF (IB(1:1) == '.') THEN
         ILX = 1                                ! real number
@@ -1004,32 +995,32 @@ INTEGER FUNCTION qlx_num(IB, LENG)
     I = qlx_chr()
 
     DO WHILE (I >= '0' .AND. I <= '9' )        ! collect a digit stream
-        LENG = MIN(21, LENG+1)
+        LENG = MIN(21, LENG + 1)
         IB(LENG:LENG) = I
         I = qlx_chr()
     END DO
     IF (I == '.' .AND. IB(1:1) /= '.') THEN    ! decimal period, not in column 1
         ILX = 1
-        LENG = MIN(21, LENG+1)
+        LENG = MIN(21, LENG + 1)
         IB(LENG:LENG) = I
         I = qlx_chr()
         DO WHILE (I >= '0' .AND. I <= '9')     ! digit stream after the period
-            LENG = MIN(21, LENG+1)
+            LENG = MIN(21, LENG + 1)
             IB(LENG:LENG) = I
             I = qlx_chr()
         END DO
     END IF
 
-      IF (I == 'E' ) THEN                      ! E after number
-         IF (ILX == 0) THEN
-            LENG=MIN(21, LENG+1)
-            IB(LENG:LENG)='.'
-         ENDIF
-         ILX = 1                               ! definitely a real number
-         LENG = MIN(21, LENG+1)
-         IB(LENG:LENG) = I
-         I = qlx_chr()
-         IF ( (I >= '0' .AND. I <= '9') .OR. (I == '+') .OR. (I == '-') ) THEN
+    IF (I == 'E') THEN                      ! E after number
+        IF (ILX == 0) THEN
+            LENG = MIN(21, LENG + 1)
+            IB(LENG:LENG) = '.'
+        ENDIF
+        ILX = 1                               ! definitely a real number
+        LENG = MIN(21, LENG + 1)
+        IB(LENG:LENG) = I
+        I = qlx_chr()
+        IF ( (I >= '0' .AND. I <= '9') .OR. (I == '+') .OR. (I == '-') ) THEN
             LENG = MIN(21, LENG + 1)
             IB(LENG:LENG) = I
             I = qlx_chr()
@@ -1038,47 +1029,47 @@ INTEGER FUNCTION qlx_num(IB, LENG)
                 IB(LENG:LENG) = I
                 I = qlx_chr()
             END DO
-         ENDIF
-      ENDIF
+        ENDIF
+    ENDIF
 
-      IF (LENG >= 21) THEN
-         qlx_num = 5                              ! bad number
-      ELSE
-         IF (ILX == 0) THEN
+    IF (LENG >= 21) THEN
+        qlx_num = 5                              ! bad number
+    ELSE
+        IF (ILX == 0) THEN
             IF (I /= 'B') THEN
-               qlx_num = 1                        ! integer
+                qlx_num = 1                        ! integer
             ELSE
-               qlx_num = 6                        ! octal
-               I = qlx_chr()
-               DO J = LENG, 1, -1
-                  IF (IB(J:J) > '7') THEN
-                     qlx_num = 5                  ! bad number
-                  ENDIF
-                  CTMP = IB(J:J)
-                  IB(20 - LENG + J : 20 - LENG + J) = CTMP
-               END DO
-               DO J = 1, 20 - LENG
-                  IB(J:J) = '0'
-               END DO
-               LENG = 20
+                qlx_num = 6                        ! octal
+                I = qlx_chr()
+                DO J = LENG, 1, -1
+                    IF (IB(J:J) > '7') THEN
+                        qlx_num = 5                  ! bad number
+                    ENDIF
+                    CTMP = IB(J:J)
+                    IB(20 - LENG + J : 20 - LENG + J) = CTMP
+                END DO
+                DO J = 1, 20 - LENG
+                    IB(J:J) = '0'
+                END DO
+                LENG = 20
             ENDIF
-         ELSE
+        ELSE
             IF (LENG > 1) THEN
-               IF (IB(LENG:LENG) == '.') THEN
-                  qlx_num = 2                     ! real number
-               ELSE
-                  IF (IB(LENG:LENG) >= '0' .AND. IB(LENG:LENG) <= '9') THEN
-                     qlx_num = 2                  ! real number
-                  ELSE
-                     qlx_num = 5                  ! bad number
-                  ENDIF
-               ENDIF
+                IF (IB(LENG:LENG) == '.') THEN
+                    qlx_num = 2                     ! real number
+                ELSE
+                    IF (IB(LENG:LENG) >= '0' .AND. IB(LENG:LENG) <= '9') THEN
+                        qlx_num = 2                  ! real number
+                    ELSE
+                        qlx_num = 5                  ! bad number
+                    ENDIF
+                ENDIF
             ELSE
-               qlx_num = 5
+                qlx_num = 5
             ENDIF
-         ENDIF
-      ENDIF
-      CALL qlx_bak(I)
+        ENDIF
+    ENDIF
+    CALL qlx_bak(I)
 END
 
 
@@ -1162,23 +1153,23 @@ SUBROUTINE qlx_opr(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
         TOKTYPE(NTOKEN) = 0
     ENDIF
     IF (OPRTR /= 2 .AND. OPRTR /= 17 .AND. OPRTR /= 21 .AND. OPRTR /= 4) THEN
-        IF (TOKTYPE(NTOKEN-1) > 0) THEN
-            call get_value_at_address(TOKENS(NTOKEN-1), 1, tok32)
-            TOKENS(NTOKEN-1) = tok32
-            TOKTYPE(NTOKEN-1) = 0
+        IF (TOKTYPE(NTOKEN - 1) > 0) THEN
+            call get_value_at_address(TOKENS(NTOKEN - 1), 1, tok32)
+            TOKENS(NTOKEN - 1) = tok32
+            TOKTYPE(NTOKEN - 1) = 0
         ENDIF
     ENDIF
     REALOP = ABS(TOKENS(NTOKEN)) > 2147483647
     IZ1 = int(TOKENS(NTOKEN))
     IF (OPRTR /= 2 .AND. OPRTR /= 17 .AND. OPRTR /= 4) THEN
-        REALOP = REALOP .OR. ABS(TOKENS(NTOKEN-1)) > 2147483647
-        IZ2 = int(TOKENS(NTOKEN-1))
+        REALOP = REALOP .OR. ABS(TOKENS(NTOKEN - 1)) > 2147483647
+        IZ2 = int(TOKENS(NTOKEN - 1))
         IF (REALOP) THEN
             IF (ABS(IZ1) <= 2147483647) THEN
             Z1 = int(TOKENS(NTOKEN))
             ENDIF
             IF (ABS(IZ2) <= 2147483647) THEN
-            Z2 = int(TOKENS(NTOKEN-1))
+            Z2 = int(TOKENS(NTOKEN - 1))
             ENDIF
         ENDIF
     ENDIF
@@ -1189,17 +1180,17 @@ SUBROUTINE qlx_opr(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
         ERR = .TRUE.
         RETURN
     case(2)
-        IF (TOKENS(NTOKEN) <= 0 .OR. TOKTYPE(NTOKEN-1) <= 0 .OR. REALOP) THEN
+        IF (TOKENS(NTOKEN) <= 0 .OR. TOKTYPE(NTOKEN - 1) <= 0 .OR. REALOP) THEN
             ERR = .TRUE.
             RETURN
         ENDIF
-        IF (TOKENS(NTOKEN) >= TOKTYPE(NTOKEN-1)) THEN
+        IF (TOKENS(NTOKEN) >= TOKTYPE(NTOKEN - 1)) THEN
             ERR = .TRUE.
             RETURN
 
         ENDIF
-        PTOK = TOKENS(NTOKEN-1)
-        TOKENS(NTOKEN-1) = tok(TOKENS(NTOKEN))
+        PTOK = TOKENS(NTOKEN - 1)
+        TOKENS(NTOKEN - 1) = tok(TOKENS(NTOKEN))
         NTOKEN = NTOKEN - 1
         TOKTYPE(NTOKEN) = 0
         RETURN
@@ -1213,109 +1204,109 @@ SUBROUTINE qlx_opr(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
         ENDIF
     case(5)               ! **
         IF (REALOP) THEN
-            R1 = Z2**Z1
+            R1 = Z2 ** Z1
         ELSE
-            IR1 = IZ2**IZ1
+            IR1 = IZ2 ** IZ1
         ENDIF
     case(6)               ! *
         IF (REALOP) THEN
-            R1 = Z2*Z1
+            R1 = Z2 * Z1
         ELSE
-            IR1 = IZ2*IZ1
+            IR1 = IZ2 * IZ1
         ENDIF
     case(7)               ! /
         IF (REALOP) THEN
-            R1 = Z2/Z1
+            R1 = Z2 / Z1
         ELSE
-            IR1 = IZ2/IZ1
+            IR1 = IZ2 / IZ1
         ENDIF
     case(8)               ! binary +
         IF (REALOP) THEN
-            R1 = Z2+Z1
+            R1 = Z2 + Z1
         ELSE
-            IR1 = IZ2+IZ1
+            IR1 = IZ2 + IZ1
         ENDIF
     case(9)               ! binary -
         IF (REALOP) THEN
-            R1 = Z2-Z1
+            R1 = Z2 - Z1
         ELSE
-            IR1 = IZ2-IZ1
+            IR1 = IZ2 - IZ1
         ENDIF
     case(10)              ! binary <
         IF (REALOP) THEN
             IF (Z2 < Z1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ELSE
             IF (IZ2 < IZ1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ENDIF
     case(11)              ! binary >
         IF (REALOP) THEN
             IF (Z2 > Z1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ELSE
             IF (IZ2 > IZ1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ENDIF
     case(12)              ! binary ==
         IF (REALOP) THEN
             IF (Z2 == Z1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ELSE
             IF (IZ2 == IZ1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ENDIF
     case(13)              ! binary <=
         IF (REALOP) THEN
             IF (Z2 <= Z1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ELSE
             IF (IZ2 <= IZ1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ENDIF
     case(14)              ! binary >=
         IF (REALOP) THEN
             IF (Z2 >= Z1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ELSE
             IF (IZ2 >= IZ1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ENDIF
     case(15)              ! binary <>
         IF (REALOP) THEN
             IF (Z2 /= Z1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ELSE
             IF (IZ2 /= IZ1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ENDIF
     case(16)              ! binary ><
         IF (REALOP) THEN
             IF (Z2 /= Z1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ELSE
             IF (IZ2 /= IZ1) THEN
-            IR1 =ishft(-1, 32-(32))
+            IR1 = ishft(-1, 32-(32))
             ENDIF
         ENDIF
     case(17)              ! unary NOT
         IF (REALOP) THEN
             ERR = .TRUE.
         ELSE
-            IR1 =NOT(IZ1)
+            IR1 = NOT(IZ1)
         ENDIF
     case(18)              ! binary AND
         IF (REALOP) THEN
@@ -1336,12 +1327,12 @@ SUBROUTINE qlx_opr(TOKENS, NTOKEN, TOKTYPE, OPRTR, ERR)
             IR1 = IEOR(IZ2, IZ1)
         ENDIF
     case(21)              ! :=
-        IF (TOKTYPE(NTOKEN-1) <= 0) THEN
+        IF (TOKTYPE(NTOKEN - 1) <= 0) THEN
             ERR = .TRUE.
             RETURN
         ENDIF
         tok32 = int(TOKENS(NTOKEN))
-        call set_value_at_address(TOKENS(NTOKEN-1), 1, tok32)
+        call set_value_at_address(TOKENS(NTOKEN - 1), 1, tok32)
         !          TOKENS(NTOKEN) = tok32
         NTOKEN = NTOKEN - 1
         RETURN
@@ -1535,12 +1526,14 @@ SUBROUTINE qlx_tok
     use qlx_token, only: len, typ, zval, token, inexpr
     implicit none
 
-    EXTERNAL :: qlx_chr, qlx_num, qlx_err, qlx_bak, qlx_fnd, get_value_at_address
+    EXTERNAL :: qlx_err, qlx_bak, qlx_fnd, get_value_at_address
+    integer, external :: qlx_num
+    character(len = 1), external :: qlx_chr
 
     integer(kind = int64) :: LOCVAR, LOCCNT
 
-    character(len = 1) :: IC, qlx_chr
-    INTEGER :: qlx_num, ival, leng, limits
+    character(len = 1) :: IC
+    INTEGER :: ival, leng, limits
     INTEGER :: JSIGN, ITYP
     INTEGER :: JVAL
     pointer(pjval, JVAL)
@@ -1570,8 +1563,7 @@ SUBROUTINE qlx_tok
             typ = 0                 ! short string, possibly a key
         ENDIF
         CALL qlx_bak(IC)
-    ELSE
-    IF (IC == '''' .OR. IC == '"') THEN
+    ELSE IF (IC == '''' .OR. IC == '"') THEN
         LENG = 0
         LENG = MIN(80, LENG + 1)
         TOKEN(LENG:LENG) = qlx_chr()
@@ -1585,12 +1577,10 @@ SUBROUTINE qlx_tok
             LENG = MIN(LENG, KARMOT)
         ENDIF
         typ = 3                    ! string ( delimited )
-    ELSE
-    IF ( (IC >= '0' .AND. IC <= '9') .OR. (IC == '.') ) THEN
+    ELSE IF ( (IC >= '0' .AND. IC <= '9') .OR. (IC == '.') ) THEN
         typ = qlx_num(TOKEN, LENG)  ! 1/2/5/6
         JSIGN = 1
-    ELSE
-    IF ( (IC == '+' .OR. IC == '-') .AND. (.NOT.INEXPR) ) THEN
+    ELSE IF ( (IC == '+' .OR. IC == '-') .AND. (.NOT.INEXPR) ) THEN
         IF (IC == '+') THEN
             JSIGN = 1
         ELSE
@@ -1604,8 +1594,7 @@ SUBROUTINE qlx_tok
             CALL qlx_bak(IC)
             typ = 4              ! special char, possibly operator
         ENDIF
-    ELSE
-    IF (IC == '*') THEN
+    ELSE IF (IC == '*') THEN
         typ = 4                  ! operator (1 or 2 chars)
         IC = qlx_chr()
         IF (IC == '*') THEN
@@ -1614,8 +1603,7 @@ SUBROUTINE qlx_tok
         ELSE
             CALL qlx_bak(IC)
         ENDIF
-    ELSE
-    IF (IC == '<' .OR. IC == '>' .OR. IC == '=' .OR. IC == ':') THEN
+    ELSE IF (IC == '<' .OR. IC == '>' .OR. IC == '=' .OR. IC == ':') THEN
         typ = 4                  ! operator (1 or 2 chars)
         IC = qlx_chr()
         IF (IC == '<' .OR. IC == '>' .OR. IC == '=') THEN
@@ -1627,11 +1615,6 @@ SUBROUTINE qlx_tok
     ELSE
         typ = 4                  ! operator
     ENDIF
-    ENDIF
-    ENDIF
-    ENDIF
-    ENDIF
-    ENDIF
 
     IF ( (LENG > 80) .OR. (typ == 5) ) THEN
         TOKEN = 'SCRAP'
@@ -1641,29 +1624,24 @@ SUBROUTINE qlx_tok
     IF (typ == 1) THEN         ! integer
         READ(TOKEN, '(I20)')JVAL
         JVAL = SIGN(JVAL, JSIGN)
-    ELSE
-    IF (typ == 2) THEN         ! float
+    ELSE IF (typ == 2) THEN         ! float
         READ(TOKEN, '(G20.3)')ZVAL
         ZVAL = SIGN(ZVAL, FLOAT(JSIGN))
-    ELSE
-    IF (typ == 6) THEN          ! octal constant
+    ELSE IF (typ == 6) THEN          ! octal constant
         READ(TOKEN, '(O20)')JVAL
         typ = 1                 ! integer
         JVAL = SIGN(JVAL, JSIGN)
     ENDIF
-    ENDIF
-    ENDIF
+
     IF (typ == 0) THEN
         CALL qlx_fnd(TOKEN(1:8), LOCVAR, LOCCNT, LIMITS, ITYP)
         IF (ITYP  ==  -1) THEN
             typ = 3
             LENG = MIN(LENG, KARMOT)
-        ELSE
-        IF ( (ITYP  ==  0) .OR. (ITYP  ==  1) ) THEN
+        ELSE IF ( (ITYP  ==  0) .OR. (ITYP  ==  1) ) THEN
             call get_value_at_address(LOCVAR, 1, JVAL)
         ELSE
             JVAL = -1
-        ENDIF
         ENDIF
     ENDIF
     LEN = LENG
@@ -2160,7 +2138,7 @@ SUBROUTINE readlx(UNIT, KEND, KERR)
             CALL qlx_err(21016, 'readlx')
             ERR = .TRUE.
         ENDIF
-        IF (ERR.AND.(TOKEN(1:1) /= '$'.OR. typ /= 4)) THEN
+        IF (ERR .AND. (TOKEN(1:1) /= '$'.OR. typ /= 4)) THEN
             CALL qlx_flsh('$')
         ENDIF
     ENDDO
