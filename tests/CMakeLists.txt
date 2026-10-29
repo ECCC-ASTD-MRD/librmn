@@ -310,7 +310,7 @@ fst24_rewrite_meta.rsf;fst24_rewrite_meta_solution.rsf;fst24_rewrite_meta_soluti
 fst24_rewrite_meta.xdf;fst98_ipall_module.smod;fst_cross_link_module.smod;fst_edit_dir.rsf;\
 fst_edit_dir_solution.rsf;fst_edit_dir_solution.xdf;fst_edit_dir.xdf;fstinf_datev.rsf;\
 fstinf_datev.xdf;fst_interface_2.RSF;fst_interface_2.XDF;fst_interface.RSF;fst_interface.XDF;fst_link_mod.smod;ip1.RSF;ip1.XDF;ip2.RSF;ip2.XDF;\
-missing.RSF;missing.XDF;my_file.fst;no_dateo.rsf;no_dateo.xdf;output_readlx_02_current.txt;read_only.RSF;read_only.XDF;\
+missing.RSF;missing.XDF;my_file1.fst;my_file2.fst;my_file3.fst;my_file4.fst;no_dateo.rsf;no_dateo.xdf;output_readlx_02_current.txt;read_only.RSF;read_only.XDF;\
 record_offset_size.rsf;record_offset_size.xdf;rewrite_skip.rsf;rewrite_skip.xdf;rsf1.fst;rsf2.fst;\
 search_params.RSF;search_params.XDF;skip_descriptors.rsf;skip_descriptors.xdf;test_double.fst;test_float.fst;\
 test_fst24_meta_find.fst;test_fst98_interface_module.smod;Whiteboard.ckpt;xdf1.fst;xdf2.fst;\

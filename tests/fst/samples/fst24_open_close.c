@@ -3,10 +3,10 @@
 
 int main(void)
 {
-    remove("my_file.fst");
+    remove("my_file3.fst");
 
 
-    fst_file* my_file = fst24_open("my_file.fst", "R/W");
+    fst_file* my_file = fst24_open("my_file3.fst", "R/W");
   
     if (my_file == NULL) {
         // Deal with error

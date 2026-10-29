@@ -9,7 +9,7 @@ int main(void) {
     for (int j = 0; j < 200; j++)
         my_data[i][j] = 100.0;
   
-  fst_file* my_file = fst24_open("my_file.fst", "R/W+RSF");
+  fst_file* my_file = fst24_open("my_file1.fst", "R/W+RSF");
   if (my_file == NULL) return -1;
   
   fst_record my_record = default_fst_record;

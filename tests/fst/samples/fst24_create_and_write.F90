@@ -12,7 +12,7 @@ program create_and_write
   ! Initialize data
   my_data=100.
   
-  success = my_file % open('my_file.fst', 'R/W+RSF')
+  success = my_file % open('my_file2.fst', 'R/W+RSF')
   if (.not. success) error stop 1
   
   my_record % data = c_loc(my_data)
