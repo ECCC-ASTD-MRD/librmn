@@ -11,6 +11,7 @@ if (EC_INIT_DONE LESS 2)
 
         set(TEST_SCRIPTS_SOURCE
             fst/fst_force_close.sh
+            fst/fst_backend_env.sh
             fst/fst_backend_name.py
             fst/fst_open_close_link.py
             fst/fst_types.py
@@ -214,6 +215,8 @@ if (EC_INIT_DONE LESS 2)
         gen_test_target(DISABLE SOURCES fst/fst_old_file.c)
         gen_test_target(DISABLE SOURCES fst/fst_ignore_msglvl.c)
         gen_test_target(DISABLE SOURCES interp_interface.F90)
+        gen_test_target(DISABLE SOURCES fst/fst_write_single.c)
+        gen_test_target(DISABLE SOURCES fst/get_backend_name.c NAME get_backend_name)
 
         gen_test_target(SOURCES fst/samples/fst24_open_close.F90)
         gen_test_target(SOURCES fst/samples/fst24_open_close.c NAME fst24_open_close_c)
@@ -287,6 +290,12 @@ if (EC_INIT_DONE LESS 2)
                     $<TARGET_FILE:gen_abort_file> $<TARGET_FILE:fst_check> $<TARGET_FILE:fst_force_close>
         )
 
+        add_test(
+            NAME fst_backend_env
+            COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fst_backend_env.sh
+                    $<TARGET_FILE:fst_write_single> $<TARGET_FILE:get_backend_name>
+        )
+
         if(BUILD_PYTHON)
             add_dependencies(test_execs _rmn)
             add_test( NAME python_import_package_compiled COMMAND bash -c "${set_pythonpath} ${Python_EXECUTABLE} -c 'import compiled-rmn'")
@@ -318,7 +327,8 @@ blind_calls.fst;data_map.fst;data_size.rsf;data_size.xdf;f1.fst;f2.fst;f4.fst;\
 large_record.rsf;multi_open.rsf;multi_write.rsf;open_close_link0;open_close_link1;\
 open_close_link2;open_close_link3;open_write_threads.rsf;parallel.fst;parallel_threads.fst;python_fst_types_RSF.fst;\
 python_fst_types_XDF.fst;wildcard.rsf;wildcard.xdf;write_wait.rsf;\
-backend_name.RSF;backend_name.XDF;backend_name_RSF.fst;backend_name_XDF.fst"
+backend_name.RSF;backend_name.XDF;backend_name_RSF.fst;backend_name_XDF.fst;\
+fst98_single.fst;fst24_single.fst"
         )
       endif()
 endif()
