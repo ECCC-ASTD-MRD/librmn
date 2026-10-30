@@ -24,6 +24,7 @@ function FNCNAME(wb_get_)(key, val, wb) result(status)
 
 #ifndef INTERFACEONLY
     integer(kind = int64) :: my_wb
+    integer, pointer :: iptr
 #include "f_wb_get_itf.hf"
 
 #ifdef DEBUG
@@ -37,11 +38,8 @@ function FNCNAME(wb_get_)(key, val, wb) result(status)
     else
         my_wb = 0
     endif
-    BLOCK
-      integer, pointer :: iptr
-      call C_F_POINTER(C_LOC(val), iptr)
-      status = f_wb_get(my_wb, key, TYPEWBFORT, TYPELEN, iptr, 0)
-    END BLOCK
+    call C_F_POINTER(C_LOC(val), iptr)
+    status = f_wb_get(my_wb, key, TYPEWBFORT, TYPELEN, iptr, 0)
 !$omp end critical
 #endif
 end function
@@ -72,6 +70,7 @@ function NAMEA(FNCNAME(wb_get_))(key, val, nbval, wb) result(status)
 
 #ifndef INTERFACEONLY
     integer(kind = int64) :: my_wb
+    integer, pointer :: iptr
 #define ARRAY
 #include "f_wb_get_itf.hf"
 #undef ARRAY
@@ -87,11 +86,8 @@ function NAMEA(FNCNAME(wb_get_))(key, val, nbval, wb) result(status)
         my_wb = 0
     endif
     nbval  = 0
-    BLOCK
-      integer, pointer :: iptr
-      call C_F_POINTER(C_LOC(val), iptr)
-      status = f_wb_get(my_wb, key, TYPEWBFORT, TYPELEN, iptr, size(val))
-    END BLOCK
+    call C_F_POINTER(C_LOC(val), iptr)
+    status = f_wb_get(my_wb, key, TYPEWBFORT, TYPELEN, iptr, size(val))
     if (WB_IS_OK(status)) nbval = status
 !$omp end critical
 !TODO: error when not enough room to get all WB values [not the default]
