@@ -218,7 +218,7 @@ typedef struct {
     .decoded_ip = 0,                                                \
                                                                     \
     .grid_info = 0,                                                 \
-    .ig1234 = 0,                                                    \
+    .ig1234 = 1,                                                    \
                                                                     \
     .typvar = 1,                                                    \
     .nomvar = 1,                                                    \
