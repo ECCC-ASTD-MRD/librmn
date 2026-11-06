@@ -453,13 +453,13 @@ contains
     !> Causes an update of the underlying C struct
     !> Refer to fst_record_fields for the meaning of undocumented parameters
     subroutine rmn_fst24_record_print_short(                                                                      &
-            this, prefix, print_header, dateo, datev, datestamps, level, data_type, nijk,                         &
+            this, prefix, print_header, dateo, datev, dateo_stamp, level, data_type, siz, nijk,                   &
             deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket, metadata)
         implicit none
         class(fst_record), intent(inout) :: this !< fst_record instance whose information we want to print
         character(len=*), intent(in), optional :: prefix !< [optional] Text we want to add at the start of the line
         logical, intent(in), optional :: print_header !< [optional] Whether we want to print a header above the line to name the fields
-        logical, intent(in), optional :: dateo, datev, datestamps, level, data_type, nijk
+        logical, intent(in), optional :: dateo, datev, dateo_stamp, level, data_type, siz, nijk
         logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
         logical, intent(in), optional :: typvar, nomvar, etiket, metadata
 
@@ -479,18 +479,18 @@ contains
             if (print_header) print_header_c = 1
         end if
 
-        fields = fst24_make_fields(dateo=dateo, datev=datev, datestamps=datestamps, level=level, data_type=data_type, nijk=nijk, &
-                                   deet=deet, npas=npas, ip1=ip1, ip2=ip2, ip3=ip3, decoded_ip=decoded_ip,&
+        fields = fst24_make_fields(dateo=dateo, datev=datev, dateo_stamp=dateo_stamp, level=level, data_type=data_type, siz=siz, &
+                                   nijk=nijk, deet=deet, npas=npas, ip1=ip1, ip2=ip2, ip3=ip3, decoded_ip=decoded_ip,&
                                    grid_info=grid_info, ig1234=ig1234, typvar=typvar, nomvar=nomvar, etiket=etiket, metadata=metadata)
 
         call fst24_record_print_short_c(this % get_c_ptr(), c_loc(fields), print_header_c, prefix_c)
     end subroutine rmn_fst24_record_print_short
 
     !> Create a fst_record_fields struct from optional parameters
-    function fst24_make_fields(dateo, datev, datestamps, level, data_type, nijk,                         &
+    function fst24_make_fields(dateo, datev, dateo_stamp, level, data_type, siz, nijk,                    &
             deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket, metadata) result(fields)
         implicit none
-        logical, intent(in), optional :: dateo, datev, datestamps, level, data_type, nijk
+        logical, intent(in), optional :: dateo, datev, dateo_stamp, level, data_type, siz, nijk
         logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
         logical, intent(in), optional :: typvar, nomvar, etiket, metadata
         type(fst_record_fields) :: fields
@@ -505,9 +505,9 @@ contains
             if (datev) fields % datev = 1
         end if
 
-        if (present(datestamps)) then
-            fields % datestamps = 0
-            if (datestamps) fields % datestamps = 1
+        if (present(dateo_stamp)) then
+            fields % dateo_stamp = 0
+            if (dateo_stamp) fields % dateo_stamp = 1
         end if
 
         if (present(level)) then
@@ -518,6 +518,11 @@ contains
         if (present(data_type)) then
             fields % data_type = 0
             if (data_type) fields % data_type = 1
+        end if
+
+        if (present(siz)) then
+            fields % siz = 0
+            if (siz) fields % siz = 1
         end if
 
         if (present(nijk)) then
@@ -591,82 +596,110 @@ contains
         type(fst_record_fields) :: fields
         character(len=*)        :: string
 
-        if (index(string,'NODATEO')>0) then
-            fields % dateo = 0
-        end if
+        ! Uppercase a copy of the string so token matching is case-insensitive.
+        ! Tokens are matched as substrings, so both '+' and space separators work.
+        character(len=len(string)) :: upstr
+        integer :: i
 
-        if (index(string,'DATEV')>0) then
-           fields % datev = 1
-        end if
+        do i = 1, len(string)
+            if (iachar(string(i:i)) >= iachar('a') .and. iachar(string(i:i)) <= iachar('z')) then
+                upstr(i:i) = achar(iachar(string(i:i)) - 32)
+            else
+                upstr(i:i) = string(i:i)
+            end if
+        end do
 
-        if (index(string,'NOSTAMP')>0) then
-            fields % datestamps = 0
-        end if
-
-        if (index(string,'LEVEL')>0) then
-           fields % level = 1
-        end if
-
-        if (index(string,'NODATYP')>0 .or. index(string, 'NODATA_TYPE')>0) then
-           fields % data_type = 0
-        end if
-
-        if (index(string,'NONIJK')>0) then
-            fields % nijk = 0
-        end if
-
-        if (index(string,'DEET')>0) then
-            fields % deet = 1
-        end if
-
-        if (index(string,'NPAS')>0) then
-            fields % npas = 1
-        end if
-
-        if (index(string,'NOIP1')>0) then
-            fields % ip1 = 0
-        end if
-
-        if (index(string,'NOIP2')>0) then
-            fields % ip2 = 0
-        end if
-
-        if (index(string,'NOIP3')>0) then
-            fields % ip3 = 0
-        end if
-
-        if (index(string,'NOIPS')>0) then
-            fields % ip1 = 0
-            fields % ip2 = 0
-            fields % ip3 = 0
-        end if 
-
-        if (index(string,'DECODE')>0) then
+        ! Convenience macro: FULL shows everything interesting (NINJNK+DATEV+IPALL+GRIDINFO).
+        ! All three IPs stay on (deviation from 20.0, whose FULL suppressed IP2/IP3).
+        if (index(upstr,'FULL') > 0) then
+            fields % nijk = 1
+            fields % datev = 1
             fields % decoded_ip = 1
-        end if
-
-        if (index(string,'GRID')>0) then
             fields % grid_info = 1
         end if
 
-        if (index(string,'NOIGS')>0) then
-            fields % ig1234 = 0
+        ! ON tokens (columns that are off in the base state)
+        if (index(upstr,'NINJNK') > 0) then
+            fields % nijk = 1
         end if
 
-        if (index(string,'NOTYPVAR')>0) then
-            fields % typvar = 0
+        if (index(upstr,'DATEO') > 0) then
+            fields % dateo = 1
         end if
 
-        if (index(string,'NONOMVAR')>0) then
+        if (index(upstr,'DATESTAMPO') > 0) then
+            fields % dateo_stamp = 1
+        end if
+
+        if (index(upstr,'DATEV') > 0) then
+            fields % datev = 1
+        end if
+
+        if (index(upstr,'LEVEL') > 0) then
+            fields % level = 1
+        end if
+
+        if (index(upstr,'DECODE') > 0 .or. index(upstr,'IPALL') > 0) then
+            fields % decoded_ip = 1
+        end if
+
+        if (index(upstr,'GRID') > 0 .or. index(upstr,'GRIDINFO') > 0) then
+            fields % grid_info = 1
+        end if
+
+        if (index(upstr,'IG1234') > 0) then
+            fields % ig1234 = 1
+        end if
+
+        if (index(upstr,'META') > 0) then
+            fields % metadata = 1
+        end if
+
+        ! OFF tokens (columns that are on in the base state)
+        if (index(upstr,'NONOMVAR') > 0 .or. index(upstr,'NONOMV') > 0) then
             fields % nomvar = 0
         end if
 
-        if (index(string,'NOETIKET')>0) then
+        if (index(upstr,'NOTYPVAR') > 0 .or. index(upstr,'NOTYPV') > 0) then
+            fields % typvar = 0
+        end if
+
+        if (index(upstr,'NOETIKET') > 0 .or. index(upstr,'NOETIQ') > 0) then
             fields % etiket = 0
         end if
 
-        if (index(string,'META')>0) then
-            fields % metadata = 0
+        if (index(upstr,'NOIP1') > 0) then
+            fields % ip1 = 0
+        end if
+
+        if (index(upstr,'NOIP2') > 0 .or. index(upstr,'NOIP23') > 0) then
+            fields % ip2 = 0
+        end if
+
+        if (index(upstr,'NOIP3') > 0 .or. index(upstr,'NOIP23') > 0) then
+            fields % ip3 = 0
+        end if
+
+        if (index(upstr,'NOIPS') > 0) then
+            fields % ip1 = 0
+            fields % ip2 = 0
+            fields % ip3 = 0
+        end if
+
+        if (index(upstr,'NODEET') > 0) then
+            fields % deet = 0
+        end if
+
+        if (index(upstr,'NONPAS') > 0) then
+            fields % npas = 0
+        end if
+
+        if (index(upstr,'NODATYP') > 0 .or. index(upstr,'NODTY') > 0) then
+            fields % data_type = 0
+        end if
+
+        if (index(upstr,'NOSIZ') > 0) then
+            fields % siz = 0
         end if
 
     end function fst24_make_fields_from_string

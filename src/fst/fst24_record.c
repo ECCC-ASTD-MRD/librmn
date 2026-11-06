@@ -314,6 +314,23 @@ char* add_datatype(
     return buffer + length + 1;
 }
 
+//! Add only the datatype letter (e.g. "E" for IEEE float) to the line. See \ref fst24_record_print_short.
+//! \return Pointer to after the (new) last character of the line to be printed
+char* add_datatype_letter(
+    char* buffer,           //!< [in,out] Buffer containing the line to be printed
+    const int32_t datatype, //!< ID of the datatype
+    const size_t length     //!< Width of the text we are adding. Will pad with spaces if necessary
+) {
+    const char cdt[9] = {'X', 'R', 'I', 'C', 'S', 'E', 'F', 'A', 'Z'};
+    const char letter = cdt[datatype & 0x3f]; // Suppress bits 64 and 128
+    const char datatype_c = is_type_turbopack(datatype) ? tolower(letter) : letter;
+
+    const int num_written = snprintf(buffer, 4, " %1c", datatype_c);
+    pad(buffer, num_written, length + 1);
+
+    return buffer + length + 1;
+}
+
 //! Add grid information to the line we are printing. See \ref fst24_record_print_short.
 //! \return Pointer to after the (new) last character of the line to be printed
 char* add_grid_info(
@@ -381,10 +398,11 @@ void fst24_record_print_short(
 
         .dateo = 16,
         .datev = 16,
-        .datestamps = 9,
+        .dateo_stamp = 9,
         .level = 15,
 
-        .data_type = 8,
+        .data_type = 4,
+        .siz = 5,
         .grid_info = 31,
         .ig1234 = 25
     };
@@ -406,13 +424,15 @@ void fst24_record_print_short(
             current = add_str(current, "NJ", width.nijk);
             current = add_str(current, "NK", width.nijk);
         }
-        if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_str(current, "DATE-O", width.datestamps);
-        if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_str(current, "(DATE-O  h m s) ", width.dateo);
-        if (to_print.datev > 0 && to_print.datestamps > 0)  current = add_str(current, "DATE-V", width.datestamps);
-        if (to_print.datev > 0 && to_print.datestamps <= 0) current = add_str(current, "(DATE-V  h m s) ", width.datev);
+        if (to_print.dateo > 0)       current = add_str(current, "(DATE-O  h m s) ", width.dateo);
+        if (to_print.dateo_stamp > 0) current = add_str(current, "STAMP-O", width.dateo_stamp);
+        if (to_print.datev > 0) {
+            current = add_str(current, "(DATE-V  h m s) ", width.datev);
+            current = add_str(current, "STAMP-V", width.dateo_stamp);
+        }
 
         if (to_print.level > 0) current = add_str(current, "LEVEL", width.level);
-        if (to_print.decoded_ip > 0) current = add_str(current, " ------------- IPs -------------    ", width.decoded_ip);
+        if (to_print.decoded_ip > 0) current = add_str(current, "DECODED IP1/IP2/IP3", width.decoded_ip);
 
         if (to_print.ip1) current = add_str(current, "IP1", width.ip1);
         if (to_print.ip2) current = add_str(current, "IP2", width.ip2);
@@ -421,7 +441,8 @@ void fst24_record_print_short(
         if (to_print.deet) current = add_str(current, "DEET", width.deet);
         if (to_print.npas) current = add_str(current, "NPAS", width.npas);
 
-        if (to_print.data_type) current = add_str(current, "DTYP SIZ", width.data_type);
+        if (to_print.data_type) current = add_str(current, "DTY", width.data_type);
+        if (to_print.siz)       current = add_str(current, "SIZ", width.siz);
 
         if (to_print.grid_info) current = add_str(current, "G    XG1    XG2     XG3     XG4", width.grid_info);
         else if (to_print.ig1234) current = add_str(current, "G   IG1   IG2   IG3   IG4", width.ig1234);
@@ -439,10 +460,12 @@ void fst24_record_print_short(
         current = add_int(current, record->nj, width.nijk, 0);
         current = add_int(current, record->nk, width.nijk, 0);
     }
-    if (to_print.dateo > 0 && to_print.datestamps > 0)  current = add_int(current, record->dateo, width.datestamps, 1);
-    if (to_print.dateo > 0 && to_print.datestamps <= 0) current = add_date(current, record->dateo);
-    if (to_print.datev > 0 && to_print.datestamps > 0)  current = add_int(current, record->datev, width.datestamps, 1);
-    if (to_print.datev > 0 && to_print.datestamps <= 0) current = add_date(current, record->datev);
+    if (to_print.dateo > 0)       current = add_date(current, record->dateo);
+    if (to_print.dateo_stamp > 0) current = add_int(current, record->dateo, width.dateo_stamp, 1);
+    if (to_print.datev > 0) {
+        current = add_date(current, record->datev);
+        current = add_int(current, record->datev, width.dateo_stamp, 1);
+    }
 
     if (to_print.level > 0) current = add_level(current, record->nomvar, record->ip1, width.level);
     if (to_print.decoded_ip > 0) current = add_ips(current, record->nomvar, record->ip1, record->ip2, record->ip3, width.decoded_ip);
@@ -454,7 +477,8 @@ void fst24_record_print_short(
     if (to_print.deet) current = add_int(current, record->deet, width.deet, 0);
     if (to_print.npas) current = add_int(current, record->npas, width.npas, 0);
 
-    if (to_print.data_type) current = add_datatype(current, record->data_type, record->pack_bits, record->data_bits, width.data_type);
+    if (to_print.data_type) current = add_datatype_letter(current, record->data_type, width.data_type);
+    if (to_print.siz)       current = add_int(current, record->data_bits, width.siz, 0);
 
     if (to_print.grid_info) current = add_grid_info(current, record->grtyp, record->ig1, record->ig2,
                                                     record->ig3, record->ig4, width.grid_info);
