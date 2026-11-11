@@ -72,7 +72,7 @@ int nb_remap = 0;
 
 //! Backend type to use when none is specified in the open options (XDF or RSF) -- Controlled by the
 //! `BACKEND` option in the `FST_OPTIONS` environment variable.
-static char *fst_backend = "XDF";
+static char fst_backend[4] = "RSF";
 //! Segment size for RSF, when writing in parallel (in MB) -- Controlled by the `SEGMENT_SIZE_MB` option
 static int32_t segment_size_mb = 1000;
 //! Whether to ignore the MSGLVL option in fstopc and fstopi -- Controlled by the `IGNORE_MSGLVL` option
@@ -4032,14 +4032,14 @@ static int c_fstouv_impl(
     }
 
     // Check for backend type
-    int is_rsf = FALSE;
+    int is_rsf = TRUE;
     if (strcasestr(options, "RSF")) {
         is_rsf = TRUE;
     } else if (strcasestr(options, "XDF")) {
         is_rsf = FALSE;
-    } else if (fst_backend && strncasecmp("RSF", fst_backend, 3)==0) {
+    } else if (strncasecmp("RSF", fst_backend, 3)==0) {
         is_rsf = TRUE;
-    } else if (fst_backend && strncasecmp("XDF", fst_backend, 3)==0)  {
+    } else if (strncasecmp("XDF", fst_backend, 3)==0)  {
         is_rsf = FALSE;
     }
 
@@ -4993,9 +4993,14 @@ void c_fst_env_var(
         strncpy(requetes_filename, content, 256);
         // fprintf(stderr, "Debug+ requetes_filename=%s\n", requetes_filename);
     } else if (strcasecmp(cle, "BACKEND") == 0) {
-        fst_backend = malloc(4);
-        strncpy(fst_backend, content, 4);
-        Lib_Log(APP_LIBFST, APP_DEBUG, "%s: fst_backend = %s\n", __func__, fst_backend);
+        if (strncasecmp("RSF", content, 3) == 0 || strncasecmp("XDF", content, 3) == 0) {
+            strncpy(fst_backend, content, 3);
+            fst_backend[3] = '\0';
+            Lib_Log(APP_LIBFST, APP_DEBUG, "%s: fst_backend = %s\n", __func__, fst_backend);
+        } else {
+            Lib_Log(APP_LIBFST, APP_WARNING, "%s: Unrecognized BACKEND value '%s'. Keeping default (%s).\n",
+                    __func__, content, fst_backend);
+        }
     } else if (strcasecmp(cle, "SEGMENT_SIZE_MB") == 0) {
         const int32_t seg_size_tmp = atoi(content);
         if (seg_size_tmp > 0) {

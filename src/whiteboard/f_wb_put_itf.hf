@@ -7,11 +7,6 @@
             integer, intent(in) :: type_name
             integer, intent(in) :: type_size
             integer, intent(in) :: val
-!#ifdef ARRAY
-!            TYPEFORTRAN, dimension(*), intent(in) :: val
-!#else
-!            TYPEFORTRAN, intent(in) :: val
-!#endif
             integer, intent(in) :: nbelem
             integer, intent(in) :: options
         end function

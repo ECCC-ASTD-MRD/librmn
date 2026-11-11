@@ -5,9 +5,9 @@ program fst24_interface
     type(fst_file) :: my_file
     logical :: success
 
-    call remove_file('my_file.fst')
+    call remove_file('my_file4.fst')
   
-    success = my_file % open('my_file.fst', options='R/W')
+    success = my_file % open('my_file4.fst', options='R/W')
   
     if (.not. success) then
         ! Deal with error

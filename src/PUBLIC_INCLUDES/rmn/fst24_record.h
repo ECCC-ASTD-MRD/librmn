@@ -189,9 +189,9 @@ typedef struct {
 //! A set of (boolean) parameters to indicate which information to print or not.
 //! See \ref default_fields for their default values
 typedef struct {
-    int32_t dateo, datev, datestamps;
+    int32_t dateo, datev, dateo_stamp;
     int32_t level;
-    int32_t data_type, nijk;
+    int32_t data_type, siz, nijk;
     int32_t deet, npas;
     int32_t ip1, ip2, ip3, decoded_ip;
     int32_t grid_info, ig1234;
@@ -201,16 +201,17 @@ typedef struct {
 
 //! A set of default values for fst_record_fields
 #define default_fields ((fst_record_fields) {                       \
-    .dateo = 1,                                                     \
+    .dateo = 0,                                                     \
     .datev = 0,                                                     \
-    .datestamps = 1,                                                \
+    .dateo_stamp = 0,                                               \
                                                                     \
     .level = 0,                                                     \
     .data_type = 1,                                                 \
-    .nijk = 1,                                                      \
+    .siz = 1,                                                       \
+    .nijk = 0,                                                      \
                                                                     \
-    .deet = 0,                                                      \
-    .npas = 0,                                                      \
+    .deet = 1,                                                      \
+    .npas = 1,                                                      \
                                                                     \
     .ip1 = 1,                                                       \
     .ip2 = 1,                                                       \
@@ -323,12 +324,12 @@ int32_t fst24_record_validate_default_record(const fst_record* fortran_record, c
     end type fst_record_c
 
     type, bind(C) :: fst_record_fields
-        integer(C_INT32_T) :: dateo = 1, datev = 0, datestamps = 1
+        integer(C_INT32_T) :: dateo = 0, datev = 0, dateo_stamp = 0
         integer(C_INT32_T) :: level = 0
-        integer(C_INT32_T) :: data_type = 1, nijk = 1
-        integer(C_INT32_T) :: deet = 0, npas = 0
+        integer(C_INT32_T) :: data_type = 1, siz = 1, nijk = 0
+        integer(C_INT32_T) :: deet = 1, npas = 1
         integer(C_INT32_T) :: ip1 = 1, ip2 = 1, ip3 = 1, decoded_ip = 0
-        integer(C_INT32_T) :: grid_info = 0, ig1234 = 1
+        integer(C_INT32_T) :: grid_info = 0, ig1234 = 0
         integer(C_INT32_T) :: typvar = 1, nomvar = 1, etiket = 1
         integer(C_INT32_T) :: metadata = 0
     end type fst_record_fields

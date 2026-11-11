@@ -53,7 +53,9 @@ module readlx_nrdlx
 
     INTEGER, dimension(3:3, 256) :: ITAB(3:3, 256) = 0
     integer :: NENTRY = 0
-    character(len = 8), dimension(256) :: NAMES = ' '
+    !> Maximum key length
+    integer, parameter :: key_len = 8
+    character(len = key_len), dimension(256) :: NAMES = ' '
     integer(kind = int64), dimension(2, 256) :: IPTADR = 0
 end module readlx_nrdlx
 
@@ -239,6 +241,7 @@ SUBROUTINE qlx_asg(VAL, ICOUNT, LIMIT, ERR)
     use, intrinsic :: iso_fortran_env, only: int64
     use readlx_qlxfmt
     use qlx_token, only: len, typ, zval, token, jval64
+    use readlx_nrdlx, only: key_len
     implicit none
 
     !> Adresse de la clé cible
@@ -338,7 +341,7 @@ SUBROUTINE qlx_asg(VAL, ICOUNT, LIMIT, ERR)
                             ELSE
                                 IF (typ == 0 .AND. OLDTYP == 4) THEN
                                     JLEN = 1
-                                    ITEMP(1) = qlx_val(TOKEN(1:8), ERR)
+                                    ITEMP(1) = qlx_val(TOKEN(1:key_len), ERR)
                                 ELSE
                                     CALL qlx_err(21005, 'qlx_asg')
                                     ERR = .TRUE.
@@ -382,6 +385,7 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
     use readlx_qlxfmt
     use readlx_remote
     use qlx_token, only: len, typ, zval, token
+    use readlx_nrdlx, only: key_len
     implicit none
 
     integer(kind = int64) :: SUB, ICOUNT
@@ -393,10 +397,10 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
 
     integer, external :: rmtcall
     EXTERNAL qlx_adr
-    INTEGER, external ::  qlx_val
+    INTEGER, external :: qlx_val
     INTEGER :: LIM1, LIM2, JLEN, PREVI
     integer(kind = int64) :: LOCDUM, qlx_adr
-    character(len = 8) :: KLE
+    character(len = key_len) :: KLE
     integer(kind = int64) :: icount64
 
     LOGICAL :: ERR, FIN, INLIST
@@ -428,7 +432,7 @@ SUBROUTINE qlx_call(SUB, ICOUNT, LIMITS, ERR)
         CALL qlx_tok
         IF (PREVI == 4) THEN
             IF (typ == 0) THEN
-                KLE = TOKEN(1:8)
+                KLE = TOKEN(1:key_len)
                 PREVI = 7
                 IF (INLIST) THEN
                     NPRM = MIN(NPRM + 1, 101)
@@ -712,6 +716,7 @@ end
 !> Get variable address for key
 subroutine qlx_fnd(key, locvar, loccnt, limits, ityp)
     use, intrinsic :: iso_fortran_env, only: int64
+    use readlx_nrdlx, only: key_len
     implicit none
 
     character(len = *), intent(in) :: key
@@ -720,7 +725,7 @@ subroutine qlx_fnd(key, locvar, loccnt, limits, ityp)
     integer, intent(out) :: limits
     integer, intent(out) :: ityp
 
-    character(len = 8), parameter :: clef(12) = &
+    character(len = key_len), parameter :: clef(12) = &
         ['END     ', 'IF      ', 'ELSE    ', 'ENDIF   ', &
          'WHILE   ', 'ENDWHILE', 'ENDDATA ', 'ENDCASE ', &
          'ENDREAD ', '@PRINT  ', '@DEFINE ', '@UNDEF  ']
@@ -728,7 +733,7 @@ subroutine qlx_fnd(key, locvar, loccnt, limits, ityp)
     integer, external :: qlx_nvar, qlx_undf, qlx_prnt
     external :: low2up, qlx_look
 
-    character(len = 8) :: ikey
+    character(len = key_len) :: ikey
     integer, save :: dummy
     integer :: pos, i
 
@@ -826,7 +831,7 @@ end
 
 !> DECLARATION DES CLES ET DE LEUR TYPE
 SUBROUTINE qqlx_ins(ivar, key, icount, limits, ityp, xtern)
-    use readlx_nrdlx
+    use readlx_nrdlx, only: key_len, nentry, names, iptadr, itab
     implicit none
 
     INTEGER, INTENT(IN) :: ivar
@@ -841,7 +846,7 @@ SUBROUTINE qqlx_ins(ivar, key, icount, limits, ityp, xtern)
     ! VALEURS IVAR(MAXIMUM DE 'LIMITS')ET DU NOMBRE DE VALEURS(ICOUNT),
     ! LE NOMBRE MAXIMUM DE VALEURS, ET LE TYPE DE SYMBOLES.
 
-    CHARACTER(len = 8) :: ikey
+    CHARACTER(len = key_len) :: ikey
     INTEGER :: ipnt
 
     ! TROUVER LA CLE
@@ -888,7 +893,8 @@ END SUBROUTINE qqlx_ins
 
 !> Variable lookup
 subroutine qlx_look(ivar, key, icount, limits, ityp)
-    use readlx_nrdlx
+    use, intrinsic :: iso_fortran_env, only: int64
+    use readlx_nrdlx, only: key_len, nentry, names, iptadr, itab
     implicit none
 
     character(len = *), intent(in) :: key
@@ -900,7 +906,7 @@ subroutine qlx_look(ivar, key, icount, limits, ityp)
     external :: low2up
 
     integer :: ipnt
-    character(len = 8) ikey
+    character(len = key_len) ikey
 
     ! trouver la cle
     call low2up(key, ikey)
@@ -930,7 +936,7 @@ end
 
 !> Undefine a variable
 subroutine qlx_udf2(key)
-    use readlx_nrdlx
+    use readlx_nrdlx, only: key_len, nentry, iptadr, itab, names
     implicit none
 
     character(len = *), intent(in) :: key
@@ -938,7 +944,7 @@ subroutine qlx_udf2(key)
     integer :: ipnt
 
     integer :: i
-    character(len = 8) :: ikey
+    character(len = key_len) :: ikey
 
     ! trouver la cle
     ikey = key
@@ -949,11 +955,11 @@ subroutine qlx_udf2(key)
     if (ipnt  ==  0) then
         return
     endif
-    do i = ipnt, nentry-1
-        iptadr(1, i) = iptadr(1, i+1)
-        itab(3, i) = itab(3, i+1)
-        iptadr(2, i) = iptadr(2, i+1)
-        names(i)  = names(i+1)
+    do i = ipnt, nentry - 1
+        iptadr(1, i) = iptadr(1, i + 1)
+        itab(3, i) = itab(3, i + 1)
+        iptadr(2, i) = iptadr(2, i + 1)
+        names(i)  = names(i + 1)
     end do
     nentry = nentry - 1
 end
@@ -1076,6 +1082,7 @@ END
 subroutine qlx_nvar(key, nw)
     use, intrinsic :: iso_fortran_env, only: int64
     use readlx_qlxfmt
+    use readlx_nrdlx, only: key_len
     implicit none
 
     integer, intent(in) :: key(*)
@@ -1090,7 +1097,7 @@ subroutine qlx_nvar(key, nw)
 
     integer :: dummy
     integer :: limits, j, ityp
-    character(len = 8) :: ikey
+    character(len = key_len) :: ikey
     integer(kind = int64) :: ivar, icount
 
     write(ikey, linefmt) (key(j), j = 1, argdims(1))
@@ -1524,6 +1531,7 @@ SUBROUTINE qlx_tok
     use, intrinsic :: iso_fortran_env, only: int64
     use readlx_qlxfmt
     use qlx_token, only: len, typ, zval, token, inexpr
+    use readlx_nrdlx, only: key_len
     implicit none
 
     EXTERNAL :: qlx_err, qlx_bak, qlx_fnd, get_value_at_address
@@ -1557,7 +1565,7 @@ SUBROUTINE qlx_tok
             TOKEN(LENG:LENG) = IC
             IC = qlx_chr()
         ENDDO
-        IF (LENG > 8) THEN
+        IF (LENG > key_len) THEN
             typ = 3                 ! string ( non delimited )
         ELSE
             typ = 0                 ! short string, possibly a key
@@ -1634,7 +1642,7 @@ SUBROUTINE qlx_tok
     ENDIF
 
     IF (typ == 0) THEN
-        CALL qlx_fnd(TOKEN(1:8), LOCVAR, LOCCNT, LIMITS, ITYP)
+        CALL qlx_fnd(TOKEN(1:key_len), LOCVAR, LOCCNT, LIMITS, ITYP)
         IF (ITYP  ==  -1) THEN
             typ = 3
             LENG = MIN(LENG, KARMOT)
@@ -1650,6 +1658,7 @@ END
 
 subroutine qlx_undf(ikey)
     use readlx_qlxfmt
+    use readlx_nrdlx, only: key_len
     implicit none
 
     integer, intent(in) :: ikey(*)
@@ -1657,7 +1666,7 @@ subroutine qlx_undf(ikey)
     integer, external :: argdims
     external :: qlx_udf2
 
-    character(len = 8) ckey
+    character(len = key_len) ckey
     integer :: i
 
     write(ckey, '(2 a4)') (ikey(i), i = 1, argdims(1))
@@ -1690,6 +1699,7 @@ SUBROUTINE qlx_xpr(ERR)
     use app
     use rmn_common
     use qlx_token, only: typ, token, inexpr, zval, jval64
+    use readlx_nrdlx, only: key_len
     implicit none
 
     LOGICAL, INTENT(out) :: ERR
@@ -1703,7 +1713,7 @@ SUBROUTINE qlx_xpr(ERR)
     integer(kind = int64) :: TOKENS(MAXTKNS)
     INTEGER NOPER
     integer(kind = int64) :: LOCVAR, LOCCNT
-    character(len=4) :: PILEOP(MAXOPS)
+    character(len = 4) :: PILEOP(MAXOPS)
     LOGICAL UNARY, FINI, FIRST
     INTEGER PLEV, BLEV, LIMITES, ITYP
 
@@ -1729,7 +1739,7 @@ SUBROUTINE qlx_xpr(ERR)
         FIRST = .FALSE.
         IF (typ == 0) THEN
             NTOKEN = NTOKEN + 1
-            CALL qlx_fnd(TOKEN(1:8), LOCVAR, LOCCNT, LIMITES, ITYP)
+            CALL qlx_fnd(TOKEN(1:key_len), LOCVAR, LOCCNT, LIMITES, ITYP)
             IF (ITYP /= 0 .AND. ITYP /= 1) THEN
                 ERR = .TRUE.
             ENDIF
@@ -1791,7 +1801,7 @@ SUBROUTINE qlx_xpr(ERR)
             FINI = .TRUE.
             CALL qlx_bak(TOKEN(1:1))
         ELSE
-            WRITE(app_msg, '(A8,A)')TOKEN(1:8), ' IS INVALID'
+            WRITE(app_msg, '(A8,A)')TOKEN(1:key_len), ' IS INVALID'
             call lib_log(APP_LIBRMN, APP_ERROR, app_msg)
             ERR = .TRUE.
         ENDIF
@@ -1827,14 +1837,21 @@ END
 !> Set readlx option
 subroutine qlxopt(option, val)
     use app
-    use readlx_qlxfmt
+    use readlx_qlxfmt, only: karmot, linefmt
+    use readlx_nrdlx, only: key_len
 
     !> Option to set
     character(len = *), intent(in) :: option
     !> Value to set the option to
     integer, intent(in) :: val
 
-    if (option(1:6) ==  'carmot') then
+    external :: low2up
+
+    character(len = key_len) :: upOpt
+
+    call low2up(option, upOpt)
+
+    if (upOpt(1:6) ==  'CARMOT') then
         karmot = val
         write(linefmt, '(a, i2, a)') '(25 a', karmot, ')'
     else
@@ -1912,6 +1929,7 @@ END
 
 !> Interface de qlxins
 subroutine lexins(ivar, icle, nb, limit, typ)
+    use readlx_nrdlx, only: key_len
     implicit none
 
     integer, intent(in) :: ivar
@@ -1922,7 +1940,7 @@ subroutine lexins(ivar, icle, nb, limit, typ)
 
     external :: qlxins
 
-    character(len = 8) :: kle
+    character(len = key_len) :: kle
 
     write(kle, '(a8)') icle
     call qlxins(ivar, kle, nb, limit, typ)
