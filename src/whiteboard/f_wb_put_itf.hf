@@ -6,11 +6,7 @@
             character (len = *), intent(in) :: key
             integer, intent(in) :: type_name
             integer, intent(in) :: type_size
-#ifdef ARRAY
-            TYPEFORTRAN, dimension(*), intent(in) :: val
-#else
-            TYPEFORTRAN, intent(in) :: val
-#endif
+            integer, intent(in) :: val
             integer, intent(in) :: nbelem
             integer, intent(in) :: options
         end function

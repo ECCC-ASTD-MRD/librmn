@@ -3,6 +3,7 @@
 
 !> \brief Save a copy of the value in the whiteboard associated with a key name scalar form
 function FNCNAME(wb_put_)(key, val, options0, wb) result(status)
+    use ISO_C_BINDING
     use, intrinsic :: iso_fortran_env
 #ifdef INTERFACEONLY
     import :: whiteboard
@@ -15,7 +16,7 @@ function FNCNAME(wb_put_)(key, val, options0, wb) result(status)
     !> Key identifying the whiteboard entry to set
     character (len = *), intent(in) :: key
     !> Value associated with key
-    TYPEFORTRAN, intent(in) :: val
+    TYPEFORTRAN, intent(in), target :: val
     !> Define if the value stored is REWRITEABLE or not
     integer, intent(in), optional  :: options0
     !> WhiteBoard instance.  The global instance is used if one ins't provided
@@ -50,7 +51,11 @@ function FNCNAME(wb_put_)(key, val, options0, wb) result(status)
     else
         my_wb = 0
     endif
-    status = f_wb_put(my_wb, key, TYPEWBFORT, TYPELEN, val, 0, options)
+    BLOCK
+      integer, pointer :: iptr
+      call C_F_POINTER(C_LOC(val), iptr)
+      status = f_wb_put(my_wb, key, TYPEWBFORT, TYPELEN, iptr, 0, options)
+    END BLOCK
     return
 #endif
 end function
@@ -58,6 +63,7 @@ end function
 
 !> \brief Save a copy of the values in the whiteboard associated with a key name array form
 function NAMEA(FNCNAME(wb_put_))(key, val, options0, wb) result(status)
+    use ISO_C_BINDING
     use, intrinsic :: iso_fortran_env
 #ifdef INTERFACEONLY
     import :: whiteboard
@@ -70,7 +76,7 @@ function NAMEA(FNCNAME(wb_put_))(key, val, options0, wb) result(status)
     !> Key identifying the whiteboard entry to set
     character(len = *), intent(in) :: key
     !> Value associated with key
-    TYPEFORTRAN, dimension(:), intent(in) :: val
+    TYPEFORTRAN, dimension(:), intent(in), target :: val
     !> Define if value is REWRITEABLE or not
     integer, intent(in), optional :: options0
     !> WhiteBoard instance.  The global instance is used if one ins't provided
@@ -111,7 +117,11 @@ function NAMEA(FNCNAME(wb_put_))(key, val, options0, wb) result(status)
     else
         my_wb = 0
     endif
-    status = f_wb_put(my_wb, key, TYPEWBFORT, TYPELEN, val, size(val), options)
+    BLOCK
+      integer, pointer :: iptr
+      call C_F_POINTER(C_LOC(val), iptr)
+      status = f_wb_put(my_wb, key, TYPEWBFORT, TYPELEN, iptr, size(val), options)
+    END BLOCK
     return
 #endif
 end function

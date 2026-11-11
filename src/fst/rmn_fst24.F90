@@ -601,11 +601,11 @@ contains
     !> \copybrief fst24_print_summary
     !> All optional parameters are booleans determining whether we print the corresponding field.
     subroutine fst24_file_print_summary(this,                                                                       &
-            dateo, datev, datestamps, level, data_type, nijk,                                                       &
+            dateo, datev, dateo_stamp, level, data_type, siz, nijk,                                                  &
             deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234, typvar, nomvar, etiket, metadata, string)
         implicit none
         class(fst_file), intent(in) :: this
-        logical, intent(in), optional :: dateo, datev, datestamps, level, data_type, nijk
+        logical, intent(in), optional :: dateo, datev, dateo_stamp, level, data_type, siz, nijk
         logical, intent(in), optional :: deet, npas, ip1, ip2, ip3, decoded_ip, grid_info, ig1234
         logical, intent(in), optional :: typvar, nomvar, etiket, metadata
         character(len=*), intent(in), optional :: string
@@ -616,8 +616,8 @@ contains
         if (present(string)) then
             fields = fst24_make_fields_from_string(string)
         else
-            fields = fst24_make_fields(dateo=dateo, datev=datev, datestamps=datestamps, level=level,                    &
-                                   data_type=data_type, nijk=nijk, deet=deet, npas=npas, ip1=ip1, ip2=ip2, ip3=ip3,     &
+            fields = fst24_make_fields(dateo=dateo, datev=datev, dateo_stamp=dateo_stamp, level=level,                &
+                                   data_type=data_type, siz=siz, nijk=nijk, deet=deet, npas=npas, ip1=ip1, ip2=ip2, ip3=ip3, &
                                    decoded_ip=decoded_ip, grid_info=grid_info, ig1234=ig1234, typvar=typvar,            &
                                    nomvar=nomvar, etiket=etiket, metadata=metadata)
         end if
